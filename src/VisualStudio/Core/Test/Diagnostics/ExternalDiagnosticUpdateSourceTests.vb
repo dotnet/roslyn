@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Using source = New ExternalErrorDiagnosticUpdateSource(
@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportedId()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportedDiagnosticId_Concurrent()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Using source = New ExternalErrorDiagnosticUpdateSource(
@@ -117,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestBuildStartEvent() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -196,7 +196,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.True(DiagnosticData.PropertiesForBuildDiagnostic.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
             Assert.Equal(WellKnownDiagnosticTags.Build, value)
 
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Dim waiter = New AsynchronousOperationListener()
@@ -242,7 +242,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
@@ -405,10 +405,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestBuildProgressUpdated() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
 
-                workspace.AddTestProject(New TestHostProject(workspace, language:=LanguageNames.CSharp))
+                workspace.AddTestProject(New EditorTestHostProject(workspace, language:=LanguageNames.CSharp))
 
                 Dim projectId1 = workspace.CurrentSolution.ProjectIds(0)
                 Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)

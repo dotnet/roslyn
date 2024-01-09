@@ -1684,12 +1684,12 @@
       </trans-unit>
       <trans-unit id="When_types_exactly_match">
         <source>When types exactly match</source>
-        <target state="new">When types exactly match</target>
+        <target state="translated">Wenn Typen exakt übereinstimmen</target>
         <note />
       </trans-unit>
       <trans-unit id="When_types_loosely_match">
         <source>When types loosely match</source>
-        <target state="new">When types loosely match</target>
+        <target state="translated">Wenn Typen lose übereinstimmen</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

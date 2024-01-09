@@ -15,13 +15,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -32,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
-            Workspace workspace, TestParameters parameters);
+            EditorTestWorkspace workspace, TestParameters parameters);
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters = null)
+            EditorTestWorkspace workspace, TestParameters parameters = null)
         {
             parameters ??= TestParameters.Default;
 
@@ -89,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
 
-        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
         internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
             return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             Document document,
             TextSpan selectedOrAnnotatedSpan,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             TestParameters parameters)
         {
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestActionOnLinkedFiles(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedText,
             CodeAction action,
             string expectedPreviewContents = null)
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         private static async Task VerifyPreviewContents(
-            TestWorkspace workspace, string expectedPreviewContents,
+            EditorTestWorkspace workspace, string expectedPreviewContents,
             ImmutableArray<CodeActionOperation> operations)
         {
             if (expectedPreviewContents != null)
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected static Document GetDocument(TestWorkspace workspace)
+        protected static Document GetDocument(EditorTestWorkspace workspace)
             => workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
         internal static void EnableOptions(

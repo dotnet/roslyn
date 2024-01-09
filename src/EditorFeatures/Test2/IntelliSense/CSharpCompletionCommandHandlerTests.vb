@@ -11609,7 +11609,7 @@ public class Class1
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
                 Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
                                                                    Return d.CursorPosition.HasValue
                                                                End Function)
@@ -12527,6 +12527,55 @@ public class C : B
                 state.SendTypeChars(" ")
 
                 Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.C.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("B2", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("B1")
             End Using
         End Function
     End Class

@@ -85,8 +85,5 @@
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Features\VisualBasicTest\CodeActions\AbstractVisualBasicCodeActionTest.vb" Link="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="..\..\Features\VisualBasicTest\Utilities\CodeSnippets.vb" Link="Utilities\CodeSnippets.vb" />
-  </ItemGroup>
+  <Import Project="..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>

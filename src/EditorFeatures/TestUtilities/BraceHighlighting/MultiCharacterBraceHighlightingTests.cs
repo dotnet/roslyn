@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -20,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
     [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
-            => TestWorkspace.Create(
+        protected override EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options)
+            => EditorTestWorkspace.Create(
                 NoCompilationConstants.LanguageName, compilationOptions: null, parseOptions: options, content: markup);
 
-        internal override IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
+        internal override IBraceMatchingService GetBraceMatchingService(EditorTestWorkspace workspace)
             => new TestBraceMatchingService();
 
         private class TestBraceMatchingService : IBraceMatchingService

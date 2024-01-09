@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         if (useListOptimization(_compilation, node, out var listElementType))
                         {
-                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(unwrapListElement));
+                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
@@ -108,12 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static BoundNode unwrapListElement(BoundNode element)
+            static BoundNode unwrapListElement(BoundCollectionExpression node, BoundNode element)
             {
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
                     Debug.Assert(spreadElement.IteratorBody is { });
-                    var iteratorBody = Binder.GetUnderlyingCollectionExpressionElement(((BoundExpressionStatement)spreadElement.IteratorBody).Expression);
+                    var iteratorBody = Binder.GetUnderlyingCollectionExpressionElement(node, ((BoundExpressionStatement)spreadElement.IteratorBody).Expression);
+                    Debug.Assert(iteratorBody is { });
                     return spreadElement.Update(
                         spreadElement.Expression,
                         spreadElement.ExpressionPlaceholder,
@@ -123,7 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         spreadElement.ElementPlaceholder,
                         new BoundExpressionStatement(iteratorBody.Syntax, iteratorBody));
                 }
-                return Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element);
+                else
+                {
+                    var result = Binder.GetUnderlyingCollectionExpressionElement(node, (BoundExpression)element);
+                    Debug.Assert(result is { });
+                    return result;
+                }
             }
         }
 

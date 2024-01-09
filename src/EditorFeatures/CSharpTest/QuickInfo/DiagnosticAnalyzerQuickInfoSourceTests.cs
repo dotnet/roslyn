@@ -181,7 +181,7 @@ namespace T
 ", description, ImmutableArray<TextSpan>.Empty);
         }
 
-        protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
+        protected static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
             var info = await GetQuickinfo(workspace, document, position);
@@ -192,7 +192,7 @@ namespace T
                 info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
         }
 
-        private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
+        private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
         {
             var sharedGlobalCache = workspace.ExportProvider.GetExportedValue<DiagnosticAnalyzerInfoCache.SharedGlobalCache>();
             var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(sharedGlobalCache);
@@ -200,7 +200,7 @@ namespace T
             return info;
         }
 
-        protected static async Task AssertNoContentAsync(TestWorkspace workspace, Document document, int position)
+        protected static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
         {
             var info = await GetQuickinfo(workspace, document, position);
             Assert.Null(info);
@@ -212,7 +212,7 @@ namespace T
             ImmutableArray<TextSpan> relatedSpans,
             CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
                 new CSharpCompilerDiagnosticAnalyzer(),
                 new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));

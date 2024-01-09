@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // This code avoids allocations where possible.
             // https://github.com/dotnet/roslyn/issues/54159
             string? previousLanguage = null;
-            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.SolutionState.ProjectStates)
             {
                 if (projectState.Language == previousLanguage)
                 {

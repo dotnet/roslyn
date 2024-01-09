@@ -4742,9 +4742,9 @@ static class Program
                 // (6,18): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         int* y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
-                // (7,17): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
+                // (7,23): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         var z = (int*)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("int*").WithLocation(7, 23));
         }
 
         [Fact]
@@ -4769,9 +4769,9 @@ static class Program
                 // (6,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
+                // (7,34): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("delegate*<void>").WithLocation(7, 34));
         }
 
         [Fact]
@@ -6959,9 +6959,9 @@ static class Program
                 // (8,15): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (9,24): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         object o = (S)([1, 2]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 24));
         }
 
         [Fact]
@@ -8079,26 +8079,316 @@ static class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
-        [Fact]
-        public void SpreadElement_Dynamic_03()
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_ArrayTarget(string targetElementType)
         {
-            string source = """
+            string source = $$"""
+                using System.Collections;
                 class Program
                 {
                     static void Main()
                     {
-                        dynamic x = new[] { 2, 3 };
-                        int[] y = [1, ..x];
-                        y.Report();
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetElementType}}[] a = [..d1, ..d2, ..e1, ..e2];
+                        a.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef });
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[1, 2, 3], "
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,25): error CS0029: Cannot implicitly convert type 'object' to 'int'
-                //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "int").WithLocation(6, 25));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(10,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 22),
+                    // 0.cs(10,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 28),
+                    // 0.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 0.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 40));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [CombinatorialData]
+        public void SpreadElement_Untyped_ArrayInterfaceTarget(
+            [CombinatorialValues("IEnumerable", "IReadOnlyList", "IList")] string targetInterfaceType,
+            [CombinatorialValues("int", "object")] string targetElementType)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetInterfaceType}}<{{targetElementType}}> c =
+                            [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(12,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(12, 16),
+                    // 0.cs(12,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(12, 22),
+                    // 0.cs(12,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(12, 28),
+                    // 0.cs(12,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(12, 34));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_NonGenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add({{targetElementType}} i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
+                    // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
+                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
+                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
+                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
+                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
+                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_GenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_CollectionBuilderTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(
+                    comp,
+                    verify: Verification.FailsPEVerify,
+                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], [5, 6], "));
+            }
         }
 
         [Fact]
@@ -11667,9 +11957,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11698,9 +11988,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11903,9 +12193,9 @@ partial class Program
                 // (20,17): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
+                // (26,24): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         var v12 = (S2)([]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(26, 24));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -18212,6 +18502,7 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
         [Fact]
         public void ListConstruction_Dynamic_03()
         {
@@ -18226,7 +18517,6 @@ partial class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[4, 5], "
             var comp = CreateCompilation(
                 new[] { source, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80);
@@ -21048,6 +21338,60 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementConversion()
+        {
+            string source = """
+                using System;
+                DateTimeOffset d = default;
+                ReadOnlySpan<DateTime> x = [d];
+                var y = (ReadOnlySpan<DateTime>)[d];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,29): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // ReadOnlySpan<DateTime> x = [d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(3, 29),
+                // (4,34): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // var y = (ReadOnlySpan<DateTime>)[d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(4, 34));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementType()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T>
+                {
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = [];
+                        var y = (MyCollection<object>)[];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (15,34): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<object> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(15, 34),
+                // (16,39): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         var y = (MyCollection<object>)[];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(16, 39));
+        }
+
         [Fact]
         public void TopLevelStatement_01()
         {
@@ -23101,6 +23445,129 @@ partial class Program
             void IOperation.Accept(OperationVisitor visitor) { }
 
             TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => throw null;
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
+                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(15, 37),
+                // (15,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(15, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71339")]
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Test
+                {
+                    Dictionary<string, object> Config => /*<bind>*/[
+                        .. GetConfig(),
+                    ]/*</bind>*/;
+                    private Dictionary<string, object> GetConfig() => new();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
+                //         .. GetConfig(),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetConfig()").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(5, 12));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.String, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: '[ ... ]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.String, System.Object>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. GetConfig()')
+                        Operand:
+                          IInvocationOperation ( System.Collections.Generic.Dictionary<System.String, System.Object> Test.GetConfig()) (OperationKind.Invocation, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: 'GetConfig()')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsInvalid, IsImplicit) (Syntax: 'GetConfig')
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
         }
 
         [Fact]
@@ -28851,6 +29318,268 @@ partial class Program
                   IL_009d:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_00a2:  ret
                 }
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_List()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        List<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Array()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        object[] items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Object[]) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Span()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        Span<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ReadOnlySpan()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.ReadOnlySpan<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImmutableArray()
+        {
+            var source = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_IEnumerableT()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImplementsIEnumerable()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection items = [new()];
+                    }
+                }
+
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(object obj) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
                 """);
         }
     }

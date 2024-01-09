@@ -16,6 +16,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -83,10 +84,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
                 .AddParts(
                     typeof(MockHostWorkspaceProvider),
-                    typeof(MockManagedHotReloadService))
+                    typeof(MockManagedHotReloadService),
+                    typeof(MockServiceBrokerProvider))
                 .AddParts(additionalParts);
 
             var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+            ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+            {
+                _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
+                _ => throw ExceptionUtilities.UnexpectedValue(t)
+            };
+
             ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
 
             solution = workspace.CurrentSolution;
