@@ -3328,7 +3328,11 @@ class C
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = """
+[Test3]: Unexpected type on the stack. { Offset = 0x6, Found = address of Int32, Expected = Native Int }
+[Test3]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+""" });
+            verifier.VerifyDiagnostics();
 
             string blobId = ExecutionConditionUtil.IsWindows ?
                 "I_000026F8" :
@@ -3342,7 +3346,7 @@ class C
 		01 00 00 00
 	)
 	// Fields
-	.field assembly static initonly int32 F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57 at " + blobId + @"
+	.field assembly static int32 F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57 at " + blobId + @"
 	.data cil " + blobId + @" = bytearray (
 		63 61 74 00
 	)
@@ -3388,7 +3392,7 @@ class C
 		01 00 00 00
 	)
 	// Fields
-	.field assembly static initonly uint8 '6E340B9CFFB37A989CA544E6BB780A2C78901D3FB33738768511A30617AFA01D' at " + blobId + @"
+	.field assembly static uint8 '6E340B9CFFB37A989CA544E6BB780A2C78901D3FB33738768511A30617AFA01D' at " + blobId + @"
 	.data cil " + blobId + @" = bytearray ( 00
 	)
 } // end of class <PrivateImplementationDetails>
