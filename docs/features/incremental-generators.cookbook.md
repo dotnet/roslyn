@@ -162,7 +162,7 @@ public class CustomGenerator : IIncrementalGenerator
 
                 namespace GeneratedNamespace
                 {
-                    public class GeneratedAttribute : Attribute
+                    internal sealed class GeneratedAttribute : Attribute
                     {
                     }
                 }
@@ -219,7 +219,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 `ForAttributeWithMetadataName` to collect the information needed to generate code, and use tuples (or create an equatable model)
  to pass along that information. That information should be extracted from syntax and symbols; **do not put syntax or symbols into
  your models**.
-e
+
 **Example:**
 
 ```csharp
@@ -242,7 +242,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                 namespace GeneratedNamespace
                 {
                     [AttributeUsage(AttributeTargets.Method)]
-                    public class GeneratedAttribute : Attribute
+                    internal sealed class GeneratedAttribute : Attribute
                     {
                     }
                 }
@@ -457,7 +457,7 @@ public class JsonUsingGenerator : IIncrementalGenerator
             var sourceText = SourceText.From($$"""
                 namespace GeneratedNamespace
                 {
-                    public class GeneratedClass
+                    internal sealed class GeneratedClass
                     {
                         public static const (int A, int B) SerializedContent = ({{pair.A}}, {{pair.B}});
                     }
