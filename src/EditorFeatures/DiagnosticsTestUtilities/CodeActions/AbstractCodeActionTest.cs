@@ -195,42 +195,4 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ps.WithFixProviderData(pickMembersService));
         }
     }
-
-    [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared, PartNotDiscoverable]
-    internal class TestPickMembersService : IPickMembersService
-    {
-        public ImmutableArray<string> MemberNames;
-        public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestPickMembersService()
-        {
-        }
-
-#pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
-        public TestPickMembersService(
-            ImmutableArray<string> memberNames,
-            Action<ImmutableArray<PickMembersOption>> optionsCallback)
-        {
-            MemberNames = memberNames;
-            OptionsCallback = optionsCallback;
-        }
-#pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
-
-        public PickMembersResult PickMembers(
-            string title,
-            ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options,
-            bool selectAll)
-        {
-            OptionsCallback?.Invoke(options);
-            return new PickMembersResult(
-                MemberNames.IsDefault
-                    ? members
-                    : MemberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                options,
-                selectAll);
-        }
-    }
 }
