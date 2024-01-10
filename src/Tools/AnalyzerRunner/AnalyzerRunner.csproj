@@ -7,6 +7,8 @@
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

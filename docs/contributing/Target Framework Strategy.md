@@ -22,9 +22,9 @@ Projects in our repository should include the following values in `<TargetFramew
 4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
 5. `$(NetRoslynToolset)`: packages that ship the Roslyn toolset. The compiler often builds against multiple target frameworks. This property controls which of those frameworks are shipped in the toolset packages. This value will potentially change in source builds.
 6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
-7. `$(NetRoslyn)`:
-    - code that needs to execute on .NET but not in any of the above categories.
-    - compiler unit tests
+7. `$(NetRoslyn)`:code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ...
+
+This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain corect product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFarmeworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
 
 **DO NOT** hard code .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
 

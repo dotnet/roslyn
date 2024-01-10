@@ -3,29 +3,20 @@
 
   <!-- 
     This props file manages the target framework properties for Roslyn. The strategy for these properties
-    is convered in "docs/contributing/Target Framework Strategy.md".
+    is convered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    on what these values mean.
 
-    This props file makes use of $(NetCurrent) and $(NetPrevious) which are values that change as .NET 
-    releases occur. When this happens, or any of the $(NetVS*) values change, it's important to re-evaluate
-    all the properties here to ensure there are none with duplicate values.
+    Requirements: 
+      - NetVSShared must include both NetVS and NetVSCode
+      - NetRoslynSourceBuild must include NetRoslynToolset
+      - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <!-- Represents the .NET core version that should be used if there are no specific product attachments to
-         consider -->
-    <NetRoslyn>net7.0</NetRoslyn>
-
-    <!-- Represents the private runtime for Visual Studio -->
-    <NetVS>net8.0</NetVS>
-
-    <!-- Represents the runtime VS Code (aka DevKit) executes on -->
-    <NetVSCode>net7.0</NetVSCode>
-
-    <!-- Represents code that executes on both VS Code and VS private runtime. Can be simplified to a single
-         TFM when the two agree -->
-    <NetVSShared>net7.0;net8.0</NetVSShared>
-
-    <!-- Represents all the .NET Core runtimes currently supported -->
+    <NetRoslyn>net8.0</NetRoslyn>
     <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
+    <NetVS>net8.0</NetVS>
+    <NetVSCode>net7.0</NetVSCode>
+    <NetVSShared>net7.0;net8.0</NetVSShared>
   </PropertyGroup>
 
   <!-- 
@@ -46,6 +37,7 @@
       <PropertyGroup>
         <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
       </PropertyGroup>
     </When>
 
@@ -56,6 +48,7 @@
       <PropertyGroup>
         <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
       </PropertyGroup>
     </When>
 
