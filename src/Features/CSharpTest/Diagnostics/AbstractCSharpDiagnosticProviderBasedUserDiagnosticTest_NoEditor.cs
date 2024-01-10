@@ -4,23 +4,23 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
 {
     public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
+        private static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script);
+
         protected AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
            : base(logger)
         {
         }
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
