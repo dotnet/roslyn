@@ -45,6 +45,7 @@ stages:
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.queueName }}
       steps:
+      - checkout: none
       - task: DownloadPipelineArtifact@2
         displayName: Download Test Payload
         inputs:

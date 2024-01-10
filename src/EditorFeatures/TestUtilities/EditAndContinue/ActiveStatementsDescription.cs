@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)
             {
-                var documentName = filePaths?[sourceIndex] ?? Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension));
+                var documentName = filePaths?[sourceIndex] ?? Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension ?? ""));
                 var tree = syntaxTreeFactory(SourceMarkers.Clear(markedSource), documentName);
                 var statements = CreateActiveStatementMapFromMarkers(markedSource, tree, flags, map);
 

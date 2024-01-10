@@ -16,9 +16,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
     [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
+    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
         [Theory]

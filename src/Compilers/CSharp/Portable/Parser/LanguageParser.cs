@@ -878,7 +878,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAttributeDeclaration()
         {
-            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
+            // Have to at least start with `[` to be an attribute
+            if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
+                return false;
+
+            using (this.GetDisposableResetPoint(resetOnDispose: true))
+            {
+                // Eat the `[`
+                EatToken();
+
+                // `[ id` could definitely begin an attribute.
+                if (this.IsTrueIdentifier())
+                    return true;
+
+                // `[ word: ...` could definitely start an attribute.
+                if (IsAttributeTarget())
+                    return true;
+
+                // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
+                // expr.  Note: this heuristic can be added to in the future.
+                if (SyntaxFacts.IsLiteralExpression(this.CurrentToken.Kind))
+                    return false;
+
+                return true;
+            }
         }
 
         private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)
@@ -907,6 +930,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.IsPossibleAttributeDeclaration(); // start of a new one...
         }
 
+        private bool IsAttributeTarget()
+            => IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken;
+
         private AttributeListSyntax? TryParseAttributeDeclaration(bool inExpressionContext)
         {
             if (this.IsIncrementalAndFactoryContextMatches &&
@@ -922,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             // Check for optional location :
-            var location = IsSomeWord(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+            var location = IsAttributeTarget()
                 ? _syntaxFactory.AttributeTargetSpecifier(ConvertToKeyword(this.EatToken()), this.EatToken(SyntaxKind.ColonToken))
                 : null;
 

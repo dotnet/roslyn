@@ -1,18 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
     <TargetFramework>net472</TargetFramework>
-    <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\EditorFeatures\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
-    <Compile Include="..\..\EditorFeatures\VisualBasicTest\Utils.vb" Link="Utils.vb" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -61,7 +56,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
   <ItemGroup>
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />

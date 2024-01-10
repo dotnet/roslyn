@@ -26,7 +26,7 @@ class C
         {|Reference:yyy|}++;
     }
 }"
-            Using workspace = TestWorkspace.CreateCSharp(source)
+            Using workspace = EditorTestWorkspace.CreateCSharp(source)
                 Dim testDocument = workspace.Documents.Single()
 
                 Dim view = testDocument.GetTextView()

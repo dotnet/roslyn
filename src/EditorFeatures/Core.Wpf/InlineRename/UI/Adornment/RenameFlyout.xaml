@@ -32,19 +32,16 @@
         BorderThickness="1"
         x:Name="Outline">
         <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
-            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 10">
+            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="22" />
                 </Grid.ColumnDefinitions>
 
-                <TextBox 
+                <rename:RenameUserInputPresenter
                     Grid.Column="0"
-                    x:Name="IdentifierTextBox" 
-                    Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
-                    GotFocus="IdentifierTextBox_GotFocus"
-                    HorizontalAlignment="Stretch" 
-                    PreviewKeyDown="IdentifierTextBox_KeyDown"/>
+                    x:Name="RenameUserInputPresenter"
+                    HorizontalAlignment="Stretch"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button 
@@ -95,7 +92,7 @@
                 <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
                 <TextBlock Grid.Column="1" Text="{Binding StatusText}" />
             </Grid>
-            
+
             <TextBlock 
                 Text="{Binding SearchText}" 
                 Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"

@@ -269,8 +269,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
 
-                if (methodSymbol != null &&
-                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
+                if (methodSymbol is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet })
                 {
                     continue;
                 }

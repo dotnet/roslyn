@@ -316,9 +316,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestInArgument2()
+    public async Task TestInArgument2_InterfacesOn()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -326,12 +326,52 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    X(new List<int>());
+                    X([|new|] List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([]);
                 }
 
                 void X(IEnumerable<int> list) { }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2_InterfacesOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        X(new List<int>());
+                    }
+
+                    void X(IEnumerable<int> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
     }
 
     [Fact]
@@ -662,7 +702,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestOnVariableDeclaratorDifferentType()
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOn()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -684,13 +724,50 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    IList<int> c = new List<int>
-                    {
-                        1
-                    };
+                    IList<int> c = [1];
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
     }
 
     [Fact]
