@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
     Partial Public MustInherit Class CodeStyleOptionBasedSeverityConfigurationTests
-        Inherits AbstractSuppressionDiagnosticTest
+        Inherits AbstractSuppressionDiagnosticTest_NoEditor
 
         Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
             Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
