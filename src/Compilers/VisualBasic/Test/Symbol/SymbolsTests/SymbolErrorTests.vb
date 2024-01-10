@@ -24344,6 +24344,7 @@ End Namespace"
                 options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 assemblyName:="D").EmitToImageReference()
 
+            ' ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
             Dim verifier = CompileAndVerify(
                 source:=codeA,
                 references:={referenceB, referenceC2, referenceD},
