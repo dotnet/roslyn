@@ -13,9 +13,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddFileBanner
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
     Partial Public Class AddFileBannerTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicAddFileBannerCodeRefactoringProvider()
         End Function
 

@@ -12,9 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTypeToTuple
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
     Partial Public Class ConvertAnonymousTypeToTupleTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertAnonymousTypeToTupleCodeRefactoringProvider()
         End Function
 

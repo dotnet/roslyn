@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousType
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousType
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)>
     Public Class ConvertAnonymousTypeToClassTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider()
         End Function
 
