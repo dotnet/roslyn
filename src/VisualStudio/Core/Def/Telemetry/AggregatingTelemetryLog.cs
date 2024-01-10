@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly FunctionId _functionId;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
-        private readonly object _lock;
+        private readonly object _flushLock;
 
-        private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
+        private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent, object Lock)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent, object)>.Empty;
 
         /// <summary>
         /// Creates a new aggregating telemetry log
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             _eventName = TelemetryLogger.GetEventName(functionId);
             _functionId = functionId;
             _aggregatingTelemetryLogManager = aggregatingTelemetryLogManager;
-            _lock = new();
+            _flushLock = new();
 
             if (bucketBoundaries != null)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
                 throw ExceptionUtilities.Unreachable();
 
-            (var histogram, _) = ImmutableInterlocked.GetOrAdd(ref _histograms, name, name =>
+            (var histogram, _, var histogramLock) = ImmutableInterlocked.GetOrAdd(ref _histograms, name, name =>
             {
                 var telemetryEvent = new TelemetryEvent(_eventName);
 
@@ -95,11 +95,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
                 }
 
                 var histogram = _meter.CreateHistogram<long>(metricName, _histogramConfiguration);
+                var histogramLock = new object();
 
-                return (histogram, telemetryEvent);
+                return (histogram, telemetryEvent, histogramLock);
             });
 
-            histogram.Record(value);
+            lock (histogramLock)
+            {
+                histogram.Record(value);
+            }
 
             _aggregatingTelemetryLogManager.EnsureTelemetryWorkQueued();
         }
@@ -119,16 +123,25 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void Flush()
         {
-            lock (_lock)
+            // This lock ensures that multiple calls to Flush cannot occur simultaneously.
+            //  Without this lock, we would could potentially call PostMetricEvent multiple
+            //  times for the same histogram.
+            lock (_flushLock)
             {
-                foreach (var (histogram, telemetryEvent) in _histograms.Values)
+                foreach (var (histogram, telemetryEvent, histogramLock) in _histograms.Values)
                 {
-                    var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
+                    // This fine-grained lock ensures that the histogram isn't modified (via a Record call)
+                    //  during the creation of the TelemetryHistogramEvent or the PostMetricEvent
+                    //  call that operates on it.
+                    lock (histogramLock)
+                    {
+                        var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
 
-                    _session.PostMetricEvent(histogramEvent);
+                        _session.PostMetricEvent(histogramEvent);
+                    }
                 }
 
-                _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
+                _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent, object)>.Empty;
             }
         }
     }
