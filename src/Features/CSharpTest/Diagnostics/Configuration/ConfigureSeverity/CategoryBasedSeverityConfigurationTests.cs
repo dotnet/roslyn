@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
 {
-    public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class CategoryBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         private sealed class CustomDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         }
 
         [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public sealed class SilentConfigurationTests : AllAnalyzersSeverityConfigurationTests
+        public sealed class SilentConfigurationTests : CategoryBasedSeverityConfigurationTests
         {
             /// <summary>
             /// Code action ranges:
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
             ///     2. (5 - 9) => Code actions for diagnostic "Category" configuration with severity None, Silent, Suggestion, Warning and Error
             ///     3. (10 - 14) => Code actions for all analyzer diagnostics configuration with severity None, Silent, Suggestion, Warning and Error
             /// </summary>
-            protected override int CodeActionIndex => 11;
+            protected override int CodeActionIndex => 6;
 
             [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty()
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_analyzer_diagnostic.severity = suggestion   # Comment
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = suggestion   # Comment
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     class Program1 { }
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_analyzer_diagnostic.severity = silent   # Comment
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent   # Comment
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -136,8 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment1
-                    dotnet_diagnostic.category-CustomCategory.severity = warning   # Comment2
+                    dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -150,11 +149,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     class Program1 { }
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment1
-                    dotnet_diagnostic.category-CustomCategory.severity = warning   # Comment2
+                    dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -173,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_analyzer_diagnostic.severity = suggestion
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = suggestion
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -186,12 +184,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     class Program1 { }
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
-                    dotnet_analyzer_diagnostic.severity = suggestion
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = suggestion
 
                     [*.cs]
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_analyzer_diagnostic.severity = silent
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_analyzer_diagnostic.severity = none
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = none
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_analyzer_diagnostic.XYZ1111.severity = suggestion
+                    dotnet_analyzer_diagnostic.category-XYZ1111Category.severity = suggestion
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -261,10 +259,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_analyzer_diagnostic.XYZ1111.severity = suggestion
+                    dotnet_analyzer_diagnostic.category-XYZ1111Category.severity = suggestion
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -285,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*am/fi*e.cs]
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = warning
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -299,13 +297,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     class Program1 { }
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*am/fi*e.cs]
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = warning
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
 
                     [*.cs]
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -324,8 +322,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     [|class Program1 { }|]
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*am/fii*e.cs]
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = warning
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
@@ -338,13 +336,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     class Program1 { }
                             </Document>
                             <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*am/fii*e.cs]
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = warning
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
 
                     [*.cs]
 
-                    # Default severity for all analyzer diagnostics
-                    dotnet_analyzer_diagnostic.severity = silent
+                    # Default severity for analyzer diagnostics with category 'CustomCategory'
+                    dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
                     </AnalyzerConfigDocument>
                         </Project>
                     </Workspace>
