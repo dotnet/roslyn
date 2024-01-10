@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertIfToSwitch
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
     Public Class ConvertIfToSwitchFixAllTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertIfToSwitchCodeRefactoringProvider()
         End Function
 

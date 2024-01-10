@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFor
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
     Partial Public Class ConvertForEachToForTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 

@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     <Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
     Public Class ConvertAutoPropertyToFullPropertyTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
         End Function
 
