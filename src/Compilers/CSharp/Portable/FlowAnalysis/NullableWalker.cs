@@ -147,12 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!StateForLambda.HasValue);
                     return new VisitResult(RValueType, lvalueType, NestedVisitResults);
                 }
-                else if (StateForLambda.HasValue)
-                {
-                    return new VisitResult(RValueType, lvalueType, StateForLambda);
-                }
 
-                return new VisitResult(RValueType, lvalueType);
+                return new VisitResult(RValueType, lvalueType, StateForLambda);
             }
 
             internal string GetDebuggerDisplay()

@@ -25578,13 +25578,13 @@ partial class Program
                 using System.Runtime.CompilerServices;
 
                 #nullable enable
-                MyCollection<string?> x1 = [null];
-                MyCollection<string> x2 = [null];
+                MyCollection<string?> x1 = [null]; // 1
+                MyCollection<string> x2 = [null]; // 2
 
                 #nullable disable
                 MyCollection<string>
                 #nullable enable
-                    x3 = [null];
+                    x3 = [null]; // 3
 
                 [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
                 public struct MyCollection<T> : IEnumerable<T>
@@ -25604,12 +25604,14 @@ partial class Program
                 }
                 """;
 
+            // We're missing diagnostics for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                // MyCollection<string?> x1 = [null];
+                // MyCollection<string?> x1 = [null]; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // MyCollection<string> x2 = [null];
+                // MyCollection<string> x2 = [null]; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
                 );
         }
@@ -26688,17 +26690,13 @@ partial class Program
 
                 public class Container<T>
                 {
-                    public T Element;
+                    public T Element = default!;
                 }
                 """;
 
             // Missing diagnostics for conversion of element to iteration type in Add scenario.
             // Tracked by https://github.com/dotnet/roslyn/issues/68786
-            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
-                // (13,14): warning CS8618: Non-nullable field 'Element' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-                //     public T Element;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Element").WithArguments("field", "Element").WithLocation(13, 14)
-                );
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
