@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-    public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public SimplifyTypeNamesTests(ITestOutputHelper logger)
             : base(logger)
