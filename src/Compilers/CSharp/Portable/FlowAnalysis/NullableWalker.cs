@@ -6592,20 +6592,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
                             {
-                                if (method is ErrorMethodSymbol)
-                                {
-                                    // The parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
-                                    // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
-                                    // We flush the completion with a plausible/dummy type and remove it.
-                                    completion(TypeWithAnnotations.Create(argument.Type));
-                                    TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
-                                }
-                                else
-                                {
-                                    // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
-                                    // (we won't be able to complete that continuation)
-                                    Debug.Assert(false);
-                                }
+                                // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
+                                // (we won't be able to complete that continuation)
+                                // We flush the completion with a plausible/dummy type and remove it.
+                                completion(TypeWithAnnotations.Create(argument.Type));
+                                TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
+
+                                // This is known to happen for certain error scenarios, because
+                                // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                                // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                                Debug.Assert(method is ErrorMethodSymbol);
                             }
                             continue;
                         }

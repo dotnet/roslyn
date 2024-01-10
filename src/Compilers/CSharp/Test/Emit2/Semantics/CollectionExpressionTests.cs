@@ -10210,7 +10210,7 @@ static class Program
                 }
                 """;
 
-            // Missing diagnostics for conversion of element to iteration type in Add scenario.
+            // We should check conversion to the iteration type
             // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -26694,7 +26694,7 @@ partial class Program
                 }
                 """;
 
-            // Missing diagnostics for conversion of element to iteration type in Add scenario.
+            // We should check conversion to the iteration type
             // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(src).VerifyEmitDiagnostics();
 
@@ -27260,9 +27260,9 @@ partial class Program
             Assert.Equal("System.Object? C.M<System.Object?>(System.Object?[]! a)",
                 model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])");
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])");
             Assert.Equal("System.Object! C.M<System.Object!>(System.Object![]! a)",
-                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
