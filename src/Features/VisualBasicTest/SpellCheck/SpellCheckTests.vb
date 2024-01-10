@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
     <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
     Public Class SpellCheckTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicSpellCheckCodeFixProvider())
@@ -495,7 +495,7 @@ End Class")
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
                 Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
