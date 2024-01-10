@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.Build.Traversal">
+  <PropertyGroup>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+  </PropertyGroup>
   <!--
     This build project is used to allow CI to only build the projects required to build and run integration tests.
     Everything else (for example other unit test projects) are excluded to speed up the build time.
