@@ -3069,6 +3069,237 @@ class Program
 }");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefField()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(new S(ref n).GetI());
+                System.Console.Write(n);
+
+                ref struct S
+                {
+                    ref int i;
+                    public S(ref int n) => i = ref n;
+                    public int GetI() => i = 2;
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "22" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.GetI", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "ref int S.i"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  dup
+                  IL_0008:  stind.i4
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefField_Temp()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(new S(ref n).GetI());
+                System.Console.Write(n);
+
+                ref struct S
+                {
+                    ref int i;
+                    public S(ref int n) => i = ref n;
+                    public int GetI()
+                    {
+                        int x = i = 2;
+                        x++;
+                        return x;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "32" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.GetI", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "ref int S.i"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  dup
+                  IL_0008:  stind.i4
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  add
+                  IL_000b:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefParameter()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(C.GetI(ref n));
+                System.Console.Write(n);
+
+                static class C
+                {
+                    public static int GetI(ref int n) => n = 2;
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "22");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.GetI", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  dup
+                  IL_0003:  stloc.0
+                  IL_0004:  stind.i4
+                  IL_0005:  ldloc.0
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefParameter_Temp()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(C.GetI(ref n));
+                System.Console.Write(n);
+
+                
+                static class C
+                {
+                    public static int GetI(ref int n)
+                    {
+                        int x = n = 2;
+                        x++;
+                        return x;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "32");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.GetI", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  dup
+                  IL_0003:  stloc.0
+                  IL_0004:  stind.i4
+                  IL_0005:  ldloc.0
+                  IL_0006:  ldc.i4.1
+                  IL_0007:  add
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefLocal()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(C.GetI(false, ref n, ref n));
+                System.Console.Write(n);
+
+                static class C
+                {
+                    public static int GetI(bool b, ref int n, ref int m)
+                    {
+                        ref int i = ref n;
+                        if (b) { i = ref m; }
+                        return i = 2;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "22");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.GetI", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  3
+                  .locals init (int& V_0, //i
+                                int V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  brfalse.s  IL_0007
+                  IL_0005:  ldarg.2
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  dup
+                  IL_000a:  stloc.1
+                  IL_000b:  stind.i4
+                  IL_000c:  ldloc.1
+                  IL_000d:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefLocal_Temp()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(C.GetI(false, ref n, ref n));
+                System.Console.Write(n);
+
+                static class C
+                {
+                    public static int GetI(bool b, ref int n, ref int m)
+                    {
+                        ref int i = ref n;
+                        if (b) { i = ref m; }
+                        int x = i = 2;
+                        x++;
+                        return x;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "32");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.GetI", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  3
+                  .locals init (int& V_0, //i
+                                int V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  brfalse.s  IL_0007
+                  IL_0005:  ldarg.2
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  dup
+                  IL_000a:  stloc.1
+                  IL_000b:  stind.i4
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  add
+                  IL_000f:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void RefLocalsAreVariables()
         {
