@@ -4086,7 +4086,7 @@ End Class
 
             Dim expected = "
 Imports System
-" & CodeSnippets.FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As FormattableString)
     End Sub
@@ -4121,7 +4121,7 @@ End Class
 
             Dim expected = "
 Imports System
-" & CodeSnippets.FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As String)
     End Sub
