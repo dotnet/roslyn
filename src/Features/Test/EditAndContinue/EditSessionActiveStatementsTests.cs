@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(NoCompilationLanguageService));
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
 
         private static EditSession CreateEditSession(
             Solution solution,
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
+                EditAndContinueTestHelpers.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
             debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);

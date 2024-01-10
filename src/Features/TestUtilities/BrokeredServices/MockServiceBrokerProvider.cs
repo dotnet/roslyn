@@ -4,11 +4,10 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
 [Export(typeof(IServiceBrokerProvider)), PartNotDiscoverable, Shared]
 [method: ImportingConstructor]
