@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStatements
     <Trait(Traits.Feature, Traits.Features.CodeActionsMergeConsecutiveIfStatements)>
     Partial Public NotInheritable Class MergeConsecutiveIfStatementsTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicMergeConsecutiveIfStatementsCodeRefactoringProvider()
         End Function
 
