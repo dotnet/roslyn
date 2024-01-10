@@ -12,9 +12,9 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
     <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
     Public Class EncapsulateFieldTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
