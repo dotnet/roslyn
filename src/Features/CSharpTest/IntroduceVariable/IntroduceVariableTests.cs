@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -1888,7 +1887,7 @@ options: ImplicitTypingEverywhere());
 
                 private const int {|Rename:V|} = 1 + 1;
             }
-            """, parameters: new TestParameters(Options.Regular));
+            """, parameters: new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1936,7 +1935,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1950,7 +1949,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1967,7 +1966,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1984,7 +1983,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2005,7 +2004,7 @@ options: ImplicitTypingEverywhere());
                             select [|x + x|];
                 }
             }
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2049,7 +2048,7 @@ options: ImplicitTypingEverywhere());
             }
             #line default
             """,
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
     }
 
     [Fact]
