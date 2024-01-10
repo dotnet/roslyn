@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
+    <ProjectReference Include="..\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -745,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -846,7 +845,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
