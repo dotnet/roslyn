@@ -306,13 +306,13 @@ namespace RunTests
                 var configDirectory = Path.Combine(project, options.Configuration);
                 if (!Directory.Exists(configDirectory))
                 {
-                    Console.WriteLine($"Skipping {name} because {configDirectory} does not exist");
+                    Console.WriteLine($"Skipping {name} because {options.Configuration} does not exist");
                     continue;
                 }
 
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
-                    var tfm = Path.GetDirectoryName(targetFrameworkDirectory)!;
+                    var tfm = Path.GetFileName(targetFrameworkDirectory)!;
                     if (!IsMatch(options.TestTargetFramework, tfm))
                     {
                         Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");
@@ -334,6 +334,8 @@ namespace RunTests
                             var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
                             throw new Exception(message);
                         }
+
+                        Console.WriteLine($"Found unit test assembly '{matches[0]}' in '{targetFrameworkDirectory}'");
                         list.Add(new AssemblyInfo(matches[0]));
                     }
                     else
