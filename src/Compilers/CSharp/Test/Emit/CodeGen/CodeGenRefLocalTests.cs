@@ -3085,18 +3085,21 @@ class Program
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "22" : null,
-                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.GetI", """
                 {
-                  // Code size       10 (0xa)
+                  // Code size       12 (0xc)
                   .maxstack  3
+                  .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "ref int S.i"
                   IL_0006:  ldc.i4.2
                   IL_0007:  dup
-                  IL_0008:  stind.i4
-                  IL_0009:  ret
+                  IL_0008:  stloc.0
+                  IL_0009:  stind.i4
+                  IL_000a:  ldloc.0
+                  IL_000b:  ret
                 }
                 """);
         }
@@ -3122,20 +3125,23 @@ class Program
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "32" : null,
-                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.GetI", """
                 {
-                  // Code size       12 (0xc)
+                  // Code size       14 (0xe)
                   .maxstack  3
+                  .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "ref int S.i"
                   IL_0006:  ldc.i4.2
                   IL_0007:  dup
-                  IL_0008:  stind.i4
-                  IL_0009:  ldc.i4.1
-                  IL_000a:  add
-                  IL_000b:  ret
+                  IL_0008:  stloc.0
+                  IL_0009:  stind.i4
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  add
+                  IL_000d:  ret
                 }
                 """);
         }
