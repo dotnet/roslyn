@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace RunTests
 {
@@ -298,6 +297,7 @@ namespace RunTests
                 var name = Path.GetFileName(project);
                 if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
+                    Console.WriteLine($"Skipping {name} because it is not included or is excluded");
                     continue;
                 }
 
@@ -306,13 +306,16 @@ namespace RunTests
                 var configDirectory = Path.Combine(project, options.Configuration);
                 if (!Directory.Exists(configDirectory))
                 {
+                    Console.WriteLine($"Skipping {name} because {configDirectory} does not exist");
                     continue;
                 }
 
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
-                    if (!IsMatch(options.TestTargetFramework, Path.GetDirectoryName(targetFrameworkDirectory)))
+                    var tfm = Path.GetDirectoryName(targetFrameworkDirectory)!;
+                    if (!IsMatch(options.TestTargetFramework, tfm))
                     {
+                        Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");
                         continue;
                     }
 
@@ -332,6 +335,10 @@ namespace RunTests
                             throw new Exception(message);
                         }
                         list.Add(new AssemblyInfo(matches[0]));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{targetFrameworkDirectory} does not contain unit tests");
                     }
                 }
             }
@@ -374,7 +381,7 @@ namespace RunTests
                 testTargetFramework switch
                 {
                     TestTargetFramework.Both => true,
-                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"^net[\d]+\."),
+                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"^net\d+\."),
                     TestTargetFramework.Framework => dirName is "net472",
                     _ => throw new InvalidOperationException($"Unexpected {nameof(TestTargetFramework)} value: {testTargetFramework}"),
                 };
