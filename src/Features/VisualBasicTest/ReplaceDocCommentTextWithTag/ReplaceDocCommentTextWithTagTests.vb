@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceDocCommentTextWithTag
     <Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
     Public Class ReplaceDocCommentTextWithTagTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider()
         End Function
 
