@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NameTupleElement
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsNameTupleElement)>
     Public Class NameTupleElementTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicNameTupleElementCodeRefactoringProvider()
         End Function
 
