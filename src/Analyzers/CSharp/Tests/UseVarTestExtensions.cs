@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
         private static readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
         private static readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
 
+#if false
+
         public static OptionsCollection PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest test)
             => new OptionsCollection(test.GetLanguage())
             {
@@ -107,13 +109,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone },
             };
 
+#endif
+
         public static OptionsCollection PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
-    => new OptionsCollection(test.GetLanguage())
-    {
-                { CSharpCodeStyleOptions.VarElsewhere, offWithError },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError },
-    };
+            => new OptionsCollection(test.GetLanguage())
+            {
+                        { CSharpCodeStyleOptions.VarElsewhere, offWithError },
+                        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
+                        { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError },
+            };
 
         public static OptionsCollection PreferImplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor test)
             => new OptionsCollection(test.GetLanguage())

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
-    Public Class ActiveStatementTrackingServiceTests
+    Public Class TrackingSpanTests
         Inherits EditingTestBase
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")>

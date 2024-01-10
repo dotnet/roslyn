@@ -106,6 +106,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
