@@ -13,10 +13,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public Class BinaryExpressionWrappingTests
         Inherits AbstractWrappingTests
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicWrappingCodeRefactoringProvider()
-        End Function
-
         Private ReadOnly Property EndOfLine As TestParameters =
             New TestParameters(options:=[Option](CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.EndOfLine))
 

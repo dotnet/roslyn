@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public Class ParameterWrappingTests
         Inherits AbstractWrappingTests
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicWrappingCodeRefactoringProvider()
-        End Function
-
         <Fact>
         Public Async Function TestMissingWithSyntaxError() As Task
             Await TestMissingAsync(
