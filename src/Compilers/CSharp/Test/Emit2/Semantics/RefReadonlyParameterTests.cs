@@ -7180,7 +7180,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
         else
         {
-            if (x == "ref" && y is "in" or "ref readonly")
+            if (x is "ref" && y is "in" or "ref readonly")
             {
                 expectedDiagnostics = new[]
                 {
@@ -7245,25 +7245,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             x(in i);
             """;
 
-        var source3 = $"""
-            var c = new C();
-            Y y = c.Y1;
-            var i = 1;
-            y({modifier} i);
-            y = c.X1;
-            y({modifier} i);
-            y = c.X2;
-            y({modifier} i);
-            """;
-
-        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "Y1 X1 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
-            // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = c.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
-            // 1.cs(7,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = c.X2;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X2").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 5));
-
         if (modifier == "ref")
         {
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
@@ -7284,6 +7265,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // x = c.Y2;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y2").WithArguments("in int p", "ref readonly int p").WithLocation(7, 5));
         }
+
+        var source3 = $"""
+            var c = new C();
+            Y y = c.Y1;
+            var i = 1;
+            y({modifier} i);
+            y = c.X1;
+            y({modifier} i);
+            y = c.X2;
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "Y1 X1 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = c.X1;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
+            // 1.cs(7,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = c.X2;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X2").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 5));
     }
 
     [Theory, CombinatorialData]
@@ -7352,19 +7352,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             x(in i);
             """;
 
-        var source3 = $"""
-            Y y = C.Y;
-            var i = 1;
-            y({modifier} i);
-            y = (Y)C.X;
-            y({modifier} i);
-            """;
-
-        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
-            // 1.cs(4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = (Y)C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(Y)C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
-
         if (modifier == "ref")
         {
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
@@ -7379,6 +7366,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // x = (X)C.Y;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(X)C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 5));
         }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = (Y)C.X;
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
+            // 1.cs(4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = (Y)C.X;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(Y)C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
     }
 
     [Theory, CombinatorialData]
@@ -7403,19 +7403,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             x(in i);
             """;
 
-        var source3 = $"""
-            Y y = C.Y;
-            var i = 1;
-            y({modifier} i);
-            y = new Y(C.X);
-            y({modifier} i);
-            """;
-
-        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
-            // 1.cs(4,11): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = new Y(C.X);
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 11));
-
         if (modifier == "ref")
         {
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
@@ -7430,6 +7417,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // x = new X(C.Y);
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 11));
         }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = new Y(C.X);
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
+            // 1.cs(4,11): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = new Y(C.X);
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 11));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
@@ -7625,20 +7625,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var comp1 = CreateCompilation(source1).VerifyDiagnostics();
         var comp1Ref = comp1.ToMetadataReference();
 
+        DiagnosticDescription[] expectedDiagnostics;
+        string expectedOutput;
+
         var source2 = """
             X x = C.X;
             var i = 1;
             x(in i);
             x = C.Y;
             x(in i);
-            """;
-
-        var source3 = $"""
-            Y y = C.Y;
-            var i = 1;
-            y({modifier} i);
-            y = C.X;
-            y({modifier} i);
             """;
 
         if (modifier == "ref")
@@ -7653,6 +7648,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // (5,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // x(in i);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 6));
+
+            expectedDiagnostics = new[]
+            {
+                // (4,7): error CS0123: No overload for 'Y' matches delegate 'X'
+                // x = C.Y;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(4, 7)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
         }
         else
         {
@@ -7666,39 +7671,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // (5,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // x(in i);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 6));
-        }
 
-        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5)
-        };
-
-        var expectedOutput = "YX";
-
-        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-
-        if (modifier == "ref")
-        {
-            expectedDiagnostics = new[]
-            {
-                // (4,7): error CS0123: No overload for 'Y' matches delegate 'X'
-                // x = C.Y;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(4, 7)
-            };
-
-            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
-        }
-        else
-        {
             expectedDiagnostics = new[]
             {
                 // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
@@ -7711,6 +7684,31 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = C.X;
+            y({modifier} i);
+            """;
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = C.X;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
+
+        expectedDiagnostics = new[]
+        {
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = C.X;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5)
+        };
+
+        expectedOutput = "YX";
+
+        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -8092,13 +8090,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         var source1 = getSource("x = (delegate*<ref readonly int, void>)&Y;");
-        var source2 = getSource($"y = (delegate*<{modifier} int, void>)&X;");
-
-        CompileAndVerify(new[] { source2, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
-            expectedOutput: "XYXX", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
-            //     y = (delegate*<in int, void>)&X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, $"(delegate*<{modifier} int, void>)&X").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 9));
 
         if (modifier == "ref")
         {
@@ -8115,6 +8106,14 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 //     x = (delegate*<ref readonly int, void>)&Y;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(delegate*<ref readonly int, void>)&Y").WithArguments("in int p", "ref readonly int").WithLocation(10, 9));
         }
+
+        var source2 = getSource($"y = (delegate*<{modifier} int, void>)&X;");
+
+        CompileAndVerify(new[] { source2, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
+            expectedOutput: "XYXX", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+            // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            //     y = (delegate*<in int, void>)&X;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, $"(delegate*<{modifier} int, void>)&X").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 9));
     }
 
     [Theory, CombinatorialData]
@@ -8134,6 +8133,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         comp1.VerifyDiagnostics();
         var comp1Ref = comp1.ToMetadataReference();
 
+        DiagnosticDescription[] expectedDiagnostics;
+        string expectedOutput;
+
         var source2 = """
             unsafe
             {
@@ -8144,6 +8146,58 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 C.X2(in i);
             }
             """;
+
+        var comp = CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe);
+        if (modifier == "ref")
+        {
+            comp.VerifyDiagnostics(
+                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
+                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12),
+                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
+
+            expectedDiagnostics = new[]
+            {
+                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
+                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12),
+                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
+
+            expectedDiagnostics = new[]
+            {
+                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12)
+            };
+
+            expectedOutput = "XY";
+
+            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+        }
 
         var source3 = $$"""
             unsafe
@@ -8162,76 +8216,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(6, 12));
 
-        var comp = CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe);
-        if (modifier == "ref")
-        {
-            comp.VerifyDiagnostics(
-                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-                //     C.X2(in i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
-                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
-                //     C.X2 = &C.Y1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12),
-                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-                //     C.X2(in i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
-        }
-        else
-        {
-            comp.VerifyDiagnostics(
-                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-                //     C.X2(in i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
-                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
-                //     C.X2 = &C.Y1;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12),
-                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-                //     C.X2(in i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
-        }
-
-        var expectedDiagnostics = new[]
+        expectedDiagnostics = new[]
         {
             // (6,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(6, 12)
         };
 
-        var expectedOutput = "YX";
+        expectedOutput = "YX";
 
         CompileAndVerify(source3, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
             expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source3, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
             expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-
-        if (modifier == "ref")
-        {
-            expectedDiagnostics = new[]
-            {
-                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
-                //     C.X2 = &C.Y1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12)
-            };
-
-            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
-        }
-        else
-        {
-            expectedDiagnostics = new[]
-            {
-                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
-                //     C.X2 = &C.Y1;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12)
-            };
-
-            expectedOutput = "XY";
-
-            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-        }
     }
 
     [Fact]
@@ -8262,26 +8259,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
 
-        var source3 = """
-            unsafe
-            {
-                C.Y2 = &C.Y1;
-                var i = 1;
-                C.Y2(in i);
-                C.Y2 = &C.X1;
-                C.Y2(in i);
-            }
-            """;
-
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
             // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref int, void>'
             //     C.X2 = &C.Y1;
             Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref int, void>").WithLocation(6, 12));
-
-        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (6,12): error CS8757: No overload for 'X1' matches function pointer 'delegate*<in int, void>'
-            //     C.Y2 = &C.X1;
-            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.X1").WithArguments("X1", "delegate*<in int, void>").WithLocation(6, 12));
 
         var expectedDiagnostics = new[]
         {
@@ -8296,6 +8277,22 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
             expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        var source3 = """
+            unsafe
+            {
+                C.Y2 = &C.Y1;
+                var i = 1;
+                C.Y2(in i);
+                C.Y2 = &C.X1;
+                C.Y2(in i);
+            }
+            """;
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+            // (6,12): error CS8757: No overload for 'X1' matches function pointer 'delegate*<in int, void>'
+            //     C.Y2 = &C.X1;
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.X1").WithArguments("X1", "delegate*<in int, void>").WithLocation(6, 12));
 
         expectedDiagnostics = new[]
         {
@@ -8419,12 +8416,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         var source1 = getSource($"""x = (X)(({modifier} int p) => System.Console.Write("3"));""");
-        var source2 = getSource("""y = (Y)((ref readonly int p) => System.Console.Write("4"));""");
-
-        CompileAndVerify(source2, expectedOutput: "1214").VerifyDiagnostics(
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = (Y)((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(Y)((ref readonly int p) => System.Console.Write(""4""))").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(8, 5));
 
         if (modifier == "ref")
         {
@@ -8443,6 +8434,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 // x = (X)((in int p) => System.Console.Write("3"));
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(X)((in int p) => System.Console.Write(""3""))").WithArguments("in int p", "ref readonly int p").WithLocation(8, 5));
         }
+
+        var source2 = getSource("""y = (Y)((ref readonly int p) => System.Console.Write("4"));""");
+
+        CompileAndVerify(source2, expectedOutput: "1214").VerifyDiagnostics(
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = (Y)((ref readonly int p) => System.Console.Write("4"));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(Y)((ref readonly int p) => System.Console.Write(""4""))").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(8, 5));
     }
 
     [Theory, CombinatorialData]
@@ -8468,10 +8466,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.Y((ref readonly int p) => System.Console.Write("3"));
             """;
 
-        var source3 = $$"""
-            C.X(({{modifier}} int p) => System.Console.Write("4"));
-            """;
-
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (1,10): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // C.X((ref readonly int p) => System.Console.Write("1"));
@@ -8494,6 +8488,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        var source3 = $$"""
+            C.X(({{modifier}} int p) => System.Console.Write("4"));
+            """;
 
         if (modifier == "ref")
         {
