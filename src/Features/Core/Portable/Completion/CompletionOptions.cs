@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
-        public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
-        public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
+        public bool ShowNewSnippetExperienceUserOption { get; init; } = true;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
@@ -70,8 +69,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Whether items from new snippet experience should be included in the completion list.
-        /// This takes into consideration the experiment we are running in addition to the value
-        /// from user facing options.
         /// </summary>
         public bool ShouldShowNewSnippetExperience(Document document)
         {
@@ -88,8 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
-            return ShowNewSnippetExperienceUserOption ?? ShowNewSnippetExperienceFeatureFlag;
+            return ShowNewSnippetExperienceUserOption;
         }
     }
 }
