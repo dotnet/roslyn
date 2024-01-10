@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.InvertLogical
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertLogical
     <Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
     Partial Public Class InvertLogicalTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInvertLogicalCodeRefactoringProvider()
         End Function
 

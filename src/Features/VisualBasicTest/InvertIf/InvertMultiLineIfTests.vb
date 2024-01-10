@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
     <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertMultiLineIfTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInvertMultiLineIfCodeRefactoringProvider()
         End Function
 

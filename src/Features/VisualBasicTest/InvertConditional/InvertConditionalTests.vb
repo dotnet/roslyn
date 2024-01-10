@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.InvertConditional
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertConditional
     <Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
     Partial Public Class InvertConditionalTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInvertConditionalCodeRefactoringProvider()
         End Function
 
