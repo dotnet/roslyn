@@ -73,7 +73,6 @@
   <ItemGroup>
     <Folder Include="CodeActions\Utilities\" />
     <Folder Include="My Project\" />
-    <Folder Include="Utilities\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Debugging\Resources\*.*" />
