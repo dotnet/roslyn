@@ -7,7 +7,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator</RootNamespace>
     <AssemblyName>VBSyntaxGenerator</AssemblyName>
     <OptionStrict>Off</OptionStrict>
-    <TargetFramework>$(NetPrevious)</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>

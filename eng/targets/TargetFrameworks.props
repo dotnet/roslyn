@@ -23,6 +23,9 @@
     <!-- Represents code that executes on both VS Code and VS private runtime. Can be simplified to a single
          TFM when the two agree -->
     <NetVSShared>net7.0;net8.0</NetVSShared>
+
+    <!-- Represents all the .NET Core runtimes currently supported -->
+    <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
   </PropertyGroup>
 
   <!-- 

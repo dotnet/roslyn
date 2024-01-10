@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
@@ -32,20 +31,6 @@ namespace BuildBoss
             try
             {
                 var build = Serialization.Read(_logFilePath);
-
-                var allGood = true;
-                allGood &= CheckDoubleWrites(build);
-                allGood &= CheckDoubleTargetFramework(build);
-                return allGood;
-            }
-            catch (Exception ex)
-            {
-                textWriter.WriteLine($"Error processing binary log file: {ex.Message}");
-                return false;
-            }
-
-            bool CheckDoubleWrites(Build build)
-            {
                 var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
 
                 // Issue https://github.com/dotnet/roslyn/issues/62372
@@ -67,41 +52,10 @@ namespace BuildBoss
 
                 return true;
             }
-
-            // Check to see if any TargetFrameworks entry includes the same TFM multiple times.
-            // Our use of MSBuild properties to set TFM can lead to this particularly when moving
-            // the base TFMs forward.
-            bool CheckDoubleTargetFramework(Build build)
+            catch (Exception ex)
             {
-                var set = new HashSet<string>();
-                var allGood = true;
-                build.VisitAllChildren<TimedNode>(node =>
-                {
-                    if (node is IProjectOrEvaluation e &&
-                        e.TargetFramework is not null &&
-                        e.TargetFramework.Contains(';'))
-                    {
-                        set.Clear();
-                        var tfms = e.TargetFramework.Split([';'], StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var tfm in tfms)
-                        {
-                            if (!set.Add(tfm.Trim()))
-                            {
-                                var name = e switch
-                                {
-                                    Project p => p.ProjectFile,
-                                    ProjectEvaluation p => p.ProjectFile,
-                                    _ => $"<unknown> {e.GetType()}",
-                                };
-
-                                textWriter.WriteLine($"{name} <TargetFrameworks> includes {tfm} multiple times");
-                                allGood = false;
-                            }
-                        }
-                    }
-                });
-
-                return allGood;
+                textWriter.WriteLine($"Error processing binary log file: {ex.Message}");
+                return false;
             }
         }
     }

@@ -1,7 +1,7 @@
-Target Framework Strategy
-===
+# Target Framework Strategy
 
-# Layers
+## Layers
+
 The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are : 
 
 - Build Tools: requires us to ship compilers on `net472`
@@ -12,7 +12,8 @@ The roslyn repository produces components for a number of different products tha
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
 
-# Picking the right TargetFramework
+## Picking the right TargetFramework
+
 Projects in our repository should include the following values in `<TargetFramework(s)>` based on the rules below:
 
 1. `$(NetRoslynSourceBuild)`: code that needs to be part of source build. This property will change based on whether the code is building in a source build context or official builds. In official builds this will include the TFMs for `$(NetVSShared)`
@@ -20,7 +21,8 @@ Projects in our repository should include the following values in `<TargetFramew
 3. `$(NetVSCode)`: code that needs to execute in DevKit host
 4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
 5. `$(NetRoslynToolset)`: packages that ship the Roslyn toolset. The compiler often builds against multiple target frameworks. This property controls which of those frameworks are shipped in the toolset packages. This value will potentially change in source builds.
-6. `$(NetRoslyn)`:
+6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
+7. `$(NetRoslyn)`:
     - code that needs to execute on .NET but not in any of the above categories.
     - compiler unit tests
 
@@ -28,7 +30,8 @@ Projects in our repository should include the following values in `<TargetFramew
 
 **DO NOT** use `$(NetCurrent)` or `$(NetPrevious)` in project files. These should only be used inside of `TargetFrameworks.props` to initialize the above values in certain configurations.
 
-# Require consistent API across Target Frameworks
+## Require consistent API across Target Frameworks
+
 It is important that our shipping APIs maintain consistent API surface area across target frameworks. That is true whether the API is `public` or `internal`.
 
 The reason for `public` is standard design pattern. The reason for `internal` is a combination of the following problems:
@@ -52,7 +55,8 @@ This problem primarily comes from our use of polyfill APIs. To avoid this we emp
 
 This comes up in two forms:
 
-## Pattern for types 
+### Pattern for types 
+
 When creating a polyfill for a type use the `#if !NET...` to declare the type and in the `#else` use a `TypeForwardedTo` for the actual type.
 
 Example: 
@@ -80,7 +84,8 @@ namespace System.Runtime.CompilerServices
 #endif
 ```
 
-## Pattern for extension methods
+### Pattern for extension methods
+
 When creating a polyfill for an extension use the `#if NET...` to declare the extension method and the `#else` to declare the same method without `this`. That will put a method with the expected signature in the binary but avoids it appearing as an extension method within that target framework.
 
 ```csharp

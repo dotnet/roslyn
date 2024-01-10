@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.IOperationGenerator</RootNamespace>
     <AssemblyName>IOperationGenerator</AssemblyName>
-    <TargetFramework>$(NetPrevious)</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 </Project>
