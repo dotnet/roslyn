@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1994,6 +1995,84 @@ class Program
                     //         M1(Params.Test1);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1").WithArguments("params collections").WithLocation(8, 12)
                     );
+            }
+        }
+
+        [Fact]
+        public void LanguageVersion_06_LambdaForDelegateWithParams()
+        {
+            var src1 = @"
+public class Params
+{
+    static public void Test1(D1 d) {}
+    static public void Test2(D2 d) {}
+}
+
+public delegate void D1(params System.Collections.Generic.IEnumerable<long> a);
+public delegate void D2(params long[] a);
+";
+            var src2 = @"
+class Program1
+{
+    void Test1()
+    {
+        Params.Test1(e1 => { });
+    }
+}
+class Program2
+{
+    void Test2()
+    {
+        Params.Test2(e2 => { });
+    }
+}
+";
+            var comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (23,25): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public delegate void D1(params System.Collections.Generic.IEnumerable<long> a);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.Collections.Generic.IEnumerable<long> a").WithArguments("params collections").WithLocation(23, 25)
+                );
+
+            var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference comp1Ref)
+            {
+                var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular12);
+
+                var tree = comp2.SyntaxTrees.Single();
+                var model = comp2.GetSemanticModel(tree);
+
+                var parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First());
+                AssertEx.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
+                Assert.False(parameter.IsParams);
+
+                CompileAndVerify(comp2,
+                    symbolValidator: (m) =>
+                    {
+                        var lambda = m.GlobalNamespace.GetMember<MethodSymbol>("Program1.<>c.<Test1>b__0_0");
+                        ParameterSymbol parameter = lambda.Parameters.Single();
+
+                        Assert.False(parameter.IsParams);
+                        WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameter, expected: false);
+                        Assert.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
+                    }
+                    ).VerifyDiagnostics(); // No language version diagnostics as expected. The 'params' modifier doesn't even make it to symbol and metadata.
             }
         }
 
