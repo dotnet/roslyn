@@ -26,5 +26,12 @@
     <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
+
+    <UsagePattern IdentityGlob="System.Composition*/8.0*" />
+    <UsagePattern IdentityGlob="System.IO.Pipelines/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Encoding.CodePages/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Encodings.Web/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Json/8.0.0" />
+    <UsagePattern IdentityGlob="System.Threading.Channels/8.0.0" />
   </IgnorePatterns>
 </UsageData>
