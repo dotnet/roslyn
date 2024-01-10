@@ -12,9 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertNumericLiteral
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
     Public Class ConvertNumericLiteralTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertNumericLiteralCodeRefactoringProvider()
         End Function
 
