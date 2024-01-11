@@ -17,17 +17,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
 [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
 internal sealed class CSharpMapCodeService : IMapCodeService
 {
-    private readonly ICSharpCopilotMapCodeService _service;
+    private readonly ICSharpCopilotMapCodeService? _service;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMapCodeService(ICSharpCopilotMapCodeService service)
+    public CSharpMapCodeService([Import(AllowDefault = true)] ICSharpCopilotMapCodeService? service)
     {
         _service = service;
     }
 
     public Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
     {
+        if (_service is null)
+            return Task.FromResult<ImmutableArray<TextChange>?>(null);
+
         return _service.MapCodeAsync(document, contents, focusLocations, cancellationToken);
     }
 }
