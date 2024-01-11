@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
 [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
 internal sealed class CSharpMapCodeService : IMapCodeService
 {
-    private const string CodeMapperDllName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp, Version=0.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+    private const string CodeMapperDllName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp, Version=0.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
     private const string MapCodeServiceTypeFullName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp.CSharpMapCodeService";
     private const string MapCodeAsyncMethodName = "MapCodeAsync";
 
