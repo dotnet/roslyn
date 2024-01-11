@@ -34,7 +34,7 @@
     <MicrosoftExtensionsLoggingVersion>7.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingAbstractionsVersion>7.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>7.0.0</MicrosoftExtensionsLoggingConsoleVersion>
-    <MicrosoftNetCompilersToolsetVersion>4.8.0-3.final</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
   </PropertyGroup>

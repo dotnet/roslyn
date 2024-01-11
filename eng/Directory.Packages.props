@@ -1,7 +1,5 @@
 <Project>
   <PropertyGroup>
-    <MicrosoftNetCompilersToolsetVersion>4.8.0-3.final</MicrosoftNetCompilersToolsetVersion>
-
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.23364.2</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
