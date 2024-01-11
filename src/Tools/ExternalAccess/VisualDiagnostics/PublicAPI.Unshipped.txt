@@ -1,0 +1,3 @@
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.CreateDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.StopDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
