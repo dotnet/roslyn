@@ -185,6 +185,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
                         var fourth = leftFlattened[3];
+
+                        var firstIsCharToString = isCharToString(first, objectToStringMethod, ref charType, out BoundExpression? unwrappedFirstChar);
+                        var secondIsCharToString = isCharToString(second, objectToStringMethod, ref charType, out BoundExpression? unwrappedSecondChar);
+                        var thirdIsCharToString = isCharToString(third, objectToStringMethod, ref charType, out BoundExpression? unwrappedThirdChar);
+                        var fourthIsCharToString = isCharToString(fourth, objectToStringMethod, ref charType, out BoundExpression? unwrappedFourthChar);
+
+                        if ((firstIsCharToString || secondIsCharToString || thirdIsCharToString || fourthIsCharToString) &&
+                            TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan, out MethodSymbol? concat4Spans, isOptional: true) &&
+                            TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true))
+                        {
+                            // One of args is a char (or rather `someChar.ToString()`, but we've unwrapped `someChar` back from that call). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of an intermidiate string from char.ToString call.
+                            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with char.ToString call
+                            Debug.Assert(charType is not null);
+                            var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
+                            var readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
+
+                            MethodSymbol? stringImplicitConversionToReadOnlySpan = null;
+
+                            // Technically we can get `char1.ToString() + char2.ToString() + char3.ToString() + char4.ToString()` as a user input. In such case we don't need implicit conversion method `string -> ReadOnlySpan<char>`
+                            if ((firstIsCharToString && secondIsCharToString && thirdIsCharToString && fourthIsCharToString) ||
+                                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out stringImplicitConversionToReadOnlySpan, isOptional: true))
+                            {
+                                result = RewriteStringConcatenationWithSpanBasedConcat(
+                                    syntax,
+                                    concat4Spans,
+                                    stringImplicitConversionToReadOnlySpan,
+                                    readOnlySpanCtorRefParamChar,
+                                    firstIsCharToString ? unwrappedFirstChar! : first,
+                                    secondIsCharToString ? unwrappedSecondChar! : second,
+                                    thirdIsCharToString ? unwrappedThirdChar! : third,
+                                    fourthIsCharToString ? unwrappedFourthChar! : fourth);
+
+                                break;
+                            }
+                        }
+
                         result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth);
                     }
                     break;
