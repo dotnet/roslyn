@@ -20,7 +20,7 @@ internal static class FixAllContextExtensions
 
     static FixAllContextExtensions()
     {
-        var constructorInfo = typeof(CompilationWithAnalyzers).GetConstructor(new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
+        var constructorInfo = typeof(FixAllContext).GetConstructor(new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
         if (constructorInfo is not null)
         {
             s_createFixAllContextDocument = (document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
@@ -30,7 +30,7 @@ internal static class FixAllContextExtensions
         }
         else
         {
-            constructorInfo = typeof(CompilationWithAnalyzers).GetConstructor(new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
+            constructorInfo = typeof(FixAllContext).GetConstructor(new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
             if (constructorInfo is not null)
             {
                 s_createFixAllContextDocument = (document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
@@ -45,7 +45,7 @@ internal static class FixAllContextExtensions
             }
         }
 
-        constructorInfo = typeof(CompilationWithAnalyzers).GetConstructor(new[] { typeof(Project), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
+        constructorInfo = typeof(FixAllContext).GetConstructor(new[] { typeof(Project), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(ImmutableArray<DiagnosticAnalyzer>), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) });
         if (constructorInfo is not null)
         {
             s_createFixAllContextProject = (project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
