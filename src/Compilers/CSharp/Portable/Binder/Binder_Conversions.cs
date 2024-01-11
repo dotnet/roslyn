@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
-            return GetEnumeratorInfoAndInferCollectionElementType(
+            bool result = GetEnumeratorInfoAndInferCollectionElementType(
                 syntax,
                 syntax,
                 ref collectionExpr,
@@ -796,7 +796,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
-                builder: out _);
+                builder: out var builder);
+            // Collection expression target types require instance method GetEnumerator.
+            if (result && builder.ViaExtensionMethod)
+            {
+                iterationType = default;
+                return false;
+            }
+            return result;
         }
 
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
