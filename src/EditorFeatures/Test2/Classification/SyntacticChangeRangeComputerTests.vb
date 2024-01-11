@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         End Function
 
         Private Shared Async Function Test(markup As String, newText As String, language As String) As Task
-            Using workspace = TestWorkspace.Create(language, compilationOptions:=Nothing, parseOptions:=Nothing, markup)
+            Using workspace = EditorTestWorkspace.Create(language, compilationOptions:=Nothing, parseOptions:=Nothing, markup)
                 Dim testDocument = workspace.Documents(0)
                 Dim startingDocument = workspace.CurrentSolution.GetDocument(testDocument.Id)
 

@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\Features\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
@@ -71,6 +72,7 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="EditAndContinue\" />
     <Folder Include="My Project\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
@@ -85,8 +87,5 @@
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Features\VisualBasicTest\CodeActions\AbstractVisualBasicCodeActionTest.vb" Link="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="..\..\Features\VisualBasicTest\Utilities\CodeSnippets.vb" Link="Utilities\CodeSnippets.vb" />
-  </ItemGroup>
+  <Import Project="..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>

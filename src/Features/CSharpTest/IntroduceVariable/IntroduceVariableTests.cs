@@ -19,9 +19,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest
+public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
 
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
@@ -1125,7 +1125,7 @@ count: 2);
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
-    [WpfFact(Skip = "552389")]
+    [Fact(Skip = "552389")]
     public async Task TestConstantForFixedBufferInitializer()
     {
         await TestInRegularAndScriptAsync(
@@ -1886,7 +1886,7 @@ options: ImplicitTypingEverywhere());
 
                 private const int {|Rename:V|} = 1 + 1;
             }
-            """, parameters: new TestParameters(Options.Regular));
+            """, parameters: new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1934,7 +1934,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1948,7 +1948,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1965,7 +1965,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1982,7 +1982,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2003,7 +2003,7 @@ options: ImplicitTypingEverywhere());
                             select [|x + x|];
                 }
             }
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2047,7 +2047,7 @@ options: ImplicitTypingEverywhere());
             }
             #line default
             """,
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
     }
 
     [Fact]

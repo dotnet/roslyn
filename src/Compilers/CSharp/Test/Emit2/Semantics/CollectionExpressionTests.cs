@@ -4818,7 +4818,7 @@ static class Program
         }
 
         [Fact]
-        public void PointerType_05()
+        public void PointerType_05A()
         {
             string source = """
                 using System.Collections;
@@ -4828,6 +4828,52 @@ static class Program
                     private List<nint> _list = new List<nint>();
                     unsafe public void Add(void* p) { _list.Add((nint)p); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        void* p = (void*)2;
+                        C c = [null, p];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(14,22): error CS0029: Cannot implicitly convert type 'void*' to 'object'
+                //         C c = [null, p];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p").WithArguments("void*", "object").WithLocation(14, 22));
+        }
+
+        [Fact]
+        public void PointerType_05B()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C : IEnumerable
+                {
+                    private List<nint> _list = new List<nint>();
+                    unsafe public void Add(void* p) { _list.Add((nint)p); }
+                    public Enumerator GetEnumerator() => new Enumerator(_list);
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Enumerator
+                {
+                    private readonly List<nint> _list;
+                    private int _index;
+                    public Enumerator(List<nint> list)
+                    {
+                        _list = list;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public unsafe void* Current => (void*)_list[_index];
                 }
                 class Program
                 {
@@ -5744,7 +5790,7 @@ static class Program
         [Fact]
         public void CollectionInitializerType_17()
         {
-            string source = """
+            string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
                 class C<T> : IEnumerable
@@ -5753,50 +5799,57 @@ static class Program
                     public void Add(params T[] args) { _list.AddRange(args); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
                 }
+                """;
+
+            string sourceB1 = """
                 class Program
                 {
                     static void Main()
                     {
-                        C<int> c = [[], [1, 2], 3];
+                        C<int> c = [[], [1, 2]];
                         c.Report();
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
+            var comp = CreateCompilation(new[] { sourceA, sourceB1, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,21): error CS9174: Cannot initialize type 'object' with a collection expression because the type is not constructible.
+                //         C<int> c = [[], [1, 2]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 21),
+                // 1.cs(5,25): error CS9174: Cannot initialize type 'object' with a collection expression because the type is not constructible.
+                //         C<int> c = [[], [1, 2]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("object").WithLocation(5, 25));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<int> c = [3];
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { sourceA, sourceB2, s_collectionExtensions }, expectedOutput: "[3], ");
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       61 (0x3d)
+                  // Code size       30 (0x1e)
                   .maxstack  5
                   .locals init (C<int> V_0)
                   IL_0000:  newobj     "C<int>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
-                  IL_0007:  call       "int[] System.Array.Empty<int>()"
-                  IL_000c:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0011:  ldloc.0
-                  IL_0012:  ldc.i4.2
-                  IL_0013:  newarr     "int"
-                  IL_0018:  dup
-                  IL_0019:  ldc.i4.0
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  stelem.i4
-                  IL_001c:  dup
-                  IL_001d:  ldc.i4.1
-                  IL_001e:  ldc.i4.2
-                  IL_001f:  stelem.i4
-                  IL_0020:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0025:  ldloc.0
-                  IL_0026:  ldc.i4.1
-                  IL_0027:  newarr     "int"
-                  IL_002c:  dup
-                  IL_002d:  ldc.i4.0
-                  IL_002e:  ldc.i4.3
-                  IL_002f:  stelem.i4
-                  IL_0030:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0035:  ldloc.0
-                  IL_0036:  ldc.i4.0
-                  IL_0037:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_003c:  ret
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  newarr     "int"
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ldc.i4.3
+                  IL_0010:  stelem.i4
+                  IL_0011:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001d:  ret
                 }
                 """);
         }
@@ -6252,6 +6305,416 @@ static class Program
                     Predecessors: [B1]
                     Statements (0)
                 """);
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_Generic()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<int>
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public void Add(int i) { throw null; }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", null];
+                        MyCollection y = [..x, "3"];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, 3, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1, default];
+                        MyCollection y = [..x, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection x = [1, default];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(5, 27),
+                // 1.cs(6,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection y = [..x, 3];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_NonGeneric()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public void Add(int i) { throw null; }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", null];
+                        MyCollection y = [..x, "3"];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, 3, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1, default];
+                        MyCollection y = [..x, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection x = [1, default];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(5, 27),
+                // 1.cs(6,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection y = [..x, 3];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_NoImplementations()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = new();
+                        c.Add("1");
+                        c.Add(default);
+                        foreach (var i in c)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", default];
+                        MyCollection y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection x = ["1", default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""1"", default]").WithArguments("MyCollection").WithLocation(5, 26),
+                // 1.cs(6,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection y = [..x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..x]").WithArguments("MyCollection").WithLocation(6, 26));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_RefStruct_Generic()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct R
+                {
+                    public R(object value) { Value = value; }
+                    public readonly object Value;
+                }
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(R r) { _list.Add(r.Value); }
+                    public MyEnumerator GetEnumerator() => new MyEnumerator(_list);
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyEnumerator
+                {
+                    private List<object> _list;
+                    private int _index = -1;
+                    public MyEnumerator(List<object> list) { _list = list; }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
+                }
+                """;
+
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [new R(1)];
+                        MyCollection y = [..x, new R(2)];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i.Value);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB }, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_RefStruct_NonGeneric()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct R
+                {
+                    public R(object value) { Value = value; }
+                    public readonly object Value;
+                }
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(R r) { _list.Add(r.Value); }
+                    public MyEnumerator GetEnumerator() => new MyEnumerator(_list);
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyEnumerator
+                {
+                    private List<object> _list;
+                    private int _index = -1;
+                    public MyEnumerator(List<object> list) { _list = list; }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
+                }
+                """;
+
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [new R(1)];
+                        MyCollection y = [..x, new R(2)];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i.Value);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB }, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71387")]
+        [Fact]
+        public void CollectionInitializerType_MultipleIEnumerableTImplementations_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>, IEnumerable<string>
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in new MyCollection()) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection()").WithArguments("MyCollection", "System.Collections.Generic.IEnumerable<T>").WithLocation(5, 27));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c;
+                        c = [];
+                        c = ["1"];
+                        c = [2];
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[]").WithArguments("MyCollection").WithLocation(6, 13),
+                // 1.cs(7,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = ["1"];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, @"[""1""]").WithArguments("MyCollection").WithLocation(7, 13),
+                // 1.cs(8,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[2]").WithArguments("MyCollection").WithLocation(8, 13));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71387")]
+        [Fact]
+        public void CollectionInitializerType_MultipleIEnumerableTImplementations_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T> : IEnumerable<T>
+                {
+                    public List<object> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+                    {
+                        foreach (var i in _list) yield return (T)i;
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollection<T, U> : MyCollectionBase<T>, IEnumerable<U>
+                {
+                    public void Add(U u) { _list.Add(u); }
+                    IEnumerator<U> IEnumerable<U>.GetEnumerator()
+                    {
+                        foreach (var i in _list) yield return (U)i;
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in new MyCollection<object, string>()) { }
+                        foreach (var i in new MyCollection<int, string>()) { }
+                    }
+                    static void F<T, U>()
+                    {
+                        foreach (var i in new MyCollection<T, U>()) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<object, string>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<object, string>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<object, string>()").WithArguments("MyCollection<object, string>", "System.Collections.Generic.IEnumerable<T>").WithLocation(5, 27),
+                // 1.cs(6,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<int, string>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<int, string>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<int, string>()").WithArguments("MyCollection<int, string>", "System.Collections.Generic.IEnumerable<T>").WithLocation(6, 27),
+                // 1.cs(10,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<T, U>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<T, U>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<T, U>()").WithArguments("MyCollection<T, U>", "System.Collections.Generic.IEnumerable<T>").WithLocation(10, 27));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<object, string>([]);
+                        Create<int, string>([2]);
+                    }
+                    static void F<T, U>(T t)
+                    {
+                        Create<T, U>([t]);
+                    }
+                    static void Create<T, U>(MyCollection<T, U> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<object, string>'
+                //         Create<object, string>([]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "MyCollection<object, string>").WithLocation(5, 32),
+                // 1.cs(6,29): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<int, string>'
+                //         Create<int, string>([2]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[2]").WithArguments("1", "collection expressions", "MyCollection<int, string>").WithLocation(6, 29),
+                // 1.cs(10,22): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<T, U>'
+                //         Create<T, U>([t]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[t]").WithArguments("1", "collection expressions", "MyCollection<T, U>").WithLocation(10, 22));
+
+            string sourceB3 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, int>([3]);
+                        F(4);
+                    }
+                    static void F<T>(T t)
+                    {
+                        Create<T, T>([t]);
+                    }
+                    static void Create<T, U>(MyCollection<T, U> c)
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB3, s_collectionExtensions }, expectedOutput: "[3], [4], ");
         }
 
         [Theory]
@@ -7616,26 +8079,316 @@ static class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
-        [Fact]
-        public void SpreadElement_Dynamic_03()
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_ArrayTarget(string targetElementType)
         {
-            string source = """
+            string source = $$"""
+                using System.Collections;
                 class Program
                 {
                     static void Main()
                     {
-                        dynamic x = new[] { 2, 3 };
-                        int[] y = [1, ..x];
-                        y.Report();
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetElementType}}[] a = [..d1, ..d2, ..e1, ..e2];
+                        a.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef });
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[1, 2, 3], "
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,25): error CS0029: Cannot implicitly convert type 'object' to 'int'
-                //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "int").WithLocation(6, 25));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(10,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 22),
+                    // 0.cs(10,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 28),
+                    // 0.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 0.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 40));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [CombinatorialData]
+        public void SpreadElement_Untyped_ArrayInterfaceTarget(
+            [CombinatorialValues("IEnumerable", "IReadOnlyList", "IList")] string targetInterfaceType,
+            [CombinatorialValues("int", "object")] string targetElementType)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetInterfaceType}}<{{targetElementType}}> c =
+                            [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(12,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(12, 16),
+                    // 0.cs(12,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(12, 22),
+                    // 0.cs(12,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(12, 28),
+                    // 0.cs(12,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(12, 34));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_NonGenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add({{targetElementType}} i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
+                    // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
+                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
+                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
+                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
+                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
+                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_GenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_CollectionBuilderTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(
+                    comp,
+                    verify: Verification.FailsPEVerify,
+                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], [5, 6], "));
+            }
         }
 
         [Fact]
@@ -11135,7 +11888,7 @@ partial class Program
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
-                class C<T> : IEnumerable
+                class C<T> : IEnumerable<T>
                 {
                     private List<T> _list = new List<T>();
                     public void Add(T t)
@@ -11143,7 +11896,8 @@ partial class Program
                         Console.WriteLine("Add {0}", t);
                         _list.Add(t);
                     }
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 class Program
                 {
@@ -17748,6 +18502,7 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
         [Fact]
         public void ListConstruction_Dynamic_03()
         {
@@ -17762,7 +18517,6 @@ partial class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[4, 5], "
             var comp = CreateCompilation(
                 new[] { source, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80);
@@ -18080,11 +18834,29 @@ partial class Program
                 {
                     private List<int> _list = new List<int>();
                     public void Add(R r) { _list.Add(r._i); }
+                    public Enumerator GetEnumerator() => new Enumerator(_list);
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Enumerator
+                {
+                    private readonly List<int> _list;
+                    private int _index;
+                    public Enumerator(List<int> list)
+                    {
+                        _list = list;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
                 }
                 ref struct R
                 {
                     public int _i;
+                    public R(int i) { _i = i; }
                     public R(ref int i) { _i = i; }
                 }
                 class Program
@@ -18097,7 +18869,7 @@ partial class Program
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[0, 1], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
         [CombinatorialData]
@@ -22676,6 +23448,129 @@ partial class Program
         }
 
         [Fact]
+        public void IOperation_SpreadElement_NoConversion_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
+                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(15, 37),
+                // (15,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(15, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71339")]
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Test
+                {
+                    Dictionary<string, object> Config => /*<bind>*/[
+                        .. GetConfig(),
+                    ]/*</bind>*/;
+                    private Dictionary<string, object> GetConfig() => new();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
+                //         .. GetConfig(),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetConfig()").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(5, 12));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.String, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: '[ ... ]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.String, System.Object>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. GetConfig()')
+                        Operand:
+                          IInvocationOperation ( System.Collections.Generic.Dictionary<System.String, System.Object> Test.GetConfig()) (OperationKind.Invocation, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: 'GetConfig()')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsInvalid, IsImplicit) (Syntax: 'GetConfig')
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
         public void Async_01()
         {
             string source = """
@@ -23147,7 +24042,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (1,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [X([1, 2, C.M()])]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M()").WithLocation(1, 11)
@@ -24060,7 +24955,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (27,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(AbstractCollection)' and 'Program.F(NoConstructorCollection)'
                 //         F([]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(AbstractCollection)", "Program.F(NoConstructorCollection)").WithLocation(27, 9)
@@ -24409,8 +25304,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[1]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -24440,8 +25337,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[1]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Theory]
@@ -24467,9 +25366,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,16): error CS9174: Cannot initialize type 'Collection' with a collection expression because the type is not constructible.
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
                 // Collection c = ["hi"];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""hi""]").WithArguments("Collection").WithLocation(4, 16)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, @"[""hi""]").WithArguments("Collection").WithLocation(4, 16)
                 );
         }
 
@@ -24560,6 +25459,34 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [new C()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[new C()]").WithArguments("Collection").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void NonGenericIEnumerable_TwoCompatibleInterfaces()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new C()];
+
+                interface I1 { }
+                interface I2 { }
+
+                class C : I1, I2 { }
+
+                class Collection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(I1 i) => throw null;
+                    public void Add(I2 i) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (4,17): error CS0121: The call is ambiguous between the following methods or properties: 'Collection.Add(I1)' and 'Collection.Add(I2)'
                 // Collection c = [new C()];
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Collection.Add(I1)", "Collection.Add(I2)").WithLocation(4, 17)
@@ -24592,8 +25519,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"));
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [new C()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[new C()]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Fact]
@@ -25038,7 +25967,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
 
             // ImmutableCollectionsMarshal.AsImmutableArray is not sufficient to optimize collection expressions
             // targeting ImmutableArray<T>. ImmutableArray<T> must also have a [CollectionBuilder] attribute.
@@ -25062,7 +25991,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -25437,7 +26366,13 @@ partial class Program
                 ref struct S : IEnumerable
                 {
                     public void Add(params S[] x) => throw null;
-                    public IEnumerator GetEnumerator() => throw null;
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Enumerator
+                {
+                    public bool MoveNext() => false;
+                    public S Current => default;
                 }
                 class Program
                 {
@@ -25452,9 +26387,9 @@ partial class Program
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
-                // (9,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
+                // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(9, 21));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
@@ -26471,7 +27406,7 @@ partial class Program
 
                     }
 
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                    public IEnumerator<MyCollection> GetEnumerator() => throw new NotImplementedException();
 
                     IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
                 }
@@ -26508,7 +27443,7 @@ partial class Program
 
                     }
 
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                    public IEnumerator<MyCollection> GetEnumerator() => throw new NotImplementedException();
 
                     IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
                 }

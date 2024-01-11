@@ -14,13 +14,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-    public partial class InvertLogicalTests : AbstractCSharpCodeActionTest
+    public partial class InvertLogicalTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private static readonly ParseOptions CSharp6 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6);
         private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
         private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpInvertLogicalCodeRefactoringProvider();
 
         [Fact]

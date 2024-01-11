@@ -3904,7 +3904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();

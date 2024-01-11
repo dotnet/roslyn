@@ -77,8 +77,8 @@ End Module"
             Await VerifyContextLocationAsync(code, "Sub M.M(Of T)(List(Of T))")
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, composition:=testComposition)
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code, composition:=testComposition)
         End Function
     End Class
 End Namespace

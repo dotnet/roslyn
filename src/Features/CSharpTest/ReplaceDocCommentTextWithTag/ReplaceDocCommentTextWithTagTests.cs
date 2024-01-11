@@ -13,9 +13,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWithTag
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
-    public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest
+    public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider();
 
         [Fact]

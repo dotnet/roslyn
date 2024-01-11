@@ -74,6 +74,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests"/>
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.Example"/>
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities"/>
   </ItemGroup>
 
   <ItemGroup>

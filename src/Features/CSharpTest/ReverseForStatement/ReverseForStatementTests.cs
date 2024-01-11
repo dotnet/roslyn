@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-    public class ReverseForStatementTests : AbstractCSharpCodeActionTest
+    public class ReverseForStatementTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpReverseForStatementCodeRefactoringProvider();
 
         [Fact]

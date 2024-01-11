@@ -1650,11 +1650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
-            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
-            {
-                elementType = default;
-                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
-            }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
                 // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().

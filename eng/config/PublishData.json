@@ -188,9 +188,8 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.9",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.9]"
     },
     "main": {
@@ -200,8 +199,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[17.10 Validation]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.10]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [
