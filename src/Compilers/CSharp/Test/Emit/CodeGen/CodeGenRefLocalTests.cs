@@ -3147,6 +3147,146 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefField_Discarded()
+        {
+            var source = """
+                int n = 0;
+                new S(ref n).SetI();
+                System.Console.Write(n);
+
+                ref struct S
+                {
+                    ref int i;
+                    public S(ref int n) => i = ref n;
+                    public void SetI() => i = 2;
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "2" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.SetI", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "ref int S.i"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  stind.i4
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefField_SideEffects()
+        {
+            var source = """
+                int n = 0;
+                System.Console.Write(new S(ref n).GetI());
+                System.Console.Write(n);
+
+                ref struct S
+                {
+                    ref int i;
+                    public S(ref int n) => i = ref n;
+                    public int GetI() => M1(ref this).i = M2();
+
+                    static ref S M1(ref S s)
+                    {
+                        System.Console.WriteLine("M1");
+                        return ref s;
+                    }
+
+                    static int M2()
+                    {
+                        System.Console.WriteLine("M2");
+                        return 2;
+                    }
+                }
+                """;
+            var expectedOutput = """
+                M1
+                M2
+                22
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.GetI", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "ref S S.M1(ref S)"
+                  IL_0006:  ldfld      "ref int S.i"
+                  IL_000b:  call       "int S.M2()"
+                  IL_0010:  dup
+                  IL_0011:  stloc.0
+                  IL_0012:  stind.i4
+                  IL_0013:  ldloc.0
+                  IL_0014:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
+        public void AssignmentValue_RefField_SideEffects_Compound()
+        {
+            var source = """
+                int n = 1;
+                System.Console.Write(new S(ref n).GetI());
+                System.Console.Write(n);
+
+                ref struct S
+                {
+                    ref int i;
+                    public S(ref int n) => i = ref n;
+                    public int GetI() => M1(ref this).i += M2();
+
+                    static ref S M1(ref S s)
+                    {
+                        System.Console.WriteLine("M1");
+                        return ref s;
+                    }
+
+                    static int M2()
+                    {
+                        System.Console.WriteLine("M2");
+                        return 2;
+                    }
+                }
+                """;
+            var expectedOutput = """
+                M1
+                M2
+                33
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.GetI", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "ref S S.M1(ref S)"
+                  IL_0006:  ldfld      "ref int S.i"
+                  IL_000b:  dup
+                  IL_000c:  ldind.i4
+                  IL_000d:  call       "int S.M2()"
+                  IL_0012:  add
+                  IL_0013:  dup
+                  IL_0014:  stloc.0
+                  IL_0015:  stind.i4
+                  IL_0016:  ldloc.0
+                  IL_0017:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71369")]
         public void AssignmentValue_RefParameter()
         {
             var source = """
