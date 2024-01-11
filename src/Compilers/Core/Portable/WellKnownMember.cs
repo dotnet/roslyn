@@ -431,6 +431,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
+        System_String__op_Implicit_ToReadOnlySpanOfChar,
+
+        System_String__Concat_ReadOnlySpanReadOnlySpan,
+        System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
+        System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
@@ -495,6 +500,7 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__ctor_Array_Start_Length,
+        System_ReadOnlySpan_T__ctor_Reference,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
         System_ReadOnlySpan_T__Slice_Int_Int,
