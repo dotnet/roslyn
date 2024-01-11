@@ -16,8 +16,5 @@
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
   </ItemGroup>
-<<<<<<< HEAD
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
-=======
->>>>>>> upstream/main
 </Project>
