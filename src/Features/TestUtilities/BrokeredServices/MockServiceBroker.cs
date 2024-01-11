@@ -9,7 +9,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
 internal class MockServiceBroker : IServiceBroker
 {

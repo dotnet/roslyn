@@ -5,7 +5,6 @@
 #nullable disable
 #pragma warning disable IDE0055 // Collection expression formatting
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
