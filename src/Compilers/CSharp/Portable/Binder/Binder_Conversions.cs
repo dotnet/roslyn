@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
-                allowExtensionMethod: false,  // collection expression target types do not require extension method GetEnumerator
+                allowExtensionMethod: false, // collection expression target types do not require extension method GetEnumerator
                 isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
