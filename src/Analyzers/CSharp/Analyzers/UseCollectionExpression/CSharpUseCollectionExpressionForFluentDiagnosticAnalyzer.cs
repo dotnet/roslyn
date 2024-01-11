@@ -37,7 +37,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// etc.  Note: this will just be done for a syntactic check of the method being called.  Additional checks will
     /// ensure that we are preserving semantics.
     /// </summary>
-    private static readonly ImmutableArray<string> s_suffixes = ImmutableArray.Create(
+    private static readonly ImmutableArray<string> s_suffixes =
+    [
         nameof(Array),
         nameof(Span<int>),
         nameof(ReadOnlySpan<int>),
@@ -57,16 +58,15 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(ImmutableQueue<int>),
         nameof(ImmutableSortedSet<int>),
         nameof(ImmutableStack<int>),
-        nameof(System.Collections.Immutable));
+        nameof(System.Collections.Immutable),
+    ];
 
     /// <summary>
     /// Set of type-names that are blocked from moving over to collection expressions because the semantics of them are
     /// known to be specialized, and thus could change semantics in undesirable ways if the compiler emitted its own
     /// code as an replacement.
     /// </summary>
-    private static readonly ImmutableHashSet<string?> s_bannedTypes = ImmutableHashSet.Create<string?>(
-        nameof(ParallelEnumerable),
-        nameof(ParallelQuery));
+    private static readonly ImmutableHashSet<string?> s_bannedTypes = [nameof(ParallelEnumerable), nameof(ParallelQuery)];
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         where TFieldDeclarationSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
+            => [IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId];
 
         protected abstract SyntaxNode? GetInitializerNode(TSymbolSyntax declaration);
         protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);

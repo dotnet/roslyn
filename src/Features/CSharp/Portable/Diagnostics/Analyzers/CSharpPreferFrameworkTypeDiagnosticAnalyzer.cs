@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             PredefinedTypeSyntax>
     {
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
-            ImmutableArray.Create(SyntaxKind.PredefinedType, SyntaxKind.IdentifierName);
+            [SyntaxKind.PredefinedType, SyntaxKind.IdentifierName];
 
         ///<remarks>
         /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken);
 
         public Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
-            => ToDescriptionStringAsync(semanticModel, position, ImmutableArray.Create(symbol), options, groups, cancellationToken);
+            => ToDescriptionStringAsync(semanticModel, position, [symbol], options, groups, cancellationToken);
 
         public async Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         {
             if (symbols.Length == 0)
             {
-                return ImmutableArray.Create<SymbolDisplayPart>();
+                return [];
             }
 
             var builder = CreateDescriptionBuilder(semanticModel, position, options, cancellationToken);

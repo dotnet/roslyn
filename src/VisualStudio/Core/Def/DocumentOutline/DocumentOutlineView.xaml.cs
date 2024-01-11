@@ -237,20 +237,22 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private static ImmutableArray<SortDescription> NameSortDescriptions { get; } =
-            ImmutableArray.Create(new SortDescription(
+            [new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
-                ListSortDirection.Ascending));
+                ListSortDirection.Ascending)];
         private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } =
-            ImmutableArray.Create(new SortDescription(
+            [new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start.Position)}",
-                ListSortDirection.Ascending));
-        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(
+                ListSortDirection.Ascending)];
+        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } =
+        [
             new SortDescription(
-                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.SymbolKind)}",
-                ListSortDirection.Ascending),
+                    $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.SymbolKind)}",
+                    ListSortDirection.Ascending),
             new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
-                ListSortDirection.Ascending));
+                ListSortDirection.Ascending),
+        ];
 
         public static void UpdateSortDescription(SortDescriptionCollection sortDescriptions, SortOption sortOption)
         {

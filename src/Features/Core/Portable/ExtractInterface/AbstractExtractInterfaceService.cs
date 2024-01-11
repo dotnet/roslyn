@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
+                ? [new ExtractInterfaceCodeAction(this, typeAnalysisResult)]
                 : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 

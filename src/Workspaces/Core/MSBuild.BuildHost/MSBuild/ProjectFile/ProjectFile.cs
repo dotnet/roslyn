@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
+                return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-                return ImmutableArray.Create(projectFileInfo);
+                return [projectFileInfo];
             }
         }
 

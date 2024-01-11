@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis
         /// document instanced defined by the document info.
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
-            => AddDocuments(ImmutableArray.Create(documentInfo));
+            => AddDocuments([documentInfo]);
 
         /// <summary>
         /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
-            => AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+            => AddAdditionalDocuments([documentInfo]);
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis
             // https://github.com/dotnet/roslyn/issues/41940
 
             var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
-            return this.AddAnalyzerConfigDocuments(ImmutableArray.Create(info));
+            return this.AddAnalyzerConfigDocuments([info]);
         }
 
         private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders, string? filePath)
@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveDocument(DocumentId documentId)
         {
             CheckContainsDocument(documentId);
-            return RemoveDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveDocumentsImpl([documentId]);
         }
 
         /// <summary>
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             CheckContainsAdditionalDocument(documentId);
-            return RemoveAdditionalDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveAdditionalDocumentsImpl([documentId]);
         }
 
         /// <summary>
@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
             CheckContainsAnalyzerConfigDocument(documentId);
-            return RemoveAnalyzerConfigDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveAnalyzerConfigDocumentsImpl([documentId]);
         }
 
         /// <summary>

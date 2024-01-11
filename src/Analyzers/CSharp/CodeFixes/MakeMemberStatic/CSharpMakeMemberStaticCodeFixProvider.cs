@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(
-                "CS0708" // 'MyMethod': cannot declare instance members in a static class
-            );
+            ["CS0708"];
 
         protected override bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration)
         {

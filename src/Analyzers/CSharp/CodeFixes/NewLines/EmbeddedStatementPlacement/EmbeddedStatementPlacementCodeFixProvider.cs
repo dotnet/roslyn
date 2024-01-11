@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId);
+            => [IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             context.RegisterCodeFix(
                 CodeAction.Create(
                     CSharpCodeFixesResources.Place_statement_on_following_line,
-                    c => FixAllAsync(document, ImmutableArray.Create(diagnostic), context.GetOptionsProvider(), c),
+                    c => FixAllAsync(document, [diagnostic], context.GetOptionsProvider(), c),
                     nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;

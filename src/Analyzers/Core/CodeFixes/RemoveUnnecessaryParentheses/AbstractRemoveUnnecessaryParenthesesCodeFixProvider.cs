@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
+           => [IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId];
 
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);

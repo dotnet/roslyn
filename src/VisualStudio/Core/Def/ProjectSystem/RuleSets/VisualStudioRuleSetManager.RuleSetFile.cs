@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             _specificDiagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
                             _exception = e;
 
-                            includes = ImmutableArray.Create(FilePath);
+                            includes = [FilePath];
                         }
 
                         _fileChangeContext = fileChangeWatcher.CreateContext();

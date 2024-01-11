@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     IsExpressionBodiedAccessor(selectedNode))
                 {
                     var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false);
-                    return ImmutableArray.Create(statement);
+                    return [statement];
                 }
 
                 // regular case
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
 
                 return statements is [BlockSyntax block]
-                    ? ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, block))
-                    : ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
+                    ? [SyntaxFactory.CheckedStatement(kind, block)]
+                    : [SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements))];
             }
 
             private static ImmutableArray<StatementSyntax> CleanupCode(ImmutableArray<StatementSyntax> statements)

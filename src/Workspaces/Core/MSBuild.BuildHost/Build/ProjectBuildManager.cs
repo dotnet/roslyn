@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 var projectCollection = new MSB.Evaluation.ProjectCollection(
                     AllGlobalProperties,
-                    _msbuildLogger != null ? ImmutableArray.Create(_msbuildLogger) : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
                     MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             // We do not need to include the _batchBuildLogger in the ProjectCollection - it just collects the
             // DiagnosticLog from the build steps, but evaluation already separately reports the DiagnosticLog.
             var loggers = _msbuildLogger is not null
-                ? ImmutableArray.Create(_msbuildLogger)
+                ? [_msbuildLogger]
                 : ImmutableArray<MSB.Framework.ILogger>.Empty;
 
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);

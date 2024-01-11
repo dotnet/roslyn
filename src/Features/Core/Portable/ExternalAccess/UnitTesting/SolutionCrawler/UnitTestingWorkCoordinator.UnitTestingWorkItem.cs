@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>(), retry: false, asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, [], retry: false, asyncToken)
                 {
                 }
 
                 public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
-                           analyzer == null ? ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
+                           analyzer == null ? [] : [analyzer],
                            retry: false, asyncToken)
                 {
                 }

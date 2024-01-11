@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
     [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
-        private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
+        private static readonly ImmutableArray<bool> s_boolValues = [true, false];
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

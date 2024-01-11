@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// and <see cref="SnippetShortcutExists_NonBlocking"/>, we return the current set of known 
         /// snippets rather than waiting for initial results.
         /// </summary>
-        protected ImmutableArray<SnippetInfo> snippets = ImmutableArray.Create<SnippetInfo>();
+        protected ImmutableArray<SnippetInfo> snippets = [];
         protected IImmutableSet<string> snippetShortcuts = ImmutableHashSet.Create<string>();
 
         // Guard the snippets and snippetShortcut fields so that returned result sets are always

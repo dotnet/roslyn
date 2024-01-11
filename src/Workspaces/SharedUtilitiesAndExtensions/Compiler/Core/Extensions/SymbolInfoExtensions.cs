@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (info.Symbol != null)
             {
-                return ImmutableArray.Create(info.Symbol);
+                return [info.Symbol];
             }
             else if (info.CandidateSymbols.Length > 0)
             {

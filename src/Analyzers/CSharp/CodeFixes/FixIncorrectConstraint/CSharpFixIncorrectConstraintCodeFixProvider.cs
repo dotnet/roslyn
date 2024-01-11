@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS9010, CS9011);
+            => [CS9010, CS9011];
 
         private static bool TryGetConstraint(
             Diagnostic diagnostic,

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 internal sealed class RemoveUnnecessaryAttributeSuppressionsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId);
+        => [IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {

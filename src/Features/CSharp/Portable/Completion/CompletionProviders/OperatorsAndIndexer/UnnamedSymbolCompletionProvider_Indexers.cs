@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class UnnamedSymbolCompletionProvider
     {
         private readonly ImmutableArray<KeyValuePair<string, string>> IndexerProperties =
-            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, IndexerKindName));
+            [new KeyValuePair<string, string>(KindName, IndexerKindName)];
 
         private void AddIndexers(CompletionContext context, ImmutableArray<ISymbol> indexers)
         {

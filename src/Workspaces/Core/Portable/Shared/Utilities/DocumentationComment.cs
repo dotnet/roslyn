@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // If the exception wasn't found, TryGetValue will set "texts" to a default value.
                 // To be friendly, we want to return an empty array rather than a null array.
-                texts = ImmutableArray.Create<string>();
+                texts = [];
             }
 
             return texts;

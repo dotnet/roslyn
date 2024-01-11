@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var parts = new List<TaggedText>();
 
                 var groups = await symbolDisplayService.ToDescriptionGroupsAsync(
-                    semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
+                    semanticModel, position, [symbol], options, cancellationToken).ConfigureAwait(false);
 
                 parts.AddRange(groups[SymbolDescriptionGroups.MainDescription]);
 

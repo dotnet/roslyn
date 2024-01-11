@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
+            get { return [XamlDiagnosticIds.UnnecessaryNamespacesId]; }
         }
 
         public override FixAllProvider GetFixAllProvider()

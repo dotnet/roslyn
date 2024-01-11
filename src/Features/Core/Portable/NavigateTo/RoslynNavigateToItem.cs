@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             ImmutableArray<TaggedText> INavigableItem.DisplayTaggedParts
-                => ImmutableArray.Create(new TaggedText(
-                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix));
+                => [new TaggedText(
+                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix)];
 
             bool INavigableItem.DisplayFileLocation => false;
 

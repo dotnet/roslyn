@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration)
             => declaration is BaseTypeDeclarationSyntax baseType && baseType.BaseList != null
-                ? ImmutableArray.Create<SyntaxNode>(baseType.BaseList)
+                ? [baseType.BaseList]
                 : ImmutableArray<SyntaxNode>.Empty;
 
         public override IReadOnlyList<SyntaxNode> GetNamespaceImports(SyntaxNode declaration)

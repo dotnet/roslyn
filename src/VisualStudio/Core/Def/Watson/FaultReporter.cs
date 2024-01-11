@@ -88,11 +88,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         private const int P5MethodNameDefaultIndex = 5;
 
-        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create(
-            "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired", // Covers GetRequiredDocument, GetRequiredProject, and similar methods
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes =
+        [
+            "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired",
             "Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService",
             "Roslyn.Utilities.Contract.",
-            "System.Linq.");
+            "System.Linq.",
+        ];
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.

@@ -486,7 +486,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
             static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
+                stateChange.OldProjectState.Language, referencesToRemove: [analyzerReference]),
             forkTracker: true,
             arg: analyzerReference);
     }

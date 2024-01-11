@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         protected AbstractResolveConflictMarkerCodeFixProvider(
             ISyntaxKinds syntaxKinds, string diagnosticId)
         {
-            FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            FixableDiagnosticIds = [diagnosticId];
             _syntaxKinds = syntaxKinds;
 
 #if !CODE_STYLE

@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                     else if (metadata is ModuleMetadata module)
                     {
-                        return ImmutableArray.Create(module);
+                        return [module];
                     }
                 }
                 catch (BadImageFormatException)

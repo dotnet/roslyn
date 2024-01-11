@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
             if (accessibilityModifiersChange.HasValue)
             {
-                return ImmutableArray.Create(accessibilityModifiersChange.Value, mainChange);
+                return [accessibilityModifiersChange.Value, mainChange];
             }
 
-            return ImmutableArray.Create(mainChange);
+            return [mainChange];
         }
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)

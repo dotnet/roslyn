@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
                 updatedSolution = AddProjectReference(projectToBeUpdated, triggeringProject, updatedSolution);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(updatedSolution), new OpenDocumentOperation(documentId));
+                return [new ApplyChangesOperation(updatedSolution), new OpenDocumentOperation(documentId)];
             }
 
             private static Solution AddProjectReference(Project projectToBeUpdated, Project triggeringProject, Solution updatedSolution)
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     namedType,
                     _cancellationToken).ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(codeGenResult.Project.Solution));
+                return [new ApplyChangesOperation(codeGenResult.Project.Solution)];
             }
 
             private async Task<ImmutableArray<CodeActionOperation>> GetGenerateIntoExistingDocumentAsync(
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 updatedSolution = AddProjectReference(generateTypeOptionsResult.Project, triggeringProject, updatedSolution);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(updatedSolution));
+                return [new ApplyChangesOperation(updatedSolution)];
             }
 
             private (string[] containers, string usingOrImport) GetNamespaceContainersAndAddUsingsOrImport(
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(codeGenResult.Project.Solution));
+                return [new ApplyChangesOperation(codeGenResult.Project.Solution)];
             }
 
             private ImmutableArray<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)

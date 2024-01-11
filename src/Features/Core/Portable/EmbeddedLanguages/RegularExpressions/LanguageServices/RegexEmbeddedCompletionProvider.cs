@@ -38,11 +38,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private readonly RegexEmbeddedLanguage _language = language;
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
-            '\\', // any escape
-            '[', // character class
-            '(', // any group
-            '{'); // \p{
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['\\', '[', '(', '{']; // \p{
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
@@ -469,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             }
 
             return Task.FromResult(CompletionDescription.Create(
-                ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
+                [new TaggedText(TextTags.Text, description)]));
         }
     }
 }

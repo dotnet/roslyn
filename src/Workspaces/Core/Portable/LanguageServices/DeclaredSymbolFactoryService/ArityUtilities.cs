@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
     internal static class ArityUtilities
     {
         private const string GenericTypeNameManglingString = "`";
-        private static readonly ImmutableArray<string> s_aritySuffixesOneToNine = ImmutableArray.Create("`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9");
+        private static readonly ImmutableArray<string> s_aritySuffixesOneToNine = ["`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9"];
 
         public static string GetMetadataAritySuffix(int arity)
         {

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
-                   ImmutableArray.Create(SyntaxKind.ConstructorDeclaration))
+                   [SyntaxKind.ConstructorDeclaration])
         {
         }
 

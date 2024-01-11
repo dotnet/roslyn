@@ -247,11 +247,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
                 var dottedName = typeNameParts.Join(".") + fileExtension;
 
-                return ImmutableArray.Create(standaloneName, dottedName);
+                return [standaloneName, dottedName];
             }
             else
             {
-                return ImmutableArray.Create(standaloneName);
+                return [standaloneName];
             }
         }
 

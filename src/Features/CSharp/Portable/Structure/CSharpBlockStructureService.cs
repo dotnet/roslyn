@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
         {
-            return ImmutableArray.Create<BlockStructureProvider>(
-                new CSharpBlockStructureProvider());
+            return [new CSharpBlockStructureProvider()];
         }
 
         public override string Language => LanguageNames.CSharp;

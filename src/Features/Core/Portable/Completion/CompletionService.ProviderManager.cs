@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 : AbstractProjectExtensionProvider<ProjectCompletionProvider, CompletionProvider, ExportCompletionProviderAttribute>
             {
                 protected override ImmutableArray<string> GetLanguages(ExportCompletionProviderAttribute exportAttribute)
-                    => ImmutableArray.Create(exportAttribute.Language);
+                    => [exportAttribute.Language];
 
                 protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
                 {

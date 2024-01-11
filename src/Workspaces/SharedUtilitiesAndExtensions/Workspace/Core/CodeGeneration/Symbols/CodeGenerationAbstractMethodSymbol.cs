@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public virtual bool HidesBaseMethodsByName => false;
 
         public ImmutableArray<CustomModifier> RefCustomModifiers
-            => ImmutableArray.Create<CustomModifier>();
+            => [];
 
         public virtual ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            => ImmutableArray.Create<CustomModifier>();
+            => [];
 
         public virtual ISymbol AssociatedSymbol => null;
 

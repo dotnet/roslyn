@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
+                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : [overriddenSymbol];
             }
             else
             {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (namedType.TypeKind == TypeKind.Delegate ||
                         namedType.AssociatedSymbol != null)
                     {
-                        allSymbols = ImmutableArray.Create<ISymbol?>(type);
+                        allSymbols = [type];
                         type = null;
                     }
                 }

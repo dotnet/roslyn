@@ -51,12 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             public const string ReferenceName = Prefix + UnusedReferencesTableKeyNames.ReferenceName;
             public const string UpdateAction = Prefix + UnusedReferencesTableKeyNames.UpdateAction;
 
-            public static readonly ImmutableArray<string> ColumnNames = ImmutableArray.Create(
-                SolutionName,
-                ProjectName,
-                ReferenceType,
-                ReferenceName,
-                UpdateAction);
+            public static readonly ImmutableArray<string> ColumnNames = [SolutionName, ProjectName, ReferenceType, ReferenceName, UpdateAction];
         }
 
         /// <summary>

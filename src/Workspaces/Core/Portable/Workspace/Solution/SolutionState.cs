@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
+                return [documentId];
             }
 
             var documentIds = GetDocumentIdsWithFilePath(filePath);

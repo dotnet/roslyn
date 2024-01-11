@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray<CodeAction>.Empty;
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
-            return ImmutableArray.Create<CodeAction>(CodeAction.Create(
+            return [CodeAction.Create(
                 FeaturesResources.Add_null_checks_for_all_parameters,
                 c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, fallbackOptions, c),
-                nameof(FeaturesResources.Add_null_checks_for_all_parameters)));
+                nameof(FeaturesResources.Add_null_checks_for_all_parameters))];
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(

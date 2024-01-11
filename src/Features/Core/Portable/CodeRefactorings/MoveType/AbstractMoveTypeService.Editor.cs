@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solution));
+                return [new ApplyChangesOperation(solution)];
             }
 
             /// <summary>

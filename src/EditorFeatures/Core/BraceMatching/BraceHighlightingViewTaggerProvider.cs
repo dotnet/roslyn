@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     {
         private readonly IBraceMatchingService _braceMatcherService = braceMatcherService;
 
-        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(BraceMatchingOptionsStorage.BraceMatching);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = [BraceMatchingOptionsStorage.BraceMatching];
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 

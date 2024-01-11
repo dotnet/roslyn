@@ -33,14 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
 
-            _keywordPriorityRecommendedKeywords = ImmutableArray.Create(
-                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+            _keywordPriorityRecommendedKeywords = [new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
-                matchPriority: PreselectMatchPriority));
-            _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
-                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+                matchPriority: PreselectMatchPriority)];
+            _defaultPriorityRecommendedKeywords = [new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
-                matchPriority: DefaultMatchPriority));
+                matchPriority: DefaultMatchPriority)];
         }
 
         protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);

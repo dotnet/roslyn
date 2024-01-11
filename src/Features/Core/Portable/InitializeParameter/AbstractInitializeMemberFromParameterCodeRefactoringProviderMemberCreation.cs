@@ -260,11 +260,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var title = string.Format(resource, fieldOrProperty.Name);
 
-            return ImmutableArray.Create(CodeAction.Create(
+            return [CodeAction.Create(
                 title,
                 c => AddSingleSymbolInitializationAsync(
                     document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, c),
-                title));
+                title)];
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(

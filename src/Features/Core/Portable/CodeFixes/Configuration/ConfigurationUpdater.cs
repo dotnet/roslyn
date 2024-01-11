@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 name: ".editorconfig",
                 filePath: analyzerConfigPath);
 
-            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            var newSolution = project.Solution.AddAnalyzerConfigDocuments([documentInfo]);
             return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 

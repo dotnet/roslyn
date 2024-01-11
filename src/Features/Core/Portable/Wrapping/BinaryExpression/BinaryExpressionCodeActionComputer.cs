@@ -67,11 +67,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
-                => ImmutableArray.Create(new WrappingGroup(
-                    isInlinable: true, ImmutableArray.Create(
+                => [new WrappingGroup(
+                    isInlinable: true,
+                    [
                         await GetWrapCodeActionAsync(align: false).ConfigureAwait(false),
                         await GetWrapCodeActionAsync(align: true).ConfigureAwait(false),
-                        await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
+                        await GetUnwrapCodeActionAsync().ConfigureAwait(false),
+                    ])];
 
             private Task<WrapItemsAction> GetWrapCodeActionAsync(bool align)
                 => TryCreateCodeActionAsync(GetWrapEdits(align), FeaturesResources.Wrapping,

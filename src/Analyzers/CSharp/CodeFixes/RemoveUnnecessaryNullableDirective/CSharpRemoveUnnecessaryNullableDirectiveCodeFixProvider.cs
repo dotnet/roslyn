@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(
+            => [
                 IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
-                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId);
+                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
+            ];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

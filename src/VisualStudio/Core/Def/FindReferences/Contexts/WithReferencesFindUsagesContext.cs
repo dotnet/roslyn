@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // even if we found no references and even if it would prefer to not be seen.
                     if (entries.Count == 0 && Definitions.Count > 0)
                     {
-                        return ImmutableArray.Create(Definitions.First());
+                        return [Definitions.First()];
                     }
 
                     return ImmutableArray<DefinitionItem>.Empty;
@@ -289,9 +289,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(
+                    [new TaggedText(
                         TextTags.Text,
-                        ServicesVSResources.Symbols_without_references)));
+                        ServicesVSResources.Symbols_without_references)]);
         }
     }
 }

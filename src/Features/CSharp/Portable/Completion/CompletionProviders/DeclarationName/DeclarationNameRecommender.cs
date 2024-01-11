@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
             // If we have a direct symbol this binds to, offer its name as a potential name here.
             if (nameInfo.Symbol != null)
-                names = names.Insert(0, ImmutableArray.Create(nameInfo.Symbol.Name));
+                names = names.Insert(0, [nameInfo.Symbol.Name]);
 
             if (!names.IsDefaultOrEmpty)
             {

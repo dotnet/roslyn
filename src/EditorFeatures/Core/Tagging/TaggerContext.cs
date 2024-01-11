@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null)
-            : this(state: null, ImmutableArray.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
+            : this(state: null, [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
                    caretPosition, textChangeRange, existingTags: null)
         {
         }

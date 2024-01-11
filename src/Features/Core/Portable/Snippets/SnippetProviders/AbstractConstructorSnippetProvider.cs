@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         public override string Identifier => "ctor";
 
         public override string Description => FeaturesResources.constructor;
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("constructor");
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ["constructor"];
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
 

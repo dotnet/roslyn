@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             // Put the line in 1-based for the presentation of this item.
             var formatted = $"{filePath} - ({linePosition.Line + 1}, {linePosition.Character + 1}) : {sourceLine}";
 
-            return ImmutableArray.Create(new TaggedText(TextTags.Text, formatted));
+            return [new TaggedText(TextTags.Text, formatted)];
         }
 
         private string GetSourceLine_MustCallOnUIThread(string filePath, int lineNumber)

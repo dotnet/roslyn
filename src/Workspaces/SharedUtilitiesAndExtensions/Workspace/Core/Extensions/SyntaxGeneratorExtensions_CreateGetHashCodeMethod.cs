@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     factory.InvocationExpression(
                         factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
                         memberReferences));
-                return ImmutableArray.Create(statement);
+                return [statement];
             }
 
             const string hashName = "hash";
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (components.Length == 0)
             {
-                return ImmutableArray.Create(factory.ReturnStatement(factory.LiteralExpression(0)));
+                return [factory.ReturnStatement(factory.LiteralExpression(0))];
             }
 
             const int hashFactor = -1521134295;
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //      return someHash + this.S1.GetHashCode();    // or
 
                 var multiplyResult = initHash * hashFactor;
-                return ImmutableArray.Create(factory.ReturnStatement(
+                return [factory.ReturnStatement(
                     factory.AddExpression(
                         CreateLiteralExpression(factory, multiplyResult),
-                        components[0])));
+                        components[0]))];
             }
 
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();

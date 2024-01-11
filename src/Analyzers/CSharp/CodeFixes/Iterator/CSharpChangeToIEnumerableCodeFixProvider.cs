@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS1624); }
+            get { return [CS1624]; }
         }
 
         protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)

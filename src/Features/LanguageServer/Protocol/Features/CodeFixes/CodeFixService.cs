@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                     {
                                         var primaryDiagnostic = dxs.First();
                                         return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, fallbackOptions,
-                                            ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
+                                            [primaryDiagnostic], uniqueDiagosticToEquivalenceKeysMap,
                                             diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                     }
                                     else

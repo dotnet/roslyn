@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 fadeLocation,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                 additionalLocations,
-                additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                additionalUnnecessaryLocations: [fadeLocation],
                 properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     fadeLocation,
                     NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                     additionalLocations,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                    additionalUnnecessaryLocations: [fadeLocation],
                     properties));
             }
         }

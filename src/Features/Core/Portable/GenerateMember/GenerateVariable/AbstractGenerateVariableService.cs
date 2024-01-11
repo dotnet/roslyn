@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     // Wrap the generate variable actions into a single top level suggestion
                     // so as to not clutter the list.
-                    return ImmutableArray.Create(CodeAction.Create(
+                    return [CodeAction.Create(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
                         actions.ToImmutable(),
-                        isInlinable: true));
+                        isInlinable: true)];
                 }
 
                 return actions.ToImmutable();

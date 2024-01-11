@@ -25,13 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
-            ImmutableArray.Create(
+            [
                 SyntaxKind.QualifiedName,
                 SyntaxKind.AliasQualifiedName,
                 SyntaxKind.GenericName,
                 SyntaxKind.IdentifierName,
                 SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.QualifiedCref);
+                SyntaxKind.QualifiedCref,
+            ];
 
         protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
         {

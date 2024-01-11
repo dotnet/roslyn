@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             hasAnyCodeStyleOption: false, isUnnecessary: false);
 
         protected AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor), GeneratedCodeAnalysisFlags.None)
+            : base([s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor], GeneratedCodeAnalysisFlags.None)
         {
         }
 

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new IndexOutOfRangeException();
             }
 
-            return ImmutableArray.Create<CustomModifier>();
+            return [];
         }
 
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }

@@ -131,9 +131,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
                 // complete quickly.
-                _service.RaiseDiagnosticsUpdated(ImmutableArray.Create(
-                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData)));
+                _service.RaiseDiagnosticsUpdated([DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData)]);
             }
 
             /// <summary>
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
-                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
+                    return [DiagnosticData.Create(loadDiagnostic, document)];
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.SolutionState.Analyzers, project);
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
-                    return ImmutableArray.Create(compilerAnalyzer);
+                    return [compilerAnalyzer];
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
@@ -224,8 +223,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
                 // complete quickly.
-                _service.RaiseDiagnosticsUpdated(ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId)));
+                _service.RaiseDiagnosticsUpdated([DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId)]);
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)

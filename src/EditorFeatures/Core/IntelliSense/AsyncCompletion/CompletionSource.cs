@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string ExcludedCommitCharactersMap = nameof(ExcludedCommitCharactersMap);
 
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
-            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
+            [new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element)];
 
         private static readonly EditorOptionKey<bool> s_nonBlockingCompletionEditorOption = new(NonBlockingCompletion);
 

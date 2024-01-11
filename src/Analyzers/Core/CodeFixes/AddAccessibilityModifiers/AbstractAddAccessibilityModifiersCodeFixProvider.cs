@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         protected abstract SyntaxNode MapToDeclarator(SyntaxNode declaration);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
+            => [IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

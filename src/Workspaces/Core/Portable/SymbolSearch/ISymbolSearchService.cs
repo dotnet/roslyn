@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         private static readonly ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
+            [p => p.Rank, p => p.PackageName];
     }
 
     [DataContract]

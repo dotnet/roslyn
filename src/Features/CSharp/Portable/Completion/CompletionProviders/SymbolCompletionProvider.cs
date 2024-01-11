@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<'));
 
                 var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
-                    ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+                    [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')]);
 
                 var rule = context.importDirective ? importDirectiveBaseline : generalBaseline;
 

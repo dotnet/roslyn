@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
-        private static readonly ImmutableArray<string> s_predefinedCallingConventions = ImmutableArray.Create("Cdecl", "Fastcall", "Thiscall", "Stdcall");
+        private static readonly ImmutableArray<string> s_predefinedCallingConventions = ["Cdecl", "Fastcall", "Thiscall", "Stdcall"];
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

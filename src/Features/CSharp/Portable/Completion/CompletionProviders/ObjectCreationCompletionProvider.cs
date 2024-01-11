@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var type = (ITypeSymbol)result.Single().Symbol;
                 var alias = await type.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
-                    return ImmutableArray.Create(new SymbolAndSelectionInfo(alias, result.Single().Preselect));
+                    return [new SymbolAndSelectionInfo(alias, result.Single().Preselect)];
             }
 
             return result;
@@ -101,19 +101,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_arrayRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')],
                 matchPriority: MatchPriority.Default,
                 selectionBehavior: CompletionItemSelectionBehavior.SoftSelection);
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';', '.')),
+                commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';', '.')],
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';', '.')),
+                commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';', '.')],
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         protected abstract void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId);
+            = [IDEDiagnosticIds.UseInferredMemberNameDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

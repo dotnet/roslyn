@@ -104,7 +104,7 @@ internal partial class CSharpRecommendationService
             else if (_context.IsDestructorTypeContext)
             {
                 var symbol = _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration!, _cancellationToken);
-                return symbol == null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(symbol);
+                return symbol == null ? ImmutableArray<ISymbol>.Empty : [symbol];
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {

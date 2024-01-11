@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             if (option != null)
             {
-                AddDiagnosticIdToOptionMapping(diagnosticId, ImmutableHashSet.Create(option));
+                AddDiagnosticIdToOptionMapping(diagnosticId, [option]);
             }
         }
 

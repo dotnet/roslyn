@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Initialize a placeholder with a single position
         /// </summary>
         public SnippetPlaceholder(string identifier, int placeholderPosition)
-            : this(identifier, ImmutableArray.Create(placeholderPosition))
+            : this(identifier, [placeholderPosition])
         {
         }
     }

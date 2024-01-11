@@ -35,7 +35,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,

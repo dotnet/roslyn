@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            classificationService.AddSyntacticClassifications(root, ImmutableArray.Create(textSpan), result, cancellationToken);
+            classificationService.AddSyntacticClassifications(root, [textSpan], result, cancellationToken);
         }
 
         public static Task AddSemanticClassificationsAsync(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             return classificationService.AddSemanticClassificationsAsync(
                 document,
-                ImmutableArray.Create(textSpan),
+                [textSpan],
                 options,
                 getNodeClassifiers,
                 getTokenClassifiers,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             classificationService.AddSemanticClassifications(
                 semanticModel,
-                ImmutableArray.Create(textSpan),
+                [textSpan],
                 getNodeClassifiers,
                 getTokenClassifiers,
                 result,

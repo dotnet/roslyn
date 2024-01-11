@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal static class SuppressionHelpers
     {
         private const string SynthesizedExternalSourceDiagnosticTag = "SynthesizedExternalSourceDiagnostic";
-        public static readonly ImmutableArray<string> SynthesizedExternalSourceDiagnosticCustomTags = ImmutableArray.Create(SynthesizedExternalSourceDiagnosticTag);
+        public static readonly ImmutableArray<string> SynthesizedExternalSourceDiagnosticCustomTags = [SynthesizedExternalSourceDiagnosticTag];
 
         public static bool CanBeSuppressed(Diagnostic diagnostic)
             => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);

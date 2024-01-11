@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 return ImmutableArray<Document>.Empty;
             }
 
-            return ImmutableArray.Create(context.Document);
+            return [context.Document];
         }
     }
 }

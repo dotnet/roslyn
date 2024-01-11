@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS4032, CS4033, CS4034, CS0246);
+            [CS4032, CS4033, CS4034, CS0246];
 
         protected override bool IsSupportedDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)
         {

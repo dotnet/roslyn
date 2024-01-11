@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS0117, CS1061);
+            [CS0117, CS1061];
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {

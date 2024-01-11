@@ -157,10 +157,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var fieldAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(field), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [field], fallbackOptions, cancellationToken));
             var propertyAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(property), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [property], fallbackOptions, cancellationToken));
 
             yield return siblingFieldOrProperty is IFieldSymbol ? fieldAction : propertyAction;
             yield return siblingFieldOrProperty is IFieldSymbol ? propertyAction : fieldAction;

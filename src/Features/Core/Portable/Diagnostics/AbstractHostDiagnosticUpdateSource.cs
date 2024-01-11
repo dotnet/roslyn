@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 analyzer,
-                ImmutableHashSet.Create(diagnosticData),
+                [diagnosticData],
                 (a, existing) =>
                 {
                     var newDiags = existing.Add(diagnosticData);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (raiseDiagnosticsUpdated)
             {
-                RaiseDiagnosticsUpdated(ImmutableArray.Create(MakeCreatedArgs(analyzer, dxs, project)));
+                RaiseDiagnosticsUpdated([MakeCreatedArgs(analyzer, dxs, project)]);
             }
         }
 

@@ -94,7 +94,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
         // If there is a valid solution path, use that as the restore path.
         if (solution.FilePath != null)
         {
-            return ImmutableArray.Create(solution.FilePath);
+            return [solution.FilePath];
         }
 
         // We don't have an addressable solution, so lets find all addressable projects.

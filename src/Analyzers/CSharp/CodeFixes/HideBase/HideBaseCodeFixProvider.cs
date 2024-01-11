@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108);
+        public override ImmutableArray<string> FixableDiagnosticIds => [CS0108];
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

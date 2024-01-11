@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
                 solutionAfterImportsRemoved,
                 referenceDocuments.ToImmutableArray(),
-                ImmutableArray.Create(declaredNamespace, targetNamespace),
+                [declaredNamespace, targetNamespace],
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 // If there's no reference to types declared in this document,
                 // we will use root node as import container.
-                containersToAddImports = ImmutableArray.Create(await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+                containersToAddImports = [await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)];
             }
 
             Debug.Assert(containersToAddImports.Length > 0);
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 documentWithRefFixed,
                 addImportService,
                 containers,
-                ImmutableArray.Create(newNamespace),
+                [newNamespace],
                 documentOptions.AddImportOptions,
                 cancellationToken).ConfigureAwait(false);
 

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                     else
                     {
                         _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync: false, ImmutableArray.Create(fullPath)).VerifyCompleted();
+                        _project._projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync: false, [fullPath]).VerifyCompleted();
                     }
                 }
 

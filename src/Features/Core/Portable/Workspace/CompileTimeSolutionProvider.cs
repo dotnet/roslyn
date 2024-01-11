@@ -42,10 +42,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
             .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 

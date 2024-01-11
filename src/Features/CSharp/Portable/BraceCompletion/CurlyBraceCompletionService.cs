@@ -84,17 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
             var indentStyle = options.IndentStyle;
-            return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle));
+            return [BraceCompletionFormattingRule.ForIndentStyle(indentStyle)];
         }
 
         private sealed class BraceCompletionFormattingRule : BaseFormattingRule
         {
             private static readonly Predicate<SuppressOperation> s_predicate = o => o.Option.IsOn(SuppressOption.NoWrapping);
 
-            private static readonly ImmutableArray<BraceCompletionFormattingRule> s_instances = ImmutableArray.Create(
+            private static readonly ImmutableArray<BraceCompletionFormattingRule> s_instances =
+            [
                 new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.None),
                 new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.Block),
-                new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.Smart));
+                new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.Smart),
+            ];
 
             private readonly FormattingOptions2.IndentStyle _indentStyle;
             private readonly CSharpSyntaxFormattingOptions _options;

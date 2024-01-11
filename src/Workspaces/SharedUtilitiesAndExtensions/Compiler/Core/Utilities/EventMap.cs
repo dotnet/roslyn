@@ -83,7 +83,7 @@ namespace Roslyn.Utilities
                 return (ImmutableArray<Registry<TEventHandler>>)registries;
             }
 
-            return ImmutableArray.Create<Registry<TEventHandler>>();
+            return [];
         }
 
         private void SetRegistries_NoLock<TEventHandler>(string eventName, ImmutableArray<Registry<TEventHandler>> registries)

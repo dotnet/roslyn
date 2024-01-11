@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create("CS8401");
+            => ["CS8401"];
 
         private const string InterpolatedVerbatimText = "$@\"";
 

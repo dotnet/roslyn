@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected static SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);
+            => [IDEDiagnosticIds.UseAutoPropertyDiagnosticId];
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
                 fieldSymbol, propertySymbol.Name,
-                nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)),
+                nonConflictSymbolKeys: [propertySymbol.GetSymbolKey(cancellationToken)],
                 context.Options, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);

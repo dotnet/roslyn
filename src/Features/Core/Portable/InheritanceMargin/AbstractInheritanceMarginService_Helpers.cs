@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     }
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
+                        lineNumber, this.GlobalImportsTitle, [new TaggedText(TextTags.Text, this.GlobalImportsTitle)],
                         Glyph.Namespace, targetItems.ToImmutable()));
                 }
                 else
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
+                        lineNumber, this.GlobalImportsTitle, [taggedText], Glyph.Namespace, targetItems.ToImmutable()));
                 }
             }
 

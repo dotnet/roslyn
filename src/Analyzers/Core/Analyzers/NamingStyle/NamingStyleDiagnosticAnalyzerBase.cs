@@ -33,12 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
         // Locals and fields are handled by SupportedSyntaxKinds for now.
-        private static readonly ImmutableArray<SymbolKind> _symbolKinds = ImmutableArray.Create(
-            SymbolKind.Event,
-            SymbolKind.Method,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Property);
+        private static readonly ImmutableArray<SymbolKind> _symbolKinds = [SymbolKind.Event, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Property];
 
         // Workaround: RegisterSymbolAction doesn't work with locals, local functions, parameters, or type parameters.
         // see https://github.com/dotnet/roslyn/issues/14061

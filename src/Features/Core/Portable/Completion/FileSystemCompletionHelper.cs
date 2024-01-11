@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (!PathUtilities.IsUnixLikePlatform && directoryPath == "\\")
             {
                 // The user has typed only "\".  In this case, we want to add "\\" to the list.  
-                return ImmutableArray.Create(CreateNetworkRoot());
+                return [CreateNetworkRoot()];
             }
 
             var result = ArrayBuilder<CompletionItem>.GetInstance();

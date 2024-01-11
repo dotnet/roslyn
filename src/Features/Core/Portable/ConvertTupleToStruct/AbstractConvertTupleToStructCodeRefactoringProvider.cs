@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // If we were given specific nodes to update, only update those.  Otherwise
                     // updated everything from the root down.
                     var nodesToUpdate = documentToUpdate.NodesToUpdate.IsDefault
-                        ? ImmutableArray.Create(syntaxRoot)
+                        ? [syntaxRoot]
                         : documentToUpdate.NodesToUpdate;
 
                     var editor = new SyntaxEditor(syntaxRoot, generator);
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Contract.ThrowIfNull(containingMember,
                 "We should always get a containing member since we already checked for that to support Scope.ContainingMember.");
 
-            return ImmutableArray.Create(new DocumentToUpdate(document, ImmutableArray.Create(containingMember)));
+            return [new DocumentToUpdate(document, [containingMember])];
         }
 
         private static async Task GenerateStructIntoContainingNamespaceAsync(
@@ -889,12 +889,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 tupleType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(structType, ValueName),
                 isImplicit: true,
-                statements: ImmutableArray.Create(convertToTupleStatement)));
+                statements: [convertToTupleStatement]));
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
                 structType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(tupleType, ValueName),
                 isImplicit: true,
-                statements: ImmutableArray.Create(convertToStructStatement)));
+                statements: [convertToStructStatement]));
         }
 
         private static INamedTypeSymbol CreateNamedType(

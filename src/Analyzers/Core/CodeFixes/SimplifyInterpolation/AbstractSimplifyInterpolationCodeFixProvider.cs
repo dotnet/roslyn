@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         where TInterpolatedStringExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
+            [IDEDiagnosticIds.SimplifyInterpolationId];
 
         protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 

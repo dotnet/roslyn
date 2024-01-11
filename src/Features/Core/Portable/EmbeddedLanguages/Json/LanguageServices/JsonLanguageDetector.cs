@@ -27,7 +27,7 @@ internal sealed class JsonLanguageDetector(
 {
     internal readonly struct JsonInfo : ILanguageDetectorInfo<JsonLanguageDetector>
     {
-        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Json");
+        public ImmutableArray<string> LanguageIdentifiers => ["Json"];
 
         public JsonLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
         {

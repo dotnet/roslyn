@@ -20,10 +20,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
             EmbeddedLanguageInfo = info;
-            Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new DateAndTimeEmbeddedLanguage(info),
-                new RegexEmbeddedLanguage(this, info),
-                new JsonEmbeddedLanguage());
+            Languages = [new DateAndTimeEmbeddedLanguage(info), new RegexEmbeddedLanguage(this, info), new JsonEmbeddedLanguage()];
         }
 
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
+            => [IDEDiagnosticIds.UseIsNullCheckDiagnosticId];
 
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;

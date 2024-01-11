@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var formatter = workspaceServices.GetRequiredLanguageService<IDocumentationCommentFormattingService>(semanticModel.Language);
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
+            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, [symbol], options, cancellationToken).ConfigureAwait(false);
 
             if (!sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTexts))
             {

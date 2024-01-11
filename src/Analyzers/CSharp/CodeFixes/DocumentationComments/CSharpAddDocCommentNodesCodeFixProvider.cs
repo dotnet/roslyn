@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1573);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1573];
 
         protected override string NodeName { get; } = "param";
 

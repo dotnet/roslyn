@@ -37,10 +37,47 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
     /// C:\Program Files\Microsoft Visual Studio\2022\VS_INSTANCE\VC#\Snippets\1033\Visual C#
     /// These are currently the only snippets supported.
     /// </summary>
-    public static ImmutableHashSet<string> BuiltInSnippets = ImmutableHashSet.Create(
-        "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
-        "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
-        "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
+    public static ImmutableHashSet<string> BuiltInSnippets =
+    [
+        "~",
+        "Attribute",
+        "checked",
+        "class",
+        "ctor",
+        "cw",
+        "do",
+        "else",
+        "enum",
+        "equals",
+        "Exception",
+        "for",
+        "foreach",
+        "forr",
+        "if",
+        "indexer",
+        "interface",
+        "invoke",
+        "iterator",
+        "iterindex",
+        "lock",
+        "mbox",
+        "namespace",
+        "#if",
+        "#region",
+        "prop",
+        "propfull",
+        "propg",
+        "sim",
+        "struct",
+        "svm",
+        "switch",
+        "try",
+        "tryf",
+        "unchecked",
+        "unsafe",
+        "using",
+        "while",
+    ];
 
     private readonly XmlSnippetParser _xmlSnippetParser;
     private readonly IGlobalOptionService _globalOptions;

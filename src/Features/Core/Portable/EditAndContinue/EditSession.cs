@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                        diagnostics.Add(new(newProject.Id, ImmutableArray.Create(mvidReadError)));
+                        diagnostics.Add(new(newProject.Id, [mvidReadError]));
 
                         Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id));
                         isBlocked = true;
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
                         if (unsupportedChangesDiagnostic is not null)
                         {
-                            diagnostics.Add(new(newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                            diagnostics.Add(new(newProject.Id, [unsupportedChangesDiagnostic]));
                             isBlocked = true;
                         }
                         else

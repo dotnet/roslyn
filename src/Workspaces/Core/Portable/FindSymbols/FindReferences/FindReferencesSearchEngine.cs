@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
-            => FindReferencesAsync(ImmutableArray.Create(symbol), cancellationToken);
+            => FindReferencesAsync([symbol], cancellationToken);
 
         public async Task FindReferencesAsync(
             ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)

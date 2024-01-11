@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
-                diagnostics = ImmutableArray.Create(CreateAnalyzerExceptionDiagnostic(analyzer, e));
+                diagnostics = [CreateAnalyzerExceptionDiagnostic(analyzer, e)];
             }
 
             if (compilation != null)
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
-                diagnostics = ImmutableArray.Create(CreateAnalyzerExceptionDiagnostic(analyzer, e));
+                diagnostics = [CreateAnalyzerExceptionDiagnostic(analyzer, e)];
             }
 
             // Apply filtering from compilation options (source suppressions, ruleset, etc.)

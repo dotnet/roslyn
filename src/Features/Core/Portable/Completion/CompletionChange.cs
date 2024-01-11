@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion
             IncludesCommitCharacter = includesCommitCharacter;
             TextChanges = textChanges.NullToEmpty();
             if (TextChanges.IsEmpty)
-                TextChanges = ImmutableArray.Create(textChange);
+                TextChanges = [textChange];
             Properties = properties;
         }
 

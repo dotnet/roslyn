@@ -23,10 +23,12 @@ internal readonly struct UpdateExpressionState<
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
-    private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames = ImmutableArray.Create(
+    private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames =
+    [
         (nameof(List<int>.AddRange), isLinq: false),
         (nameof(Enumerable.Concat), isLinq: true),
-        (nameof(Enumerable.Append), isLinq: true));
+        (nameof(Enumerable.Append), isLinq: true),
+    ];
 
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;

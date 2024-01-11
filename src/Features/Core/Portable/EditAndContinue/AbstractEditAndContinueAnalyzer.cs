@@ -591,8 +591,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     Log.Write("Experimental features enabled in '{0}'", filePath);
 
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -601,8 +600,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document has changed at all, lets make sure Edit and Continue is supported
                 if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
                 {
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
-                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 // We are in break state when there are no active statements.
@@ -704,7 +702,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [newDocument.FilePath, e.ToString()]);
 
                 // Report as "syntax error" - we can't analyze the document
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             static void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)

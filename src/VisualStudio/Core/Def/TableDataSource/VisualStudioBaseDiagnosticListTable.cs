@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
         }
 
-        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+        internal override ImmutableArray<string> Columns { get; } =
+        [
             StandardTableColumnDefinitions.ErrorSeverity,
             StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
@@ -32,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            StandardTableColumnDefinitions.SuppressionState);
+            StandardTableColumnDefinitions.SuppressionState,
+        ];
 
         protected static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {

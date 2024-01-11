@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);
 
         public static readonly ImmutableArray<UseExpressionBodyHelper> Helpers =
-            ImmutableArray.Create<UseExpressionBodyHelper>(
+            [
                 UseExpressionBodyForConstructorsHelper.Instance,
                 UseExpressionBodyForConversionOperatorsHelper.Instance,
                 UseExpressionBodyForIndexersHelper.Instance,
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 UseExpressionBodyForOperatorsHelper.Instance,
                 UseExpressionBodyForPropertiesHelper.Instance,
                 UseExpressionBodyForAccessorsHelper.Instance,
-                UseExpressionBodyForLocalFunctionHelper.Instance);
+                UseExpressionBodyForLocalFunctionHelper.Instance,
+            ];
     }
 }

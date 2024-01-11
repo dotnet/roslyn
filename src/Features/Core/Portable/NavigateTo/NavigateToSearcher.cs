@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (_activeDocument != null)
             {
                 processedProjects.Add(_activeDocument.Project);
-                result.Add(ImmutableArray.Create(_activeDocument.Project));
+                result.Add([_activeDocument.Project]);
             }
 
             // Next process all visible docs that were not from the active project.

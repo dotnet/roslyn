@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+            = [IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

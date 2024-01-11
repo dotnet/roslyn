@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
+            => [IDEDiagnosticIds.UseNullPropagationDiagnosticId];
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);

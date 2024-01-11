@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var lazyProvider = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => provider, metadata);
 
                 // update existing map for future solution crawler registration - no need for interlock but this makes add or update easier
-                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
+                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => [lazyProvider], (n, v) => v.Add(lazyProvider));
 
                 // assert map integrity
                 AssertAnalyzerProviders(_analyzerProviders);

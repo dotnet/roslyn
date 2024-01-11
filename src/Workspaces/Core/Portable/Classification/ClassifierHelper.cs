@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Classification
             bool includeAdditiveSpans,
             CancellationToken cancellationToken)
         {
-            return await GetClassifiedSpansAsync(document, ImmutableArray.Create(span), options, includeAdditiveSpans, cancellationToken)
+            return await GetClassifiedSpansAsync(document, [span], options, includeAdditiveSpans, cancellationToken)
                 .ConfigureAwait(false);
         }
 

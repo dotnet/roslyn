@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = [KeywordHighlightingOptionsStorage.KeywordHighlighting];
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 

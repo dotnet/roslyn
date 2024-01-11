@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
         // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
         private static readonly ImmutableArray<AbstractReducer> s_reducers =
-            ImmutableArray.Create<AbstractReducer>(
+            [
                 new CSharpVarReducer(),
                 new CSharpNameReducer(),
                 new CSharpNullableAnnotationReducer(),
@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
-                new CSharpDefaultExpressionReducer());
+                new CSharpDefaultExpressionReducer(),
+            ];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast
             => CSharpSyntaxFacts.Instance;
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxKinds()
-            => ImmutableArray.Create(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement);
+            => [SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement];
 
         protected override (CommonConversion conversion, ITypeSymbol? collectionElementType) GetForEachInfo(
             SemanticModel semanticModel, CommonForEachStatementSyntax node)

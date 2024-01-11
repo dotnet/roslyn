@@ -18,7 +18,7 @@ using static PullDiagnosticConstants;
 
 internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions) : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = [TaskItemCustomTag];
 
     private static readonly ImmutableDictionary<string, string?> s_lowPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Low);
     private static readonly ImmutableDictionary<string, string?> s_mediumPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Medium);

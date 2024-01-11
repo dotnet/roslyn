@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 // merge two
-                return new AggregateLogger(ImmutableArray.Create(newLogger, oldLogger));
+                return new AggregateLogger([newLogger, oldLogger]);
             }
 
             var set = new HashSet<ILogger>();

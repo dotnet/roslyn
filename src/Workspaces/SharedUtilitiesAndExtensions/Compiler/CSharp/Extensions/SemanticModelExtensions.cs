@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.LookupName(expression, cancellationToken);
             }
 
-            return ImmutableArray.Create<ISymbol>();
+            return [];
         }
 
         /// <summary>

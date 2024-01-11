@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (indexers.Any())
                     {
                         return indexers.SelectMany(i =>
-                            InferTypeInArgument(index, ImmutableArray.Create(i.Parameters), argumentOpt));
+                            InferTypeInArgument(index, [i.Parameters], argumentOpt));
                     }
                 }
 

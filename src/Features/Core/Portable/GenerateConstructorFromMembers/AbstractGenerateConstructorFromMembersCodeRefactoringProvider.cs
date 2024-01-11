@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var type = codeAction.GetType();
-                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, ImmutableArray.Create(priorDocument.Id), codeAction.Title, type.Name);
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, [priorDocument.Id], codeAction.Title, type.Name);
             }
 
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(

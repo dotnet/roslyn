@@ -146,7 +146,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (!preferInitializerOption.Value
             && preferExpressionOption.Value == Shared.CodeStyle.CollectionExpressionPreference.Never
             && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
-                    ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification),
+                    [preferInitializerOption.Notification, preferExpressionOption.Notification],
                     context.CancellationToken))
         {
             return;
@@ -181,7 +181,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
-            : ImmutableArray.Create<SyntaxNode>(containingStatement);
+            : [containingStatement];
         nodes = nodes.AddRange(matches.Select(static m => m.Statement));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;

@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var changedSolution = await action.GetChangedSolutionInternalAsync(
                     priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
-                var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
+                var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
                 results.Add(intent);
             }
 

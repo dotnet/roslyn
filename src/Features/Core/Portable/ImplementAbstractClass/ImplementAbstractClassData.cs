@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 method,
                 accessibility: accessibility,
                 modifiers: modifiers,
-                statements: ImmutableArray.Create(body));
+                statements: [body]);
         }
 
         private IPropertySymbol GenerateProperty(
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                 attributes: default,
                 accessibility: Accessibility.NotApplicable,
-                statements: ImmutableArray.Create(statement));
+                statements: [statement]);
         }
 
         private bool ShouldGenerateAccessor([NotNullWhen(true)] IMethodSymbol? method)

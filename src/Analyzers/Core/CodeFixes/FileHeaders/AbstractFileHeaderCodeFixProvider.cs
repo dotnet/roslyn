@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
+            = [IDEDiagnosticIds.FileHeaderMismatch];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

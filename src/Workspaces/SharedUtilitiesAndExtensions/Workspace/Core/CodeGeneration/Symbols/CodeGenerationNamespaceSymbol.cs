@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<INamespaceSymbol>(this);
+                return [this];
             }
         }
     }

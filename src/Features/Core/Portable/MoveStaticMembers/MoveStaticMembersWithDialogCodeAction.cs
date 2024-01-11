@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                ImmutableArray.Create<AttributeData>(),
+                [],
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),

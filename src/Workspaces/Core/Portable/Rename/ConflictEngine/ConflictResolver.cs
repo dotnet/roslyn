@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
             return symbolInfo.Symbol == null
                 ? default
-                : ImmutableArray.Create(symbolInfo.Symbol);
+                : [symbolInfo.Symbol];
         }
 
         private static SyntaxNode? GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)

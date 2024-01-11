@@ -25,7 +25,7 @@ internal sealed class DateAndTimeLanguageDetector(
 {
     internal readonly struct DateAndTimeInfo : ILanguageDetectorInfo<DateAndTimeLanguageDetector>
     {
-        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
+        public ImmutableArray<string> LanguageIdentifiers => ["Date", "Time", "DateTime", "DateTimeFormat"];
 
         public DateAndTimeLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
         {

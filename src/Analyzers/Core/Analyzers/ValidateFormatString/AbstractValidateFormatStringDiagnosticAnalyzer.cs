@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 #pragma warning restore RS0030 // Do not used banned APIs
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(Rule);
+            => [Rule];
 
         /// <summary>
         /// this regex is used to remove escaped brackets from

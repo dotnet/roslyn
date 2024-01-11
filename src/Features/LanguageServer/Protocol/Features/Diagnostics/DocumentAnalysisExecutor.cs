@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
             RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
 
-            var analysisScope = AnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer)).WithSpan(span);
+            var analysisScope = AnalysisScope.WithAnalyzers([analyzer]).WithSpan(span);
             var analysisResult = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             if (!analysisResult.TryGetValue(analyzer, out var result))
             {

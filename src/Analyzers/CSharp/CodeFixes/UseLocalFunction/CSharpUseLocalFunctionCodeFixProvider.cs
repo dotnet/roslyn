@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
+            => [IDEDiagnosticIds.UseLocalFunctionDiagnosticId];
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;

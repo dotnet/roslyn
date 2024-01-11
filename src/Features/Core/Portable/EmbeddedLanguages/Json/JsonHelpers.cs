@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
         public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars, EmbeddedDiagnostic diagnostic)
-            => CreateTrivia(kind, virtualChars, ImmutableArray.Create(diagnostic));
+            => CreateTrivia(kind, virtualChars, [diagnostic]);
 
         public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new(kind, virtualChars, diagnostics);

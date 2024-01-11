@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 
             return new JsonTree(_lexer.Text, root, diagnostic == null
                 ? ImmutableArray<EmbeddedDiagnostic>.Empty
-                : ImmutableArray.Create(diagnostic.Value));
+                : [diagnostic.Value]);
         }
 
         private static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)

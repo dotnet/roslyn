@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
         protected AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnnecessarySuppressionDescriptor), GeneratedCodeAnalysisFlags.None)
+            : base([s_removeUnnecessarySuppressionDescriptor], GeneratedCodeAnalysisFlags.None)
         {
             _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(GetSupportedCompilerErrorCodes);
         }
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                             pragmasToIsUsedMap.TryGetValue(togglePragma, out var isToggleUsed) &&
                             !isToggleUsed)
                         {
-                            additionalLocations = ImmutableArray.Create(togglePragma.GetLocation());
+                            additionalLocations = [togglePragma.GetLocation()];
                         }
                         else
                         {

@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return text[characterPosition] == '#';
         }
 
-        internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
+        internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ['.', '#', '>', ':'];
 
-        internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ImmutableHashSet.Create('.', '#', '>', ':', '(', '[', ' ');
+        internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ['.', '#', '>', ':', '(', '[', ' '];
 
         internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, in CompletionOptions options)
             => IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (IsStartingNewWord(text, characterPosition) && options.TriggerOnTypingLetters);
         }
 
-        internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');
+        internal static ImmutableHashSet<char> SpaceTriggerCharacter => [' '];
 
         private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)
             => ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));

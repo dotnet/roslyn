@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
+            => [IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

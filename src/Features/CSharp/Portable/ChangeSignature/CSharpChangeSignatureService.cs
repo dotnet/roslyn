@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override SyntaxGenerator Generator => CSharpSyntaxGenerator.Instance;
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
-        private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _declarationKinds =
+        [
             SyntaxKind.MethodDeclaration,
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.IndexerDeclaration,
@@ -47,10 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.ClassDeclaration);
+            SyntaxKind.ClassDeclaration,
+        ];
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
-            _declarationKinds.Concat(ImmutableArray.Create(
+            _declarationKinds.Concat(
+            [
                 SyntaxKind.InvocationExpression,
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.ThisConstructorInitializer,
@@ -58,9 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.ObjectCreationExpression,
                 SyntaxKind.ImplicitObjectCreationExpression,
                 SyntaxKind.Attribute,
-                SyntaxKind.NameMemberCref));
+                SyntaxKind.NameMemberCref,
+            ]);
 
-        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds =
+        [
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.IndexerDeclaration,
             SyntaxKind.InvocationExpression,
@@ -72,9 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.NameMemberCref);
+            SyntaxKind.NameMemberCref,
+        ];
 
-        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds =
+        [
             SyntaxKind.MethodDeclaration,
             SyntaxKind.LocalFunctionStatement,
             SyntaxKind.ConstructorDeclaration,
@@ -94,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.ClassDeclaration);
+            SyntaxKind.ClassDeclaration,
+        ];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -15,10 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
 
         private readonly ImmutableArray<SymbolKind> _symbolKindsThatCanBeOverridden =
-            ImmutableArray.Create(
-                SymbolKind.Method,
-                SymbolKind.Property,
-                SymbolKind.Event);
+            [SymbolKind.Method, SymbolKind.Property, SymbolKind.Event];
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {

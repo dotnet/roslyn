@@ -32,10 +32,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSuppressionDocument = await GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return ImmutableArray.Create<CodeActionOperation>(
+                return
+                [
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0));
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0),
+                ];
             }
 
             protected abstract Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken);

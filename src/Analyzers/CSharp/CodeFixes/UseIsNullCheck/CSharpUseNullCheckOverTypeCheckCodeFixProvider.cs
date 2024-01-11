@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId);
+            => [IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

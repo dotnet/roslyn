@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
             var root = await document.GetSyntaxRootAsync();
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(root.FullSpan), CodeCleanupOptions.GetDefault(document.Project.Services));
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, [root.FullSpan], CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -125,7 +125,7 @@ End Class", LanguageNames.VisualBasic);
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
             var root = await document.GetSyntaxRootAsync();
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(root.FullSpan), CodeCleanupOptions.GetDefault(document.Project.Services));
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, [root.FullSpan], CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -388,7 +388,7 @@ End Module";
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
-            VerifyRange(codeWithoutMarker, ImmutableArray.Create(transformer), namedSpans["b"], ref expectedResult, language);
+            VerifyRange(codeWithoutMarker, [transformer], namedSpans["b"], ref expectedResult, language);
         }
 
         private static void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)

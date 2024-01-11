@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-            => ImmutableArray.Create(CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation));
+            => [CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation)];
 
         public static ImmutableArray<SyntaxNode> CreateArguments(
             this SyntaxGenerator factory,

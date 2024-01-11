@@ -31,7 +31,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,

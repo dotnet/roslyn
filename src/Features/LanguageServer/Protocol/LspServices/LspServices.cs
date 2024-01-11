@@ -49,7 +49,7 @@ internal sealed class LspServices : ILspServices
         _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
 
         // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
-        _baseServices = baseServices.Add(typeof(ILspServices), ImmutableArray.Create<Func<ILspServices, object>>((_) => this));
+        _baseServices = baseServices.Add(typeof(ILspServices), [(_) => this]);
     }
 
     public T GetRequiredService<T>() where T : notnull

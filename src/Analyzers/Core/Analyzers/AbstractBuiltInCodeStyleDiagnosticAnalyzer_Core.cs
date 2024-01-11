@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             Debug.Assert(!isUnnecessary || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
 
             Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, hasAnyCodeStyleOption, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
-            SupportedDiagnostics = ImmutableArray.Create(Descriptor);
+            SupportedDiagnostics = [Descriptor];
         }
 
         /// <summary>

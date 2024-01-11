@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     internal class CSharpCodeCleanerService : AbstractCodeCleanerService
     {
-        private static readonly ImmutableArray<ICodeCleanupProvider> s_defaultProviders = ImmutableArray.Create<ICodeCleanupProvider>(
-            new SimplificationCodeCleanupProvider(),
-            new FormatCodeCleanupProvider());
+        private static readonly ImmutableArray<ICodeCleanupProvider> s_defaultProviders = [new SimplificationCodeCleanupProvider(), new FormatCodeCleanupProvider()];
 
         public override ImmutableArray<ICodeCleanupProvider> GetDefaultProviders()
             => s_defaultProviders;

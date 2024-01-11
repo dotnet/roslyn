@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
         {
         }
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8129);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => [CS8129];
 
         public override FixAllProvider GetFixAllProvider()
         {

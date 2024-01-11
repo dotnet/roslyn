@@ -57,7 +57,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
             classificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, EnforceOnBuildValues.RemoveUnnecessaryImports, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true);
             generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen", EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
-            return ImmutableArray.Create(s_fixableIdDescriptor, s_enableGenerateDocumentationFileIdDescriptor, classificationIdDescriptor, generatedCodeClassificationIdDescriptor);
+            return
+            [
+                s_fixableIdDescriptor,
+                s_enableGenerateDocumentationFileIdDescriptor,
+                classificationIdDescriptor,
+                generatedCodeClassificationIdDescriptor,
+            ];
         }
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }

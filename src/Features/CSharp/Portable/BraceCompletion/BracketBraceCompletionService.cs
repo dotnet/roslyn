@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
-            return ImmutableArray.Create(BracketCompletionFormattingRule.Instance);
+            return [BracketCompletionFormattingRule.Instance];
         }
 
         private sealed class BracketCompletionFormattingRule : BaseFormattingRule

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken)
-                ? ImmutableArray.Create(new RecommendedKeyword("notnull"))
+                ? [new RecommendedKeyword("notnull")]
                 : ImmutableArray<RecommendedKeyword>.Empty;
         }
     }

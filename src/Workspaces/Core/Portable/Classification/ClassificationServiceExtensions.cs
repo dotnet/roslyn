@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            classificationService.AddSyntacticClassifications(services, root, ImmutableArray.Create(textSpan), result, cancellationToken);
+            classificationService.AddSyntacticClassifications(services, root, [textSpan], result, cancellationToken);
         }
 
         public static Task AddSyntacticClassificationsAsync(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            return classificationService.AddSyntacticClassificationsAsync(document, ImmutableArray.Create(textSpan), result, cancellationToken);
+            return classificationService.AddSyntacticClassificationsAsync(document, [textSpan], result, cancellationToken);
         }
 
         public static Task AddSemanticClassificationsAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            return classificationService.AddSemanticClassificationsAsync(document, ImmutableArray.Create(textSpan), options, result, cancellationToken);
+            return classificationService.AddSemanticClassificationsAsync(document, [textSpan], options, result, cancellationToken);
         }
 
         public static Task AddEmbeddedLanguageClassificationsAsync(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            return classificationService.AddEmbeddedLanguageClassificationsAsync(document, ImmutableArray.Create(textSpan), options, result, cancellationToken);
+            return classificationService.AddEmbeddedLanguageClassificationsAsync(document, [textSpan], options, result, cancellationToken);
         }
     }
 }

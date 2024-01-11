@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AbstractJsonDetectionAnalyzer.DiagnosticId);
+            => [AbstractJsonDetectionAnalyzer.DiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
         {
             if (!map.TryGetValue(key, out var values))
             {
-                values = ImmutableHashSet.Create<V>();
+                values = [];
                 return map.Add(key, values.Add(value));
             }
 

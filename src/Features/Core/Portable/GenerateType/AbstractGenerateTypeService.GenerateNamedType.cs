@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     if (serializableType != null)
                     {
                         var attribute = CodeGenerationSymbolFactory.CreateAttributeData(serializableType);
-                        return ImmutableArray.Create(attribute);
+                        return [attribute];
                     }
                 }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var type = RemoveUnavailableTypeParameters(_state.BaseTypeOrInterfaceOpt);
                     if (type != null)
                     {
-                        return ImmutableArray.Create(type);
+                        return [type];
                     }
                 }
 

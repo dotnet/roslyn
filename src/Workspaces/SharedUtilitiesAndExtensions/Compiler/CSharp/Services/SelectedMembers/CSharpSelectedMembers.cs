@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                     v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
                 EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.SelectAsArray(
                     v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
-                _ => ImmutableArray.Create((declaration: (SyntaxNode)member, identifier: member.GetNameToken())),
+                _ => [(declaration: (SyntaxNode)member, identifier: member.GetNameToken())],
             };
         }
 

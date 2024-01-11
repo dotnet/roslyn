@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Location.None,
                 string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+            return [DiagnosticData.Create(solution, diagnostic, project: null)];
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)

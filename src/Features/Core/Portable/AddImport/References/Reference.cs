@@ -58,12 +58,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
-                = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
-                    // If references have different weights, order by the ones with lower weight (i.e.
-                    // they are better matches).
+                =
+                [
                     (r, d) => r.SearchResult.Weight,
-                    // Prefer the name doesn't need to change.
-                    (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d));
+                    (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d),
+                ];
 
             public override bool Equals(object obj)
                 => Equals(obj as Reference);

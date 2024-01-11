@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
                     // Let the context know that this was the span we actually tried to tag.
-                    context.SetSpansTagged(ImmutableArray.Create(snapshotSpan));
+                    context.SetSpansTagged([snapshotSpan]);
                     context.State = version;
                 }
             }

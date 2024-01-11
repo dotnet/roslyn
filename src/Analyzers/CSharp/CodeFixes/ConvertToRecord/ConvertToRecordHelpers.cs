@@ -1060,11 +1060,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             // all the operations that would happen after the condition is true or false
             // branches can either be block bodies or single statements
             // each branch is followed by statements outside the branch either way
-            var trueOps = ((whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue))
+            var trueOps = ((whenTrue as IBlockOperation)?.Operations ?? [whenTrue])
                 .Concat(otherOps);
             var falseOps = ((whenFalse as IBlockOperation)?.Operations ??
                 (whenFalse != null
-                    ? ImmutableArray.Create(whenFalse)
+                    ? [whenFalse]
                     : ImmutableArray<IOperation>.Empty))
                 .Concat(otherOps);
 

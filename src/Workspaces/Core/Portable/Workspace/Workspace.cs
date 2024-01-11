@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
                 CheckAnalyzerConfigDocumentIsNotInSolution(oldSolution, documentId);
 
-                return oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+                return oldSolution.AddAnalyzerConfigDocuments([documentInfo]);
             },
             WorkspaceChangeKind.AnalyzerConfigDocumentAdded, documentId: documentId);
         }

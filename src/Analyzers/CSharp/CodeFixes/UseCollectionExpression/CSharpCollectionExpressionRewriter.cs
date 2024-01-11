@@ -745,7 +745,7 @@ internal static class CSharpCollectionExpressionRewriter
         static ImmutableArray<ExpressionSyntax> ConvertAssignment(
             AssignmentExpressionSyntax assignment, Func<ExpressionSyntax, ExpressionSyntax> indent)
         {
-            return ImmutableArray.Create(indent(assignment.Right));
+            return [indent(assignment.Right)];
         }
 
         static ImmutableArray<ExpressionSyntax> ConvertInvocation(

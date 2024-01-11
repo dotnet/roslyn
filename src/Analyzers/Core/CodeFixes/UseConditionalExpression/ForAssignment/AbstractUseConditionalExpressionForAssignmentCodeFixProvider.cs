@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected abstract TLocalDeclarationStatementSyntax AddSimplificationToType(TLocalDeclarationStatementSyntax updatedLocalDeclaration);
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId);
+            => [IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

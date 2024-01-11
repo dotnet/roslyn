@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var original = model.GetOriginalSemanticModel();
             if (!original.SyntaxTree.HasCompilationUnitRoot)
             {
-                return ImmutableHashSet.Create<string>();
+                return [];
             }
 
             var root = original.SyntaxTree.GetCompilationUnitRoot(cancellationToken);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
-                return ImmutableArray.Create<ISymbol>(type);
+                return [type];
             }
         }
 
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type.Equals(symbol, SymbolEqualityComparer.Default) &&
                     !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
                 {
-                    return ImmutableArray.Create<ISymbol>(type);
+                    return [type];
                 }
             }
 

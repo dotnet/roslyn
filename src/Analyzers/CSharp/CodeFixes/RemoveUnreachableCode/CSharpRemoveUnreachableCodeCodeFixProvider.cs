@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId);
+            [IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // get-accessor
                 return symbols.CurrentProperty.GetMethod == null
                     ? ImmutableArray<IMethodSymbol>.Empty
-                    : ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
+                    : [symbols.CurrentProperty.GetMethod];
             }
 
             if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 return inNameOf || inStructuredTrivia || property.GetMethod == null
                     ? ImmutableArray<IMethodSymbol>.Empty
-                    : ImmutableArray.Create(property.GetMethod);
+                    : [property.GetMethod];
             }
         }
     }

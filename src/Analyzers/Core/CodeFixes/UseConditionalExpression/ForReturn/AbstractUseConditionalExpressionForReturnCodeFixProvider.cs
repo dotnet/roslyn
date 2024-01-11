@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
+            => [IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

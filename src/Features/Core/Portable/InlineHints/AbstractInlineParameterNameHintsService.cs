@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                         result.Add(new InlineHint(
                             textSpan,
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                            [new TaggedText(TextTags.Text, parameter.Name + ": ")],
                             replacementTextChange,
                             ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));

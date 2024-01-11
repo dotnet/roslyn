@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
-                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(), parameter.NullableAnnotation,
+                        parameter.GetAttributes(), parameter.Variance, parameter.Name, [], parameter.NullableAnnotation,
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
                         parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }

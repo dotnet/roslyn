@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                         s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                         cancellationToken);
 
-                    return ImmutableArray.Create(typeParameter);
+                    return [typeParameter];
                 }
                 else
                 {

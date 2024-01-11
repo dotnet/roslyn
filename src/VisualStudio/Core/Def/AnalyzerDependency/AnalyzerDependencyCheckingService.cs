@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static readonly IIgnorableAssemblyList s_systemPrefixList = new IgnorableAssemblyNamePrefixList("System");
         private static readonly IIgnorableAssemblyList s_codeAnalysisPrefixList = new IgnorableAssemblyNamePrefixList("Microsoft.CodeAnalysis");
         private static readonly IIgnorableAssemblyList s_explicitlyIgnoredAssemblyList = new IgnorableAssemblyIdentityList(GetExplicitlyIgnoredAssemblyIdentities());
-        private static readonly IIgnorableAssemblyList s_assembliesIgnoredByNameList = new IgnorableAssemblyNameList(ImmutableHashSet.Create("mscorlib"));
+        private static readonly IIgnorableAssemblyList s_assembliesIgnoredByNameList = new IgnorableAssemblyNameList(["mscorlib"]);
         private static readonly IBindingRedirectionService s_bindingRedirectionService = new BindingRedirectionService();
 
         private readonly VisualStudioWorkspace _workspace;

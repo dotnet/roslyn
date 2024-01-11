@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     {
         private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
 
-        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(InternalLanguageNames.TypeScript);
+        protected override ImmutableArray<string> SupportedLanguages => [InternalLanguageNames.TypeScript];
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             var contentControl = ProjectionBufferContent.Create(
                 _threadingContext,
-                ImmutableArray.Create(snapshotSpan),
+                [snapshotSpan],
                 _projectionBufferFactoryService,
                 _editorOptionsService,
                 _textEditorFactoryService,
