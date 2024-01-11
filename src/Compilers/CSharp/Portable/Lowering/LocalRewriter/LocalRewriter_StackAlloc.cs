@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
-                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor_Pointer, out MethodSymbol spanConstructor))
+                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor_Pointer, out MethodSymbol? spanConstructor))
                 {
                     constructorCall = _factory.New((MethodSymbol)spanConstructor.SymbolAsMember(spanType), stackAllocNode, countTemp);
                 }
