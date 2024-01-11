@@ -297,11 +297,9 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
-                    postCommands.AppendLine("dir artifacts");
-                    postCommands.AppendLine(@"dir artifacts\TestResults");
-                    postCommands.AppendLine(@$"dir artifacts\TestResults\{options.Configuration}");
                     var testResultsDirectory = Path.Combine("artifacts", "TestResults", options.Configuration);
                     // Copy integration test artifacts to the helix upload directory.
+                    // TODO - delete - we collect all dump files below.
                     postCommands.AppendLine($@"xcopy %HELIX_WORKITEM_ROOT%\{testResultsDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E");
 
                     // Zip up VS logs and copy them to the helix upload directory.

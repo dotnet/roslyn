@@ -106,8 +106,8 @@ namespace RunTests
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             if (options.UseHelix)
             {
-                // Helix tests run on a different machine, so we cannot use the directory from this machine.
-                return fileName;
+                // Helix tests run on a different machine, so we have to use a relative directory.
+                return Path.Combine("artifacts", "TestResults", options.Configuration, fileName);
             }
             else
             {

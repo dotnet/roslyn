@@ -134,6 +134,8 @@ internal partial class ScreenshotInProcess
         Over = 1,
     }
 
+    private static int s_counter = 1;
+
     static ScreenshotInProcess()
     {
         DataCollectionService.RegisterCustomLogger(
@@ -163,7 +165,13 @@ internal partial class ScreenshotInProcess
                 // Make sure the frames are processed in order of their timestamps
                 Array.Sort(frames, (x, y) => x.elapsed.CompareTo(y.elapsed));
                 var croppedFrames = DetectChangedRegions(frames);
-                Console.WriteLine("Fullpath: " + fullPath);
+
+                s_counter++;
+                if (s_counter > 20)
+                {
+                    throw new Exception("Fullpath: " + fullPath);
+                }
+
                 using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
                 {
                     var crc = new Crc32();
