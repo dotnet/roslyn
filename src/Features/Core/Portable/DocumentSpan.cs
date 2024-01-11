@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
 
-        /// <summary>
-        /// Additional information attached to a document span by it creator.
-        /// </summary>
-        public ImmutableDictionary<string, object>? Properties { get; }
+        ///// <summary>
+        ///// Additional information attached to a document span by it creator.
+        ///// </summary>
+        //public ImmutableDictionary<string, object>? Properties { get; }
 
         public DocumentSpan(
             Document document,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         {
             Document = document;
             SourceSpan = sourceSpan;
-            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
+            // Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public DocumentSpan(Document document, TextSpan sourceSpan)

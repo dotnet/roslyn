@@ -15,29 +15,23 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassifiedSpansAndHighlightSpanFactory
     {
-        public static async Task<DocumentSpan> GetClassifiedDocumentSpanAsync(
-            Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
-        {
-            var classifiedSpans = await ClassifyAsync(
-                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
+        //public static async Task<ClassifiedSpansAndHighlightSpan> GetClassifiedDocumentSpanAsync(
+        //    Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
+        //{
+        //    var classifiedSpans = await ClassifyAsync(
+        //        document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
 
-            var properties = ImmutableDictionary<string, object>.Empty.Add(
-                ClassifiedSpansAndHighlightSpan.Key, classifiedSpans);
-
-            return new DocumentSpan(document, sourceSpan, properties);
-        }
+        //    return classifiedSpans;
+        //}
 
         public static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
-            DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
+            DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
         {
             // If the document span is providing us with the classified spans up front, then we
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
-            if (documentSpan.Properties != null &&
-                documentSpan.Properties.TryGetValue(ClassifiedSpansAndHighlightSpan.Key, out var value))
-            {
-                return (ClassifiedSpansAndHighlightSpan)value;
-            }
+            if (classifiedSpans != null)
+                return classifiedSpans.Value;
 
             return await ClassifyAsync(
                 documentSpan.Document, documentSpan.SourceSpan, options, cancellationToken).ConfigureAwait(false);
