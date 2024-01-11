@@ -1565,6 +1565,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier()
             => GetExplicitInterfaceSpecifier(CSharpSyntaxNode);
-#nullable disable
     }
 }

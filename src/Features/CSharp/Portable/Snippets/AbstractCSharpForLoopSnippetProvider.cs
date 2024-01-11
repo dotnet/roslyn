@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected abstract void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition);
 
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
         {
             var semanticModel = syntaxContext.SemanticModel;
             var compilation = semanticModel.Compilation;
@@ -48,18 +48,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             TypeSyntax? iteratorTypeSyntax = null;
 
-            if (inlineExpression is null)
+            if (inlineExpressionInfo is null)
             {
                 iteratorTypeSyntax = compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax();
             }
             else
             {
-                var inlineExpressionType = semanticModel.GetTypeInfo(inlineExpression).Type;
+                var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
                 Debug.Assert(inlineExpressionType is not null && (inlineExpressionType.IsIntegralType() || inlineExpressionType.IsNativeIntegerType));
                 iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
             }
 
-            inlineExpression = inlineExpression?.WithoutLeadingTrivia();
+            var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
             var variableDeclaration = SyntaxFactory.VariableDeclaration(
                 iteratorTypeSyntax,

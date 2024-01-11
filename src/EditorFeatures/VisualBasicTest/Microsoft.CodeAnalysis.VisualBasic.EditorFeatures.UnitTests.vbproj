@@ -72,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-    <Folder Include="Utilities\" />
+    <Compile Include="..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Debugging\Resources\*.*" />
@@ -84,9 +84,5 @@
   <ItemGroup>
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Features\VisualBasicTest\CodeActions\AbstractVisualBasicCodeActionTest.vb" Link="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="..\..\Features\VisualBasicTest\Utilities\CodeSnippets.vb" Link="Utilities\CodeSnippets.vb" />
   </ItemGroup>
 </Project>

@@ -617,6 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorArityNotCompatible:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
                 case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -1887,8 +1889,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadDynamicAwaitForEach:
                 case ErrorCode.ERR_NoConvToIAsyncDispWrongAsync:
                 case ErrorCode.ERR_NoConvToIDispWrongAsync:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis:
                 case ErrorCode.ERR_AttributeNotOnEventAccessor:
@@ -2412,6 +2412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionImmutableArray:
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                 case ErrorCode.ERR_SpreadMissingMember:
+                case ErrorCode.ERR_CollectionExpressionTargetNoElementType:
                 case ErrorCode.ERR_BadExtensionUnderlyingType:
                 case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
                 case ErrorCode.ERR_OnlyBaseExtensionAllowed:
@@ -2471,6 +2472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
+                case ErrorCode.ERR_DefaultValueUsedWithAttributes:
+                case ErrorCode.ERR_ExplicitParamArray:
                     return false;
                 default:
                     return true;

@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly IThreadingContext _threadingContext;
-#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
 
-        private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+        private readonly Lazy<ISmartRenameSessionFactoryWrapper>? _smartRenameSessionFactory;
 #pragma warning restore CS0618
 
         public const string AdornmentLayerName = "RoslynRenameDashboard";
@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
-            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+            [Import(ISmartRenameSessionFactoryWrapper.WrappedTypeName, AllowDefault = true)] Lazy<object>? smartRenameSessionFactory)
+#pragma warning restore CS0618
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -72,7 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _globalOptionService = globalOptionService;
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
-            _smartRenameSessionFactory = smartRenameSessionFactory;
+            if (smartRenameSessionFactory is not null)
+            {
+                _smartRenameSessionFactory = new Lazy<ISmartRenameSessionFactoryWrapper>(() => ISmartRenameSessionFactoryWrapper.FromInstance(smartRenameSessionFactory.Value));
+            }
+
             _threadingContext = threadingContext;
         }
 

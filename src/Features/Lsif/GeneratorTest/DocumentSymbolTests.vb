@@ -5,19 +5,20 @@
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
+Imports LSP = Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
     Public Class DocumentSymbolTests
         <Theory>
-        <InlineData("{|fullRange:class [|C|] { }|}", LSP.SymbolKind.Class, "C")>
-        <InlineData(" {|fullRange:/* leading comment 1 */ /* leading comment 2 */ class [|C|] { } /* trailing comment 1*/ /* trailing comment 2 */|} ", LSP.SymbolKind.Class, "C")>
-        <InlineData("{|fullRange:class [|@class|] { }|}", LSP.SymbolKind.Class, "@class")>
-        <InlineData("{|fullRange:struct [|S|] { }|}", LSP.SymbolKind.Struct, "S")>
-        <InlineData("class C { {|fullRange:void [|M|]() { }|} }", LSP.SymbolKind.Method, "M")>
-        <InlineData("class C { int {|fullRange:[|field|]|}; }", LSP.SymbolKind.Field, "field")>
-        Public Async Function TestDefinition(code As String, expectedSymbolKind As LSP.SymbolKind, expectedText As String) As Task
+        <InlineData("{|fullRange:class [|C|] { }|}", CType(LSP.SymbolKind.Class, Integer), "C")>
+        <InlineData(" {|fullRange:/* leading comment 1 */ /* leading comment 2 */ class [|C|] { } /* trailing comment 1*/ /* trailing comment 2 */|} ", CType(LSP.SymbolKind.Class, Integer), "C")>
+        <InlineData("{|fullRange:class [|@class|] { }|}", CType(LSP.SymbolKind.Class, Integer), "@class")>
+        <InlineData("{|fullRange:struct [|S|] { }|}", CType(LSP.SymbolKind.Struct, Integer), "S")>
+        <InlineData("class C { {|fullRange:void [|M|]() { }|} }", CType(LSP.SymbolKind.Method, Integer), "M")>
+        <InlineData("class C { int {|fullRange:[|field|]|}; }", CType(LSP.SymbolKind.Field, Integer), "field")>
+        Public Async Function TestDefinition(code As String, expectedSymbolKindInt As Integer, expectedText As String) As Task
+            Dim expectedSymbolKind = CType(expectedSymbolKindInt, LSP.SymbolKind)
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 <Workspace>
                     <Project Language="C#" FilePath="Z:\TestProject.csproj" CommonReferences="true">
@@ -49,6 +50,29 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             For Each documentSymbol In documentSymbolResult.Result
                 AssertDocumentSymbolContainsChildren(documentSymbol)
             Next
+        End Function
+
+        ''' <summary>
+        ''' This tests symbols that might be considered "definitions" in the C#/Roslyn sense, but don't make sense to emit as a document symbol.
+        ''' </summary>
+        <Theory>
+        <InlineData("class C { (int [|A|], int B) tuple; }")>
+        <InlineData("class C { ((int A, int B) [|A|], int B) nestedTuple; }")>
+        <InlineData("class C { object o = new { [|AnonymousTypeField|] = 42 }; }")>
+        Public Async Function TestIsNotDefinition(code As String) As Task
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
+                <Workspace>
+                    <Project Language="C#" FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+            ' Assert the specific range is what we expected
+            Dim selectedRange = Await lsif.GetSelectedRangeAsync()
+            Assert.NotNull(selectedRange)
+            Assert.Null(selectedRange.Tag)
         End Function
 
         Private Shared Function GetDocumentSymbolRangeIds(result As List(Of RangeBasedDocumentSymbol)) As IEnumerable(Of Id(Of Range))

@@ -311,7 +311,7 @@ using G=   H.I;
 	}
 }</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
                 Dim textBuffer = document.GetTextBuffer()
                 Dim editorOptionsService = workspace.GetService(Of EditorOptionsService)()
@@ -337,7 +337,7 @@ using G=   H.I;
         End Sub
 
         Public Sub TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
-            Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
+            Using workspace = EditorTestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(
@@ -387,7 +387,7 @@ using G=   H.I;
                                                    </Import>)
             Next
 
-            Using workspace = TestWorkspace.CreateCSharp(originalCode)
+            Using workspace = EditorTestWorkspace.CreateCSharp(originalCode)
                 Dim expansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.VisualBasicDebuggerLanguageId,

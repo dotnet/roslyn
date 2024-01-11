@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(HasPath(location));
 
-            FileLinePositionSpan span = location.GetLineSpan();
+            FileLinePositionSpan span = location.GetMappedLineSpan();
 
             _writer.WriteObjectStart();
             _writer.Write("uri", GetUri(span.Path));

@@ -137,11 +137,6 @@
         <target state="translated">次の行にトークンを配置する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">中かっこの間の空白行を削除する</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'new' 修飾子の削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+            Using workspace = EditorTestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)

@@ -278,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
         IDS_StringEscapeCharacter = MessageBase + 12839,
 
+        IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+
         IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
     }
 
@@ -460,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
+                case MessageID.IDS_ImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 

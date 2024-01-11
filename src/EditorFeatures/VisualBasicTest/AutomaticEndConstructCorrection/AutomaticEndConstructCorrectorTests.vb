@@ -323,7 +323,7 @@ End Class</code>.Value
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
                 Dim buffer = document.GetTextBuffer()
@@ -374,7 +374,7 @@ End Class</code>.Value
         End Sub
 
         Private Shared Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -387,7 +387,7 @@ End Class</code>.Value
         End Sub
 
         Private Shared Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -399,7 +399,7 @@ End Class</code>.Value
             End Using
         End Sub
 
-        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As TestWorkspace)
+        Private Shared Sub Verify(document As EditorTestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As EditorTestWorkspace)
             Dim buffer = document.GetTextBuffer()
             Dim uiThreadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
             Dim corrector = New AutomaticEndConstructCorrector(buffer, uiThreadOperationExecutor)

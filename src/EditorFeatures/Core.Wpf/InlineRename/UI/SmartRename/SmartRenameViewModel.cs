@@ -6,40 +6,44 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
 internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 {
-    public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
-
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-    private readonly ISmartRenameSession _smartRenameSession;
-#pragma warning restore CS0618 
+    private readonly ISmartRenameSessionWrapper _smartRenameSession;
+#pragma warning restore CS0618
 
     private readonly IThreadingContext _threadingContext;
-
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+    private Task _getSuggestionsTask = Task.CompletedTask;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event EventHandler<string?>? OnSelectedSuggestedNameChanged;
+    public RenameFlyoutViewModel BaseViewModel { get; }
 
     public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
-    public bool IsAvailable => _smartRenameSession?.IsAvailable ?? false;
+    public bool IsAvailable => _smartRenameSession.IsAvailable;
 
-    public bool HasSuggestions => _smartRenameSession?.HasSuggestions ?? false;
+    public bool HasSuggestions => _smartRenameSession.HasSuggestions;
 
-    public bool IsInProgress => _smartRenameSession?.IsInProgress ?? false;
+    public bool IsInProgress => _smartRenameSession.IsInProgress;
 
-    public string StatusMessage => _smartRenameSession?.StatusMessage ?? string.Empty;
+    public string StatusMessage => _smartRenameSession.StatusMessage;
 
-    public bool StatusMessageVisibility => _smartRenameSession?.StatusMessageVisibility ?? false;
+    public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
 
     private string? _selectedSuggestedName;
 
@@ -55,25 +59,43 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             {
                 _threadingContext.ThrowIfNotOnUIThread();
                 _selectedSuggestedName = value;
-                OnSelectedSuggestedNameChanged?.Invoke(this, value);
+                BaseViewModel.IdentifierText = value ?? string.Empty;
             }
         }
     }
+
+    public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
+
+    public ICommand GetSuggestionsCommand { get; }
 
     public SmartRenameViewModel(
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        ISmartRenameSession smartRenameSession)
-#pragma warning restore CS0618
+        ISmartRenameSessionWrapper smartRenameSession,
+#pragma warning restore CS0618,
+        RenameFlyoutViewModel baseViewModel)
     {
         _threadingContext = threadingContext;
+        _listenerProvider = listenerProvider;
         _smartRenameSession = smartRenameSession;
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
-        var listener = listenerProvider.GetListener(FeatureAttribute.SmartRename);
 
-        var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-        _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+        BaseViewModel = baseViewModel;
+        this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
+
+        GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
+    }
+
+    private void OnGetSuggestionsCommandExecute()
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
+        {
+            var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
+            var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+            _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+        }
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -82,11 +104,16 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
         if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
         {
+            var textInputBackup = BaseViewModel.IdentifierText;
+
             SuggestedNames.Clear();
             foreach (var name in _smartRenameSession.SuggestedNames)
             {
                 SuggestedNames.Add(name);
             }
+
+            // Changing the list may have changed the text in the text box. We need to restore it.
+            BaseViewModel.IdentifierText = textInputBackup;
 
             return;
         }

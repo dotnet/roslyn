@@ -4,10 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.PasteTracking
 
 Namespace Microsoft.CodeAnalysis.AddMissingImports
@@ -17,13 +17,11 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
     Public Class VisualBasicAddMissingImportsRefactoringProviderTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Dim testWorkspace = DirectCast(workspace, TestWorkspace)
-            Dim pasteTrackingService = testWorkspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
-            Return New VisualBasicAddMissingImportsRefactoringProvider(pasteTrackingService)
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+            Return New VisualBasicAddMissingImportsRefactoringProvider()
         End Function
 
-        Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
+        Protected Overrides Sub InitializeWorkspace(workspace As EditorTestWorkspace, parameters As TestParameters)
             ' Treat the span being tested as the pasted span
             Dim hostDocument = workspace.Documents.First()
             Dim pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault()

@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
 
         Protected Shared Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Task
 
-            Using workspace = TestWorkspace.CreateVisualBasic(content, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(content, composition:=s_composition)
                 Dim hostdoc = workspace.Documents.First()
 
                 ' get original buffer

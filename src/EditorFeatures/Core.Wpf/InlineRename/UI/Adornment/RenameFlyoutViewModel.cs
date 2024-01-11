@@ -13,6 +13,7 @@ using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
@@ -22,7 +23,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameSession _session;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IThreadingContext _threadingContext;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -45,36 +44,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
+            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
 #pragma warning restore CS0618 
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
             _globalOptionService = globalOptionService;
-            _threadingContext = threadingContext;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            var smartRenameSession = smartRenameSessionFactory.Value.CreateSmartRenameSession(_session.TriggerSpan);
+            var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession);
-                SmartRenameViewModel.OnSelectedSuggestedNameChanged += OnSuggestedNameSelected;
+                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
             }
 
             RegisterOleComponent();
-        }
-
-        private void OnSuggestedNameSelected(object sender, string? selectedName)
-        {
-            // When user clicks one of the suggestions, update the IdentifierTextBox content to it.
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (selectedName is not null)
-            {
-                IdentifierText = selectedName;
-            }
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
@@ -327,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.OnSelectedSuggestedNameChanged -= OnSuggestedNameSelected;
                         SmartRenameViewModel.Dispose();
                     }
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected abstract partial class Analyzer
         {
-            private class SymbolMapBuilder : SyntaxWalker
+            private sealed class SymbolMapBuilder
             {
                 private readonly SemanticModel _semanticModel;
                 private readonly ISyntaxFactsService _service;
@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     SemanticModel semanticModel,
                     TextSpan span,
                     CancellationToken cancellationToken)
-                    : base(SyntaxWalkerDepth.Token)
                 {
                     _semanticModel = semanticModel;
                     _service = service;
@@ -55,23 +54,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _cancellationToken = cancellationToken;
                 }
 
-                protected override void VisitToken(SyntaxToken token)
+                private void Visit(SyntaxNode node)
                 {
-                    if (token.IsMissing ||
-                        token.Width() <= 0 ||
-                        !_service.IsIdentifier(token) ||
-                        !_span.Contains(token.Span) ||
-                        _service.IsNameOfNamedArgument(token.Parent))
+                    foreach (var token in node.DescendantTokens())
                     {
-                        return;
-                    }
+                        if (token.IsMissing ||
+                            token.Width() <= 0 ||
+                            !_service.IsIdentifier(token) ||
+                            !_span.Contains(token.Span) ||
+                            _service.IsNameOfNamedArgument(token.Parent))
+                        {
+                            continue;
+                        }
 
-                    var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
-                    foreach (var sym in symbolInfo.GetAllSymbols())
-                    {
-                        // add binding result to map
-                        var list = _symbolMap.GetOrAdd(sym, _ => new List<SyntaxToken>());
-                        list.Add(token);
+                        var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
+                        foreach (var sym in symbolInfo.GetAllSymbols())
+                        {
+                            // add binding result to map
+                            var list = _symbolMap.GetOrAdd(sym, _ => new List<SyntaxToken>());
+                            list.Add(token);
+                        }
                     }
                 }
             }

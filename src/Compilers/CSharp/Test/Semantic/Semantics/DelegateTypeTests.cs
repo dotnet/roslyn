@@ -15019,13 +15019,14 @@ class Program
         {
             var source = """
 using System;
+using System.Globalization;
 
 class Program
 {
     public static void Main()
     {
         var lam = (decimal dec =  Decimal.One / (decimal) 3) => dec; 
-        Console.WriteLine(lam());
+        Console.WriteLine(lam().ToString(CultureInfo.InvariantCulture));
     }
 
 }
@@ -18363,6 +18364,87 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (1,40): warning CS9100: Parameter 3 has params modifier in lambda but not in target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71002")]
+        public void ArrayInitializer_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var tests = new[]
+        {
+        () =>
+        };
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS1525: Invalid expression term '}'
+                //         () =>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(7, 14)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            Assert.Equal("System.Func<?>[] tests", model.GetDeclaredSymbol(declarator).ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(declarator.Initializer!.Value);
+            Assert.Equal("System.Func<?>[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Func<?>[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            typeInfo = model.GetTypeInfo(declarator.Initializer!.Value.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single());
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Func<?>", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71002")]
+        public void ArrayInitializer_05()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var tests = new[]
+        {
+        () => throw null
+        };
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS0826: No best type found for implicitly-typed array
+                //         var tests = new[]
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, @"new[]
+        {
+        () => throw null
+        }").WithLocation(5, 21)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            Assert.Equal("?[] tests", model.GetDeclaredSymbol(declarator).ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(declarator.Initializer!.Value);
+            Assert.Equal("?[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("?[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            typeInfo = model.GetTypeInfo(declarator.Initializer!.Value.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single());
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

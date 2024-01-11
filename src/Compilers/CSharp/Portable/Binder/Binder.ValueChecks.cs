@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#nullable enable
     internal partial class RefSafetyAnalysis
     {
         private enum EscapeLevel : uint
@@ -4050,7 +4047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                case CollectionExpressionTypeKind.ImmutableArray: // Error case.
                     Debug.Assert(elementType.Type is { });
                     return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
                 case CollectionExpressionTypeKind.Span:
@@ -4078,7 +4074,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return true;
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                     // Error cases. Restrict the collection to local scope.
                     return true;
                 default:

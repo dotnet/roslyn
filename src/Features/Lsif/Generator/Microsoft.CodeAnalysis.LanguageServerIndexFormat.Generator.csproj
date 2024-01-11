@@ -33,7 +33,7 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDirectory is to handle culture-specific resource files that should be placed in
            subdirectories -->
@@ -44,8 +44,13 @@
                               PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
 
-      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
-      <TfmSpecificPackageFile Include="$(ProjectDepsFilePath)" PackagePath="tools\$(TargetFramework)\any" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <!-- Include content output as well, for the BuildHost -->
+      <TfmSpecificPackageFile Include="@(AllItemsFullPathWithTargetPath)"
+                              PackagePath="tools\$(TargetFramework)\any\%(AllItemsFullPathWithTargetPath.TargetPath)"
+                              Condition="'%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
+
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any"
+                              Condition="'%(FullPath)' != '$(ProjectRuntimeConfigFilePath)'"/>
     </ItemGroup>
   </Target>
 
@@ -76,9 +81,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+
+    <!-- Make sure we include the RazorCompiler ExternalAccess since this needs to be deployed with the compiler for things that might
+         run the Razor generator. We bundle this in the MWorkspaces.MSBuild NuGet package directly, but since we're consuming a project reference
+         rather than a package reference we'll have to include this here. -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
 
     <!-- Below is the transitive closure of the project references above to placate BuildBoss. If changes are made above this line,
          please update the stuff here accordingly. -->

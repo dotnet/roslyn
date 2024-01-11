@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public readonly Checksum ParseOptionsChecksum = parseOptionsChecksum;
 
         public static ProjectKey ToProjectKey(Project project)
-            => ToProjectKey(project.Solution.State, project.State);
+            => ToProjectKey(project.Solution.SolutionState, project.State);
 
         public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
             => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);

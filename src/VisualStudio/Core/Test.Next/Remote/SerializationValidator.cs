@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifySolutionStateSerializationAsync(Solution solution, Checksum solutionChecksum)
         {
             var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionChecksum);
-            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
+            Contract.ThrowIfFalse(solution.CompilationState.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
-            Assert.NotNull(checksum);
+            Assert.True(checksum != Checksum.Null);
             var otherObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);

@@ -358,7 +358,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Sub Verify(this As ImmutableBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
+    Friend Sub Verify(this As ReadOnlyBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
         this.Diagnostics.Verify(expected)
     End Sub
 
