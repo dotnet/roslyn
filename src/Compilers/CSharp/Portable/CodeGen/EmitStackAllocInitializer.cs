@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 emitLocalloc();
 
+                var sizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
+
                 ImmutableArray<byte> data = GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitIntConstant(data.Length);
                     _builder.EmitOpCode(ILOpCode.Initblk, -3);
                 }
-                else if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes() == 1)
+                else if (sizeInBytes == 1)
                 {
                     // Initialize the stackalloc by copying the data from a metadata blob
                     var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
@@ -77,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         // ldtoken <PrivateImplementationDetails>...
                         // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
-                        // Note: aligned to 8 bytes so `cpblk` instruction below does not require `unaligned.` prefix.
-                        var field = _builder.module.GetFieldForData(data, alignment: 8, syntaxNode, _diagnostics.DiagnosticBag);
+                        var field = _builder.module.GetFieldForData(data, alignment: (ushort)sizeInBytes, syntaxNode, _diagnostics.DiagnosticBag);
                         _builder.EmitOpCode(ILOpCode.Ldtoken);
                         _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
                         _builder.EmitOpCode(ILOpCode.Call, 0);
@@ -95,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         EmitSymbolToken(spanGetItem, syntaxNode, optArgList: null);
 
                         _builder.EmitIntConstant(data.Length);
+                        if (sizeInBytes != 8)
+                        {
+                            _builder.EmitUnaligned((sbyte)sizeInBytes);
+                        }
                         _builder.EmitOpCode(ILOpCode.Cpblk, -3);
 
                         FreeTemp(temp);
