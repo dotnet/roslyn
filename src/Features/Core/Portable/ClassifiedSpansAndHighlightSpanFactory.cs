@@ -15,15 +15,6 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassifiedSpansAndHighlightSpanFactory
     {
-        //public static async Task<ClassifiedSpansAndHighlightSpan> GetClassifiedDocumentSpanAsync(
-        //    Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
-        //{
-        //    var classifiedSpans = await ClassifyAsync(
-        //        document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
-
-        //    return classifiedSpans;
-        //}
-
         public static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
             DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
         {

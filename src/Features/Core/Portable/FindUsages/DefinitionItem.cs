@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
+            Contract.ThrowIfTrue(sourceSpans.Length != classifiedSpans.Length);
+
             if (Properties.ContainsKey(MetadataSymbolKey))
             {
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
