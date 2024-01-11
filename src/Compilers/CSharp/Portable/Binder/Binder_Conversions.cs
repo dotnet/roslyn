@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(result);
 
                         var targetTypeOriginalDefinition = targetType.OriginalDefinition;
-                        result = TryGetCollectionExpressionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+                        result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
                         Debug.Assert(result);
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return element;
         }
 
-        internal bool TryGetCollectionExpressionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
             return GetEnumeratorInfoAndInferCollectionElementType(
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
-                    if (!TryGetCollectionExpressionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
+                    if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
                     {
                         Error(
                             diagnostics,

@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionExpressionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
             {
                 return;
             }
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionExpressionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
