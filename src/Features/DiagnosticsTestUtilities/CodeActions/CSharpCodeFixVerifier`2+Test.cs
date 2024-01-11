@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using System.Reflection;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -113,26 +114,52 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
+                TextSpan? diagnosticSpan,
                 Project project,
                 CodeFixProvider codeFixProvider,
                 FixAllScope scope,
                 string? codeActionEquivalenceKey,
                 IEnumerable<string> diagnosticIds,
+                DiagnosticSeverity minimumSeverity,
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
                 CancellationToken cancellationToken)
                 => new(new FixAllState(
                     fixAllProvider: NoOpFixAllProvider.Instance,
-                    diagnosticSpan: null,
+                    diagnosticSpan,
                     document,
                     project,
                     codeFixProvider,
                     scope,
                     codeActionEquivalenceKey,
                     diagnosticIds,
-                    minimumSeverity: DiagnosticSeverity.Hidden,
+                    minimumSeverity,
                     fixAllDiagnosticProvider,
                     _sharedState.CodeActionOptions),
                   CodeAnalysisProgress.None, cancellationToken);
+#else
+            protected override FixAllContext CreateFixAllContext(
+                Document? document,
+                TextSpan? diagnosticSpan,
+                Project project,
+                CodeFixProvider codeFixProvider,
+                FixAllScope scope,
+                string? codeActionEquivalenceKey,
+                IEnumerable<string> diagnosticIds,
+                DiagnosticSeverity minimumSeverity,
+                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+                CancellationToken cancellationToken)
+            {
+                if (document is not null)
+                {
+                    var constructorInfo = typeof(FixAllContext).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, binder: null, types: new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) }, modifiers: null);
+                    return (FixAllContext)constructorInfo.Invoke(new object?[] { document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken });
+                }
+                else
+                {
+                    var constructorInfo = typeof(FixAllContext).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, binder: null, types: new[] { typeof(Project), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) }, modifiers: null);
+                    return (FixAllContext)constructorInfo.Invoke(new object?[] { project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken });
+                }
+            }
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
