@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             leftFlattened.AddRange(rightFlattened);
             rightFlattened.Free();
 
+            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+            NamedTypeSymbol? charType = null;
+
             BoundExpression result;
 
             switch (leftFlattened.Count)
@@ -96,6 +99,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 2:
                     var left = leftFlattened[0];
                     var right = leftFlattened[1];
+
+                    var leftIsCharToString = isCharToString(left, objectToStringMethod, ref charType, out BoundExpression? unwrappedLeftChar);
+                    var rightIsCharToString = isCharToString(right, objectToStringMethod, ref charType, out BoundExpression? unwrappedRightChar);
+
+                    if ((leftIsCharToString || rightIsCharToString) &&
+                        TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan, out MethodSymbol? concat2Spans, isOptional: true) &&
+                        TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true))
+                    {
+                        // One of args is a char (or rather `someChar.ToString()`, but we've unwrapped `someChar` back from that call). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of an intermidiate string from char.ToString call.
+                        // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with char.ToString call
+                        Debug.Assert(charType is not null);
+                        var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
+                        var readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
+
+                        MethodSymbol? stringImplicitConversionToReadOnlySpan = null;
+
+                        // Technically we can get `char1.ToString() + char2.ToString()` as a user input. In such case we don't need implicit conversion method `string -> ReadOnlySpan<char>`
+                        if ((leftIsCharToString && rightIsCharToString) ||
+                            TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out stringImplicitConversionToReadOnlySpan, isOptional: true))
+                        {
+                            result = RewriteStringConcatenationWithSpanBasedConcat(
+                                syntax,
+                                concat2Spans,
+                                stringImplicitConversionToReadOnlySpan,
+                                readOnlySpanCtorRefParamChar,
+                                leftIsCharToString ? unwrappedLeftChar! : left,
+                                rightIsCharToString ? unwrappedRightChar! : right);
+
+                            break;
+                        }
+                    }
+
                     result = RewriteStringConcatenationTwoExprs(syntax, left, right);
                     break;
 
@@ -125,6 +160,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             leftFlattened.Free();
             return result;
+
+            static bool isCharToString(BoundExpression expr, MethodSymbol objectToStringMethod, ref NamedTypeSymbol? charType, out BoundExpression? unwrappedChar)
+            {
+                if (expr is not BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } receiverCharType } receiver, Method: var method })
+                {
+                    unwrappedChar = null;
+                    return false;
+                }
+
+                unwrappedChar = receiver;
+                charType = receiverCharType;
+                return (object)method.GetLeastOverriddenMethod(charType) == objectToStringMethod;
+            }
         }
 
         /// <summary>
@@ -344,6 +392,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
             return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
+        }
+
+        private BoundExpression RewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, MethodSymbol spanConcat, MethodSymbol? stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanCtorRefParamChar, params BoundExpression[] args)
+        {
+            var preparedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Length);
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance(capacity: args.Length - 1);
+
+            foreach (var arg in args)
+            {
+                Debug.Assert(arg.Type is not null);
+
+                if (arg.Type.SpecialType == SpecialType.System_Char)
+                {
+                    var temp = _factory.StoreToTemp(arg, out var tempAssignment);
+                    localsBuilder.Add(temp.LocalSymbol);
+
+                    var wrappedChar = new BoundObjectCreationExpression(
+                        arg.Syntax,
+                        readOnlySpanCtorRefParamChar,
+                        [temp],
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: [RefKindExtensions.StrictIn],
+                        expanded: false,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        constantValueOpt: null,
+                        initializerExpressionOpt: null,
+                        type: readOnlySpanCtorRefParamChar.ContainingType);
+
+                    preparedArgsBuilder.Add(new BoundSequence(
+                        arg.Syntax,
+                        [],
+                        [tempAssignment],
+                        wrappedChar,
+                        wrappedChar.Type));
+                }
+                else
+                {
+                    Debug.Assert(arg.Type.SpecialType == SpecialType.System_String);
+                    Debug.Assert(stringImplicitConversionToReadOnlySpan is not null);
+                    preparedArgsBuilder.Add(BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg));
+                }
+            }
+
+            var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, preparedArgsBuilder.ToImmutableAndFree());
+
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = syntax;
+
+            var sequence = _factory.Sequence(
+                localsBuilder.ToImmutableAndFree(),
+                [],
+                concatCall);
+
+            _factory.Syntax = oldSyntax;
+            return sequence;
         }
 
         /// <summary>
