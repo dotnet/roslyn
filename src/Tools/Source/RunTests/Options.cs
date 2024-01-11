@@ -22,7 +22,7 @@ namespace RunTests
         Failed,
     }
 
-    internal enum TestTargetFramework
+    internal enum TestRuntime
     {
         Both,
         Core,
@@ -51,7 +51,7 @@ namespace RunTests
         /// <summary>
         /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public TestTargetFramework TestTargetFramework { get; set; } = TestTargetFramework.Both;
+        public TestRuntime TestRuntime { get; set; } = TestRuntime.Both;
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -143,7 +143,7 @@ namespace RunTests
             string? dotnetFilePath = null;
             var architecture = "x64";
             var includeHtml = false;
-            var testTargetFramework = TestTargetFramework.Both;
+            var testRuntime = TestRuntime.Both;
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
@@ -168,7 +168,7 @@ namespace RunTests
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
-                { "tfm=", "Target framework to test: both, core, framework", (TestTargetFramework t) => testTargetFramework = t},
+                { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
                 { "arch=", "Architecture to test on: x86, x64 or arm64", (string s) => architecture = s },
@@ -242,7 +242,7 @@ namespace RunTests
                 logFilesDirectory: logFileDirectory,
                 architecture: architecture)
             {
-                TestTargetFramework = testTargetFramework,
+                TestRuntime = testRuntime,
                 IncludeFilter = includeFilter,
                 ExcludeFilter = excludeFilter,
                 Display = display,

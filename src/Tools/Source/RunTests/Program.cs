@@ -313,7 +313,7 @@ namespace RunTests
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
                     var tfm = Path.GetFileName(targetFrameworkDirectory)!;
-                    if (!IsMatch(options.TestTargetFramework, tfm))
+                    if (!IsMatch(options.TestRuntime, tfm))
                     {
                         Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");
                         continue;
@@ -379,13 +379,13 @@ namespace RunTests
                 return false;
             }
 
-            static bool IsMatch(TestTargetFramework testTargetFramework, string dirName) =>
-                testTargetFramework switch
+            static bool IsMatch(TestRuntime testRuntime, string dirName) =>
+                testRuntime switch
                 {
-                    TestTargetFramework.Both => true,
-                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"^net\d+\."),
-                    TestTargetFramework.Framework => dirName is "net472",
-                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestTargetFramework)} value: {testTargetFramework}"),
+                    TestRuntime.Both => true,
+                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\."),
+                    TestRuntime.Framework => dirName is "net472",
+                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
                 };
         }
 

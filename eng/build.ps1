@@ -399,7 +399,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm core"
+    $args += " --runtime core"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -408,7 +408,7 @@ function TestUsingRunTests() {
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --tfm framework"
+    $args += " --runtime framework"
     $args += " --timeout 90"
 
     if ($testCompilerOnly) {
@@ -423,7 +423,7 @@ function TestUsingRunTests() {
 
   } elseif ($testVsi) {
     $args += " --timeout 110"
-    $args += " --tfm both"
+    $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
