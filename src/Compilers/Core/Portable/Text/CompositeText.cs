@@ -258,7 +258,9 @@ namespace Microsoft.CodeAnalysis.Text
                     for (int j = i + 1; j < segments.Count; j++)
                     {
                         if (segments[j].Length > segmentSize)
+                        {
                             break;
+                        }
 
                         count++;
                     }
@@ -291,7 +293,9 @@ namespace Microsoft.CodeAnalysis.Text
                     for (int j = i + 1; j < segments.Count; j++)
                     {
                         if (segments[j].Length > segmentSize)
+                        {
                             break;
+                        }
 
                         count++;
                         combinedLength += segments[j].Length;
