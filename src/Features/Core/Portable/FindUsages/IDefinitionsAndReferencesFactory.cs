@@ -112,7 +112,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             FindReferencesSearchOptions options,
             bool isPrimary)
         {
-            return ToDefinitionItem(definition, sourceLocations, sourceLocations.SelectAsArray(d => (ClassifiedSpansAndHighlightSpan?)null), solution, options, isPrimary);
+            return ToDefinitionItem(
+                definition,
+                sourceLocations,
+                sourceLocations.IsDefault ? default : sourceLocations.SelectAsArray(d => (ClassifiedSpansAndHighlightSpan?)null),
+                solution,
+                options,
+                isPrimary);
         }
 
         private static DefinitionItem ToDefinitionItem(
