@@ -26,8 +26,13 @@ jobs:
   pool:
     # Note that when helix is enabled, the agent running this job is essentially
     # a thin client that kicks off a helix job and waits for it to complete.
-    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
-    vmImage: windows-2019
+    # We can use any windows VM, currently we use a the NetCore queues to take advantage of the high machine parallelism
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals 1es-windows-2022     
+    ${{ else }}:
+      name: NetCore-Public
+      demands: ImageOverride -equals 1es-windows-2022-open
   timeoutInMinutes: 120
   steps:
     - checkout: none
