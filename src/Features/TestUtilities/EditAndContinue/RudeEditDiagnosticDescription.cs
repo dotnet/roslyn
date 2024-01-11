@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 && _arguments.SequenceEqual(other._arguments, object.Equals);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
 
         public override int GetHashCode()

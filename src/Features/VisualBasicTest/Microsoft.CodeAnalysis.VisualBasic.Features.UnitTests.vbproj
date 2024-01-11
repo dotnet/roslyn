@@ -3,9 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <OptionStrict>Off</OptionStrict>
-    <VBRuntime>Default</VBRuntime>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
