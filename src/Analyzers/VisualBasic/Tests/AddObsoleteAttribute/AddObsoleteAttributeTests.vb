@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddObsoleteAttribute
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)>
     Public Class AddObsoleteAttributeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAddObsoleteAttributeCodeFixProvider())

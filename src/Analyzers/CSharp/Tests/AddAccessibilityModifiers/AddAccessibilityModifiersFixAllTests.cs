@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-    public class AddAccessibilityModifiersFixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddAccessibilityModifiersFixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddAccessibilityModifiersFixAllTests(ITestOutputHelper logger)
            : base(logger)

@@ -72,9 +72,8 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="EditAndContinue\" />
     <Folder Include="My Project\" />
-    <Folder Include="Utilities\" />
+    <Compile Include="..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Debugging\Resources\*.*" />
@@ -87,5 +86,4 @@
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
     <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />
   </ItemGroup>
-  <Import Project="..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>
