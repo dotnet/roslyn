@@ -74,5 +74,4 @@
     <Compile Include="..\..\VisualStudio\Core\Def\CodeCleanup\AbstractCodeCleanUpFixer_Helper.cs" Link="Formatting\AbstractCodeCleanUpFixer_Helper.cs" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
-  <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>
