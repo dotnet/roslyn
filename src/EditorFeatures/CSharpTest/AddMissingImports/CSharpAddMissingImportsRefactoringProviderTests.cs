@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-        {
-            var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-            return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
-        }
+            => new CSharpAddMissingImportsRefactoringProvider();
 
         protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
         {
