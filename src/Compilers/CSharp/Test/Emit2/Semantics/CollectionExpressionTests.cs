@@ -13540,6 +13540,7 @@ partial class Program
                 .class public sealed MyCollectionBuilder
                 {
                   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  // Missing Create<T>() method
                 }
                 """;
             var refA = CompileIL(sourceA);
