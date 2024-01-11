@@ -142,11 +142,9 @@ internal sealed class RpcClient
         using (await _sendingStreamSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             await _sendingStream.WriteLineAsync(requestJson).ConfigureAwait(false);
-#if NET8_0_OR_GREATER
-            await _sendingStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-#else
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn/issues/71580
             await _sendingStream.FlushAsync().ConfigureAwait(false);
-#endif
+#pragma warning restore CA2016 
         }
 
         return await requestCompletionSource.Task.ConfigureAwait(false);

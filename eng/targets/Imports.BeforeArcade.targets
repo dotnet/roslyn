@@ -23,7 +23,7 @@
     </KnownFrameworkReference>
   </ItemGroup>
 
-  <!-- do not restore or use the 6.0 app host in source-build -->
+  <!-- do not restore or use the 8.0 app host in source-build -->
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
