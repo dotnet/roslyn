@@ -542,7 +542,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator", "src\Tools\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj", "{09AEDEE4-6358-47C9-8022-3BD37A518070}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTestBuildProject", "src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj", "{4D9D7A28-BB44-4F3F-81DA-14F39B853718}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTestBuildProject", "src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj", "{4D9D7A28-BB44-4F3F-81DA-14F39B853718}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities", "src\Features\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities.csproj", "{5BABC440-4F1B-46E8-9068-DD7F02ED25D3}"
 EndProject
