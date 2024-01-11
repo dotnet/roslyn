@@ -27,8 +27,9 @@ stages:
       jobName: Build_Windows_${{ parameters.configuration }}
       testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
       configuration: ${{ parameters.configuration }}
-      poolName: ${{ parameters.poolName }}
-      queueName: ${{ parameters.queueName }}
+      poolParameters: 
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs
 
