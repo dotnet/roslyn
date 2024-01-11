@@ -1050,6 +1050,41 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Theory]
+        [CombinatorialData]
+        public async Task AllowUnsafeAsRefParameterReference2Async(
+            [CombinatorialValues("ref", "in")] string parameterModifiers,
+            [CombinatorialValues("in", "scoped in", "ref readonly", "scoped ref readonly")] string asRefParameterModifiers)
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    ref CannotCopy Method({parameterModifiers} CannotCopy cannotCopy)
+    {{
+        return ref AsRef(in cannotCopy);
+    }}
+
+    ref T AsRef<T>({asRefParameterModifiers} T value)
+        => throw null;
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
+            }.RunAsync();
+        }
+
+        [Theory]
         [InlineData("ref")]
         [InlineData("in")]
         public async Task StoreUnsafeAsRefParameterReferenceToLocalAsync(string parameterModifiers)

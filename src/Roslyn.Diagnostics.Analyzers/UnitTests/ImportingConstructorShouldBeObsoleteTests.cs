@@ -383,6 +383,7 @@ End Namespace
 ";
             var fixedSource = $@"
 Imports System
+
 Imports {mefNamespace}
 Imports Microsoft.CodeAnalysis.Host.Mef
 
