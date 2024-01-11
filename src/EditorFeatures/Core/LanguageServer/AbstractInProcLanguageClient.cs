@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Signals that the extension has been loaded.  The server can be started immediately, or wait for user action to start.  
         /// To start the server, invoke the <see cref="StartAsync"/> event;
         /// </summary>
-        public async Task OnLoadedAsync()
+        public virtual async Task OnLoadedAsync()
         {
             try
             {

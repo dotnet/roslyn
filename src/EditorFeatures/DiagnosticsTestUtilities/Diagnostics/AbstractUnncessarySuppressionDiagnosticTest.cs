@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Xunit.Abstractions;
 
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
         internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
 
-        private void AddAnalyzersToWorkspace(TestWorkspace workspace)
+        private void AddAnalyzersToWorkspace(EditorTestWorkspace workspace)
         {
             var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             AddAnalyzersToWorkspace(workspace);
             var document = GetDocumentAndSelectSpan(workspace, out var span);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             AddAnalyzersToWorkspace(workspace);
 

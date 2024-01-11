@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class DiagnosticTableDataSourceTests
         <Fact>
         Public Sub TestCreation()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim provider = New TestDiagnosticService()
@@ -63,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestInitialEntries()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestEntryChanged()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -154,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestSnapshotEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -204,7 +204,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestInvalidEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -236,7 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestNoHiddenEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -265,7 +265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestProjectEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
@@ -293,8 +293,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestMultipleWorkspace()
-            Using workspace1 = TestWorkspace.CreateCSharp(String.Empty)
-                Using workspace2 = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace1 = EditorTestWorkspace.CreateCSharp(String.Empty)
+                Using workspace2 = EditorTestWorkspace.CreateCSharp(String.Empty)
                     Dim documentId = workspace1.CurrentSolution.Projects.First().DocumentIds.First()
                     Dim projectId = documentId.ProjectId
 
@@ -330,7 +330,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <WpfFact>
         Public Sub TestDetailExpander()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -369,7 +369,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestHyperLink()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -403,7 +403,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestBingHyperLink()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -437,7 +437,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestHelpLink()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -468,7 +468,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestHelpKeyword()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -501,7 +501,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestErrorSource()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -532,7 +532,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestWorkspaceDiagnostic()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -564,7 +564,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestProjectDiagnostic()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -608,7 +608,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspace.Create(markup)
+            Using workspace = EditorTestWorkspace.Create(markup)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
 
@@ -661,7 +661,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspace.Create(markup)
+            Using workspace = EditorTestWorkspace.Create(markup)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim notificationService = workspace.GetService(Of IGlobalOperationNotificationService)
@@ -751,7 +751,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        Private Shared Sub RunCompilerAnalyzer(workspace As TestWorkspace)
+        Private Shared Sub RunCompilerAnalyzer(workspace As EditorTestWorkspace)
             Dim snapshot = workspace.CurrentSolution
 
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())

@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticInfo? diagnosticInfo = null;
 
             var hasReadOnlyInterfaces =
-                !compilation.IsTypeMissing(SpecialType.System_Collections_Generic_IReadOnlyCollection_T)
-                && !compilation.IsTypeMissing(SpecialType.System_Collections_Generic_IReadOnlyList_T);
+                compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T) is not MissingMetadataTypeSymbol &&
+                compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T) is not MissingMetadataTypeSymbol;
 
             foreach (var type in s_requiredSpecialTypes)
             {

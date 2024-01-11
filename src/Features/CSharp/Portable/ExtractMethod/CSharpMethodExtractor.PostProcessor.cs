@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var semanticInfo = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, declarationStatement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (semanticInfo == null ||
-                    semanticInfo.TypeKind == TypeKind.Error ||
-                    semanticInfo.TypeKind == TypeKind.Unknown)
+                    semanticInfo.TypeKind is TypeKind.Error or TypeKind.Unknown)
                 {
                     return false;
                 }

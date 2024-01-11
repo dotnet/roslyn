@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -134,7 +134,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             [
                 new TextDocumentContentChangeEvent
                 {
-                    Range = new VisualStudio.LanguageServer.Protocol.Range
+                    Range = new Roslyn.LanguageServer.Protocol.Range
                     {
                         Start = new Position(0, 0),
                         End = new Position(0, 0)
@@ -150,14 +150,14 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Not The Original text", trackedText.Text.ToString());
     }
 
-    private TestWorkspace CreateWorkspace(string workspaceXml)
+    private EditorTestWorkspace CreateWorkspace(string workspaceXml)
     {
         var testWorkspace = CreateWorkspace(options: null, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
         return testWorkspace;
     }
 
-    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(TestWorkspace testWorkspace)
+    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(EditorTestWorkspace testWorkspace)
     {
         var languageClient = testWorkspace.ExportProvider.GetExportedValues<ILanguageClient>().OfType<RazorCohostLanguageClient>().Single();
         await languageClient.ActivateAsync(CancellationToken.None);

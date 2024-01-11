@@ -3,14 +3,17 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.InlineTemporary
     <Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
     Public Class InlineTemporaryTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInlineTemporaryCodeRefactoringProvider()
         End Function
 
@@ -546,7 +549,7 @@ Console.Write(New String(" "c, 10).Length)
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
-        <WpfFact(Skip:="551797")>
+        <Fact(Skip:="551797")>
         Public Async Function TestInlineIntoMemberAccess4() As Task
             Dim code =
 <MethodBody>
@@ -4069,7 +4072,7 @@ Dim s2 = AscW($"hello {x}")
         Public Async Function TestInlineFormattableStringIntoCallSiteRequiringFormattableString() As Task
             Dim code = "
 Imports System
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As FormattableString)
     End Sub
@@ -4083,7 +4086,7 @@ End Class
 
             Dim expected = "
 Imports System
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As FormattableString)
     End Sub
@@ -4101,7 +4104,7 @@ End Class
         Public Async Function TestInlineFormattableStringIntoCallSiteWithFormattableStringOverload() As Task
             Dim code = "
 Imports System
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As String)
     End Sub
@@ -4118,7 +4121,7 @@ End Class
 
             Dim expected = "
 Imports System
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 Class C
     Sub M(s As String)
     End Sub

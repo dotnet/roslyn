@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
 
                 var project = document.Project;
-                var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
+                var analyzers = GetAnalyzers(project.Solution.SolutionState.Analyzers, project);
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 

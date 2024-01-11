@@ -20,10 +20,10 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
-using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
+using LspProtocol = Roslyn.LanguageServer.Protocol;
+using Methods = Roslyn.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {

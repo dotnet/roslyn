@@ -193,9 +193,11 @@ namespace Microsoft.CodeAnalysis.Rename
                     var namedType = (INamedTypeSymbol)referencedSymbol;
                     foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
                     {
-                        if (!method.IsImplicitlyDeclared && (method.MethodKind == MethodKind.Constructor ||
-                                                      method.MethodKind == MethodKind.StaticConstructor ||
-                                                      method.MethodKind == MethodKind.Destructor))
+                        if (method is
+                            {
+                                IsImplicitlyDeclared: false,
+                                MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.Destructor,
+                            })
                         {
                             foreach (var location in method.Locations)
                             {

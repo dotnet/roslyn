@@ -14913,13 +14913,14 @@ class Program
         {
             var source = """
 using System;
+using System.Globalization;
 
 class Program
 {
     public static void Main()
     {
         var lam = (decimal dec =  Decimal.One / (decimal) 3) => dec; 
-        Console.WriteLine(lam());
+        Console.WriteLine(lam().ToString(CultureInfo.InvariantCulture));
     }
 
 }
