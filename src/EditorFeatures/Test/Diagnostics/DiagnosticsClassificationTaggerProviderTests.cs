@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _throughAdditionalLocations = throughAdditionalLocations;
                 _rule = new(
                     diagnosticId, "test", "test", "test", DiagnosticSeverity.Error, true,
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary: true, isConfigurable: false, EnforceOnBuild.Never));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary: true, isConfigurable: false, isCustomConfigurable: false, EnforceOnBuild.Never));
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         c.ReportDiagnostic(DiagnosticHelper.Create(
                             _rule, primaryLocation,
-                            ReportDiagnostic.Error,
+                            NotificationOption2.Error,
                             additionalLocations: null,
                             properties: null));
                     }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                         c.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                             _rule, primaryLocation,
-                            ReportDiagnostic.Error,
+                            NotificationOption2.Error,
                             additionalLocations,
                             additionalUnnecessaryLocations));
                     }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WpfTheory, WorkItem(62183, "https://github.com/dotnet/roslyn/issues/62183")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/62183")]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, true)]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, false)]
         [InlineData(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, true)]
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
 
             // Set fading option
             var fadingOption = GetFadingOptionForDiagnostic(diagnosticId);

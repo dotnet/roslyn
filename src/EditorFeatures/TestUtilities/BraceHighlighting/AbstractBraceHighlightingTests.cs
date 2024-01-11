@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             string markup, ParseOptions options = null, bool swapAnglesWithBrackets = false)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
-                out var text, out int cursorPosition, out var expectedSpans);
+                out var text, out var cursorPosition, out var expectedSpans);
 
             // needed because markup test file can't support [|[|] to indicate selecting
             // just an open bracket.
@@ -57,15 +56,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 await provider.GetTestAccessor().ProduceTagsAsync(context);
 
                 var expectedHighlights = expectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
-                var actualHighlights = context.tagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
+                var actualHighlights = context.TagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
 
                 Assert.Equal(expectedHighlights, actualHighlights);
             }
         }
 
-        internal virtual IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
+        internal virtual IBraceMatchingService GetBraceMatchingService(EditorTestWorkspace workspace)
             => workspace.GetService<IBraceMatchingService>();
 
-        protected abstract TestWorkspace CreateWorkspace(string markup, ParseOptions options);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options);
     }
 }

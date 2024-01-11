@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.IsKeyword.GetLocation());
+            MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.IsKeyword);
 
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(node is not null);
 
-            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node, node.SwitchKeyword.GetLocation());
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node.SwitchKeyword);
 
             Binder? switchBinder = this.GetBinder(node);
             RoslynDebug.Assert(switchBinder is { });
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool underIsPattern)
         {
-            MessageID.IDS_FeatureParenthesizedPattern.CheckFeatureAvailability(diagnostics, node, node.OpenParenToken.GetLocation());
+            MessageID.IDS_FeatureParenthesizedPattern.CheckFeatureAvailability(diagnostics, node.OpenParenToken);
             return BindPattern(node.Pattern, inputType, permitDesignations, hasErrors, diagnostics, underIsPattern);
         }
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
                 if (lengthProperty is not null)
                 {
-                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, lengthProperty, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
+                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -557,12 +557,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValueOpt == null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    var strippedInputType = inputType.StrippedType();
+                    if (strippedInputType.Kind is not SymbolKind.ErrorType and not SymbolKind.DynamicType and not SymbolKind.TypeParameter &&
+                        strippedInputType.SpecialType is not SpecialType.System_Object and not SpecialType.System_ValueType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, patternExpression.Location, strippedInputType);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    }
                     hasErrors = true;
                 }
                 else if (inputType.IsPointerType())
                 {
-                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
+                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics);
                 }
             }
 
@@ -1079,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (subPattern.ExpressionColon != null)
                     {
-                        MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, subPattern, subPattern.ExpressionColon.ColonToken.GetLocation());
+                        MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, subPattern.ExpressionColon.ColonToken);
 
                         diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subPattern.ExpressionColon.Expression.Location);
                     }
@@ -1457,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (SubpatternSyntax p in node.Subpatterns)
             {
                 if (p.ExpressionColon is ExpressionColonSyntax)
-                    MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, p, p.ExpressionColon.ColonToken.GetLocation());
+                    MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, p.ExpressionColon.ColonToken);
 
                 ExpressionSyntax? expr = p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
@@ -1617,11 +1626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
-            RoslynDebug.Assert(value.Type is { });
+            var type = value.Type ?? inputType;
+            Debug.Assert(type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)
             {
@@ -1629,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BinaryOperatorKind opType = RelationalOperatorType(value.Type.EnumUnderlyingTypeOrSelf());
+            BinaryOperatorKind opType = RelationalOperatorType(type.EnumUnderlyingTypeOrSelf());
             switch (opType)
             {
                 case BinaryOperatorKind.Float:
@@ -1645,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Error:
                     if (!hasErrors)
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, node.Location, value.Type.ToDisplayString());
+                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, node.Location, type.ToDisplayString());
                         hasErrors = true;
                     }
                     break;
@@ -1664,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, value.Type, hasErrors);
+            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {
@@ -1710,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool underIsPattern)
         {
-            MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             var subPattern = BindPattern(node.Pattern, inputType, permitDesignations, hasErrors, diagnostics, underIsPattern);
@@ -1727,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
             if (isDisjunction)
             {
-                MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+                MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
                 permitDesignations = false; // prevent designators under 'or'
                 var left = BindPattern(node.Left, inputType, permitDesignations, hasErrors, diagnostics);
@@ -1781,7 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
                     }
 
-                    diagnostics.Add(node.Location, useSiteInfo);
+                    diagnostics.Add(node, useSiteInfo);
                     return bestSoFar;
                 }
 
@@ -1812,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+                MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
                 var left = BindPattern(node.Left, inputType, permitDesignations, hasErrors, diagnostics);
                 var right = BindPattern(node.Right, left.NarrowedType, permitDesignations, hasErrors, diagnostics);

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -27,10 +26,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeSyntaxTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        /// <summary>
+        /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
+        /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
+        /// It's also the 8th most common fix that people use, and is picked almost all the times it is shown.
+        /// </summary>
+        public override bool IsHighPriority => true;
+
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
+            if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
+                return;
+
             var options = context.GetAnalyzerOptions().GetSyntaxFormattingOptions(SyntaxFormatting);
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormatting, Descriptor, options);
         }

@@ -10,18 +10,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper
+    internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper(
+        IDocumentNavigationService underlyingObject,
+        IWorkspaceThreadingServiceProvider threadingProvider)
     {
-        private readonly IDocumentNavigationService _underlyingObject;
-        private readonly IWorkspaceThreadingServiceProvider _threadingProvider;
-
-        public VSTypeScriptDocumentNavigationServiceWrapper(
-            IDocumentNavigationService underlyingObject,
-            IWorkspaceThreadingServiceProvider threadingProvider)
-        {
-            _underlyingObject = underlyingObject;
-            _threadingProvider = threadingProvider;
-        }
+        private readonly IDocumentNavigationService _underlyingObject = underlyingObject;
+        private readonly IWorkspaceThreadingServiceProvider _threadingProvider = threadingProvider;
 
         public static VSTypeScriptDocumentNavigationServiceWrapper Create(Workspace workspace)
             => new(workspace.Services.GetRequiredService<IDocumentNavigationService>(),

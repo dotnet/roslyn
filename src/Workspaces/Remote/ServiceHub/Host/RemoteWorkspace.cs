@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
+        protected internal override bool PartialSemanticsEnabled => true;
+
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // See if the current snapshot we're pointing at is the same one the host wants us to sync to.  If so, we
             // don't need to do anything.
-            var currentSolutionChecksum = await this.CurrentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var currentSolutionChecksum = await this.CurrentSolution.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
@@ -107,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
@@ -310,9 +311,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolution(
                     _ => newSolution,
-                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
-                        ? WorkspaceChangeKind.SolutionAdded
-                        : WorkspaceChangeKind.SolutionChanged,
+                    changeKind: static (oldSolution, newSolution) =>
+                        (IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))

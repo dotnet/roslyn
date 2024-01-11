@@ -32,7 +32,7 @@ $$</code>, <code>$$</code>)
 </code>)
         End Sub
 
-        <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact>
         Public Sub TestNamespace()
             Test(<code>Namespace NS
@@ -40,7 +40,7 @@ $$</code>, <code>$$</code>)
 End Namespace</code>, <code>Namespace NS$$</code>)
         End Sub
 
-        <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact>
         Public Sub TestClass()
             Test(<code>Class C
@@ -101,7 +101,7 @@ End Class</code>, <code>Class C
 End Class</code>)
         End Sub
 
-        <WorkItem(712977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
         <WpfFact()>
         Public Sub TestDim3()
             Test(<code>Class C
@@ -118,7 +118,7 @@ $$
 End Class</code>)
         End Sub
 
-        <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact>
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
@@ -156,7 +156,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact>
         Public Sub TestIf_Trivia()
             Test(
@@ -178,7 +178,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact>
         Public Sub TestIf_Trivia2()
             Test(
@@ -200,7 +200,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem(577920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
         <WpfFact>
         Public Sub TestEndOfFile_SkippedToken()
             Test(
@@ -267,7 +267,7 @@ End Module
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub
 
-        Friend Overrides Function GetCommandHandler(workspace As TestWorkspace) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
+        Friend Overrides Function GetCommandHandler(workspace As EditorTestWorkspace) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
             Return Assert.IsType(Of AutomaticLineEnderCommandHandler)(
                 workspace.GetService(Of ICommandHandler)(
@@ -275,7 +275,7 @@ End Module
                     PredefinedCommandHandlerNames.AutomaticLineEnder))
         End Function
 
-        Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
+        Protected Overrides Function CreateNextHandler(workspace As EditorTestWorkspace) As Action
             Dim endConstructor = New EndConstructCommandHandler(
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ITextUndoHistoryRegistry),

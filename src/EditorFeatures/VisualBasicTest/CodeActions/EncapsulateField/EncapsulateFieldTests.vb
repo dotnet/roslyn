@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
@@ -347,7 +348,7 @@ End Class</File>.ConvertTestSourceTag()
                 }, testHost:=host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateFieldNamedValue(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -399,7 +400,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
         Public Async Function TestPreserveTrivia(host As TestHost) As Task
             Dim text = <File>
 Class AA
@@ -426,7 +427,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
         Public Async Function TestNewPropertyNameIsUnique(host As TestHost) As Task
             Dim text = <File>
 Class AA
@@ -469,7 +470,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
         Public Async Function TestAvailableNotJustOnVariableName(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -480,7 +481,7 @@ End Class</File>.ConvertTestSourceTag()
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
         Public Async Function TestCopyAccessibility(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -505,7 +506,7 @@ End Class</File>.ConvertTestSourceTag()
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
         Public Async Function TestBackingFieldStartsWithUnderscore(host As TestHost) As Task
             Dim text = <File>
 Public Class Class1
@@ -616,8 +617,8 @@ End Enum
 
         End Function
 
-        <WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")>
-        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7090")>
+        <Theory, CombinatorialData>
         Public Async Function ApplyCurrentMePrefixStyle(host As TestHost) As Task
             Await TestInRegularAndScriptAsync("
 Class C

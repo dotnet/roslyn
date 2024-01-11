@@ -3,16 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
@@ -49,7 +45,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47381")]
         public void ImplicitObjectCreationExpressionBracesSameLine()
         {
             var code = @"
@@ -428,7 +424,7 @@ $$
             CheckReturn(session.Session, 4);
         }
 
-        [WpfFact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
         public void WithExpression()
         {
             var code = @"
@@ -568,7 +564,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -595,7 +591,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -760,7 +756,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void Collection_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -797,7 +793,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -830,7 +826,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void Object_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -873,7 +869,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -912,7 +908,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -945,7 +941,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -974,7 +970,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -1007,7 +1003,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -1036,7 +1032,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -1068,7 +1064,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact]
         public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -1097,8 +1093,8 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
-        [WorkItem(850540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3447")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
         [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormattingDisabled()
         {
@@ -1136,7 +1132,7 @@ class Goo
             CheckReturn(session.Session, 4, expectedAfterReturn);
         }
 
-        [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
         [WpfFact]
         public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
         {
@@ -1164,7 +1160,7 @@ $$
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
-        [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
         [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormatting()
         {
@@ -1202,7 +1198,7 @@ $$
             CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
-        [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
         [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormattingSecondSet()
         {
@@ -1350,7 +1346,7 @@ $$
             CheckReturn(session.Session, 4, result: "class C\r{\r\r}");
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void WithInitializer_Enter(bool bracesOnNewLine)
         {
@@ -1393,7 +1389,7 @@ record R
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void PropertyPatternClause_Enter(bool bracesOnNewLine)
         {
@@ -1437,7 +1433,7 @@ class C
             CheckReturn(session.Session, bracesOnNewLine ? 16 : 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void Accessor_Enter(bool bracesOnNewLine)
         {
@@ -1481,7 +1477,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void AnonymousMethod_Enter(bool bracesOnNewLine)
         {
@@ -1525,7 +1521,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void AnonymousType_Enter(bool bracesOnNewLine)
         {
@@ -1569,7 +1565,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void If_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
         {
@@ -1614,7 +1610,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50275")]
         [WpfTheory, CombinatorialData]
         public void Else_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
         {
@@ -1665,10 +1661,40 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758005")]
+        public void NoFormattingAfterNewlineIfOptionsDisabled()
+        {
+            var code = @"namespace NS1
+$$";
+
+            var expected = @"namespace NS1
+{}";
+
+            var expectedAfterReturn = @"namespace NS1
+{
+
+}";
+
+            // Those option ensures no additional formatting would happen around added braces, including indention of added newline
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
+            };
+
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+
+            CheckReturn(session.Session, 0, expectedAfterReturn);
+        }
+
         internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }

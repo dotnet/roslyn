@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,10 +20,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
-        where TProvider : AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
+        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {
-        private readonly TestWorkspace _workspace;
+        private readonly EditorTestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService? AnalyzerService;
         private readonly SolutionCrawlerRegistrationService _registrationService;
         public readonly DiagnosticService DiagnosticService;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private ITaggerProvider? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
             IDiagnosticUpdateSource? updateSource = null,
             bool createTaggerProvider = true)

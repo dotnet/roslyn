@@ -82,6 +82,11 @@
         <target state="translated">Vererbungsrand</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Keepalive-Dienst</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
         <target state="translated">Lösungsereignisse</target>
@@ -125,6 +130,11 @@
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Objektanbieter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Quellgenerierung</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -208,17 +209,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _workspace,
                     project.Solution,
                     fromDocument: null,
-                    operations: operations,
+                    operations,
                     title: ServicesVSResources.Updating_severity,
-                    progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                    cancellationToken: context.UserCancellationToken).ConfigureAwait(false);
+                    scope.GetCodeAnalysisProgress(),
+                    context.UserCancellationToken).ConfigureAwait(false);
 
                 if (selectedDiagnostic.DocumentId != null)
                 {
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
                     _ = Task.Run(() =>
                     {
-                        _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
+                        _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
                     });
                 }
             }

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class ActiveStatementTrackingServiceTests : EditingTestBase
     {
-        [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
             var src1 = @"
@@ -151,7 +151,7 @@ class C
             var source1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
             var source2 = "class D { }";
 
-            using var workspace = new TestWorkspace();
+            using var workspace = new EditorTestWorkspace();
 
             var span11 = new LinePositionSpan(new LinePosition(0, 10), new LinePosition(0, 15));
             var span12 = new LinePositionSpan(new LinePosition(0, 20), new LinePosition(0, 25));
@@ -175,9 +175,9 @@ class C
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
-            var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
-            var testDocument2 = new TestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
-            workspace.AddTestProject(new TestHostProject(workspace, documents: new[] { testDocument1, testDocument2 }));
+            var testDocument1 = new EditorTestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
+            var testDocument2 = new EditorTestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
+            workspace.AddTestProject(new EditorTestHostProject(workspace, documents: new[] { testDocument1, testDocument2 }));
 
             // opens the documents
             var textBuffer1 = testDocument1.GetTextBuffer();

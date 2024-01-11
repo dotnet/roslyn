@@ -186,15 +186,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
-    internal sealed class JsonLiteralNode : JsonValueNode
+    internal sealed class JsonLiteralNode(JsonToken literalToken) : JsonValueNode(JsonKind.Literal)
     {
-        public JsonLiteralNode(JsonToken literalToken)
-            : base(JsonKind.Literal)
-        {
-            LiteralToken = literalToken;
-        }
-
-        public JsonToken LiteralToken { get; }
+        public JsonToken LiteralToken { get; } = literalToken;
 
         internal override int ChildCount => 1;
 
@@ -243,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         {
             // Note: the name is allowed by json.net to just be a text token, not a string.  e.g. `goo: 0` as opposed to
             // `"goo": 0`.  Strict json does not allow this.
-            Debug.Assert(nameToken.Kind == JsonKind.StringToken || nameToken.Kind == JsonKind.TextToken);
+            Debug.Assert(nameToken.Kind is JsonKind.StringToken or JsonKind.TextToken);
             Debug.Assert(colonToken.Kind == JsonKind.ColonToken);
             Debug.Assert(value != null);
             NameToken = nameToken;

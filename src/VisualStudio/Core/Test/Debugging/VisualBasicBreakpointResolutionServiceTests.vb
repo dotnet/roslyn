@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Function
 
-        <Fact, WorkItem(876520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876520")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876520")>
         Public Async Function TestBreakpointSpansMultipleMethods() As Task
             ' Normal case: debugger passing BP spans "sub Goo() end sub"
             Await TestSpanWithLengthAsync(<text>

@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
         internal sealed override SynthesizedLocalKind SynthesizedKind
@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             throw ExceptionUtilities.Unreachable();
         }
+
+        internal override bool HasSourceLocation => false;
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {

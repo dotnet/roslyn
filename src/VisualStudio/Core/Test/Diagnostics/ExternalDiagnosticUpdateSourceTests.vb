@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Using source = New ExternalErrorDiagnosticUpdateSource(
@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
@@ -55,8 +55,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim diagnostic = GetDiagnosticData(project.Id)
 
                     Dim expected = 1
-                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.Diagnostics
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
+                                                              Dim diagnostics = args.Diagnostics
                                                               Assert.Equal(expected, diagnostics.Length)
                                                               If expected = 1 Then
                                                                   Assert.Equal(diagnostics(0), diagnostic)
@@ -76,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportedId()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
@@ -100,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalDiagnostics_SupportedDiagnosticId_Concurrent()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Using source = New ExternalErrorDiagnosticUpdateSource(
@@ -116,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
@@ -133,8 +134,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
 
-                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.Diagnostics
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
+                                                              Dim diagnostics = args.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                           End Sub
 
@@ -151,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestBuildStartEvent() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -194,7 +196,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.True(DiagnosticData.PropertiesForBuildDiagnostic.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
             Assert.Equal(WellKnownDiagnosticTags.Build, value)
 
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Dim waiter = New AsynchronousOperationListener()
@@ -240,7 +242,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
@@ -255,8 +257,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.AddNewErrors(project.Id, diagnostic)
                     source.AddNewErrors(project.Id, diagnostic)
 
-                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.Diagnostics
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
+                                                              Dim diagnostics = args.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                           End Sub
 
@@ -268,7 +271,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(47754, "https://github.com/dotnet/roslyn/issues/47754")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47754")>
         Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer(hasCompilationEndTag As Boolean) As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -293,10 +296,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.AddNewErrors(project.Id, diagnostic)
 
                     Dim buildDiagnosticCallbackSeen = False
-                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
                                                               buildDiagnosticCallbackSeen = True
 
-                                                              Dim diagnostics = a.Diagnostics
+                                                              Dim diagnostics = args.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                               Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
                                                           End Sub
@@ -344,8 +348,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim diagnostic = GetDiagnosticData(project.Id, id:=analyzer.SupportedDiagnostics(0).Id)
                     source.AddNewErrors(project.Id, diagnostic)
 
-                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                              Dim diagnostics = a.Diagnostics
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
+                                                              Dim diagnostics = args.Diagnostics
 
                                                               Assert.Equal(1, diagnostics.Length)
                                                               Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
@@ -400,10 +405,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestBuildProgressUpdated() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
 
-                workspace.AddTestProject(New TestHostProject(workspace, language:=LanguageNames.CSharp))
+                workspace.AddTestProject(New EditorTestHostProject(workspace, language:=LanguageNames.CSharp))
 
                 Dim projectId1 = workspace.CurrentSolution.ProjectIds(0)
                 Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)
@@ -469,7 +474,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         location:=New DiagnosticDataLocation(New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4)), documentId:=Nothing),
                         language:=project.Language)
 
-                    AddHandler service.DiagnosticsUpdated, Sub(o, args)
+                    AddHandler service.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                               Dim args = argsCollection.Single()
                                                                Dim diagnostics = args.Diagnostics
 
                                                                Assert.Single(diagnostics)
@@ -488,7 +494,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <Fact, WorkItem(64659, "https://github.com/dotnet/roslyn/issues/64659")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64659")>
         Public Async Function TestExternalDiagnostics_BuildOnlyClearedOnDocumentChanged() As Task
             Using workspace = TestWorkspace.CreateCSharp("class C { }", composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -528,7 +534,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim actualDiagnostic As DiagnosticData = Nothing
                     Dim diagnosticAdded = False
                     Dim diagnosticRemoved = False
-                    AddHandler source.DiagnosticsUpdated, Sub(o, args)
+                    AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
+                                                              Dim args = argsCollection.Single()
                                                               Assert.Equal(document.Id, args.DocumentId)
                                                               Dim diagnostics = args.Diagnostics
                                                               If args.Kind = DiagnosticsUpdatedKind.DiagnosticsCreated Then
@@ -561,7 +568,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     ' Verify build-only diagnostics cleared after document changed event
                     document = document.WithText(SourceText.From("class C2 { }"))
-                    source.OnWorkspaceChanged(workspace, New WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged,
+                    source.GetTestAccessor().OnWorkspaceChanged(workspace, New WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged,
                         oldSolution:=workspace.CurrentSolution, newSolution:=document.Project.Solution, project.Id, document.Id))
                     Await waiter.ExpeditedWaitAsync()
 
@@ -657,49 +664,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 End Get
             End Property
 
-            Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
+            Public Event DiagnosticsUpdated As EventHandler(Of ImmutableArray(Of DiagnosticsUpdatedArgs)) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
             Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
             Public Function GetDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticUpdateSource.GetDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed)))
             End Function
 
-            Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
+            Public Sub Reanalyze(workspace As Workspace, projectIds As IEnumerable(Of ProjectId), documentIds As IEnumerable(Of DocumentId), highPriority As Boolean) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, addOperationScope As Func(Of String, IDisposable), diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 
-            Public Function GetSpecificCachedDiagnosticsAsync(workspace As Workspace, id As Object, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetSpecificCachedDiagnosticsAsync
+            Public Function GetSpecificCachedDiagnosticsAsync(workspace As Workspace, id As Object, includeSuppressedDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetSpecificCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
+            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetDiagnosticsAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsAsync
+            Public Function GetDiagnosticsAsync(solution As Solution, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetDiagnosticsForIdsAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional diagnosticIds As ImmutableHashSet(Of String) = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForIdsAsync
+            Public Function GetDiagnosticsForIdsAsync(solution As Solution, projectId As ProjectId, documentId As DocumentId, diagnosticIds As ImmutableHashSet(Of String), shouldIncludeAnalyzer As Func(Of DiagnosticAnalyzer, Boolean), includeSuppressedDiagnostics As Boolean, includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForIdsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetProjectDiagnosticsForIdsAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional diagnosticIds As ImmutableHashSet(Of String) = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync
+            Public Function GetProjectDiagnosticsForIdsAsync(solution As Solution, projectId As ProjectId, diagnosticIds As ImmutableHashSet(Of String), shouldIncludeAnalyzer As Func(Of DiagnosticAnalyzer, Boolean), includeSuppressedDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function ContainsDiagnostics(workspace As Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
+            Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
                 Throw New NotImplementedException()
             End Function
 
-            Public Function ForceAnalyzeAsync(solution As Solution, onProjectAnalyzed As Action(Of Project), Optional projectId As ProjectId = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional diagnosticKinds As DiagnosticKind = DiagnosticKind.All, Optional cancellationToken As CancellationToken = Nothing) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
+            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
                 Return Task.FromResult((ImmutableArray(Of DiagnosticData).Empty, False))
             End Function
         End Class

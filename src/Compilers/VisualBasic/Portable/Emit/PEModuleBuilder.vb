@@ -321,6 +321,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
+        Friend Overridable Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return New MethodInstrumentation() With {.Kinds = EmitOptions.InstrumentationKinds}
+        End Function
+
         Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
             Return ImmutableArray(Of AnonymousTypeKey).Empty
         End Function
@@ -710,6 +714,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
+            Debug.Assert(Not context.MetadataOnly)
+
             While typesToProcess.Count > 0
                 Dim definition = typesToProcess.Pop()
 
@@ -743,8 +749,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-        Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
-            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter()
+        Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
+            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, GetPrivateImplClass(syntaxOpt, diagnostics), GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter()
         End Function
 
         Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)

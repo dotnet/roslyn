@@ -12,31 +12,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
     [DataContract]
-    internal sealed class SerializableValueTrackedItem
+    internal sealed class SerializableValueTrackedItem(
+        SymbolKey symbolKey,
+        TextSpan textSpan,
+        DocumentId documentId,
+        SerializableValueTrackedItem? parent = null)
     {
         [DataMember(Order = 0)]
-        public SymbolKey SymbolKey { get; }
+        public SymbolKey SymbolKey { get; } = symbolKey;
 
         [DataMember(Order = 1)]
-        public TextSpan TextSpan { get; }
+        public TextSpan TextSpan { get; } = textSpan;
 
         [DataMember(Order = 2)]
-        public DocumentId DocumentId { get; }
+        public DocumentId DocumentId { get; } = documentId;
 
         [DataMember(Order = 3)]
-        public SerializableValueTrackedItem? Parent { get; }
-
-        public SerializableValueTrackedItem(
-            SymbolKey symbolKey,
-            TextSpan textSpan,
-            DocumentId documentId,
-            SerializableValueTrackedItem? parent = null)
-        {
-            SymbolKey = symbolKey;
-            Parent = parent;
-            TextSpan = textSpan;
-            DocumentId = documentId;
-        }
+        public SerializableValueTrackedItem? Parent { get; } = parent;
 
         public static SerializableValueTrackedItem Dehydrate(Solution solution, ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
         {

@@ -185,7 +185,7 @@ public class D : I
             End Using
         End Function
 
-        <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact>
         Public Async Function TestCallHierarchyCrossProjectForImplements() As Task
             Dim input =
@@ -225,7 +225,7 @@ class CSharpIt : IChangeSignatureOptionsService
             End Using
         End Function
 
-        <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact>
         Public Async Function TestCallHierarchyCrossProjectForCallsTo() As Task
             Dim input =
@@ -264,7 +264,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
         <WpfFact>
         Public Async Function TestMustInheritMethodInclusionToOverrides() As Task
             Dim input =
@@ -292,7 +292,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
         <WpfFact>
         Public Async Function TestNavigateCrossProject() As Task
             Dim input =
@@ -327,7 +327,7 @@ class D : C
             End Using
         End Function
 
-        <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
         <WpfFact>
         Public Async Function TestUseDocumentIdWhenNavigating() As Task
             Dim input =
@@ -367,7 +367,7 @@ namespace N
             End Using
         End Function
 
-        <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact>
         Public Async Function TestDisplayErrorWhenNotOnMemberCS() As Task
             Dim input =
@@ -390,7 +390,7 @@ cla$$ss C
             End Using
         End Function
 
-        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38303")>
         <WpfFact>
         Public Async Function TestDisplayErrorWhenNotOnMemberCS2() As Task
             Dim input =
@@ -414,7 +414,7 @@ class CC
             End Using
         End Function
 
-        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38303")>
         <WpfFact>
         Public Async Function TestDisplayErrorWhenNotOnMemberCS3() As Task
             Dim input =
@@ -438,7 +438,7 @@ class CC
             End Using
         End Function
 
-        <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact>
         Public Async Function TestDisplayErrorWhenNotOnMemberVB() As Task
             Dim input =

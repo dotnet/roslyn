@@ -61,7 +61,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaWithNoParameterParenthesis()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -80,7 +80,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -99,7 +99,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaAndStatementInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -118,7 +118,7 @@ End Class",
                 afterCaret:={3, 10})
         End Sub
 
-        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithFunctionLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -313,7 +313,7 @@ End Class",
                    afterCaret:={3, 20})
         End Sub
 
-        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineSubLambdaToMultiLineWithTrailingTrivia()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -351,7 +351,7 @@ End Class",
                    afterCaret:={3, 27})
         End Sub
 
-        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineFunctionLambdaToMultiLineWithTrailingTrivia()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -370,8 +370,8 @@ End Class",
                    afterCaret:={3, 27})
         End Sub
 
-        <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1922")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineFunctionLambdaToMultiLineInsideXMLTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -390,8 +390,8 @@ End Class",
                    afterCaret:={3, -1})
         End Sub
 
-        <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1922")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineSubLambdaToMultiLineInsideXMLTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C

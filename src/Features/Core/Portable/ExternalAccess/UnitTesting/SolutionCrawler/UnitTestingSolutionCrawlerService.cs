@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
-        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions_Solution Crawler", defaultValue: true);
-
         /// <summary>
         /// nested class of <see cref="UnitTestingSolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
         /// 
@@ -30,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
             }
 
-            public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
+            public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 if (services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
                 {
-                    registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds, highPriority);
+                    registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds);
                 }
             }
 

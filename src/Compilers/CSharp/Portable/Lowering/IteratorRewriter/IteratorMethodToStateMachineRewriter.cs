@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,7 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Tells us if a particular try contains yield returns
         /// </summary>
-        private YieldsInTryAnalysis _yieldsInTryAnalysis;
+        private YieldsInTryAnalysis? _yieldsInTryAnalysis;
 
         /// <summary>
         /// When this is more that 0, returns are emitted as "methodValue = value; goto exitLabel;"
         /// </summary>
         private int _tryNestingLevel;
-        private LabelSymbol _exitLabel;
-        private LocalSymbol _methodValue;
+        private LabelSymbol? _exitLabel;
+        private LocalSymbol? _methodValue;
 
         /// <summary>
         /// The current iterator finally frame in the tree of finally frames.
@@ -60,20 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol current,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            FieldSymbol? instanceIdField,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;
 
             _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
+#nullable disable
         protected override string EncMissingStateMessage
             => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
 
@@ -147,8 +146,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = F.Fault((BoundBlock)newBody, faultBlock);
             }
 
-            newBody = HandleReturn(newBody);
-            F.CloseMethod(F.SequencePoint(body.Syntax, newBody));
+            newBody = F.SequencePoint(body.Syntax, HandleReturn(newBody));
+
+            if (instrumentation != null)
+            {
+                newBody = F.Block(
+                    ImmutableArray.Create(instrumentation.Local),
+                    instrumentation.Prologue,
+                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
+            }
+
+            F.CloseMethod(newBody);
 
             ///////////////////////////////////
             // Generate the body for Dispose().
@@ -176,15 +184,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement HandleReturn(BoundStatement newBody)
+        private BoundBlock HandleReturn(BoundStatement newBody)
         {
-            if ((object)_exitLabel == null)
+            if (_exitLabel is null)
             {
                 //   body;
                 //   return false;
-                newBody = F.Block(
-                        newBody,
-                        F.Return(F.Literal(false)));
+                return F.Block(
+                    newBody,
+                    F.Return(F.Literal(false)));
             }
             else
             {
@@ -192,15 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   methodValue = false;
                 // exitLabel:
                 //   return methodValue;
-                newBody = F.Block(
-                        ImmutableArray.Create<LocalSymbol>(_methodValue),
-                        newBody,
-                        F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
-                        F.Label(_exitLabel),
-                        F.Return(this.F.Local(_methodValue)));
+                return F.Block(
+                    ImmutableArray.Create<LocalSymbol>(_methodValue),
+                    newBody,
+                    F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
+                    F.Label(_exitLabel),
+                    F.Return(this.F.Local(_methodValue)));
             }
-
-            return newBody;
         }
 
         /// <summary>
@@ -327,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     <next_state_label>: ;
             //     <hidden sequence point>
             //     this.state = finalizeState;
-            AddResumableState(node.Syntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(node.Syntax, awaitId: default, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
             _currentFinallyFrame.AddState(stateNumber);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
@@ -458,12 +464,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeState) != true)
+            if (slotAllocator?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
             }
 
-            AddStateDebugInfo(syntax, finalizeState);
+            AddStateDebugInfo(syntax, awaitId: default, finalizeState);
 
             var finallyMethod = MakeSynthesizedFinally(finalizeState);
             var newFrame = new IteratorFinallyFrame(_currentFinallyFrame, finalizeState, finallyMethod, _yieldsInTryAnalysis.Labels(statement));

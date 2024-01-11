@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
-            var strippedText = await strippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var strippedText = await strippedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // This introduces the text changes of the snippet into the document with the completion invoking text
             var allChangesText = strippedText.WithChanges(snippet.TextChanges);
@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);
 
             // If the TextChanges retrieved starts after the trigger point of the CompletionItem,
-            // then we need to move the bounds backwards and encapsulate the trigger point.
+            // then we need to move the bounds backwards and encapsulate the trigger point and adjust the changed text.
             if (change.Span.Start > item.Span.Start)
             {
                 var textSpan = TextSpan.FromBounds(item.Span.Start, change.Span.End);
-                var snippetText = change.NewText;
-                Contract.ThrowIfNull(snippetText);
+                var snippetText = allChangesText.GetSubText(textSpan).ToString();
                 change = new TextChange(textSpan, snippetText);
             }
 
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         /// }
         private static async Task<(Document, int)> GetDocumentWithoutInvokingTextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Uses the existing CompletionService logic to find the TextSpan we want to use for the document sans invoking text
             var completionService = document.GetRequiredLanguageService<CompletionService>();
@@ -129,7 +128,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
-            var newDocument = document.WithText(originalText);
+
+            // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator
+            // which is not needed for snippet completion and will cause perf issue.
+            var newDocument = document.WithText(originalText).WithFrozenPartialSemantics(cancellationToken);
             return (newDocument, span.Start);
         }
     }

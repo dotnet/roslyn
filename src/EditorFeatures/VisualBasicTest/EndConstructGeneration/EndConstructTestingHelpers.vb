@@ -4,13 +4,12 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -34,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                            endCaretPos As Integer())
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
-            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim view = workspace.Documents.First().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, caretPos))
@@ -64,9 +63,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   beforeCaret As Integer(),
                                   after As String,
                                   afterCaret As Integer())
-            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
@@ -115,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Private Sub VerifyNotApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                      text As String,
                                      caret As Integer())
-            Using workspace = TestWorkspace.CreateVisualBasic(text)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(text)
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -208,9 +207,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             afterCaret As Integer())
 
             ' create separate composition
-            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim view = workspace.Documents.First().GetTextView()
                 view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)

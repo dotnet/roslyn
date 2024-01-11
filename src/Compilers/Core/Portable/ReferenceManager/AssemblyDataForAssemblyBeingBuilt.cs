@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override IEnumerable<TAssemblySymbol> AvailableSymbols
+            public override ImmutableArray<TAssemblySymbol> AvailableSymbols
             {
                 get
                 {

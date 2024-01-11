@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,12 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                    => _suppressionFixProvider = suppressionFixProvider;
+                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -107,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public override async Task<CodeAction> TryGetMergedFixAsync(
                     ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
                     FixAllState fixAllState,
+                    IProgress<CodeAnalysisProgress> progressTracker,
                     CancellationToken cancellationToken)
                 {
                     // Batch all the attribute removal fixes into a single fix.
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     return await base.TryGetMergedFixAsync(
-                        newBatchOfFixes.ToImmutableArray(), fixAllState, cancellationToken).ConfigureAwait(false);
+                        newBatchOfFixes.ToImmutableArray(), fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)

@@ -40,17 +40,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         public void Analyze(SemanticModelAnalysisContext context)
         {
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns;
-            if (!option)
+            if (!context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns
+                || ShouldSkipAnalysis(context, notification: null))
+            {
                 return;
+            }
 
-            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
-            var root = syntaxTree.GetRoot(cancellationToken);
-            Analyze(context, detector, root, cancellationToken);
+            var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
+            Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
         }
 
         private void Analyze(
@@ -63,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
                 {
                     Analyze(context, detector, child.AsNode()!, cancellationToken);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                                 context.ReportDiagnostic(DiagnosticHelper.Create(
                                     this.Descriptor,
                                     Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                    ReportDiagnostic.Warn,
+                                    NotificationOption2.Warning,
                                     additionalLocations: null,
                                     properties: null,
                                     diag.Message));

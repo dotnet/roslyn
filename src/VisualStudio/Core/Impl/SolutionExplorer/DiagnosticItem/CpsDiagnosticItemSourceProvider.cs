@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         /// <summary>
-        /// Given an item determines if it represents a particular target frmework.
+        /// Given an item determines if it represents a particular target framework.
         /// If so, it returns the corresponding TargetFrameworkMoniker.
         /// </summary>
         private static string? GetTargetFrameworkMoniker(IVsHierarchyItem item)
@@ -103,23 +103,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var hierarchy = item.HierarchyIdentity.NestedHierarchy;
             var itemId = item.HierarchyIdentity.NestedItemID;
 
-            var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-
             var isTargetNode = false;
             string? potentialTFM = null;
-            foreach (var capability in projectTreeCapabilities)
+
+            MatchProjectTreeCapabilities(hierarchy, itemId, isMatch, state: false);
+
+            return isTargetNode ? potentialTFM : null;
+
+            bool isMatch(ReadOnlyMemory<char> capability, bool _)
             {
-                if (capability.Equals("TargetNode"))
+                if (ReadOnlyMemoryOfCharComparer.Equals("TargetNode".AsSpan(), capability))
                 {
                     isTargetNode = true;
                 }
-                else if (capability.StartsWith("$TFM:"))
+                else if (capability.Span.StartsWith("$TFM:".AsSpan()))
                 {
-                    potentialTFM = capability["$TFM:".Length..];
+                    potentialTFM = capability["$TFM:".Length..].ToString();
                 }
-            }
 
-            return isTargetNode ? potentialTFM : null;
+                return false;
+            }
         }
 
         private static bool NestedHierarchyHasProjectTreeCapability(IVsHierarchyItem item, string capability)
@@ -127,21 +130,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var hierarchy = item.HierarchyIdentity.NestedHierarchy;
             var itemId = item.HierarchyIdentity.NestedItemID;
 
-            var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-            return projectTreeCapabilities.Any(static (c, capability) => c.Equals(capability), capability);
+            return MatchProjectTreeCapabilities(hierarchy, itemId, isMatch, capability.AsMemory());
+
+            static bool isMatch(ReadOnlyMemory<char> capability, ReadOnlyMemory<char> capabilityToMatch)
+            {
+                return ReadOnlyMemoryOfCharComparer.Equals(capabilityToMatch.Span, capability);
+            }
         }
 
-        private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
+        private static bool MatchProjectTreeCapabilities<T>(IVsHierarchy hierarchy, uint itemId, Func<ReadOnlyMemory<char>, T, bool> isMatch, T state)
         {
             if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
             {
                 var capabilitiesString = (string)capabilitiesObj;
-                return ImmutableArray.Create(capabilitiesString.Split(' '));
+
+                // Perf: Avoid string.Split
+                var afterLastMatchIndex = 0;
+                var nextMatchIndex = capabilitiesString.IndexOf(' ', afterLastMatchIndex);
+                while (nextMatchIndex >= 0)
+                {
+                    if (isMatch(capabilitiesString.AsMemory(afterLastMatchIndex, nextMatchIndex - afterLastMatchIndex), state))
+                        return true;
+
+                    afterLastMatchIndex = nextMatchIndex + 1;
+                    nextMatchIndex = capabilitiesString.IndexOf(' ', afterLastMatchIndex);
+                }
+
+                if (isMatch(capabilitiesString.AsMemory(afterLastMatchIndex), state))
+                    return true;
             }
-            else
-            {
-                return ImmutableArray<string>.Empty;
-            }
+
+            return false;
         }
 
         private IHierarchyItemToProjectIdMap? TryGetProjectMap()

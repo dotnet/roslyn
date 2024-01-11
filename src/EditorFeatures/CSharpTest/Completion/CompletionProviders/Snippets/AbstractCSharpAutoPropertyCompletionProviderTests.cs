@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public abstract class AbstractCSharpAutoPropertyCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected abstract string GetDefaultPropertyText(string propertyName);
+        protected abstract string GetDefaultPropertyBlockText();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MissingInNamespace()
@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public abstract Task InsertSnippetInReadonlyStruct();
+
         // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
         // so it is tested separately for all of them
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -133,6 +136,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public async Task AfterAccessibilityModifier(string modifier)
+        {
+            await VerifyPropertyAsync($$"""
+                class Program
+                {
+                    {{modifier}} $$
+                }
+                """, $"int MyProperty {GetDefaultPropertyBlockText()}");
+        }
+
         private Task VerifyPropertyAbsenceAsync(string markup) => VerifyItemIsAbsentAsync(markup, ItemToCommit);
 
         protected async Task VerifyPropertyAsync(string markup, string propertyText)
@@ -143,6 +162,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected Task VerifyDefaultPropertyAsync(string markup, string propertyName = "MyProperty")
-            => VerifyPropertyAsync(markup, GetDefaultPropertyText(propertyName));
+            => VerifyPropertyAsync(markup, $"public int {propertyName} {GetDefaultPropertyBlockText()}");
     }
 }

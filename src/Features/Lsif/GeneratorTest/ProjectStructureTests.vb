@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
         <Fact>
         Public Async Function SourceGeneratedDocumentsIncludeContent() As Task
-            Dim workspace = TestWorkspace.CreateWorkspace(
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                         </Project>
@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Next
         End Function
 
-        <Fact, WorkItem(59692, "https://github.com/dotnet/roslyn/issues/59692")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59692")>
         Public Async Function SourceGeneratedDocumentHasUriInJson() As Task
-            Dim workspace = TestWorkspace.CreateWorkspace(
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                             <DocumentFromSourceGenerator></DocumentFromSourceGenerator>

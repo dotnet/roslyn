@@ -377,7 +377,7 @@ WriteLine(5);
             Assert.Equal("C { }", output.Trim());
 
             // rewrite C.dll:            
-            File.WriteAllBytes(c.Path, new byte[] { 1, 2, 3 });
+            File.WriteAllBytes(c.Path, [1, 2, 3]);
 
             // we can still run code:
             var result = await Execute("new C()");
@@ -705,7 +705,7 @@ Print(ReferencePaths);
             var rspFile = rspDirectory.CreateFile("init.rsp");
             rspFile.WriteAllText($"/lib:{directory1.Path} /r:Assembly2.dll {initFile.Path}");
 
-            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
             var fxDir = await GetHostRuntimeDirectoryAsync();
 
             await Execute(@"
@@ -743,7 +743,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
             var rspFile = rspDirectory.CreateFile("init.rsp");
             rspFile.WriteAllText($"{initFile.Path}");
 
-            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
 
             var error = await ReadErrorOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
@@ -768,7 +768,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 /u:System.Text
 /u:System.Threading.Tasks
 ");
-            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
 
             await Execute(@"
 dynamic d = new ExpandoObject();
@@ -819,7 +819,7 @@ OK
 {initFile.Path}
 ");
 
-            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
 
             await Execute("new Process()");
 
@@ -846,7 +846,7 @@ a
 b
 c
 ");
-            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
 
             var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error);
@@ -925,7 +925,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
         }
 
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"
@@ -953,7 +953,7 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
-        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
             await Execute(@"
@@ -981,7 +981,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
-        [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
             await Execute(@"int i = 100;");
@@ -1001,7 +1001,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n", await ReadOutputToEnd());
 
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
+            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadOutputToEnd());
 
@@ -1009,13 +1009,36 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n", await ReadOutputToEnd());
 
-            var result = await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
+            var result = await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadOutputToEnd());
 
             await Host.ExecuteAsync(@"System.IntPtr.Size");
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n", await ReadOutputToEnd());
+        }
+
+        [Fact]
+        public async Task Culture()
+        {
+            var rspFile = Temp.CreateFile();
+
+            var culture = new CultureInfo("cs-CZ");
+            var uiCulture = CultureInfo.CurrentUICulture;
+
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture, uiCulture, Host.OptionsOpt!.Platform));
+
+            await Host.ExecuteAsync(@"(1000.23).ToString(""C"")");
+
+            var error = await ReadErrorOutputToEnd();
+            Assert.Equal("", error);
+
+            var output = await ReadOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
+""1 000,23 Kč""
+", output);
         }
 
         #region Submission result printing - null/void/value.
@@ -1051,7 +1074,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [Fact, WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

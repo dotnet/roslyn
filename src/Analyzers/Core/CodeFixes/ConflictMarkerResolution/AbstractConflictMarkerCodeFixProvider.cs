@@ -45,11 +45,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
             _syntaxKinds = syntaxKinds;
+
+#if !CODE_STYLE
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-#if !CODE_STYLE
 
         /// <summary>
         /// 'Fix merge conflict markers' gets special privileges.  A core user scenario around them is that a user does
@@ -59,10 +62,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         /// them if they bring up the lightbulb on a <c>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</c> line, it should run ahead of
         /// normal fix providers else so the user can quickly fix the conflict and move onto the next conflict.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
+        protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
-
-#endif
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var document = context.Document;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var position = context.Span.Start;
             if (!ShouldFix(root, text, position, out var startLine, out var firstMiddleLine, out var secondMiddleLine, out var endLine))
@@ -281,20 +282,32 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var endPos = endLine.Start;
 
             context.RegisterCodeFix(
-                CodeAction.Create(takeTopText,
+                CreateCodeAction(takeTopText,
                     c => TakeTopAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeTopEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(takeBottomText,
+                CreateCodeAction(takeBottomText,
                     c => TakeBottomAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(CodeFixesResources.Take_both,
+                CreateCodeAction(CodeFixesResources.Take_both,
                     c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
+
+            static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Document>> action, string equivalenceKey)
+            {
+                var codeAction = CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+
+#if !CODE_STYLE
+                // Backdoor that allows this provider to use the high-priority bucket.
+                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
+
+                return codeAction;
+            }
         }
 
         private static async Task<Document> AddEditsAsync(
@@ -302,7 +315,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             Action<SourceText, ArrayBuilder<TextChange>, int, int, int, int> addEdits,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
             addEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
@@ -388,7 +401,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var orderedDiagnostics = diagnostics.OrderBy(
                 (d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start).ToImmutableArray();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Create a single array of edits to apply.  Then walk over all the

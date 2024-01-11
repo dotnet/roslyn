@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
         // diagnostics get added to the store exactly once
-        private readonly BindingDiagnosticBag _declarationDiagnostics;
+        private readonly DiagnosticBag _declarationDiagnostics;
+        private readonly HashSet<AssemblySymbol> _declarationDependencies;
 
         public LocalFunctionSymbol(
             Binder binder,
@@ -41,13 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingSymbol.DeclaringCompilation == binder.Compilation);
             _containingSymbol = containingSymbol;
 
-            _declarationDiagnostics = new BindingDiagnosticBag();
+            _declarationDiagnostics = new DiagnosticBag();
+            _declarationDependencies = new HashSet<AssemblySymbol>();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                syntax.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics: _declarationDiagnostics.DiagnosticBag);
+                syntax.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics: _declarationDiagnostics);
 
-            this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+            Debug.Assert(diagnostics.DependenciesBag is { });
+
+            this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
 
             ScopeBinder = binder;
 
@@ -55,25 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (syntax.TypeParameterList != null)
             {
-                _typeParameters = MakeTypeParameters(_declarationDiagnostics);
+                _typeParameters = MakeTypeParameters(diagnostics);
             }
             else
             {
                 _typeParameters = ImmutableArray<SourceMethodTypeParameterSymbol>.Empty;
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, _declarationDiagnostics.DiagnosticBag);
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, _declarationDiagnostics);
             }
 
             if (IsExtensionMethod)
             {
-                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
+                _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, GetFirstLocation());
             }
 
             foreach (var param in syntax.ParameterList.Parameters)
             {
-                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
+                ReportAttributesDisallowed(param.AttributeLists, diagnostics);
             }
 
-            syntax.ReturnType.SkipRefInLocalOrReturn(_declarationDiagnostics, out _refKind);
+            syntax.ReturnType.SkipRefInLocalOrReturn(diagnostics, out _refKind);
+
+            _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+            _declarationDependencies.AddAll(diagnostics.DependenciesBag);
+            diagnostics.Free();
+
             _binder = binder;
         }
 
@@ -113,12 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
 
-            addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
+            addTo.AddRange(_declarationDiagnostics);
+            addTo.AddDependencies((IReadOnlyCollection<AssemblySymbol>)_declarationDependencies);
 
             AsyncMethodChecks(addTo);
 
@@ -134,7 +147,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
-            => _declarationDiagnostics.AddRange(diagnostics);
+        {
+            if (diagnostics.DiagnosticBag is { } diagnosticBag)
+            {
+                _declarationDiagnostics.AddRange(diagnosticBag);
+            }
+
+            if (diagnostics.DependenciesBag is { } dependenciesBag)
+            {
+                _declarationDependencies.AddAll(dependenciesBag);
+            }
+        }
 
         public override bool RequiresInstanceReceiver => false;
 
@@ -164,7 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+            Debug.Assert(diagnostics.DependenciesBag is { });
 
             var parameters = ParameterHelpers.MakeParameters(
                 WithTypeParametersBinder,
@@ -192,7 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                _declarationDiagnostics.AddRangeAndFree(diagnostics);
+                _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                _declarationDependencies.AddAll(diagnostics.DependenciesBag);
+                diagnostics.Free();
                 _lazyIsVarArg = isVararg;
                 _lazyParameters = parameters;
             }
@@ -216,7 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+            Debug.Assert(diagnostics.DependenciesBag is { });
+
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
             TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipScoped(out _).SkipRef(), diagnostics);
@@ -227,21 +257,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (specifically, local functions nested in expressions in the EE).
             if (compilation is object)
             {
-                var location = returnTypeSyntax.Location;
+                Location? location = null;
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                 }
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(returnType.Type))
                 {
-                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                 }
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     returnType.NeedsNullableAttribute())
                 {
-                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureNullableAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                     // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
                 }
             }
@@ -265,7 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                _declarationDiagnostics.AddRangeAndFree(diagnostics);
+                _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                _declarationDependencies.AddAll(diagnostics.DependenciesBag);
+                diagnostics.Free();
                 Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
             }
         }
@@ -302,6 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(Syntax.Identifier.GetLocation());
+
+        public override Location TryGetFirstLocation() => Syntax.Identifier.GetLocation();
 
         internal override bool GenerateDebugInfo => true;
 
@@ -437,7 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 GetTypeParameterConstraintKinds();
 
                 var syntax = Syntax;
-                var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                Debug.Assert(diagnostics.DiagnosticBag is { });
+                Debug.Assert(diagnostics.DependenciesBag is { });
+
                 var constraints = this.MakeTypeParameterConstraintTypes(
                     WithTypeParametersBinder,
                     TypeParameters,
@@ -448,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (_lazyTypeParameterConstraintTypes.IsDefault)
                     {
-                        _declarationDiagnostics.AddRange(diagnostics);
+                        _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                        _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                         _lazyTypeParameterConstraintTypes = constraints;
                     }
                 }

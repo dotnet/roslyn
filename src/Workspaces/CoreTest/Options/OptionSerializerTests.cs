@@ -6,11 +6,11 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -25,10 +25,9 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            CompletionViewOptions.EnableArgumentCompletionSnippets,
+            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.ShowInheritanceMargin,
-            SuggestionsOptions.Asynchronous,
+            InheritanceMarginOptionsStorage.ShowInheritanceMargin,
             WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
             SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
@@ -69,7 +68,7 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            InlineDiagnosticsOptions.Location,
+            InlineDiagnosticsOptionsStorage.Location,
             WorkspaceConfigurationOptionsStorage.Database,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
@@ -77,9 +76,9 @@ public class OptionSerializerTests
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             CompletionOptionsStorage.EnterKeyBehavior,
             CompletionOptionsStorage.SnippetsBehavior,
-            InternalDiagnosticsOptions.RazorDiagnosticMode,
-            InternalDiagnosticsOptions.LiveShareDiagnosticMode,
-            InternalDiagnosticsOptions.NormalDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
         };
 
         foreach (var option in options)

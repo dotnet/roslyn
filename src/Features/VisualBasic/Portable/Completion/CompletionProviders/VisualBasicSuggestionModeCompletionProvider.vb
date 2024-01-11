@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Property
 
         Protected Overrides Async Function GetSuggestionModeItemAsync(document As Document, position As Integer, itemSpan As TextSpan, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of CompletionItem)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
             Dim syntaxTree = semanticModel.SyntaxTree

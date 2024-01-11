@@ -154,7 +154,7 @@ public class C
             });
         }
 
-        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationReferencesSystemCore()
         {
             var source = @"
@@ -212,7 +212,7 @@ public class C
         /// this test only covers our ability to identify an assembly to attempt to load, not
         /// our ability to actually load or consume it.
         /// </remarks>
-        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationDoesNotReferenceSystemCore()
         {
             var source = @"
@@ -507,7 +507,7 @@ class C
             Assert.Empty(references);
         }
 
-        [Fact, WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
         public void PseudoVariableType()
         {
             var source =
@@ -544,7 +544,7 @@ class C
             });
         }
 
-        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds()
         {
@@ -587,7 +587,7 @@ class C
         /// <remarks>
         /// Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         /// </remarks>
-        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds_MultipleParts()
         {
@@ -627,7 +627,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
         public void CompileWithRetrySameErrorReported()
         {
             var source = @" 
@@ -669,7 +669,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void SucceedOnRetry()
         {
             var source = @" 
@@ -717,7 +717,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2547")]
         public void TryDifferentLinqLibraryOnRetry()
         {
             var source = @"
@@ -834,7 +834,7 @@ class UseLinq
 LanguageVersion.CSharp7_1);
         }
 
-        [Fact, WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")]
         public void NonTupleNoSystemRuntime()
         {
             var source =

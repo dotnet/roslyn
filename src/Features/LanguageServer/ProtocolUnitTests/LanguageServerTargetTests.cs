@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
 
-        [Fact]
-        public async Task LanguageServerQueueEmptyOnShutdownMessage()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerQueueEmptyOnShutdownMessage(bool mutatingLspWorkspace)
         {
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
             AssertServerAlive(server);
 
             await server.ShutdownTestServerAsync();
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await server.ExitTestServerAsync();
         }
 
-        [Fact]
-        public async Task LanguageServerCleansUpOnExitMessage()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerCleansUpOnExitMessage(bool mutatingLspWorkspace)
         {
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
             AssertServerAlive(server);
 
             await server.ShutdownTestServerAsync();
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
-        [Fact]
-        public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync(bool mutatingLspWorkspace)
         {
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
             AssertServerAlive(server);
 
             server.GetServerAccessor().GetServerRpc().Dispose();
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
-        [Fact]
-        public async Task LanguageServerHasSeparateServiceInstances()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerHasSeparateServiceInstances(bool mutatingLspWorkspace)
         {
-            await using var serverOne = await CreateTestLspServerAsync("");
-            await using var serverTwo = await CreateTestLspServerAsync("");
+            await using var serverOne = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+            await using var serverTwo = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
             // Get an LSP service and verify each server has its own instance per server.
             Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Same(serverOne.GetRequiredLspService<DidOpenHandler>(), serverTwo.GetRequiredLspService<DidOpenHandler>());
         }
 
-        [Fact]
-        public async Task LanguageServerSucceedsAfterInitializedCalled()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerSucceedsAfterInitializedCalled(bool mutatingLspWorkspace)
         {
             // Arrange
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
             var initializedParams = new InitializedParams();
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 TextDocument = new TextDocumentItem
                 {
                     Text = "sometext",
-                    Uri = new Uri("C:\\location\\file.json"),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
                 }
             };
 
@@ -101,27 +101,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
         }
 
-        [Fact]
-        public async Task LanguageServerRejectsRequestsBeforeInitialized()
+        [Theory(Skip = "https://github.com/dotnet/razor/issues/8311"), CombinatorialData]
+        public async Task LanguageServerRejectsRequestsBeforeInitialized(bool mutatingLspWorkspace)
         {
-            await using var server = await CreateTestLspServerAsync("", new InitializationOptions { CallInitialized = false });
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, new InitializationOptions { CallInitialized = false });
 
             var didOpenParams = new DidOpenTextDocumentParams
             {
                 TextDocument = new TextDocumentItem
                 {
                     Text = "sometext",
-                    Uri = new Uri("C:\\location\\file.json"),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
                 }
             };
             var ex = await Assert.ThrowsAsync<RemoteInvocationException>(async () => await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None));
             Assert.Equal("'initialized' has not been called.", ex.Message);
         }
 
-        [Fact]
-        public async Task LanguageServerDisposesOfServicesOnShutdown()
+        [Theory, CombinatorialData]
+        public async Task LanguageServerDisposesOfServicesOnShutdown(bool mutatingLspWorkspace)
         {
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
             var statefulService = server.GetRequiredLspService<StatefulLspService>();
             var statelessService = server.GetRequiredLspService<StatelessLspService>();

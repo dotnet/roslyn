@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
+    <UseAppHost>false</UseAppHost>
+    <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
+    <SelfContained>false</SelfContained>
+    <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <!-- Explicitly mark ourselves as AnyCPU; if we don't do this, since this project is an executable targeting net472, the SDK has logic that assumes we're targeting Windows
+         and will explicitly provide a RuntimeIdentifier for us which will target win7-x86. This then causes PlatformTarget to be set to x86, which
+         in turn causes our NuGet PackageId (set by IsSymbolPublishingPackage above) to be set to a different name only the net472 variant. This mismatched PackageId
+         can then break the NuGet tooling which assumes the package will have a single PackageId across all TFMs.
+
+         Although we could change the logic in IsSymbolPublishingPackage to ignore that PlatformTarget, it seems more robust to explicitly be AnyCPU so we don't get
+         a RuntimeIdentifier given to us, since we really don't want to accidentally pick up platform specific binaries since we also have to run on Mono.
+         -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Rpc\Readme.md" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <PropertyGroup>
+    <!-- Force a deps.json to be included when packaging the language server, so we get proper assembly resolution using the directory as a binding path -->
+    <_UseBuildDependencyFile>true</_UseBuildDependencyFile>
+  </PropertyGroup>
+</Project>

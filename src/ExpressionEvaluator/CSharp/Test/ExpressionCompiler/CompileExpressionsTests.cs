@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 });
         }
 
-        [Fact, WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
         public void LocalsInAsync()
         {
             var source =
@@ -1027,8 +1027,8 @@ class Program
                 });
         }
 
-        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
-        [WorkItem(64098, "https://github.com/dotnet/roslyn/issues/64098")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64098")]
         [Fact]
         public void FileLocalType_07()
         {
@@ -1178,7 +1178,7 @@ class Program
                 });
         }
 
-        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
         [Fact]
         public void SequencePointsMultipleDocuments_01()
         {
@@ -1356,7 +1356,7 @@ class Program
                 });
         }
 
-        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
         [Fact]
         public void SequencePointsMultipleDocuments_02()
         {

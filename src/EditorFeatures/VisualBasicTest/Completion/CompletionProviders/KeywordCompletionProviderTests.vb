@@ -119,7 +119,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")>
         Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true">
@@ -146,7 +146,7 @@ End Class]]>
             Await VerifyItemInLinkedFilesAsync(markup, "For", Nothing)
         End Function
 
-        <Fact, WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInInteger() As Task
             Dim code = <Text>
 Class C
@@ -159,7 +159,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInDecimal() As Task
             Dim code = <Text>
 Class C
@@ -172,7 +172,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInFloat() As Task
             Dim code = <Text>
 Class C
@@ -185,7 +185,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInDate() As Task
             Dim code = <Text>
 Class C
@@ -198,7 +198,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4167")>
         Public Async Function ImplementsAfterSub() As Task
             Dim code = "
 Interface I

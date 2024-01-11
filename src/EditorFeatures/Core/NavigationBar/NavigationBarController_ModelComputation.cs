@@ -25,7 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+
+            // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
+            // occurred while switching to the main thread.
+            if (cancellationToken.IsCancellationRequested)
+                return null;
+
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
 
             // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
@@ -65,8 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
                 // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
+                //
+                // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
+                // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, _asyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(false);
+
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
@@ -94,7 +106,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+
+            // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
+            // occurred while switching to the main thread.
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             await SelectItemWorkerAsync(cancellationToken).ConfigureAwait(true);
 
             // Once we've computed and selected the latest navbar items, pause ourselves if we're no longer visible.

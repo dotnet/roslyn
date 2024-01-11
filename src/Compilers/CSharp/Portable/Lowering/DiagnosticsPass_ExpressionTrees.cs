@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -105,6 +106,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitImplicitIndexerAccess(node);
+        }
+
+        public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
+            }
+
+            return base.VisitInlineArrayAccess(node);
         }
 
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
@@ -438,10 +449,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
-            VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
-            CheckReceiverIfField(node.ReceiverOpt);
-            CheckReferenceToMethodIfLocalFunction(node, node.Method);
-            return base.VisitCall(node);
+            if (node.ReceiverOpt is BoundCall receiver1)
+            {
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver1;
+
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                CheckReceiverIfField(node.ReceiverOpt);
+                this.Visit(node.ReceiverOpt);
+
+                do
+                {
+                    VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+                    CheckReferenceToMethodIfLocalFunction(node, node.Method);
+                    this.VisitList(node.Arguments);
+                }
+                while (calls.TryPop(out node));
+
+                calls.Free();
+            }
+            else
+            {
+                VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+                CheckReceiverIfField(node.ReceiverOpt);
+                CheckReferenceToMethodIfLocalFunction(node, node.Method);
+                this.Visit(node.ReceiverOpt);
+                this.VisitList(node.Arguments);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -529,18 +572,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in lambda.Parameters)
                 {
-                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
+                    if (p.RefKind != RefKind.None && p.TryGetFirstLocation() is Location location)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, location);
                     }
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.GetFirstLocation(), p.Type.Name);
                     }
 
                     if (!reportedAttributes && !p.GetAttributes().IsEmpty)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.Locations[0]);
+                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.GetFirstLocation());
                         reportedAttributes = true;
                     }
                 }
@@ -751,6 +794,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_inExpressionLambda)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, node);
+                    }
+                    break;
+
+                case ConversionKind.InlineArray:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
                     }
                     break;
 
@@ -980,6 +1030,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitFunctionPointerInvocation(node);
+        }
+
+        public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, node);
+            }
+
+            return base.VisitCollectionExpression(node);
         }
     }
 }

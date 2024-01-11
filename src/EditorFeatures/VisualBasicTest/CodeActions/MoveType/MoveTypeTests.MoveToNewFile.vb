@@ -107,7 +107,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index:=1)
         End Function
 
-        <WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14484")>
         <WpfFact>
         Public Async Function MoveNestedTypeToNewFile_RemoveComments() As Task
             Dim code =
@@ -186,7 +186,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16282")>
         <WpfFact>
         Public Async Function TestTypeInheritance() As Task
             Dim code =
@@ -228,7 +228,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         <WpfFact>
         Public Async Function TestLeadingBlankLines1() As Task
             Dim code =
@@ -272,7 +272,7 @@ end class
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         <WpfFact>
         Public Async Function TestLeadingBlankLines2() As Task
             Dim code =

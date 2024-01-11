@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Navigation;
@@ -13,11 +14,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
 {
     internal class InternalFSharpNavigableItem : INavigableItem
     {
+        private readonly INavigableItem.NavigableDocument _navigableDocument;
+
         public InternalFSharpNavigableItem(FSharpNavigableItem item)
         {
             Glyph = FSharpGlyphHelpers.ConvertTo(item.Glyph);
             DisplayTaggedParts = item.DisplayTaggedParts;
             Document = item.Document;
+            _navigableDocument = INavigableItem.NavigableDocument.FromDocument(item.Document);
             SourceSpan = item.SourceSpan;
         }
 
@@ -30,6 +34,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
         public bool IsImplicitlyDeclared => false;
 
         public Document Document { get; }
+
+        INavigableItem.NavigableDocument INavigableItem.Document => _navigableDocument;
 
         public TextSpan SourceSpan { get; }
 

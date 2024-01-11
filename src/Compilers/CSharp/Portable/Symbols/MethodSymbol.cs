@@ -10,6 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -130,12 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Misc implementation metadata flags (ImplFlags in metadata).
         /// </summary>
-        internal abstract System.Reflection.MethodImplAttributes ImplementationAttributes { get; }
+        internal abstract MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
         /// True if the type has declarative security information (HasSecurity flags).
         /// </summary>
         internal abstract bool HasDeclarativeSecurity { get; }
+
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
 
 #nullable enable
         /// <summary>
@@ -731,6 +735,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitMethod(this);
         }
 
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        {
+            return ReduceExtensionMethod(receiverType, compilation, wasFullyInferred: out _);
+        }
+
         /// <summary>
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
@@ -738,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation">The compilation in which constraints should be checked.
         /// Should not be null, but if it is null we treat constraints as we would in the latest
         /// language version.</param>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation, out bool wasFullyInferred)
         {
             if ((object)receiverType == null)
             {
@@ -747,10 +756,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension || receiverType.IsVoidType())
             {
+                wasFullyInferred = false;
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation, out wasFullyInferred);
         }
 
         /// <summary>
@@ -1020,23 +1030,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Determines if this method is a valid target for UnmanagedCallersOnly, reporting an error in the given diagnostic
-        /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
+        /// bag if it is not null. <paramref name="node"/> and <paramref name="diagnostics"/> should both be null, or 
         /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
         /// </summary>
-        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, BindingDiagnosticBag? diagnostics)
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(SyntaxNode? node, BindingDiagnosticBag? diagnostics)
         {
-            Debug.Assert((location == null) == (diagnostics == null));
+            Debug.Assert((node == null) == (diagnostics == null));
 
             if (!IsStatic || IsAbstract || IsVirtual || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location!);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, node!.Location);
                 return true;
             }
 
             if (isGenericMethod(this) || ContainingType.IsGenericType)
             {
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location!);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, node!.Location);
                 return true;
             }
 
@@ -1178,7 +1188,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region IMethodSymbolInternal
 
+        bool IMethodSymbolInternal.HasDeclarativeSecurity => HasDeclarativeSecurity;
+        bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
+        bool IMethodSymbolInternal.IsExternal => IsExternal;
+        bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
+        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
+        bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
+        bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;
+        bool IMethodSymbolInternal.HasSpecialName => HasSpecialName;
+        bool IMethodSymbolInternal.RequiresSecurityObject => RequiresSecurityObject;
+        MethodImplAttributes IMethodSymbolInternal.ImplementationAttributes => ImplementationAttributes;
         bool IMethodSymbolInternal.IsIterator => IsIterator;
+        ISymbolInternal IMethodSymbolInternal.AssociatedSymbol => AssociatedSymbol;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialImplementationPart => PartialImplementationPart;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialDefinitionPart => PartialDefinitionPart;
+
+        /// <summary>
+        /// Gets the handle for the signature of this method as it appears in metadata. 
+        /// Nil handle for symbols not loaded from metadata, or if the metadata is invalid.
+        /// </summary>
+        public virtual BlobHandle MetadataSignatureHandle => default;
+
+        int IMethodSymbolInternal.ParameterCount => ParameterCount;
+
+        ImmutableArray<IParameterSymbolInternal> IMethodSymbolInternal.Parameters => Parameters.Cast<ParameterSymbol, IParameterSymbolInternal>();
 
         int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 

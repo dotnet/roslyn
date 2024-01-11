@@ -15,7 +15,7 @@
     <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
          when we don't have one. -->
     <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
-    <SetupProductArch>Neutral</SetupProductArch>
+    <SetupProductArch Condition="'$(SetupProductArch)' == ''">Neutral</SetupProductArch>
   </PropertyGroup>
 
   <ItemDefinitionGroup>

@@ -21,36 +21,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     /// which need to be mapped to ViewTextSpans before comparing to view positions
     /// such as the current caret location.
     /// </summary>
-    internal readonly struct ViewTextSpan
+    internal readonly struct ViewTextSpan(TextSpan textSpan)
     {
-        public readonly TextSpan TextSpan;
-
-        public ViewTextSpan(TextSpan textSpan)
-            => this.TextSpan = textSpan;
+        public readonly TextSpan TextSpan = textSpan;
     }
 
-    internal readonly struct DisconnectedBufferGraph
+    internal readonly struct DisconnectedBufferGraph(ITextBuffer subjectBuffer, ITextBuffer viewBuffer)
     {
         // The subject buffer's snapshot at the point of the initial model's creation
-        public readonly ITextSnapshot SubjectBufferSnapshot;
+        public readonly ITextSnapshot SubjectBufferSnapshot = subjectBuffer.CurrentSnapshot;
 
         // The TextView's snapshot at the point of the initial model's creation
-        public readonly ITextSnapshot ViewSnapshot;
+        public readonly ITextSnapshot ViewSnapshot = viewBuffer.CurrentSnapshot;
 
         // The relation of the subject buffer to the TextView's top buffer.  This information
         // is used with the subjectBufferSnapshot and viewSnapshot to map spans even when 
         // the buffers might be temporarily disconnected during Razor/Venus remappings.
-        public readonly BufferMapDirection SubjectBufferToTextViewDirection;
-
-        public DisconnectedBufferGraph(ITextBuffer subjectBuffer, ITextBuffer viewBuffer)
-        {
-            this.SubjectBufferSnapshot = subjectBuffer.CurrentSnapshot;
-            this.ViewSnapshot = viewBuffer.CurrentSnapshot;
-
-            this.SubjectBufferToTextViewDirection = IBufferGraphExtensions.ClassifyBufferMapDirection(
+        public readonly BufferMapDirection SubjectBufferToTextViewDirection = IBufferGraphExtensions.ClassifyBufferMapDirection(
                 subjectBuffer,
                 viewBuffer);
-        }
 
         // Normally, we could just use a BufferGraph to do the mapping, but our subjectBuffer may be 
         // disconnected from the view when we are asked to do this mapping.

@@ -104,14 +104,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // solution, no callback:
 
-        public async ValueTask<bool> TryInvokeAsync<TService>(
+        public ValueTask<bool> TryInvokeAsync<TService>(
             Solution solution,
             Func<TService, Checksum, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken)
             where TService : class
         {
+            return TryInvokeAsync(solution.CompilationState, invocation, cancellationToken);
+        }
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            SolutionCompilationState compilationState,
+            Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
             using var connection = CreateConnection<TService>(callbackTarget: null);
-            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(

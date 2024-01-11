@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertExtern = 25,
         InsertOperator = 26,
         // InsertNonPublicConstructor = 27,
-        InsertGenericMethod = 28,
+        // InsertGenericMethod = 28,
         InsertDllImport = 29,
         InsertIntoStruct = 30,
         InsertIntoClassWithLayout = 31,
@@ -50,10 +48,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // MethodBodyAdd = 34,
         // MethodBodyDelete = 35,
         GenericMethodUpdate = 36,
-        GenericMethodTriviaUpdate = 37,
+        // GenericMethodTriviaUpdate = 37,
         GenericTypeUpdate = 38,
-        GenericTypeTriviaUpdate = 39,
-        GenericTypeInitializerUpdate = 40,
+        // GenericTypeTriviaUpdate = 39,
+        // GenericTypeInitializerUpdate = 40,
         // PartialTypeInitializerUpdate = 41,
         // AsyncMethodUpdate = 42,
         // AsyncMethodTriviaUpdate = 43,
@@ -64,17 +62,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         AwaitStatementUpdate = 46,
         ChangingAccessibility = 47,
 
-        CapturingVariable = 48,
-        NotCapturingVariable = 49,
-        DeletingCapturedVariable = 50,
+        // CapturingVariable = 48,
+        // NotCapturingVariable = 49,
+        // DeletingCapturedVariable = 50,
         ChangingCapturedVariableType = 51,
         ChangingCapturedVariableScope = 52,
         ChangingLambdaParameters = 53,
         ChangingLambdaReturnType = 54,
-        AccessingCapturedVariableInLambda = 55,
-        NotAccessingCapturedVariableInLambda = 56,
-        InsertLambdaWithMultiScopeCapture = 57,
-        DeleteLambdaWithMultiScopeCapture = 58,
+        // AccessingCapturedVariableInLambda = 55,
+        // NotAccessingCapturedVariableInLambda = 56,
+        // InsertLambdaWithMultiScopeCapture = 57,
+        // DeleteLambdaWithMultiScopeCapture = 58,
         ChangingQueryLambdaType = 59,
 
         InsertAroundActiveStatement = 60,
@@ -116,13 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MemberBodyInternalError = 88,
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
-        InsertIntoGenericType = 91,
+        // InsertIntoGenericType = 91,
 
-        ImplementRecordParameterAsReadOnly = 92,
-        ImplementRecordParameterWithSet = 93,
+        //ImplementRecordParameterAsReadOnly = 92,
+        //ImplementRecordParameterWithSet = 93,
         //AddRecordPositionalParameter = 94,
         //DeleteRecordPositionalParameter = 95,
-        ExplicitRecordMethodParameterNamesMustMatch = 96,
+        //ExplicitRecordMethodParameterNamesMustMatch = 96,
         NotSupportedByRuntime = 97,
         MakeMethodAsyncNotSupportedByRuntime = 98,
         MakeMethodIteratorNotSupportedByRuntime = 99,
@@ -136,7 +134,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         RenamingNotSupportedByRuntime = 107,
         ChangingNonCustomAttribute = 108,
         ChangingNamespace = 109,
-        ChangingTypeNotSupportedByRuntime = 110,
+        ChangingSignatureNotSupportedByRuntime = 110,
         DeleteNotSupportedByRuntime = 111,
+        UpdatingStateMachineMethodNotSupportedByRuntime = 112,
+        UpdatingGenericNotSupportedByRuntime = 113,
+        CapturingPrimaryConstructorParameter = 114,
+        NotCapturingPrimaryConstructorParameter = 115,
+        ChangingAttribute = 116,
+        ChangingNameOrSignatureOfActiveMember = 117,
     }
 }

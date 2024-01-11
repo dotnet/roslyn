@@ -1068,10 +1068,10 @@ public struct S
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyEmitDiagnostics(
-                // (6,18): error CS0150: A constant value is expected
+                // (6,18): error CS9133: A constant value of type 'int' is expected
                 //         if (0 is s->X) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "s->X").WithLocation(6, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "s->X").WithArguments("int").WithLocation(6, 18)
+            );
         }
 
         [Fact]
@@ -3333,6 +3333,28 @@ class C
   IL_0048:  ret
 }
 """);
+        }
+
+        [Theory]
+        [InlineData("object", "new {}")]
+        [InlineData("dynamic", "new {}")]
+        [InlineData("System.ValueType", "((int)x0)/2")]
+        public void ConstantsExpectedInPatternExpression(string type, string expression)
+        {
+            var source = @$"
+class Outer
+{{
+    bool M0({type} x0)
+    {{
+        return x0 is {expression};
+    }}
+}}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,22): error CS0150: A constant value is expected
+                //         return x0 is {expression};
+                Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
+            );
         }
     }
 }

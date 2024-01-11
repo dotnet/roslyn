@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
     Public Class ImplementAbstractClassCommandHandlerTests
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact>
         Public Sub TestSimpleCases()
             Dim code = <text>
@@ -49,7 +49,7 @@ End Class</text>
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
@@ -128,7 +128,7 @@ End Class</text>
             End Using
         End Sub
 
-        <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
         <WpfFact>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
@@ -200,7 +200,7 @@ End Class</text>
             End Using
         End Sub
 
-        Private Shared Sub Test(workspace As TestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
+        Private Shared Sub Test(workspace As EditorTestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Dim document = workspace.Documents.Single()
             Dim view = document.GetTextView()
             Dim cursorPosition = document.CursorPosition.Value
@@ -217,8 +217,8 @@ End Class</text>
             assertion(expectedText.NormalizedValue, text)
         End Sub
 
-        Private Shared Function GetWorkspace(code As XElement) As TestWorkspace
-            Return TestWorkspace.Create(
+        Private Shared Function GetWorkspace(code As XElement) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
         <Document>

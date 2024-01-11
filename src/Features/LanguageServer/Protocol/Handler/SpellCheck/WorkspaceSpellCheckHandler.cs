@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
     internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
-        protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
                 TextDocument = identifier,
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 

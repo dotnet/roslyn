@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,11 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -32,19 +30,25 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-            return await AddMissingImportsAsync(document, analysisResult, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            return await AddMissingImportsAsync(
+                document, analysisResult, options.CleanupOptions.FormattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(
+            Document document,
+            AddMissingImportsAnalysisResult analysisResult,
+            SyntaxFormattingOptions formattingOptions,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
                 // Apply those fixes to the document.
-                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 
@@ -85,7 +89,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
-        private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyFixesAsync(
+            Document document,
+            ImmutableArray<AddImportFixData> fixes,
+            SyntaxFormattingOptions formattingOptions,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             if (fixes.IsEmpty)
             {
@@ -93,7 +102,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             var solution = document.Project.Solution;
-            var progressTracker = new ProgressTracker();
             var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -101,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Do not limit the results since we plan to fix all the reported issues.
             var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);
             var getChangesTasks = codeActions.Select(
-                action => GetChangesForCodeActionAsync(document, action, progressTracker, textDiffingService, cancellationToken));
+                action => GetChangesForCodeActionAsync(document, action, textDiffingService, progressTracker, cancellationToken));
 
             // Using Sets allows us to accumulate only the distinct changes.
             var allTextChanges = new HashSet<TextChange>();
@@ -136,7 +144,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 .GroupBy(change => change.Span)
                 .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText!.Length)));
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetRequiredDocument(document.Id).WithText(newText);
 
@@ -165,7 +173,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var services = document.Project.Solution.Services;
 
             var textChanges = Formatter.GetFormattedTextChanges(
@@ -198,8 +206,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
             Document document,
             CodeAction codeAction,
-            ProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // CodeAction.GetChangedSolutionAsync is only implemented for code actions that can fully compute the new	            
@@ -215,7 +223,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             //	
             // If GetOperationsAsync does not adhere to one of these patterns, the code falls back to calling	
             // GetChangedSolutionAsync since there is no clear way to apply the changes otherwise.	
-            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeAction.GetOperationsAsync(
+                document.Project.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
             Solution newSolution;
             if (operations.Length == 0)
             {
@@ -227,8 +236,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
             else
             {
-                newSolution = await codeAction.GetRequiredChangedSolutionAsync(
-                    progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
+                newSolution = await codeAction.GetRequiredChangedSolutionAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             var newDocument = newSolution.GetRequiredDocument(document.Id);
@@ -241,12 +249,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        protected sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        protected sealed class CleanUpNewLinesFormatter(SourceText text) : AbstractFormattingRule
         {
-            private readonly SourceText _text;
-
-            public CleanUpNewLinesFormatter(SourceText text)
-                => _text = text;
+            private readonly SourceText _text = text;
 
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {

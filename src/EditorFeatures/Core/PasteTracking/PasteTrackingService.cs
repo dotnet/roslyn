@@ -17,15 +17,12 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 {
     [Export(typeof(IPasteTrackingService)), Shared]
     [Export(typeof(PasteTrackingService))]
-    internal class PasteTrackingService : IPasteTrackingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class PasteTrackingService(IThreadingContext threadingContext) : IPasteTrackingService
     {
-        private readonly IThreadingContext _threadingContext;
+        private readonly IThreadingContext _threadingContext = threadingContext;
         private readonly object _pastedTextSpanKey = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PasteTrackingService(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
 
         public bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan)
         {

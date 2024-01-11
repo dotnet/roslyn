@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -23,18 +21,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         public static async ValueTask<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace,
-            ISymbolSearchLogService logService,
             IFileDownloaderFactory fileDownloaderFactory,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                return new SymbolSearchUpdateEngineProxy(client, logService);
-            }
-
-            // Couldn't go out of proc.  Just do everything inside the current process.
-            return CreateEngineInProcess(fileDownloaderFactory);
+            return client != null
+                ? new SymbolSearchUpdateEngineProxy(client)
+                // Couldn't go out of proc.  Just do everything inside the current process.
+                : CreateEngineInProcess(fileDownloaderFactory);
         }
 
         /// <summary>

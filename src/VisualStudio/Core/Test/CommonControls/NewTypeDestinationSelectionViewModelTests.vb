@@ -115,7 +115,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClassChanged<X, Y>", viewModel.GeneratedName)
         End Function
 
-        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function GeneratedNameIsGeneratedFromTrimmedTypeName() As Task
             Dim markup = <Text><![CDATA[
 namespace Ns
@@ -176,7 +176,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function FileNameIsGeneratedFromTrimmedTypeName() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -225,7 +225,7 @@ class $$MyClass
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If (Not doc.CursorPosition.HasValue) Then

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 private readonly ImmutableDictionary<string, HashSet<int>> _pathToIndicesMap;
 
                 /// <summary>
-                /// A set of indeces into <see cref="_metadataReferences"/> that are to be removed.
+                /// A set of indices into <see cref="_metadataReferences"/> that are to be removed.
                 /// </summary>
                 private readonly HashSet<int> _indicesToRemove;
 
@@ -326,11 +326,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private bool IsProjectLoadable(string projectPath)
-                => _projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+                => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var (buildHost, _) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return outputFilePath != null
                     && builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);

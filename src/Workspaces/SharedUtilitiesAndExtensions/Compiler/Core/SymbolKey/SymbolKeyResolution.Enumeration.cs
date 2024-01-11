@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public TSymbol Current
+            public readonly TSymbol Current
             {
                 get
                 {

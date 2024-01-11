@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         // Given a position in the old solution, we get back the new adjusted position 
         internal int GetAdjustedPosition(int startingPosition, DocumentId documentId)
         {
-            var documentReplacementSpans = _documentToModifiedSpansMap.ContainsKey(documentId)
-                ? _documentToModifiedSpansMap[documentId].Where(pair => pair.oldSpan.Start < startingPosition) :
-                SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
+            var documentReplacementSpans = _documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans)
+                ? modifiedSpans.Where(pair => pair.oldSpan.Start < startingPosition)
+                : SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
 
             var adjustedStartingPosition = startingPosition;
             foreach (var (oldSpan, newSpan) in documentReplacementSpans)
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 adjustedStartingPosition += newSpan.Length - oldSpan.Length;
             }
 
-            var documentComplexifiedSpans = _documentToComplexifiedSpansMap.ContainsKey(documentId)
-            ? _documentToComplexifiedSpansMap[documentId].Where(c => c.OriginalSpan.Start <= startingPosition) :
-            SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
+            var documentComplexifiedSpans = _documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans)
+                ? complexifiedSpans.Where(c => c.OriginalSpan.Start <= startingPosition)
+                : SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
 
             var appliedTextSpans = new HashSet<TextSpan>();
             foreach (var c in documentComplexifiedSpans.Reverse())
@@ -118,19 +118,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         ///     "a", "NS3.a"
         /// 
         /// </summary>
-        private class MutableComplexifiedSpan
+        private class MutableComplexifiedSpan(
+            TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
         {
-            public TextSpan OriginalSpan;
-            public TextSpan NewSpan;
-            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
-
-            public MutableComplexifiedSpan(
-                TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
-            {
-                OriginalSpan = originalSpan;
-                NewSpan = newSpan;
-                ModifiedSubSpans = modifiedSubSpans;
-            }
+            public TextSpan OriginalSpan = originalSpan;
+            public TextSpan NewSpan = newSpan;
+            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans = modifiedSubSpans;
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)

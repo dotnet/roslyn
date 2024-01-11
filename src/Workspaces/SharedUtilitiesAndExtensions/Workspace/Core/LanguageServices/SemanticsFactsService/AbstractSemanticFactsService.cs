@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
         // so to be safe, we consider field and property in scope when
         // creating unique name for local
         private static readonly Func<ISymbol, bool> s_LocalNameFilter = s =>
-            s.Kind == SymbolKind.Local ||
-            s.Kind == SymbolKind.Parameter ||
-            s.Kind == SymbolKind.RangeVariable ||
-            s.Kind == SymbolKind.Field ||
-            s.Kind == SymbolKind.Property ||
-            (s.Kind == SymbolKind.NamedType && s.IsStatic);
+            s.Kind is SymbolKind.Local or
+                      SymbolKind.Parameter or
+                      SymbolKind.RangeVariable or
+                      SymbolKind.Field or
+                      SymbolKind.Property ||
+            s is { Kind: SymbolKind.NamedType, IsStatic: true };
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
 
-        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)

@@ -20,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     public abstract class SarifErrorLoggerTests : CommandLineTestBase
     {
         protected abstract string ErrorLogQualifier { get; }
-        internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds);
+        internal abstract string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds);
+        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd);
 
         protected void NoDiagnosticsImpl()
         {
@@ -296,6 +297,38 @@ class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
             string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null, suppressionType: "SuppressMessageAttribute", suppressionKinds: "inSource");
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void AnalyzerDiagnosticsWithWarnAsErrorImpl()
+        {
+            var source = @"
+class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", "/warnaserror", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("error ID1", actualConsoleOutput);
+            Assert.Contains("error ID2", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(cmd);
 
             Assert.Equal(expectedOutput, actualOutput);
 

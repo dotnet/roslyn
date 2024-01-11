@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
@@ -111,6 +111,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Dim validator = New VisualBasicEditAndContinueTestHelpers()
                 validator.VerifySemantics(editScripts, framework, expected, capabilities)
             Next
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemantics(
+            editScript As EditScript(Of SyntaxNode),
+            semanticEdits As SemanticEditDescription(),
+            capabilities As EditAndContinueCapabilities)
+
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities:=capabilities)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemantics(
+            editScript As EditScript(Of SyntaxNode),
+            ParamArray semanticEdits As SemanticEditDescription())
+
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits)
         End Sub
     End Module
 End Namespace

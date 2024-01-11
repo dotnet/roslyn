@@ -29,41 +29,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class DiagnosticAnalyzerQuickInfoSourceTests
     {
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
-@"
-#pragma warning disable CS0219$$
-            var i = 0;
-#pragma warning restore CS0219
-", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+                """
+                #pragma warning disable CS0219$$
+                            var i = 0;
+                #pragma warning restore CS0219
+                """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShownOnRestorePragma()
         {
             await TestInMethodAsync(
-@"
-#pragma warning disable CS0219
-            var i = 0;
-#pragma warning restore CS0219$$
-", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+                """
+                #pragma warning disable CS0219
+                            var i = 0;
+                #pragma warning restore CS0219$$
+                """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
         {
             await TestInMethodAsync(
-@"
-#pragma warning disable CS0219$$
-", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+                """
+                #pragma warning disable CS0219$$
+                """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
         [WpfTheory]
         [InlineData("CS0219$$")]
         [InlineData("219$$")]
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49102")]
         [WpfTheory]
         [InlineData("#pragma warning $$CS0219", null)]
         [InlineData("#pragma warning disable$$", null)]
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", expectedDescription);
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory]
         [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
@@ -118,25 +118,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle((ErrorCode)errorCode));
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact]
         public async Task ErrorTitleIsShwonInSupressMessageAttribute()
         {
             await TestAsync(
-@"
-using System.Diagnostics.CodeAnalysis;
-namespace T
-{
-    [SuppressMessage(""CodeQuality"", ""IDE0051$$"")]
-    public class C
-    {
-        private int _i;
-    }
-}
-", GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+                """
+                using System.Diagnostics.CodeAnalysis;
+                namespace T
+                {
+                    [SuppressMessage("CodeQuality", "IDE0051$$")]
+                    public class C
+                    {
+                        private int _i;
+                    }
+                }
+                """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
         }
 
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(""CodeQuality"", ""IDE0051$$"")]", true)]
         [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality"", ""IDE0051$$"")]", true)]
@@ -153,7 +153,9 @@ namespace T
         [InlineData(@"[SuppressMessage(""CodeQuality"", """" + (DiagnosticIds.IDE0051 +$$ "": Remove unused private member""))]", true)]
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: DiagnosticIds.IDE0051 + "": Remove unused private member"")]", true)]
         // False negative: Aliased attribute is not supported
-        [InlineData(@"[SM(""CodeQuality"", ""IDE0051$$""", false)]
+        [InlineData("""
+            [SM("CodeQuality", "IDE0051$$"
+            """, false)]
         public async Task QuickInfoSuppressMessageAttributeUseCases(string suppressMessageAttribute, bool shouldShowQuickInfo)
         {
             var description = shouldShowQuickInfo
@@ -179,7 +181,7 @@ namespace T
 ", description, ImmutableArray<TextSpan>.Empty);
         }
 
-        protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
+        protected static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
             var info = await GetQuickinfo(workspace, document, position);
@@ -190,7 +192,7 @@ namespace T
                 info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
         }
 
-        private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
+        private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
         {
             var sharedGlobalCache = workspace.ExportProvider.GetExportedValue<DiagnosticAnalyzerInfoCache.SharedGlobalCache>();
             var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(sharedGlobalCache);
@@ -198,7 +200,7 @@ namespace T
             return info;
         }
 
-        protected static async Task AssertNoContentAsync(TestWorkspace workspace, Document document, int position)
+        protected static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
         {
             var info = await GetQuickinfo(workspace, document, position);
             Assert.Null(info);
@@ -210,7 +212,7 @@ namespace T
             ImmutableArray<TextSpan> relatedSpans,
             CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
                 new CSharpCompilerDiagnosticAnalyzer(),
                 new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
@@ -243,12 +245,16 @@ namespace T
 
         protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestAsync(
-@"class C
-{" + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
+                """
+                class C
+                {
+                """ + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
 
         protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestInClassAsync(
-@"void M()
-{" + code + "}", expectedDescription, relatedSpans);
+                """
+                void M()
+                {
+                """ + code + "}", expectedDescription, relatedSpans);
     }
 }

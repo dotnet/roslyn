@@ -2,7 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
 
@@ -11,8 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
     Public Class ConvertNumericLiteralTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertNumericLiteralCodeRefactoringProvider()
+        End Function
+
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         Private Enum Refactoring
@@ -93,7 +100,7 @@ End Class"
             Await TestFixOneAsync("&H1e5UL", "&B111100101UL", Refactoring.ChangeBase2)
         End Function
 
-        <Fact, WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19225")>
         Public Async Function TestPreserveTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "Class X
@@ -114,7 +121,7 @@ End Class",
 End Class", index:=Refactoring.ChangeBase2)
         End Function
 
-        <Fact, WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19369")>
         Public Async Function TestCaretPositionAtTheEnd() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

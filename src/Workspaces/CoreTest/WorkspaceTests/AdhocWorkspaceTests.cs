@@ -9,11 +9,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -319,25 +316,6 @@ language: LanguageNames.CSharp);
         }
 
         [Fact]
-        public void TestGenerateUniqueName()
-        {
-            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
-            Assert.True(a.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(a.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(a.EndsWith("..txt", StringComparison.Ordinal));
-
-            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true);
-            Assert.True(b.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(b.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(b.EndsWith("..txt", StringComparison.Ordinal));
-
-            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true);
-            Assert.True(c.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
-            Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));
-        }
-
-        [Fact]
         public async Task TestUpdatedDocumentHasTextVersionAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -394,7 +372,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        [Fact, WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         public async Task TestUpdateCSharpLanguageVersionAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -598,6 +576,24 @@ language: LanguageNames.CSharp);
             var service = ws.Services.GetService<IDocumentTextDifferencingService>();
             Assert.NotNull(service);
             Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        public void TestNotGCRootedOnConstruction()
+        {
+            var composition = FeaturesTestCompositions.Features;
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+            var adhocWorkspaceReference = ObjectReference.CreateFromFactory(
+                static composition => new AdhocWorkspace(composition.GetHostServices()),
+                composition);
+
+            // Verify the GC can reclaim member for a workspace which has not been disposed.
+            adhocWorkspaceReference.AssertReleased();
+
+            // Keep the export provider alive longer than the workspace to further ensure that the workspace is not GC
+            // rooted within the export provider instance.
+            GC.KeepAlive(exportProvider);
         }
     }
 }

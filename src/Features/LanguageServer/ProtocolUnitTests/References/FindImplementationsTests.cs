@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
         {
         }
 
-        [Fact]
-        public async Task TestFindImplementationAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFindImplementationAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"interface IA
@@ -36,14 +36,14 @@ class A : IA
     {
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
-        [Fact]
-        public async Task TestFindImplementationAsync_DifferentDocument()
+        [Theory, CombinatorialData]
+        public async Task TestFindImplementationAsync_DifferentDocument(bool mutatingLspWorkspace)
         {
             var markups = new string[]
             {
@@ -65,14 +65,14 @@ class A : IA
 }"
             };
 
-            await using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace);
 
             var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
-        [Fact]
-        public async Task TestFindImplementationAsync_MappedFile()
+        [Theory, CombinatorialData]
+        public async Task TestFindImplementationAsync_MappedFile(bool mutatingLspWorkspace)
         {
             var markup =
 @"interface IA
@@ -85,21 +85,21 @@ class A : IA
     {
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
             AddMappedDocument(testLspServer.TestWorkspace, markup);
 
             var position = new LSP.Position { Line = 2, Character = 9 };
             var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
             {
-                Uri = new Uri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+                Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
             });
             AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
         }
 
-        [Fact]
-        public async Task TestFindImplementationAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestFindImplementationAsync_InvalidLocation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -109,14 +109,14 @@ class A : IA
         {|caret:|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(44846, "https://github.com/dotnet/roslyn/issues/44846")]
-        public async Task TestFindImplementationAsync_MultipleLocations()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/44846")]
+        public async Task TestFindImplementationAsync_MultipleLocations(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|caret:|}{|implementation:A|} { }
@@ -124,14 +124,14 @@ class A : IA
 class {|implementation:B|} : A { }
 
 class {|implementation:C|} : A { }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
-        [Fact]
-        public async Task TestFindImplementationAsync_NoMetadataResults()
+        [Theory, CombinatorialData]
+        public async Task TestFindImplementationAsync_NoMetadataResults(bool mutatingLspWorkspace)
         {
             var markup = @"
 using System;
@@ -143,7 +143,7 @@ class C : IDisposable
         d.{|caret:|}Dispose();
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
 

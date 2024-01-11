@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
+    </PackageDescription>
+    <IsPackable>true</IsPackable>
+    <BeforePack>CollectPackInputs;$(BeforePack)</BeforePack>
+  
+    <!-- This is not a standard nuget package and only consumed by the extension build. We don't care if the folder structure doesn't match what nuget expects. -->
+    <NoWarn>NU5100</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceBridge.cs" Link="EditAndContinue\ManagedHotReloadServiceBridge.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+
+    <!-- 
+    Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
+    Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" GeneratePathProperty="True" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" GeneratePathProperty="True" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
+  </ItemGroup>
+  
+  <!--
+  Add these additional runtime dependencies to our NuGet package.
+  -->
+  <Target Name="CollectPackInputs" DependsOnTargets="Build" BeforeTargets="Pack" Returns="@(Content)">
+    <ItemGroup>
+      <Content Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" Pack="true" PackagePath="content" />
+      <Content Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" Pack="true" PackagePath="content" />
+      <Content Include="$(PkgMicrosoft_VisualStudio_Utilities_Internal)\lib\netstandard2.0\Microsoft.VisualStudio.Utilities.Internal.dll" Pack="true" PackagePath="content" />
+      <Content Include="$(PkgSystem_Configuration_ConfigurationManager)\lib\netstandard2.0\System.Configuration.ConfigurationManager.dll" Pack="true" PackagePath="content" />
+      <Content Include="$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll" Pack="true" PackagePath="content" />
+      <Content Include="$(TargetPath)" Pack="true" PackagePath="content" />
+    </ItemGroup>
+  </Target>
+</Project>

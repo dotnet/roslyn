@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         internal static readonly DiagnosticDescriptor s_removeUnnecessarySuppressionDescriptor = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
             EnforceOnBuildValues.RemoveUnnecessarySuppression,
-            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
+            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression,
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISemanticFacts SemanticFacts { get; }
         protected abstract (Assembly assembly, string typeName) GetCompilerDiagnosticAnalyzerInfo();
+        protected abstract bool ContainsPragmaDirective(SyntaxNode root);
 
         private ImmutableHashSet<int> GetSupportedCompilerErrorCodes()
         {
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // The core algorithm is as follows:
             //  1. Iterate through all the active pragmas and local SuppressMessageAttributes in the source file and
             //     identify the pragmas and local SuppressMessageAttributes
-            //     with diagnostics IDs for which we support unnecesary suppression analysis.
+            //     with diagnostics IDs for which we support unnecessary suppression analysis.
             //  2. Build the following data structures during this loop:
             //      a. A map from diagnostic ID to list of pragmas for the ID. This map tracks supported diagnostic IDs for this tree's pragmas.
             //      b. A array of tuples of candidate pragmas sorted by span, along with associated IDs and enable/disable flag.
@@ -147,10 +149,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             //  3. Map the set of candidate diagnostic IDs to the analyzers that can report diagnostics with these IDs.
             //  4. Execute these analyzers to compute the diagnostics reported by these analyzers in this file.
             //  5. Iterate through the suppressed diagnostics from this list and do the following:
-            //     a. If the diagnostic was suppressed with a prama, mark the closest preceeeding disable pragma
+            //     a. If the diagnostic was suppressed with a pragma, mark the closest preceding disable pragma
             //        which suppresses this ID as used/necessary. Also mark the matching restore pragma as used.
             //     b. Otherwise, if the diagnostic was suppressed with SuppressMessageAttribute, mark the attribute as used. 
-            //  6. Finally, report a diagostic all the pragmas and SuppressMessageAttributes which have not been marked as used.
+            //  6. Finally, report a diagnostic all the pragmas and SuppressMessageAttributes which have not been marked as used.
 
             using var _1 = PooledDictionary<string, List<(SyntaxTrivia pragma, bool isDisable)>>.GetInstance(out var idToPragmasMap);
             using var _2 = ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)>.GetInstance(out var sortedPragmasWithIds);
@@ -229,14 +231,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             PooledHashSet<string> compilerDiagnosticIds,
             ImmutableArray<string> userExclusions)
         {
-            if (!root.ContainsDirectives)
+            if (!ContainsPragmaDirective(root))
             {
                 return false;
             }
 
             using var _ = ArrayBuilder<string>.GetInstance(out var idsBuilder);
             var hasPragmaInAnalysisSpan = false;
-            foreach (var trivia in root.DescendantTrivia())
+            foreach (var trivia in root.DescendantTrivia(node => node.ContainsDirectives))
             {
                 // Check if this is an active pragma with at least one applicable diagnostic ID/error code.
                 // Note that a pragma can have multiple error codes, such as '#pragma warning disable ID0001, ID0002'

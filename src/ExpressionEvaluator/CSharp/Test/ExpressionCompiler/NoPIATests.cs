@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class NoPIATests : ExpressionCompilerTestBase
     {
-        [Fact, WorkItem(1033598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033598")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033598")]
         public void ExplicitEmbeddedType()
         {
             var source =
@@ -62,7 +62,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1035310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035310")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035310")]
         public void EmbeddedType()
         {
             var sourcePIA =

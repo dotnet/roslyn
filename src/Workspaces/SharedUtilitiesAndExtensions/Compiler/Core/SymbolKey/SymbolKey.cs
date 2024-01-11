@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
     /// </para>
     /// </summary>
     [DataContract]
-    internal partial struct SymbolKey : IEquatable<SymbolKey>
+    internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     {
         /// <summary>
         /// Current format version.  Any time we change anything about our format, we should
@@ -115,18 +115,10 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 5;
+        internal const int FormatVersion = 7;
 
         [DataMember(Order = 0)]
-        private readonly string _symbolKeyData;
-
-        /// <summary>
-        /// Constructs a new <see cref="SymbolKey"/> using the result of a previous call to
-        /// <see cref="ToString()"/> from this same session.  Instantiating with a string 
-        /// from any other source is not supported.
-        /// </summary>
-        public SymbolKey(string data)
-            => _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
+        private readonly string _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
 
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
@@ -225,7 +217,7 @@ namespace Microsoft.CodeAnalysis
         /// Tries to resolve this <see cref="SymbolKey"/> in the given 
         /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
-        public SymbolKeyResolution Resolve(
+        public readonly SymbolKeyResolution Resolve(
             Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
             return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
@@ -240,7 +232,7 @@ namespace Microsoft.CodeAnalysis
         /// Roslyn.  As such it should only be used for caching data, with the knowledge that
         /// the data may need to be recomputed if the cached data can no longer be used.
         /// </summary>
-        public override string ToString()
+        public override readonly string ToString()
             => _symbolKeyData;
 
         private static SymbolKeyResolution CreateResolution<TSymbol>(
@@ -338,7 +330,7 @@ namespace Microsoft.CodeAnalysis
             return reader.Position;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             var position = GetDataStartPosition(_symbolKeyData);
 
@@ -353,13 +345,13 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object? obj)
             => obj is SymbolKey symbolKey && this.Equals(symbolKey);
 
-        public bool Equals(SymbolKey other)
+        public readonly bool Equals(SymbolKey other)
             => Equals(other, ignoreCase: false);
 
-        private bool Equals(SymbolKey other, bool ignoreCase)
+        private readonly bool Equals(SymbolKey other, bool ignoreCase)
         {
             var position1 = GetDataStartPosition(_symbolKeyData);
             var position2 = GetDataStartPosition(other._symbolKeyData);

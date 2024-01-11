@@ -18,29 +18,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <see cref="object.GetHashCode"/> patterns and extracting out the field and property
         /// symbols use to compute the hash.
         /// </summary>
-        private struct OperationDeconstructor : IDisposable
+        private struct OperationDeconstructor(
+            HashCodeAnalyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable) : IDisposable
         {
-            private readonly HashCodeAnalyzer _analyzer;
-            private readonly IMethodSymbol _method;
-            private readonly ILocalSymbol? _hashCodeVariable;
+            private readonly HashCodeAnalyzer _analyzer = analyzer;
+            private readonly IMethodSymbol _method = method;
+            private readonly ILocalSymbol? _hashCodeVariable = hashCodeVariable;
 
-            private readonly ArrayBuilder<ISymbol> _hashedSymbols;
-            private bool _accessesBase;
+            private readonly ArrayBuilder<ISymbol> _hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
+            private bool _accessesBase = false;
 
-            public OperationDeconstructor(
-                HashCodeAnalyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable)
-            {
-                _analyzer = analyzer;
-                _method = method;
-                _hashCodeVariable = hashCodeVariable;
-                _hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
-                _accessesBase = false;
-            }
-
-            public void Dispose()
+            public readonly void Dispose()
                 => _hashedSymbols.Free();
 
-            public (bool accessesBase, ImmutableArray<ISymbol> hashedSymbol) GetResult()
+            public readonly (bool accessesBase, ImmutableArray<ISymbol> hashedSymbol) GetResult()
                 => (_accessesBase, _hashedSymbols.ToImmutable());
 
             /// <summary>
@@ -194,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            private bool TryAddSymbol(ISymbol member)
+            private readonly bool TryAddSymbol(ISymbol member)
             {
                 // Not a legal GetHashCode to convert if we refer to members multiple times.
                 if (_hashedSymbols.Contains(member))

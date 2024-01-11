@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
-            => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+        protected override EditorTestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
+            => EditorTestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
         internal override Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             => new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
 
-        [Fact, WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
-        [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
         public async Task TestPragmaWarningOnEveryNodes()
             => await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
 

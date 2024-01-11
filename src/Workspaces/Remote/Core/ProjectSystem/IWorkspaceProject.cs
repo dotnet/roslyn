@@ -11,7 +11,7 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 [RpcMarshalable]
-internal interface IWorkspaceProject : IAsyncDisposable
+internal interface IWorkspaceProject : IDisposable
 {
     Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken);
 
@@ -24,7 +24,9 @@ internal interface IWorkspaceProject : IAsyncDisposable
     Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken);
     Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken);
 
+    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
     Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken);
+    Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken);
     Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken);
 
     Task AddAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken cancellationToken);
@@ -38,5 +40,5 @@ internal interface IWorkspaceProject : IAsyncDisposable
 
     Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken);
 
-    Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken);
+    Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken);
 }

@@ -8,14 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
             return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
-                ? a.NestedCodeActions
+                ? a.NestedActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
 
@@ -67,18 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
             return FilterDiagnostics(diagnostics);
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServiceMetadataView
+internal sealed class LspServiceMetadataView
 {
     public Type Type { get; set; }
 

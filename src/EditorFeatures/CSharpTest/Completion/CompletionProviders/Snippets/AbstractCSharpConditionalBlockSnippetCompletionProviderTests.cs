@@ -406,5 +406,287 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact]
+        public async Task InsertInlineSnippetForCorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineSnippetForIncorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(int arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        System.Console.WriteLine(arg.$$);
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        [InlineData("#region test")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{trivia}}
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{trivia}}
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                {{trivia}}
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                {{trivia}}
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                true.$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{trivia}}
+                {{ItemToCommit}} (true)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#region test")]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                true.$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+
+                {{trivia}}
+                {{ItemToCommit}} (true)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        flag.$$
+                        var a = 0;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        var a = 0;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag, Task t)
+                    {
+                        flag.$$
+                        await t;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag, Task t)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        await t;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("Task")]
+        [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
+        public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        flag.$$
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

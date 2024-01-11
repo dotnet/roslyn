@@ -18,24 +18,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// can break the segment into.
         /// </summary>
         [NonCopyable]
-        private struct PatternSegment : IDisposable
+        private struct PatternSegment(string text, bool allowFuzzyMatching) : IDisposable
         {
             // Information about the entire piece of text between the dots.  For example, if the 
             // text between the dots is 'Get-Keyword', then TotalTextChunk.Text will be 'Get-Keyword' and 
             // TotalTextChunk.CharacterSpans will correspond to 'G', 'et', 'K' and 'eyword'.
-            public TextChunk TotalTextChunk;
+            public TextChunk TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
 
             // Information about the subwords compromising the total word.  For example, if the 
             // text between the dots is 'Get-Keyword', then the subwords will be 'Get' and 'Keyword'
             // Those individual words will have CharacterSpans of ('G' and 'et') and ('K' and 'eyword')
             // respectively.
-            public readonly TextChunk[] SubWordTextChunks;
-
-            public PatternSegment(string text, bool allowFuzzyMatching)
-            {
-                this.TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
-                this.SubWordTextChunks = BreakPatternIntoSubWords(text, allowFuzzyMatching);
-            }
+            public readonly TextChunk[] SubWordTextChunks = BreakPatternIntoSubWords(text, allowFuzzyMatching);
 
             public void Dispose()
             {

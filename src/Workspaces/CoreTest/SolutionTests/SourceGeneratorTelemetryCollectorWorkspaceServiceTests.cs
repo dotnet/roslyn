@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
     {
         [Fact]
-        [WorkItem(1675665, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
         public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
         {
-            using var workspace = CreateWorkspace(additionalParts: new[] { typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory) });
+            using var workspace = CreateWorkspace(additionalParts: [typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory)]);
 
             var nonExistentFilePath = "Z:\\" + Guid.NewGuid().ToString();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// Hello World"), analyzerFilePath: nonExistentFilePath);

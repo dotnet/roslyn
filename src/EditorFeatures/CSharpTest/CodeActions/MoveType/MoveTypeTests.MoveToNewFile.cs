@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14008")]
         public async Task TestMoveToNewFileWithFolders()
         {
             var code =
@@ -417,7 +417,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(14004, "https://github.com/dotnet/roslyn/issues/14004")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14004")]
         public async Task MoveNestedTypeToNewFile_Attributes1()
         {
             var code =
@@ -457,7 +457,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14484")]
         public async Task MoveNestedTypeToNewFile_Comments1()
         {
             var code =
@@ -676,7 +676,7 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(13969, "https://github.com/dotnet/roslyn/issues/13969")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13969")]
         public async Task MoveTypeInFileWithComplexHierarchy()
         {
             var code =
@@ -832,7 +832,7 @@ partial class Outer {
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(16283, "https://github.com/dotnet/roslyn/issues/16283")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16283")]
         [WpfFact]
         public async Task TestLeadingTrivia1()
         {
@@ -869,7 +869,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
         [WpfFact]
         public async Task TestInsertFinalNewLine()
         {
@@ -908,7 +908,7 @@ partial class Outer
                 options: Option(FormattingOptions2.InsertFinalNewLine, true));
         }
 
-        [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
         [WpfFact]
         public async Task TestInsertFinalNewLine2()
         {
@@ -946,7 +946,7 @@ partial class Outer
                 options: Option(FormattingOptions2.InsertFinalNewLine, false));
         }
 
-        [WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16282")]
         [WpfFact]
         public async Task MoveTypeRemoveOuterInheritanceTypes()
         {
@@ -976,7 +976,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
         [WpfFact]
         public async Task MoveTypeWithDirectives1()
         {
@@ -1029,7 +1029,7 @@ public class Inner
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
         [WpfFact]
         public async Task MoveTypeWithDirectives2()
         {
@@ -1087,7 +1087,7 @@ namespace N
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
         [WpfFact]
         public async Task TestLeadingBlankLines1()
         {
@@ -1140,7 +1140,7 @@ class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
         [WpfFact]
         public async Task TestLeadingBlankLines2()
         {
@@ -1193,7 +1193,7 @@ class Class2
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         [WpfFact]
         public async Task TestLeadingCommentInContainer()
         {
@@ -1234,7 +1234,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1247,7 +1246,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         [WpfFact]
         public async Task TestLeadingCommentInContainer2()
         {
@@ -1286,7 +1285,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1299,7 +1297,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         [WpfFact]
         public async Task TestTrailingCommentInContainer()
         {
@@ -1340,7 +1338,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1353,7 +1350,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         [WpfFact]
         public async Task TestTrailingCommentInContainer2()
         {
@@ -1392,7 +1389,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1404,7 +1400,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem(50329, "https://github.com/dotnet/roslyn/issues/50329")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/50329")]
         [WpfFact]
         public async Task MoveRecordToNewFilePreserveUsings()
         {
@@ -1420,6 +1416,66 @@ class Program { }";
             var destinationDocumentText = @"using System;
 
 record CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact]
+        public async Task MoveClassToNewFilePreserveUsings_PrimaryConstructor()
+        {
+            var code =
+@"using System;
+
+[||]class CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"using System;
+
+class CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact]
+        public async Task MoveStructToNewFilePreserveUsings_PrimaryConstructor()
+        {
+            var code =
+@"using System;
+
+[||]struct CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"using System;
+
+struct CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact]
+        public async Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
+        {
+            var code =
+@"using System;
+
+[||]interface CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"using System;
+
+class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"interface CacheContext(String Message);
 ";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
@@ -1471,7 +1527,7 @@ var c = new object();
             await TestMissingAsync(code);
         }
 
-        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes1()
         {
             var code = @"
@@ -1511,7 +1567,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes2()
         {
             var code = @"
@@ -1553,7 +1609,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveInNamespace_WithAttributes3()
         {
             var code = @"
@@ -1590,7 +1646,7 @@ namespace N
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveTopLevel_WithAttributes1()
         {
             var code = @"
@@ -1618,7 +1674,7 @@ class A
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
         public async Task MoveTopLevel_WithAttributes2()
         {
             var code = @"
@@ -1648,7 +1704,7 @@ class A
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfTheory, WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/63114")]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("interface")]

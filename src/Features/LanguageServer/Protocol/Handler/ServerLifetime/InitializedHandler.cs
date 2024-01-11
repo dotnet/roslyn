@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -26,7 +26,7 @@ internal class InitializedHandler : ILspServiceNotificationHandler<InitializedPa
 
         foreach (var onInitialize in onInitializeList)
         {
-            await onInitialize.OnInitializedAsync(clientCapabilities, cancellationToken).ConfigureAwait(false);
+            await onInitialize.OnInitializedAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 }

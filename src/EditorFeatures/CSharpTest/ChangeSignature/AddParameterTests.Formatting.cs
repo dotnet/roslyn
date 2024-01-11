@@ -56,7 +56,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_KeepTrivia()
         {
             var markup = @"
@@ -95,7 +95,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_KeepTrivia_WithArgumentNames()
         {
             var markup = @"
@@ -372,7 +372,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia()
         {
             var markup = @"
@@ -395,7 +395,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingSecond()
         {
             var markup = @"
@@ -418,7 +418,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBothAddingNew()
         {
             var markup = @"
@@ -440,7 +440,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBeforeNewlineComma()
         {
             var markup = @"
@@ -463,7 +463,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(946220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
         public async Task AddParameter_Formatting_LambdaAsArgument()
         {
             var markup = @"class C
@@ -486,7 +486,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46595")]
         public async Task AddParameter_Formatting_PreserveIndentBraces()
         {
             var markup =
@@ -510,7 +510,7 @@ class CustomAttribute : System.Attribute
                 options: Option(CSharpFormattingOptions2.IndentBraces, true));
         }
 
-        [Fact, WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46595")]
         public async Task AddParameter_Formatting_PreserveIndentBraces_Editorconfig()
         {
             var markup = @"

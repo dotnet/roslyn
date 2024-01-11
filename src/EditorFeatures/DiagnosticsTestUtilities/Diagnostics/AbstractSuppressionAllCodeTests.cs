@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagnostic>
     {
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
+        protected abstract EditorTestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
 
         internal abstract Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         continue;
                     }
 
-                    var operations = fix.GetOperationsAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    var operations = fix.GetOperationsAsync(
+                        document.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None).GetAwaiter().GetResult();
 
                     var applyChangesOperation = operations.OfType<ApplyChangesOperation>().Single();
                     var newDocument = applyChangesOperation.ChangedSolution.Projects.Single().Documents.Single();
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions options) => false;
 

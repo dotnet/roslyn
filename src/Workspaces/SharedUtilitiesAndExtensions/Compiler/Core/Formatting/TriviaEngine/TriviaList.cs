@@ -4,16 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal readonly struct TriviaList
+    internal readonly struct TriviaList(SyntaxTriviaList list1, SyntaxTriviaList list2)
     {
-        private readonly SyntaxTriviaList _list1;
-        private readonly SyntaxTriviaList _list2;
-
-        public TriviaList(SyntaxTriviaList list1, SyntaxTriviaList list2)
-        {
-            _list1 = list1;
-            _list2 = list2;
-        }
+        private readonly SyntaxTriviaList _list1 = list1;
+        private readonly SyntaxTriviaList _list2 = list2;
 
         public int Count => _list1.Count + _list2.Count;
 

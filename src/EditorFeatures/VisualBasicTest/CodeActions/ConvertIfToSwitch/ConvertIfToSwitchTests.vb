@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
@@ -11,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
     Public Class ConvertIfToSwitchTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertIfToSwitchCodeRefactoringProvider()
         End Function
 
@@ -394,7 +395,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21103")>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

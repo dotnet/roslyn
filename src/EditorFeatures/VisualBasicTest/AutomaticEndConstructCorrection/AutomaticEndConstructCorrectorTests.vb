@@ -212,7 +212,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
         End Sub
 
-        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact>
         Public Sub TestMultiLineLambdaSubToFunction()
             Dim code = <code>Class A
@@ -228,7 +228,7 @@ End Class</code>.Value
             Verify(code, "Function")
         End Sub
 
-        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact>
         Public Sub TestMultiLineLambdaFunctionToSub()
             Dim code = <code>Class A
@@ -243,7 +243,7 @@ End Class</code>.Value
             Verify(code, "Sub")
         End Sub
 
-        <WorkItem(539365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
         <WpfFact>
         Public Sub BugFix5290()
             Dim code = <code>Public Class Class1
@@ -256,7 +256,7 @@ End [|Class|]</code>.Value
             VerifyEnd(code, "Structure", "Class")
         End Sub
 
-        <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         <WpfFact>
         Public Sub TestBugFix5276()
             Dim code = <code>Class A
@@ -267,7 +267,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "  ", Function(s) "Function", removeOriginalContent:=False)
         End Sub
 
-        <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         <WpfFact>
         Public Sub TestBugFix5283()
             Dim code = <code>Class A
@@ -278,8 +278,8 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
         End Sub
 
-        <WpfFact, WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
-        Public Sub TestDontThrowDueToSingleLineDeletion()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
+        Public Sub TestDoNotThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]
 End Class</code>.Value
@@ -323,7 +323,7 @@ End Class</code>.Value
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
                 Dim buffer = document.GetTextBuffer()
@@ -374,7 +374,7 @@ End Class</code>.Value
         End Sub
 
         Private Shared Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -387,7 +387,7 @@ End Class</code>.Value
         End Sub
 
         Private Shared Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -399,7 +399,7 @@ End Class</code>.Value
             End Using
         End Sub
 
-        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As TestWorkspace)
+        Private Shared Sub Verify(document As EditorTestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As EditorTestWorkspace)
             Dim buffer = document.GetTextBuffer()
             Dim uiThreadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
             Dim corrector = New AutomaticEndConstructCorrector(buffer, uiThreadOperationExecutor)

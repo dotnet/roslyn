@@ -97,7 +97,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestChangeSignatureCommandDisabledInSubmission()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -127,7 +127,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[
@@ -153,7 +153,7 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        <WorkItem(66547, "https://github.com/dotnet/roslyn/issues/66547")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66547")>
         Public Async Function RemoveParameters_SpecialSymbolNamedParameter() As Task
 
             Dim markup = <Text><![CDATA[

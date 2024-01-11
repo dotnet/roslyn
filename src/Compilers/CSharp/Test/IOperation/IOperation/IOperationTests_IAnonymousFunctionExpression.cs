@@ -256,25 +256,25 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> ... = () => F()')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = () => F()')
-          Initializer: 
+          Initializer:
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () => F()')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: '() => F()')
-                Target: 
+                Target:
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-                        Expression: 
-                          IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                            Instance Receiver: 
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'F()')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'F()')
+                        Expression:
+                          IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F()')
+                            Instance Receiver:
                               null
                             Arguments(0)
     Initializer: 
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action<int>' does not take 0 arguments
-                //         Action<int> x /*<bind>*/= () => F()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => F()").WithArguments("System.Action<int>", "0").WithLocation(8, 35)
+                // (8,38): error CS1593: Delegate 'Action<int>' does not take 0 arguments
+                //         /*<bind>*/Action<int> x = () => F();/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action<int>", "0").WithLocation(8, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -358,25 +358,25 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> ... (() => F())')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = (Action ... (() => F())')
-          Initializer: 
+          Initializer:
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (Action<i ... (() => F())')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int>)(() => F())')
-                Target: 
+                Target:
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-                        Expression: 
-                          IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                            Instance Receiver: 
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'F()')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'F()')
+                        Expression:
+                          IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F()')
+                            Instance Receiver:
                               null
                             Arguments(0)
     Initializer: 
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action<int>' does not take 0 arguments
+                // (8,52): error CS1593: Delegate 'Action<int>' does not take 0 arguments
                 //         /*<bind>*/Action<int> x = (Action<int>)(() => F());/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => F()").WithArguments("System.Action<int>", "0").WithLocation(8, 49)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action<int>", "0").WithLocation(8, 52)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

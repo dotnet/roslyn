@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestChangeSignatureOptionsService));
 
         private readonly TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
+        public EditorTestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
         public AbstractChangeSignatureService ChangeSignatureService { get; }
 
@@ -38,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             var workspace = languageName switch
             {
-                "XML" => TestWorkspace.Create(markup, composition: s_composition),
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                "XML" => EditorTestWorkspace.Create(markup, composition: s_composition),
+                LanguageNames.CSharp => EditorTestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions),
+                LanguageNames.VisualBasic => EditorTestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
                 _ => throw new ArgumentException("Invalid language name.")
             };
 
@@ -50,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public static ChangeSignatureTestState Create(XElement workspaceXml)
         {
-            var workspace = TestWorkspace.Create(workspaceXml, composition: s_composition);
+            var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_composition);
             return new ChangeSignatureTestState(workspace);
         }
 
-        public ChangeSignatureTestState(TestWorkspace workspace)
+        public ChangeSignatureTestState(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);

@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expected:="C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll", actual:=analyzerFileFullPath)
         End Sub
 
-        <Fact, WorkItem(50317, "https://github.com/dotnet/roslyn/issues/50317")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50317")>
         Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithoutTfmAndProviderType_SiblingFolder()
             Dim projectDirectoryFullPath = "C:\Project"
             Dim analyzerCanonicalName = "C:\Project.Analyzer\bin\Debug\MyAnalyzer.dll"

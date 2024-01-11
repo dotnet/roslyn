@@ -32,11 +32,10 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         internal static SymbolDisplayFormat CSharpErrorMessageNoParameterNamesFormat { get; } = CSharpErrorMessageFormat
-            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+            .AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.ExcludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -59,8 +58,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
@@ -228,7 +226,8 @@ namespace Microsoft.CodeAnalysis
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
         /// <summary>
         /// A succinct format for displaying symbols.
@@ -255,8 +254,10 @@ namespace Microsoft.CodeAnalysis
                 kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.
@@ -267,8 +268,8 @@ namespace Microsoft.CodeAnalysis
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers | SymbolDisplayCompilerInternalOptions.IncludeFileLocalTypesPrefix);
 
         /// <summary>
         /// Determines how the global namespace is displayed.

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -32,10 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(syntaxTree);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null,
+            return syntaxTree.IsMemberDeclarationContext(position, context: null,
                 SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
         }
 
@@ -53,9 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 GenerateSetAccessorDeclaration(syntaxContext, generator),
             };
 
+            SyntaxTokenList modifiers = default;
+
+            // If there are no preceding accessibility modifiers create default `public` one
+            if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
+            {
+                modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            }
+
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
-                modifiers: SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                modifiers: modifiers,
                 type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                 explicitInterfaceSpecifier: null,
                 identifier: identifierName.ToIdentifierToken(),
@@ -75,9 +82,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var identifier = propertyDeclaration.Identifier;
             var type = propertyDeclaration.Type;
 
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: type.ToString(), placeholderPositions: ImmutableArray.Create(type.SpanStart)));
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
+            arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
             return arrayBuilder.ToImmutableArray();
+        }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+        {
+            var node = root.FindNode(TextSpan.FromBounds(position, position));
+            return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
         }
     }
 }

@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -72,14 +71,14 @@ namespace Microsoft.CodeAnalysis.Remote
                         foreach (var analyzerInfo in pooledObject.Object)
                         {
                             // this will report telemetry under VS. this will let us see how accurate our performance tracking is
-                            RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo, KeyValueLogMessage.Create(m =>
+                            RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo2, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
                                 m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
                                 m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
                                 m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;
                                 m[nameof(forSpanAnalysis)] = forSpanAnalysis;
-                            }));
+                            }, LogLevel.Debug));
                         }
                     }
 

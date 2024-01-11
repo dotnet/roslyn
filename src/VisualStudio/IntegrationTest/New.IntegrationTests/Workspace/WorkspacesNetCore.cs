@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        [WorkItem(34264, "https://github.com/dotnet/roslyn/issues/34264")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34264")]
         public override async Task MetadataReference()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesNetCore), HangMitigatingCancellationToken);
@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
 </Project>", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class1.cs", contents: string.Empty, open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(true, HangMitigatingCancellationToken);
 
             await base.MetadataReference();

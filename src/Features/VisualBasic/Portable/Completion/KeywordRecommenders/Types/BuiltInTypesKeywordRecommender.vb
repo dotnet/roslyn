@@ -24,10 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             Dim targetToken = context.TargetToken
 
             ' Are we right after an As in an Enum declaration?
-            Dim enumDeclaration = targetToken.GetAncestor(Of EnumStatementSyntax)()
-            If enumDeclaration IsNot Nothing AndAlso
-               enumDeclaration.UnderlyingType IsNot Nothing AndAlso
-               targetToken = enumDeclaration.UnderlyingType.AsKeyword Then
+            If context.IsEnumBaseListContext Then
 
                 Dim keywordList = GetIntrinsicTypeKeywords(context)
 

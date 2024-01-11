@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (document == null)
                 return;
 
-            if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
+            if (!_globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, document.Project.Language))
                 return;
 
             var solution = document.Project.Solution;

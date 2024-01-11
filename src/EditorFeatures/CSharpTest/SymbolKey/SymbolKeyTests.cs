@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         [Fact]
         public async Task FileType_01()
         {
-            var typeSource = @"
-file class C1
-{
-    public static void M() { }
-}
-";
+            var typeSource = """
+                file class C1
+                {
+                    public static void M() { }
+                }
+                """;
 
             var workspaceXml = @$"
 <Workspace>
@@ -39,7 +39,7 @@ file class C1
     </Project>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -74,7 +74,7 @@ file class C
     </Project>
 </Workspace>
 """;
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -113,7 +113,7 @@ file class C
     </Project>
 </Workspace>
 """;
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -127,26 +127,27 @@ file class C
             Assert.Same(type, resolved);
         }
 
-        [Fact, WorkItem(45437, "https://github.com/dotnet/roslyn/issues/45437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45437")]
         public async Task TestGenericsAndNullability()
         {
-            var typeSource = @"
-#nullable enable
+            var typeSource = """
+                #nullable enable
 
-    public sealed class ConditionalWeakTableTest<TKey, TValue> /*: IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable*/
-        where TKey : class
-        where TValue : class
-    {
-        public ConditionalWeakTable() { }
-        public void Add(TKey key, TValue value) { }
-        public void AddOrUpdate(TKey key, TValue value) { }
-        public void Clear() { }
-        public TValue GetOrCreateValue(TKey key) => default;
-        public TValue GetValue(TKey key, ConditionalWeakTableTest<TKey, TValue>.CreateValueCallback createValueCallback) => default;
-        public bool Remove(TKey key) => false;
+                    public sealed class ConditionalWeakTableTest<TKey, TValue> /*: IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable*/
+                        where TKey : class
+                        where TValue : class
+                    {
+                        public ConditionalWeakTable() { }
+                        public void Add(TKey key, TValue value) { }
+                        public void AddOrUpdate(TKey key, TValue value) { }
+                        public void Clear() { }
+                        public TValue GetOrCreateValue(TKey key) => default;
+                        public TValue GetValue(TKey key, ConditionalWeakTableTest<TKey, TValue>.CreateValueCallback createValueCallback) => default;
+                        public bool Remove(TKey key) => false;
 
-        public delegate TValue CreateValueCallback(TKey key);
-    }".Replace("<", "&lt;").Replace(">", "&gt;");
+                        public delegate TValue CreateValueCallback(TKey key);
+                    }
+                """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var workspaceXml = @$"
 <Workspace>
@@ -158,7 +159,7 @@ file class C
     </Project>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var solution = workspace.CurrentSolution;
             var project = solution.Projects.Single();
@@ -177,9 +178,9 @@ file class C
             Assert.Equal(method, resolved);
         }
 
-        [Fact, WorkItem(1178861, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
-        [WorkItem(1192188, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
-        [WorkItem(1192486, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
         public async Task ResolveBodySymbolsInMultiProjectReferencesToOriginalProjectAsync()
         {
             var random = new Random(Seed: 0);
@@ -209,24 +210,26 @@ file class C
 
             TestWorkspace GetWorkspace()
             {
-                var bodyProject = @"
-    <Project Language=""C#"" AssemblyName=""BodyProject"" CommonReferences=""true"">
-        <Document>
-class Program
-{
-    void M()
-    {
-        int local;
-    }
-}
-        </Document>
-    </Project>";
-                var referenceProject = @"
-    <Project Language=""C#"" AssemblyName=""ReferenceProject"" CommonReferences=""true"">
-        <ProjectReference>BodyProject</ProjectReference>
-        <Document>
-        </Document>
-    </Project>";
+                var bodyProject = """
+                        <Project Language="C#" AssemblyName="BodyProject" CommonReferences="true">
+                            <Document>
+                    class Program
+                    {
+                        void M()
+                        {
+                            int local;
+                        }
+                    }
+                            </Document>
+                        </Project>
+                    """;
+                var referenceProject = """
+                    <Project Language="C#" AssemblyName="ReferenceProject" CommonReferences="true">
+                        <ProjectReference>BodyProject</ProjectReference>
+                        <Document>
+                        </Document>
+                    </Project>
+                    """;
 
                 // Randomize the order of the projects in the workspace.
                 if (random.Next() % 2 == 0)

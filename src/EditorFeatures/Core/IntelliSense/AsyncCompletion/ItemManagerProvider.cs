@@ -16,14 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     [Export(typeof(IAsyncCompletionItemManagerProvider))]
     [Name("Roslyn Completion Service Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class ItemManagerProvider : IAsyncCompletionItemManagerProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class ItemManagerProvider(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService) : IAsyncCompletionItemManagerProvider
     {
-        private readonly ItemManager _instance;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
-            => _instance = new ItemManager(recentItemsManager, globalOptions);
+        private readonly ItemManager _instance = new ItemManager(recentItemsManager, editorOptionsService);
 
         public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
         {

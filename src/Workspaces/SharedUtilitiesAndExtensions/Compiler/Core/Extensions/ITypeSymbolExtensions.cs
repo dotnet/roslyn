@@ -729,5 +729,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol;
         }
+
+        public static bool IsSpanOrReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type.IsSpan() || type.IsReadOnlySpan();
+
+        public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(Span<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(ReadOnlySpan<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsInlineArray([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol namedType &&
+               namedType.OriginalDefinition.GetAttributes().Any(static a => a.AttributeClass?.SpecialType == SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
     }
 }

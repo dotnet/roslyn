@@ -29,6 +29,8 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public async Task Test_SharedMetadataReferencesWithAliases()
         {
             var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             => ((PortableExecutableReference)metadataReference).GetMetadata();
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         public async Task TestOpenSolution_DuplicateProjectGuids()
         {
             CreateFiles(GetSolutionWithDuplicatedGuidFiles());
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
         public async Task GetCompilationWithCircularProjectReferences()
         {
             CreateFiles(GetSolutionWithCircularProjectReferences());
@@ -428,7 +430,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33047")]
         public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformDefault()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -446,7 +448,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33047")]
         public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformTrue()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -464,7 +466,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -478,7 +480,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -493,7 +495,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -507,7 +509,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -522,7 +524,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -588,7 +590,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -602,7 +604,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -617,7 +619,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -631,7 +633,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -646,7 +648,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -777,7 +779,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath()
         {
             // prove that even if assembly name is specified as a path instead of just a name, workspace still succeeds at opening project.
@@ -796,7 +798,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath2()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -920,10 +922,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await workspace.OpenSolutionAsync(solutionFilePath);
-            });
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -995,7 +994,7 @@ class C1
             Assert.Single(workspace.Diagnostics);
         }
 
-        [WorkItem(985906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task HandleSolutionProjectTypeSolutionFolder()
         {
@@ -1020,7 +1019,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1123,7 +1122,7 @@ class C1
         private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
         public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_ThrowsAsync()
         {
             // proves that if the language libraries are missing then the appropriate error occurs
@@ -1138,12 +1137,12 @@ class C1
             });
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
         public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
         {
             // proves that if the language libraries are missing then the appropriate error occurs
@@ -1156,12 +1155,12 @@ class C1
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, workspace.Diagnostics.Single().Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
         public async Task TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
             // proves that if the language libraries are missing then the appropriate error occurs
@@ -1171,7 +1170,7 @@ class C1
             using var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
             var e = await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectName));
 
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
@@ -1183,7 +1182,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1225,7 +1224,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1436,7 +1435,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(Framework35Installed))]
-        [WorkItem(528984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
         public async Task TestOpenProject_AddVBDefaultReferences()
         {
             var files = new FileSet(
@@ -1643,8 +1642,8 @@ class C1
             var project = sol.Projects.First();
             var options = project.ParseOptions;
 
-            Assert.DoesNotContain(options.PreprocessorSymbolNames, name => name == "DEBUG");
-            Assert.Contains(options.PreprocessorSymbolNames, name => name == "TRACE");
+            Assert.DoesNotContain("DEBUG", options.PreprocessorSymbolNames);
+            Assert.Contains("TRACE", options.PreprocessorSymbolNames);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2272,7 +2271,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public async Task TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
         {
             var projPath = @"CSharpProject\CSharpProject_ProjectReference.csproj";
@@ -2298,7 +2297,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(918072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
         public async Task TestAnalyzerReferenceLoadStandalone()
         {
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2384,7 +2383,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public async Task TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -2402,7 +2401,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public async Task TestProjectReferenceWithExternAlias()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2489,7 +2488,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2630,7 +2629,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
             var files = new FileSet(
@@ -2674,7 +2673,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
             var files = new FileSet(
@@ -2700,7 +2699,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
             var files = new FileSet(
@@ -2742,7 +2741,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
             var files = new FileSet(
@@ -2761,7 +2760,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
             var files = new FileSet(
@@ -2780,7 +2779,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
             var files = new FileSet(
@@ -2800,8 +2799,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
-        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2827,7 +2825,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public async Task MSBuildWorkspacePreservesEncoding()
         {
             var encoding = Encoding.BigEndianUnicode;
@@ -2945,7 +2943,7 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(1101040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
         public async Task TestOpenProject_BadLink()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2990,7 +2988,7 @@ class C { }";
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
-            Assert.Empty(proj.DocumentIds);
+            Assert.Equal(2, proj.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
@@ -3008,14 +3006,14 @@ class C { }";
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
             var project = Assert.Single(solution.Projects);
-            Assert.Empty(project.DocumentIds);
+            Assert.Equal(2, project.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenProject_MsbuildError()
+        public async Task TestOpenProject_MSBuildExecutionError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MsbuildError));
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildExecutionError));
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3024,6 +3022,40 @@ class C { }";
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithExpressionInputs()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("[MSBuild]::VersionEquals('', 6.0)", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithSyntax()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("'$(Configuration)|$(Platform)' == 'Debug|AnyCPU", diagnostic.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3047,18 +3079,15 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
+            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
-            buildManager.StartBatchBuild();
+            await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
 
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            var (buildHost, _) = await buildHostProcessManager.GetBuildHostAsync(projectFilePath, CancellationToken.None);
+            var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-            buildManager.EndBatchBuild();
 
             var commandLineParser = workspace.Services
                 .GetLanguageServices(loader.Language)
@@ -3075,7 +3104,7 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(29122, "https://github.com/dotnet/roslyn/issues/29122")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29122")]
         public async Task TestOpenSolution_ProjectReferencesWithUnconventionalOutputPaths()
         {
             CreateFiles(GetBaseFiles()
@@ -3113,7 +3142,7 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(29494, "https://github.com/dotnet/roslyn/issues/29494")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29494")]
         public async Task TestOpenProjectAsync_MalformedAdditionalFilePath()
         {
             var files = GetSimpleCSharpSolutionFiles()
@@ -3135,7 +3164,7 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/31390")]
         public async Task TestDuplicateProjectAndMetadataReferences()
         {
             var files = GetDuplicateProjectReferenceSolutionFiles();
@@ -3227,9 +3256,9 @@ class C { }";
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
 
-        // On .NET Core this tests fails with "CodePape Not Found"
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
+        // On .NET Core this tests fails with "CodePage Not Found"
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly))]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
             var files = new FileSet(
@@ -3250,6 +3279,44 @@ class C { }";
             // impact subsequent asserts.
             Assert.Equal(5, "//\u00E2\u20AC\u0153".Length);
             Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceDocumentsFoldersProperty()
+        {
+            CreateFiles(GetNetCoreAppFiles()
+                .WithFile(@"dir1\dir2\dir3\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
+            var document = project.Documents.Single(d => d.Name == "MyClass.cs");
+            Assert.Equal(new[] { "dir1", "dir2", "dir3" }, document.Folders);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceLinkedDocumentHasFolders()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithLink)
+                .WithFile(@"OtherStuff\Foo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+            var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
+            Assert.Equal(new[] { "Blah" }, linkedDocument.Folders);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceWithDocumentInParentFolders()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithClassNotInProjectFolder)
+                .WithFile(@"MyDir\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+            var linkedDocument = project.Documents.Single(d => d.Name == "MyClass.cs");
+            Assert.Equal(new[] { "..", "MyDir" }, linkedDocument.Folders);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

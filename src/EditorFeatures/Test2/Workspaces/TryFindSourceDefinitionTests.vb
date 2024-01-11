@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _outputHelper = outputHelper
         End Sub
 
-        Private Function CreateWorkspace(definition As XElement) As TestWorkspace
-            Dim workspace = TestWorkspace.Create(definition, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(WorkspaceTestLogger)))
+        Private Function CreateWorkspace(definition As XElement) As EditorTestWorkspace
+            Dim workspace = EditorTestWorkspace.Create(definition, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(WorkspaceTestLogger)))
             workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
             Return workspace
         End Function
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact, WorkItem(1068631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
         Public Async Function TestFindMethodInVisualBasicToCSharpPortableProject() As Task
             Dim workspaceDefinition =
 <Workspace>
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact, WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/599")>
         Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindRef() As Task
             Dim workspaceDefinition =
 <Workspace>
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact, WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/599")>
         Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindOut() As Task
             Dim workspaceDefinition =
 <Workspace>

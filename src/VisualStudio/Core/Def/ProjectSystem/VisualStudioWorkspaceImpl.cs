@@ -177,6 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                        this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                         ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
                     }
                 };
@@ -213,11 +215,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _memoryListener = memoryListener;
             }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
             // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
             // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-            openFileTracker.CheckForOpenFilesThatWeMissed();
+            await openFileTracker.CheckForOpenFilesThatWeMissedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool TryApplyChanges(
             Microsoft.CodeAnalysis.Solution newSolution,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             if (!_foregroundObject.IsForeground())
             {
@@ -645,7 +645,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChangesAsync(solutionChanges));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -660,7 +660,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return;
 
-            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChangesAsync(SolutionChanges solutionChanges)
             {
                 var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
@@ -823,7 +823,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
-        private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
+        private static IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
         {
             foreach (var folder in folders)
             {
@@ -836,7 +836,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
+        private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
         {
             if (projectItems == null)
             {

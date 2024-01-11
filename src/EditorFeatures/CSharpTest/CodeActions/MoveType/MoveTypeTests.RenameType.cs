@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
-        [WpfFact]
+        [Fact]
         public async Task SingleClassInFile_RenameType()
         {
             var code =
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoreThanOneTypeInFile_RenameType()
         {
             var code =
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMissing_TypeNameMatchesFileName_RenameType()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
         {
             var code =
@@ -65,7 +65,7 @@ class test1 { }";
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
         {
             var code =
@@ -79,7 +79,7 @@ class Class2 { }";
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
         {
             var code =
@@ -93,21 +93,21 @@ class [|test1|] { }";
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
 
-        [WpfFact, WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
         public async Task NothingOfferedWhenTypeHasNoNameYet1()
         {
             var code = @"class[||]";
             await TestMissingAsync(code);
         }
 
-        [WpfFact, WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
         public async Task NothingOfferedWhenTypeHasNoNameYet2()
         {
             var code = @"class [||]";
             await TestMissingAsync(code);
         }
 
-        [WpfFact, WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
         public async Task NothingOfferedWhenTypeHasNoNameYet3()
         {
             var code = @"class [||] { }";

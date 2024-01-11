@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (current.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } variableDeclaration && variableDeclaration.Type == current));
 #endif
 
-                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType, refType.RefKeyword.GetLocation());
+                    MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refType.RefKeyword);
 
                     if (refType.ReadOnlyKeyword != default)
-                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, refType, refType.ReadOnlyKeyword.GetLocation());
+                        MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, refType.ReadOnlyKeyword);
                 }
 
                 return refType.Type;
@@ -325,8 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return syntax;
             }
 
-            MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(
-                diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+            MessageID.IDS_FeatureRefLocalsReturns.CheckFeatureAvailability(diagnostics, refExpression.RefKeyword);
 
             refKind = RefKind.Ref;
             expression.CheckDeconstructionCompatibleArgument(diagnostics);

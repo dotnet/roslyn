@@ -163,7 +163,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         }
 
         public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            IntentDataProvider intentDataProvider,
+            CancellationToken cancellationToken)
         {
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
@@ -180,7 +184,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
-                var changedSolution = await action.GetChangedSolutionInternalAsync(postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                // Intents currently have no way to report progress.
+                var changedSolution = await action.GetChangedSolutionInternalAsync(
+                    priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
                 var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
                 results.Add(intent);

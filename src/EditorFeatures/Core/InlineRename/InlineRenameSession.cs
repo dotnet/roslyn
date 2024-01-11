@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -90,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
-        /// Rename session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
+        /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
         /// the oop side, which is valuable for preventing it from constantly being dropped/synced on every conflict
         /// resolution step.
         /// </summary>
-        private readonly IRemoteRenameKeepAliveSession _keepAliveSession;
+        private readonly RemoteKeepAliveSession _keepAliveSession;
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -186,26 +187,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
-            _keepAliveSession = Renamer.CreateRemoteKeepAliveSession(_baseSolution, asyncListener);
+            _keepAliveSession = RemoteKeepAliveSession.Create(_baseSolution, asyncListener);
             InitializeOpenBuffers(triggerSpan);
         }
 
         public string OriginalSymbolName => _renameInfo.DisplayName;
 
         // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
-        private class NullTextBufferException : Exception
+        private class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
         {
 #pragma warning disable IDE0052 // Remove unread private members
-            private readonly Document _document;
-            private readonly SourceText _text;
-#pragma warning restore IDE0052 // Remove unread private members
-
-            public NullTextBufferException(Document document, SourceText text)
-                : base("Cannot retrieve textbuffer from document.")
-            {
-                _document = document;
-                _text = text;
-            }
+            private readonly Document _document = document;
+            private readonly SourceText _text = text;
         }
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
@@ -389,6 +382,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (args.Kind != WorkspaceChangeKind.DocumentChanged)
             {
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                {
+                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
+                }));
+
                 Cancel();
             }
         }
@@ -439,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Updates the replacement text for the rename session and propagates it to all live buffers.
         /// </summary>
-        internal void ApplyReplacementText(string replacementText, bool propagateEditImmediately)
+        internal void ApplyReplacementText(string replacementText, bool propagateEditImmediately, bool updateSelection = true)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
@@ -462,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     foreach (var openBuffer in _openTextBuffers.Values)
                     {
-                        openBuffer.ApplyReplacementText();
+                        openBuffer.ApplyReplacementText(updateSelection);
                     }
                 }
 
@@ -653,17 +651,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             bool previewChanges,
             Func<Task> finalCommitAction = null)
         {
+            // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
+            // state for all the editors the user is interacting with.
+            var cancellationToken = CancellationToken.None;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (_dismissed)
             {
                 return;
             }
 
             _dismissed = true;
-
-            // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
-            // state for all the editors the user is interacting with.
-            var cancellationToken = CancellationToken.None;
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Remove all our adornments and restore all buffer texts to their initial state.
             DismissUIAndRollbackEdits();
@@ -810,7 +808,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
             using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
-                var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+                var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
                 var newSolution = info.NewSolution;
 
                 if (previewChanges)
@@ -968,12 +966,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public readonly struct TestAccessor
+        public readonly struct TestAccessor(InlineRenameSession inlineRenameSession)
         {
-            private readonly InlineRenameSession _inlineRenameSession;
-
-            public TestAccessor(InlineRenameSession inlineRenameSession)
-                => _inlineRenameSession = inlineRenameSession;
+            private readonly InlineRenameSession _inlineRenameSession = inlineRenameSession;
 
             public bool CommitWorker(bool previewChanges)
                 => _inlineRenameSession.CommitWorker(previewChanges);

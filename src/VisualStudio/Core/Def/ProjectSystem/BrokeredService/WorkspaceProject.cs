@@ -24,18 +24,26 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             _project = project;
         }
 
-        public ValueTask DisposeAsync()
+        public void Dispose()
         {
             _project.Dispose();
-            return ValueTaskFactory.CompletedTask;
         }
 
+        [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
         public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
         {
             await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
 
             foreach (var additionalFilePath in additionalFilePaths)
                 _project.AddAdditionalFile(additionalFilePath);
+        }
+
+        public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
+        {
+            await using var batchScope = _project.CreateBatchScope().ConfigureAwait(false);
+
+            foreach (var additionalFile in additionalFiles)
+                _project.AddAdditionalFile(additionalFile.FilePath, folderNames: additionalFile.FolderNames.ToImmutableArray());
         }
 
         public async Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
@@ -160,9 +168,32 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             return Task.CompletedTask;
         }
 
-        public Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken)
+        public Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(_project.CreateBatchScope());
+            return Task.FromResult<IWorkspaceProjectBatch>(new WorkspaceProjectBatch(_project.CreateBatchScope()));
+        }
+
+        private class WorkspaceProjectBatch : IWorkspaceProjectBatch
+        {
+            private IAsyncDisposable? _batch;
+
+            public WorkspaceProjectBatch(IAsyncDisposable batch)
+            {
+                _batch = batch;
+            }
+
+            public async Task ApplyAsync(CancellationToken cancellationToken)
+            {
+                if (_batch == null)
+                    throw new InvalidOperationException("The batch has already been applied.");
+
+                await _batch.DisposeAsync().ConfigureAwait(false);
+                _batch = null;
+            }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

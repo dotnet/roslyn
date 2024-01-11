@@ -1,1 +1,1 @@
-override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion> (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
+

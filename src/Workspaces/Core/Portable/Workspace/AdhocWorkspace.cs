@@ -16,13 +16,8 @@ namespace Microsoft.CodeAnalysis
     /// A workspace that allows full manipulation of projects and documents,
     /// but does not persist changes.
     /// </summary>
-    public sealed class AdhocWorkspace : Workspace
+    public sealed class AdhocWorkspace(HostServices host, string workspaceKind = WorkspaceKind.Custom) : Workspace(host, workspaceKind)
     {
-        public AdhocWorkspace(HostServices host, string workspaceKind = WorkspaceKind.Custom)
-            : base(host, workspaceKind)
-        {
-        }
-
         public AdhocWorkspace()
             : this(Host.Mef.MefHostServices.DefaultHost)
         {

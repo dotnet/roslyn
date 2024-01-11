@@ -22,6 +22,11 @@
         <target state="translated">&amp;Сортировать импорты</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Рекомендации по написанию кода VB</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;событие&gt;</target>

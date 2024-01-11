@@ -38,7 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.AutomaticLineEnder)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class AutomaticLineEnderCommandHandler(
+        ITextUndoHistoryRegistry undoRegistry,
+        IEditorOperationsFactoryService editorOperations,
+        EditorOptionsService editorOptionsService) : AbstractAutomaticLineEnderCommandHandler(undoRegistry, editorOperations, editorOptionsService)
     {
         private static readonly string s_semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
@@ -51,16 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// Annotation to locate the replacement node(with or without braces).
         /// </summary>
         private static readonly SyntaxAnnotation s_replacementNodeAnnotation = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AutomaticLineEnderCommandHandler(
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations,
-            EditorOptionsService editorOptionsService)
-            : base(undoRegistry, editorOperations, editorOptionsService)
-        {
-        }
 
         protected override void NextAction(IEditorOperations editorOperation, Action nextAction)
             => editorOperation.InsertNewLine();
@@ -223,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // check whether using has contents
-            if (owningNode is UsingDirectiveSyntax u && u.Name.IsMissing)
+            if (owningNode is UsingDirectiveSyntax u && u.NamespaceOrType.IsMissing)
             {
                 return false;
             }

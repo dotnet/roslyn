@@ -25,16 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     // This provider needs to run before the semantic quick info provider, because of the SuppressMessage attribute handling
     // If it runs after it, BuildQuickInfoAsync is not called. This is not covered by a test.
     [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
-    internal class CSharpDiagnosticAnalyzerQuickInfoProvider : CommonQuickInfoProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
     {
-        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache)
-        {
-            _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
-        }
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             QuickInfoContext context,
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             string errorCode, TextSpan location)
         {
-            var hostAnalyzers = document.Project.Solution.State.Analyzers;
+            var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
             var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
             var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);

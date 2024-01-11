@@ -14,19 +14,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// A logger that publishes events to ETW using an EventSource.
     /// </summary>
-    internal sealed class EtwLogger : ILogger
+    internal sealed class EtwLogger(Func<FunctionId, bool> isEnabledPredicate) : ILogger
     {
-        private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
         private readonly RoslynEventSource _source = RoslynEventSource.Instance;
 
-        public EtwLogger(Func<FunctionId, bool> isEnabledPredicate)
-            => _isEnabledPredicate = isEnabledPredicate;
-
         public bool IsEnabled(FunctionId functionId)
-            => _source.IsEnabled() && _isEnabledPredicate(functionId);
+            => _source.IsEnabled() && isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => _source.Log(GetMessage(logMessage), functionId);

@@ -82,7 +82,7 @@ public interface i
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(737021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737021")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737021")>
         Public Async Function TestGenerateEventInCSharpFileFromHandles() As Task
             Dim input =
         <Workspace>

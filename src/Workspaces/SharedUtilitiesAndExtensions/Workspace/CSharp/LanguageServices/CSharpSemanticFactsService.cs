@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.SyntaxTree.IsExpressionContext(
                 position,
                 semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
-                attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
         }
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

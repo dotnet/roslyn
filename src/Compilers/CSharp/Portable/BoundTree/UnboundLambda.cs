@@ -73,11 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InferredLambdaReturnType InferredReturnType { get; }
 
+        internal bool InAnonymousFunctionConversion { get; private set; }
+
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
+        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
             : this(syntax, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda!, body, diagnostics, binder, delegateType)
         {
             InferredReturnType = inferredReturnType;
@@ -87,6 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax is ExpressionSyntax && LambdaUtilities.IsLambdaBody(syntax, allowReducedLambdas: true) || // query lambdas
                 LambdaUtilities.IsQueryPairLambda(syntax)                                                       // "pair" lambdas in queries
             );
+        }
+
+        internal BoundLambda WithInAnonymousFunctionConversion()
+        {
+            if (InAnonymousFunctionConversion)
+            {
+                return this;
+            }
+
+            var result = (BoundLambda)MemberwiseClone();
+            result.InAnonymousFunctionConversion = true;
+            return result;
         }
 
         public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
@@ -448,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
             => Data.HasExplicitReturnType(out refKind, out returnType);
+        public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            => Data.GetWithParametersBinder(lambdaSymbol, binder);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
@@ -467,6 +483,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
         public bool ParameterIsDiscard(int index) { return Data.ParameterIsDiscard(index); }
+    }
+
+    /// <summary>
+    /// Lambda binding state, recorded during testing only.
+    /// </summary>
+    internal sealed class LambdaBindingData
+    {
+        /// <summary>
+        /// Number of lambdas bound.
+        /// </summary>
+        internal int LambdaBindingCount;
     }
 
     internal abstract class UnboundLambdaState
@@ -539,7 +566,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract RefKind RefKind(int index);
         public abstract ScopedKind DeclaredScope(int index);
         public abstract ParameterSyntax? ParameterSyntax(int i);
-        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
+
+        protected BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+        {
+            if (lambdaSymbol.DeclaringCompilation?.TestOnlyCompilationData is LambdaBindingData data)
+            {
+                Interlocked.Increment(ref data.LambdaBindingCount);
+            }
+
+            return BindLambdaBodyCore(lambdaSymbol, lambdaBodyBinder, diagnostics);
+        }
+
+        protected abstract BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// Return the bound expression if the lambda has an expression body and can be reused easily.
@@ -766,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
@@ -863,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var numParametersToCheck = Math.Min(targetParameterTypes.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
-                    if (targetParameterTypes[i].Type.IsUnsafe())
+                    if (targetParameterTypes[i].Type.ContainsPointer())
                     {
                         this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }
@@ -1257,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var allBags = convBags.Concat(retBags);
 
             FirstAmongEqualsSet<Diagnostic>? intersection = null;
-            foreach (ImmutableBindingDiagnostic<AssemblySymbol> bag in allBags)
+            foreach (ReadOnlyBindingDiagnostic<AssemblySymbol> bag in allBags)
             {
                 if (intersection == null)
                 {
@@ -1280,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FirstAmongEqualsSet<Diagnostic>? union = null;
 
-            foreach (ImmutableBindingDiagnostic<AssemblySymbol> bag in allBags)
+            foreach (ReadOnlyBindingDiagnostic<AssemblySymbol> bag in allBags)
             {
                 if (union == null)
                 {
@@ -1530,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambdaBodyBinder.CreateBlockFromExpression((ExpressionSyntax)this.Body, expression, diagnostics);
         }
 
-        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+        protected override BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
         {
             if (this.IsExpressionLambda)
             {

@@ -15,6 +15,6 @@ internal static class SyntaxFormattingOptionsStorage
         => document.GetSyntaxFormattingOptionsAsync(globalOptions.GetSyntaxFormattingOptions(document.Project.Services), cancellationToken);
 
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(globalOptions, fallbackOptions: null);
+        => globalOptions.GetSyntaxFormattingOptions(languageServices, fallbackOptions: null);
 }
 

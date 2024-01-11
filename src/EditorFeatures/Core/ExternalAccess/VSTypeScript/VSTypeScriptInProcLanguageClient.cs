@@ -13,12 +13,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
@@ -31,23 +30,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ContentType(ContentTypeNames.TypeScriptContentTypeName)]
     [ContentType(ContentTypeNames.JavaScriptContentTypeName)]
     [Export(typeof(ILanguageClient))]
-    internal class VSTypeScriptInProcLanguageClient : AbstractInProcLanguageClient
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    internal class VSTypeScriptInProcLanguageClient(
+        [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
+        VSTypeScriptLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
     {
-        private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public VSTypeScriptInProcLanguageClient(
-            [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
-            VSTypeScriptLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
-        {
-            _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
-        }
+        private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(InternalLanguageNames.TypeScript);
 

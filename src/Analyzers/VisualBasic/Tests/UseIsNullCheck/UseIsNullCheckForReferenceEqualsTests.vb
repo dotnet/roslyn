@@ -181,7 +181,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")>
         Public Async Function TestValueParameterTypeIsValueConstraintGeneric() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System

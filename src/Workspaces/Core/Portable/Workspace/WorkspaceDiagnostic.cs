@@ -8,16 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class WorkspaceDiagnostic
+    public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
     {
-        public WorkspaceDiagnosticKind Kind { get; }
-        public string Message { get; }
-
-        public WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
-        {
-            this.Kind = kind;
-            this.Message = message;
-        }
+        public WorkspaceDiagnosticKind Kind { get; } = kind;
+        public string Message { get; } = message;
 
         public override string ToString()
         {

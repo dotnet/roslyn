@@ -489,7 +489,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
-        [WpfFact, WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -502,7 +502,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("DynamicMethod", element.Name);
         }
 
-        [WpfFact, WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -525,7 +525,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("operator +", functionObject.Name);
         }
 
-        [WpfFact, WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
         public void ConversionOperator()
         {
             var classObject = (CodeClass)GetCodeElement("Ref");

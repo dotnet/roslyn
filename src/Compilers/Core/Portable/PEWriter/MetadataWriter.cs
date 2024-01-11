@@ -4,6 +4,10 @@
 
 #nullable disable
 
+// We're not actually doing formatter-based serialization in this file.
+// We're simply propagating along the attributes of symbols we are emitting to metadata.
+#pragma warning disable SYSLIB0050 // 'FieldAttributes.NotSerialized' is obsolete: 'Formatter-based serialization is obsolete and should not be used.'
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,6 +27,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -465,10 +470,13 @@ namespace Microsoft.Cci
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            this.CreateUserStringIndices();
             this.CreateInitialAssemblyRefIndex();
             this.CreateInitialFileRefIndex();
             this.CreateIndicesForModule();
+
+            // Snapshot user strings only after indexing all types and members.
+            // EnC method deletes discovered during indexing may contribute new strings.
+            this.CreateUserStringIndices();
 
             // Find all references and assign tokens.
             _referenceVisitor = this.CreateReferenceVisitor();
@@ -481,13 +489,7 @@ namespace Microsoft.Cci
 
         private void CreateUserStringIndices()
         {
-            _pseudoStringTokenToStringMap = new List<string>();
-
-            foreach (string str in this.module.GetStrings())
-            {
-                _pseudoStringTokenToStringMap.Add(str);
-            }
-
+            _pseudoStringTokenToStringMap = [.. module.GetStrings()];
             _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Count];
         }
 
@@ -1107,6 +1109,11 @@ namespace Microsoft.Cci
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
+            if (methodReference is DeletedPEMethodDefinition { MetadataSignatureHandle: { IsNil: false } handle })
+            {
+                return handle;
+            }
+
             return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
@@ -1167,6 +1174,11 @@ namespace Microsoft.Cci
 
         internal EntityHandle GetMethodHandle(IMethodReference methodReference)
         {
+            if (methodReference is IDeletedMethodDefinition { MetadataHandle: var deletedMethodHandle })
+            {
+                return deletedMethodHandle;
+            }
+
             MethodDefinitionHandle methodDefHandle;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
@@ -1724,6 +1736,13 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
+            // TODO: Update SRM to not sort Custom Attribute table when emitting EnC delta
+            // https://github.com/dotnet/roslyn/issues/70389
+            if (!IsFullMetadata)
+            {
+                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(metadata, false);
+            }
+
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
@@ -1795,15 +1814,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
-                EmbedTypeDefinitionDocumentInformation(module);
-
-                if (module.SourceLinkStreamOpt != null)
+                if (IsFullMetadata)
                 {
-                    EmbedSourceLink(module.SourceLinkStreamOpt);
-                }
+                    // Do not emit TypeDefinitionDocuments or Source Link to EnC deltas.
+                    // This information is only needed to support navigation to symbols from metadata references.
 
-                if (!module.IsEncDelta)
-                {
+                    EmbedTypeDefinitionDocumentInformation(module);
+
+                    if (module.SourceLinkStreamOpt != null)
+                    {
+                        EmbedSourceLink(module.SourceLinkStreamOpt);
+                    }
+
                     EmbedCompilationOptions(module);
                     EmbedMetadataReferenceInformation(module);
                 }
@@ -1981,38 +2003,32 @@ namespace Microsoft.Cci
 
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddAssemblyAttributesToTable();
+                AddAssemblyAttributesToTable();
             }
 
-            this.AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
+            AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
+            AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
 
-            // this.AddCustomAttributesToTable(this.typeRefList, 2);
             var typeDefs = GetTypeDefs();
-            this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
+            AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
+            AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // TODO: attributes on member reference entries 6
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddModuleAttributesToTable(module);
+                AddModuleAttributesToTable(module);
             }
 
-            // TODO: declarative security entries 8
-            this.AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
-            this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
+            AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
 
-            // TODO: standalone signature entries 11
+            FinalizeCustomAttributeTableRows();
+        }
 
-            // TODO: type spec entries 13
-            // this.AddCustomAttributesToTable(this.module.AssemblyReferences, 15);
-            // TODO: this.AddCustomAttributesToTable(assembly.Files, 16);
-            // TODO: exported types 17
-            // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
-
-            this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
+        protected virtual void FinalizeCustomAttributeTableRows()
+        {
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2082,48 +2098,60 @@ namespace Microsoft.Cci
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
-            where T : IReference
+            where T : IDefinition
         {
             int parentRowId = 1;
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, Func<T, EntityHandle> getDefinitionHandle)
-            where T : IReference
+            where T : IDefinition
         {
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
-        protected virtual int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
+        protected virtual void AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
         {
-            int count = 0;
             foreach (var attr in attributes)
             {
-                count++;
                 AddCustomAttributeToTable(parentHandle, attr);
             }
-            return count;
         }
 
-        private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
+        protected bool AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
             IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
-
             if (constructor != null)
             {
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
                     constructor: GetCustomAttributeTypeCodedIndex(constructor),
                     value: GetCustomAttributeSignatureIndex(customAttribute));
+
+                return true;
             }
+
+            return false;
         }
 
         private void PopulateDeclSecurityTableRows()
@@ -2145,7 +2173,7 @@ namespace Microsoft.Cci
 
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.HasDeclarativeSecurity)
+                if (methodDef.IsEncDeleted || !methodDef.HasDeclarativeSecurity)
                 {
                     continue;
                 }
@@ -2443,7 +2471,7 @@ namespace Microsoft.Cci
         {
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.IsPlatformInvoke)
+                if (methodDef.IsEncDeleted || !methodDef.IsPlatformInvoke)
                 {
                     continue;
                 }
@@ -2856,7 +2884,7 @@ namespace Microsoft.Cci
             int methodRid = 0;
             foreach (IMethodDefinition method in methods)
             {
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     if (bodyOffsetCache == -1)
                     {
@@ -2877,6 +2905,8 @@ namespace Microsoft.Cci
 
         private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter nativePdbWriterOpt, out Blob mvidStringFixup)
         {
+            Debug.Assert(!MetadataOnly);
+
             CustomDebugInfoWriter customDebugInfoWriter = (nativePdbWriterOpt != null) ? new CustomDebugInfoWriter(nativePdbWriterOpt) : null;
 
             var methods = this.GetMethodDefs();
@@ -2898,24 +2928,17 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     body = method.GetBody(Context);
+                    Debug.Assert(body != null);
 
-                    if (body != null)
-                    {
-                        localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
+                    localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
 
-                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
+                    // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                    bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
 
-                        nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
-                    }
-                    else
-                    {
-                        bodyOffset = 0;
-                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
-                    }
+                    nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
                 }
                 else
                 {
@@ -2933,7 +2956,7 @@ namespace Microsoft.Cci
                     SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
-                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodCodeCoverageData(body);
 
                 bodyOffsets[methodRid - 1] = bodyOffset;
 
@@ -3142,10 +3165,44 @@ namespace Microsoft.Cci
             return default(ReservedBlob<UserStringHandle>);
         }
 
-        internal const uint LiteralMethodDefinitionToken = 0x80000000;
-        internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
-        internal const uint SourceDocumentIndex = 0x20000000;
+        public enum RawTokenEncoding : byte
+        {
+            None = 0,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of an entity represented by the pseudo-token.
+            /// </summary>
+            RowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of the greatest row id assigned to a method definition in the module being built.
+            /// </summary>
+            GreatestMethodDefinitionRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of a source document represented by the pseudo-token.
+            /// </summary>
+            DocumentRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of the hoisted local variable or parameter field that the pseudo-token represents, 
+            /// increased by <see cref="LiftedVariableBaseIndex"/>.
+            /// </summary>
+            LiftedVariableId,
+        }
+
+        public static uint GetRawToken(RawTokenEncoding encoding, uint pseudoToken)
+        {
+            Debug.Assert(pseudoToken <= 0xffffff);
+            return unchecked((uint)encoding << 24 | pseudoToken);
+        }
+
         internal const uint ModuleVersionIdStringToken = 0x80000000;
+
+        /// <summary>
+        /// Greater than any valid ordinal of a local variable or a parameter (0xffff).
+        /// </summary>
+        internal const int LiftedVariableBaseIndex = 0x10000;
 
         private void WriteInstructions(Blob finalIL, ImmutableArray<byte> generatedIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
@@ -3174,27 +3231,40 @@ namespace Microsoft.Cci
                             // This is a trick to enable loading raw metadata token indices as integers.
                             if (operandType == OperandType.InlineTok)
                             {
-                                int tokenMask = pseudoToken & unchecked((int)0xff000000);
-                                if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
+                                var rawTokenEncoding = (RawTokenEncoding)(pseudoToken >> 24);
+                                if (rawTokenEncoding != RawTokenEncoding.None && (uint)pseudoToken != 0xffffffff)
                                 {
                                     Debug.Assert(ReadByte(generatedIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
-                                    switch ((uint)tokenMask)
+                                    switch (rawTokenEncoding)
                                     {
-                                        case LiteralMethodDefinitionToken:
-                                            // Crash the compiler if pseudo token fails to resolve to a MethodDefinitionHandle.
-                                            var handle = (MethodDefinitionHandle)ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
-                                            token = MetadataTokens.GetToken(handle) & 0x00ffffff;
+                                        case RawTokenEncoding.RowId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.MethodDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle);
+                                            }
                                             break;
-                                        case LiteralGreatestMethodDefinitionToken:
+
+                                        case RawTokenEncoding.LiftedVariableId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.FieldDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle) + LiftedVariableBaseIndex;
+                                            }
+                                            break;
+
+                                        case RawTokenEncoding.GreatestMethodDefinitionRowId:
                                             token = GreatestMethodDefIndex;
                                             break;
-                                        case SourceDocumentIndex:
-                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
+
+                                        case RawTokenEncoding.DocumentRowId:
+                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(module.GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
                                             break;
+
                                         default:
-                                            throw ExceptionUtilities.UnexpectedValue(tokenMask);
+                                            throw ExceptionUtilities.UnexpectedValue(rawTokenEncoding);
                                     }
                                 }
                             }
@@ -4070,8 +4140,8 @@ namespace Microsoft.Cci
             return new EditAndContinueMethodDebugInformation(
                 methodBody.MethodId.Ordinal,
                 encLocalSlots,
-                methodBody.ClosureDebugInfo,
-                methodBody.LambdaDebugInfo,
+                methodBody.ClosureDebugInfo.SelectAsArray(static info => info.DebugInfo),
+                methodBody.LambdaDebugInfo.SelectAsArray(static info => info.DebugInfo),
                 methodBody.StateMachineStatesDebugInfo.States);
         }
 

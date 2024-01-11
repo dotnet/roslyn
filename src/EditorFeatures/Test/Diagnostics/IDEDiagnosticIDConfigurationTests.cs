@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
+            if (diagnosticId == "EnableGenerateDocumentationFile")
+            {
+                Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
+                return;
+            }
+
             if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
@@ -443,6 +449,9 @@ dotnet_diagnostic.IDE0241.severity = %value%
 # IDE0250
 dotnet_diagnostic.IDE0250.severity = %value%
 
+# IDE0251
+dotnet_diagnostic.IDE0251.severity = %value%
+
 # IDE0260
 dotnet_diagnostic.IDE0260.severity = %value%
 
@@ -451,6 +460,27 @@ dotnet_diagnostic.IDE0270.severity = %value%
 
 # IDE0280
 dotnet_diagnostic.IDE0280.severity = %value%
+
+# IDE0290
+dotnet_diagnostic.IDE0290.severity = %value%
+
+# IDE0300
+dotnet_diagnostic.IDE0300.severity = %value%
+
+# IDE0301
+dotnet_diagnostic.IDE0301.severity = %value%
+
+# IDE0302
+dotnet_diagnostic.IDE0302.severity = %value%
+
+# IDE0303
+dotnet_diagnostic.IDE0303.severity = %value%
+
+# IDE0304
+dotnet_diagnostic.IDE0304.severity = %value%
+
+# IDE0305
+dotnet_diagnostic.IDE0305.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -854,9 +884,17 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0240", null, null),
                 ("IDE0241", null, null),
                 ("IDE0250", "csharp_style_prefer_readonly_struct", "true"),
+                ("IDE0251", "csharp_style_prefer_readonly_struct_member", "true"),
                 ("IDE0260", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
                 ("IDE0270", "dotnet_style_coalesce_expression", "true"),
                 ("IDE0280", null, null),
+                ("IDE0290", "csharp_style_prefer_primary_constructors", "true"),
+                ("IDE0300", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0301", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0302", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0303", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0304", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0305", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),

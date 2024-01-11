@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
@@ -11,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
     Public Class ReplacePropertyWithMethodsTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ReplacePropertyWithMethodsCodeRefactoringProvider()
         End Function
 
@@ -471,7 +472,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -494,7 +495,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -517,7 +518,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment3() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -547,7 +548,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment4() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -574,7 +575,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment5() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -607,7 +608,7 @@ End Structure")
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261")>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment6() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ISomeInterface(Of T)
@@ -628,7 +629,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <Fact, WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
@@ -660,7 +661,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45171")>
         Public Async Function TestReferenceInObjectInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Tweet

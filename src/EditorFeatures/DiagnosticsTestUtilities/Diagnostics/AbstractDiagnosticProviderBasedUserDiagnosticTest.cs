@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#if CODE_STYLE
+extern alias CODESTYLE_UTILITIES;
+#endif
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,8 +19,8 @@ using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
@@ -28,6 +31,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+#if CODE_STYLE
+    using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
+#else
+    using OptionsCollectionAlias = OptionsCollection;
+#endif
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
         private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
@@ -141,26 +149,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
@@ -190,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
-            OptionsCollection options = null,
-            OptionsCollection globalOptions = null,
+            OptionsCollectionAlias options = null,
+            OptionsCollectionAlias globalOptions = null,
             LocalizableString diagnosticMessage = null)
         {
             await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, globalOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
@@ -202,8 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
-            OptionsCollection options,
-            OptionsCollection globalOptions,
+            OptionsCollectionAlias options,
+            OptionsCollectionAlias globalOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
@@ -248,12 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         // analyzer has been ported to CodeStyle layer, but not the fixer.
         // This enables porting the tests for the ported analyzer in CodeStyle layer.
         #region CodeFixProvider Helpers
-
-        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
-        protected static CodeFixProvider GetMakeLocalFunctionStaticCodeFixProvider() => new MakeLocalFunctionStaticCodeFixProvider();
-
-        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
-        protected static CodeFixProvider GetCSharpUseLocalFunctionCodeFixProvider() => new CSharpUseLocalFunctionCodeFixProvider();
 
         // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
         protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();

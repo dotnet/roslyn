@@ -25,15 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
     internal abstract class CSharpGenerateParameterizedMemberService<TService> : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
         where TService : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
-        internal sealed class InvocationExpressionInfo : AbstractInvocationInfo
+        internal sealed class InvocationExpressionInfo(SemanticDocument document, State state) : AbstractInvocationInfo(document, state)
         {
-            private readonly InvocationExpressionSyntax _invocationExpression;
-
-            public InvocationExpressionInfo(SemanticDocument document, State state)
-                : base(document, state)
-            {
-                _invocationExpression = state.InvocationExpressionOpt;
-            }
+            private readonly InvocationExpressionSyntax _invocationExpression = state.InvocationExpressionOpt;
 
             protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
             {

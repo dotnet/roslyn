@@ -82,6 +82,11 @@
         <target state="translated">Margines dziedziczenia</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Utrzymywanie aktywności usługi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
         <target state="translated">Zdarzenia rozwiązania</target>
@@ -125,6 +130,11 @@
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Dostawca elementów zawartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Generowanie źródła</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

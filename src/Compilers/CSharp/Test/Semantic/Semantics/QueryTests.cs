@@ -3808,10 +3808,7 @@ static class TestExtensions
             compilation.VerifyDiagnostics(
                 // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34),
-                // (7,46): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
-                //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34)
                 );
         }
 

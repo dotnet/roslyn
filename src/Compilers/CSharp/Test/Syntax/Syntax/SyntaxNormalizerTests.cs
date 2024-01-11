@@ -3092,6 +3092,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
         }
 
+        [Fact]
+        public void TestSpacingOnPrimaryConstructor()
+        {
+            TestNormalizeDeclaration("class  C     (   int    I   ,    int    J   )   ;    ", "class C(int I, int J);");
+            TestNormalizeDeclaration("struct  S     (   int    I   ,    int    J   )   ;    ", "struct S(int I, int J);");
+            TestNormalizeDeclaration("interface  S     (   int    I   ,    int    J   )   ;    ", "interface S(int I, int J);");
+            TestNormalizeDeclaration("class  C     (   )   ;    ", "class C();");
+            TestNormalizeDeclaration("struct   S  (  )  ;    ", "struct S();");
+            TestNormalizeDeclaration("interface   S  (  )  ;    ", "interface S();");
+        }
+
+        [Fact]
+        public void TestSemicolonBody()
+        {
+            TestNormalizeDeclaration("class      C       ;    ", "class C;");
+            TestNormalizeDeclaration("struct      C       ;    ", "struct C;");
+            TestNormalizeDeclaration("interface      C       ;    ", "interface C;");
+            TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
+        }
+
+        [Fact]
+        public void RefReadonlyParameters()
+        {
+            TestNormalizeDeclaration("""
+                class   C  {  int  this  [  ref  readonly   int  x ,  ref  readonly  int  y ]  {  get  ;  } 
+                void  M ( ref  readonly  int  x ,  ref  readonly  int  y ) ; }
+                """, """
+                class C
+                {
+                  int this[ref readonly int x, ref readonly int y] { get; }
+
+                  void M(ref readonly int x, ref readonly int y);
+                }
+                """);
+        }
+
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
@@ -5882,6 +5918,22 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("global   using X=int ;", "global using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public void TestNormalizeUsingAlias(string text, string expected)
+        {
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private static void VerifySingleLineInitializer(string text, string expected)
         {
             TestNormalizeExpression(
@@ -5905,6 +5957,29 @@ $"  ///  </summary>{Environment.NewLine}" +
                   }
                 }
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("if (\"\" is var I)")]
+        [InlineData("if ('' is var I)")]
+        [InlineData("if ('x' is var I)")]
+        public void TestNormalizeParseStatementLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseStatement(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("1 is var i")]
+        [InlineData("@\"\" is var s")]
+        [InlineData("\"\"\"a\"\"\" is var s")]
+        [InlineData("$@\"\" is var s")]
+        [InlineData("$\"\"\"a\"\"\" is var s")]
+        [InlineData("\"\"u8 is var s")]
+        public void TestNormalizeParseExpressionLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
         }
     }
 }

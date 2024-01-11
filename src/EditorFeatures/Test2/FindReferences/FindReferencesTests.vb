@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
+            Using workspace = EditorTestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As TestWorkspace) As Dictionary(Of String, HashSet(Of String))
+        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As EditorTestWorkspace) As Dictionary(Of String, HashSet(Of String))
             Dim additionalPropertyKeys = workspace.Documents.SelectMany(Function(d) d.AnnotatedSpans.Keys.Where(Function(key) key.StartsWith(AdditionalPropertyKey)).Select(Function(key) key.Substring(AdditionalPropertyKey.Length)))
             Dim additionalPropertiesMap As New Dictionary(Of String, HashSet(Of String))
             For Each key In additionalPropertyKeys
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
 
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
                 workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -312,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-
-                        Dim expected = If(doc.AnnotatedSpans.ContainsKey(DefinitionKey), doc.AnnotatedSpans(DefinitionKey), ImmutableArray(Of TextSpan).Empty).Order()
+                        Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                        Dim expected = If(doc.AnnotatedSpans.TryGetValue(DefinitionKey, spans), spans, ImmutableArray(Of TextSpan).Empty).Order()
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
@@ -518,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <Fact>
         Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
-            Using workspace = TestWorkspace.Create("
+            Using workspace = EditorTestWorkspace.Create("
 <Workspace>
     <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
         <Document FilePath='C.cs'>
@@ -585,6 +585,36 @@ partial class C
 
             Dim linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
             Assert.Equal(expectedLinkedSymbolCount, linkedSymbols.Length)
+        End Function
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
+        Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
+            Using workspace = EditorTestWorkspace.Create("
+<Workspace>
+    <Project Language=""NoCompilation"" AssemblyName=""NoCompilationAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+            var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+class C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+", composition:=s_composition)
+                Dim solution = workspace.CurrentSolution
+                Dim csProject = solution.Projects.Single(Function(p) p.SupportsCompilation)
+                Dim compilation = Await csProject.GetCompilationAsync()
+                Dim symbol = compilation.GetTypeByMetadataName("C")
+
+                Dim progress = New StreamingFindReferencesProgressAdapter(NoOpFindReferencesProgress.Instance)
+                Await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
+                    symbol, solution, progress, solution.Projects.SelectMany(Function(p) p.Documents).ToImmutableHashSet(),
+                    FindReferencesSearchOptions.Default, cancellationToken:=Nothing)
+            End Using
         End Function
     End Class
 End Namespace

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
+                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
+                    document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
 

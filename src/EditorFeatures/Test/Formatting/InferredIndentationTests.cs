@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(FormattingOptions.UseTabs.DefaultValue, options.UseTabs);
         }
 
-        [Fact, WorkItem(61109, "https://github.com/dotnet/roslyn/issues/61109")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61109")]
         public async Task SingleLineWithTab()
         {
             using var testWorkspace = CreateWithLines(
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(4, options.IndentationSize);
         }
 
-        private static TestWorkspace CreateWithLines(params string[] lines)
+        private static EditorTestWorkspace CreateWithLines(params string[] lines)
         {
-            var workspace = TestWorkspace.CreateCSharp(string.Join("\r\n", lines), openDocuments: true);
+            var workspace = EditorTestWorkspace.CreateCSharp(string.Join("\r\n", lines), openDocuments: true);
             var editorOptionsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOptionsFactoryService>();
 
             editorOptionsFactoryService.GlobalOptions.SetOptionValue(DefaultOptions.AdaptiveFormattingOptionId, true);

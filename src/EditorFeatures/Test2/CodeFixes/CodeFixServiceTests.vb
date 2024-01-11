@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -78,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -95,7 +94,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -106,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -124,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -148,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -157,7 +154,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -174,7 +170,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())

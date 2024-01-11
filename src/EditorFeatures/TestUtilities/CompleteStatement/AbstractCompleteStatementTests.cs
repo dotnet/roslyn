@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -21,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
     [UseExportProvider]
     public abstract class AbstractCompleteStatementTests
     {
-        internal static char semicolon = ';';
+        internal const char Semicolon = ';';
 
-        internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler GetCommandHandler(EditorTestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         /// <summary>
         /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 
@@ -55,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             Verify(initialMarkup, expectedMarkup, ExecuteTest);
         }
 
-        protected void ExecuteTest(IWpfTextView view, TestWorkspace workspace)
+        protected void ExecuteTest(IWpfTextView view, EditorTestWorkspace workspace)
         {
             var commandHandler = GetCommandHandler(workspace);
 
-            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
-            var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
+            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, Semicolon);
+            var nextHandler = CreateInsertTextHandler(view, Semicolon.ToString());
 
             commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
         }
@@ -76,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         }
 
         protected void Verify(string initialMarkup, string expectedMarkup,
-            Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace> setOptionsOpt = null)
+            Action<IWpfTextView, EditorTestWorkspace> execute,
+            Action<EditorTestWorkspace>? setOptions = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -99,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
 
-                setOptionsOpt?.Invoke(workspace);
+                setOptions?.Invoke(workspace);
 
                 execute(view, workspace);
                 MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+                AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
 
                 var endCaretPosition = view.Caret.Position.BufferPosition.Position;
                 Assert.True(expectedPosition == endCaretPosition,

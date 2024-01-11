@@ -24,9 +24,13 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool TargetTypedCompletionFilter { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
+        public bool PerformSort { get; init; } = true;
 
         /// <summary>
-        /// Test-only option.
+        /// Force completion APIs to produce complete results, even in cases where caches have not been pre-populated.
+        /// This is typically used for testing scenarios, and by public APIs where consumers do not have access to
+        /// other internal APIs used to control cache creation and/or wait for caches to be populated before examining
+        /// completion results.
         /// </summary>
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
 
@@ -35,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// (cache will always be refreshed when provider is triggered)
         /// </summary>
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
+
+        /// <summary>
+        /// Whether completion can add import statement as part of committed change.
+        /// For example, adding import is not allowed in debugger view.
+        /// </summary>
+        public bool CanAddImportStatement { get; init; } = true;
 
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;

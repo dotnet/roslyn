@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_DeclarationNotContainedInDefaultNamespace()
         {
             // No "move file" action because default namespace is not container of declared namespace
@@ -43,7 +43,7 @@ namespace [||]{declaredNamespace}
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_DeclarationNotContainedInDefaultNamespace_FileScopedNamespace()
         {
             // No "move file" action because default namespace is not container of declared namespace
@@ -69,7 +69,7 @@ class Class1
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_SingleAction1()
         {
             // current path is <root>\
@@ -101,7 +101,7 @@ namespace [||]{declaredNamespace}
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_SingleAction2()
         {
             // current path is <root>\
@@ -116,7 +116,7 @@ namespace [||]{declaredNamespace}
             };
 
             var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(new[] { "B", "C" }, "File2.cs");   // file2 is in <root>\B\C\
+            var documentPath2 = CreateDocumentFilePath(["B", "C"], "File2.cs");   // file2 is in <root>\B\C\
             var code =
 $@"
 <Workspace>
@@ -142,7 +142,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MoveToRoot()
         {
             // current path is <root>\A\B\C\
@@ -155,7 +155,7 @@ namespace Foo
                 Array.Empty<string>()
             };
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "A", "B", "C" });
+            var (folder, filePath) = CreateDocumentFilePath(["A", "B", "C"]);
             var code =
 $@"
 <Workspace>
@@ -174,7 +174,7 @@ class Class2
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MultipleAction1()
         {
             // current path is <root>\
@@ -186,11 +186,11 @@ class Class2
             var declaredNamespace = "A.B.C.D.E";
 
             var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
-            expectedFolders.Add(new[] { "B.C", "D", "E" });
+            expectedFolders.Add(["B", "C", "D", "E"]);
+            expectedFolders.Add(["B.C", "D", "E"]);
 
             var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(new[] { "B.C" }, "File2.cs");   // file2 is in <root>\B.C\
+            var documentPath2 = CreateDocumentFilePath(["B.C"], "File2.cs");   // file2 is in <root>\B.C\
             var code =
 $@"
 <Workspace>
@@ -216,7 +216,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MultipleAction2()
         {
             // current path is <root>\
@@ -229,13 +229,13 @@ namespace Foo
             var declaredNamespace = "A.B.C.D.E";
 
             var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
-            expectedFolders.Add(new[] { "B.C", "D", "E" });
-            expectedFolders.Add(new[] { "B", "C.D", "E" });
+            expectedFolders.Add(["B", "C", "D", "E"]);
+            expectedFolders.Add(["B.C", "D", "E"]);
+            expectedFolders.Add(["B", "C.D", "E"]);
 
             var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(new[] { "B", "C.D" }, "File2.cs");   // file2 is in <root>\B\C.D\
-            var documentPath3 = CreateDocumentFilePath(new[] { "B.C" }, "File3.cs");   // file3 is in <root>\B.C\
+            var documentPath2 = CreateDocumentFilePath(["B", "C.D"], "File2.cs");   // file2 is in <root>\B\C.D\
+            var documentPath3 = CreateDocumentFilePath(["B.C"], "File3.cs");   // file3 is in <root>\B.C\
             var code =
 $@"
 <Workspace>
@@ -269,18 +269,18 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother1()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
             var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
-            expectedFolders.Add(new[] { "B.C", "D", "E" });
+            expectedFolders.Add(["B", "C", "D", "E"]);
+            expectedFolders.Add(["B.C", "D", "E"]);
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B.C" }, "File1.cs");                          // file1 is in <root>\B.C\
-            var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
+            var (folder, filePath) = CreateDocumentFilePath(["B.C"], "File1.cs");                          // file1 is in <root>\B.C\
+            var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
 
             var code =
 $@"
@@ -307,17 +307,17 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother2()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
             var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
+            expectedFolders.Add(["B", "C", "D", "E"]);
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "Foo.Bar", "Baz" }, "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
-            var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
+            var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
+            var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
 
             var code =
 $@"
@@ -344,17 +344,17 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother2_FileScopedNamespace()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
             var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
+            expectedFolders.Add(["B", "C", "D", "E"]);
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "Foo.Bar", "Baz" }, "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
-            var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
+            var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
+            var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
 
             var code =
 $@"

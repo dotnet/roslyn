@@ -72,7 +72,7 @@ namespace RunTests
             // https://github.com/dotnet/roslyn/issues/50661
             // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/main/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
             // however that variable isn't documented at https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
-            var queuedBy = Environment.GetEnvironmentVariable("BUILD_QUEUEDBY");
+            var queuedBy = Environment.GetEnvironmentVariable("BUILD_QUEUEDBY")?.Replace(" ", "");
             if (queuedBy is null)
             {
                 queuedBy = "roslyn";
@@ -108,7 +108,6 @@ namespace RunTests
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
-        <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
@@ -123,9 +122,22 @@ namespace RunTests
 
             File.WriteAllText("helix-tmp.csproj", project);
 
+            var arguments = $"build helix-tmp.csproj";
+            if (!string.IsNullOrEmpty(_options.HelixApiAccessToken))
+            {
+                // Internal queues require an access token.
+                // We don't put it in the project string itself since it can cause escaping issues.
+                arguments += $" /p:HelixAccessToken={_options.HelixApiAccessToken}";
+            }
+            else
+            {
+                // If we're not using authenticated access we need to specify a creator.
+                arguments += $" /p:Creator={queuedBy}";
+            }
+
             var process = ProcessRunner.CreateProcess(
                 executable: _options.DotnetFilePath,
-                arguments: "build helix-tmp.csproj",
+                arguments: arguments,
                 captureOutput: true,
                 onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
                 cancellationToken: cancellationToken);
@@ -260,8 +272,6 @@ namespace RunTests
                 {
                     postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
                 }
-
-                postCommands.AppendLine(isUnix ? $"cp {xmlResultsFilePath} %24{{HELIX_WORKITEM_UPLOAD_ROOT}}" : $"copy {xmlResultsFilePath} %HELIX_WORKITEM_UPLOAD_ROOT%");
 
                 var workItem = $@"
         <HelixWorkItem Include=""{workItemInfo.DisplayName}"">

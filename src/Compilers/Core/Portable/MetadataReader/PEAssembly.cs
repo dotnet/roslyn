@@ -159,14 +159,26 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
-            if (_lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            EnsureInternalsVisibleToMapInitialized();
 
             List<ImmutableArray<byte>> result;
 
             _lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
 
             return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
+        }
+
+        internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            EnsureInternalsVisibleToMapInitialized();
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
+        private void EnsureInternalsVisibleToMapInitialized()
+        {
+            if (_lazyInternalsVisibleToMap == null)
+                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
         }
 
         internal bool DeclaresTheObjectClass

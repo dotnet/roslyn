@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
             GetType(NoCompilationContentTypeLanguageService))
 
         Protected Async Function VerifyHighlightsAsync(test As XElement, testHost As TestHost, Optional optionIsEnabled As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -37,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
 
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
+                globalOptions.SetGlobalOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
                     document, snapshot, New SnapshotPoint(snapshot, caretPosition))
                 Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
-                Dim producedTags = From tag In context.tagSpans
+                Dim producedTags = From tag In context.TagSpans
                                    Order By tag.Span.Start
                                    Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition",
                                        If(tag.Tag.Type = WrittenReferenceHighlightTag.TagId, "WrittenReference", "Reference"))

@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         private struct SourceTextTextInfo : ITextInfo<SourceText>
         {
-            public char Get(SourceText text, int index) => text[index];
-            public int Length(SourceText text) => text.Length;
+            public readonly char Get(SourceText text, int index) => text[index];
+            public readonly int Length(SourceText text) => text.Length;
         }
 
         private struct StringTextInfo : ITextInfo<string>
         {
-            public char Get(string text, int index) => text[index];
-            public int Length(string text) => text.Length;
+            public readonly char Get(string text, int index) => text[index];
+            public readonly int Length(string text) => text.Length;
         }
     }
 }

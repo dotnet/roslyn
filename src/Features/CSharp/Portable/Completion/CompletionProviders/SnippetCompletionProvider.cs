@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private static readonly HashSet<string> s_snippetsWithReplacements = new()
         {
-            "class", "cw", "ctor", "else", "foreach", "if", "interface", "prop", "propg", "struct", "while"
+            "class", "cw", "ctor", "else", "enum", "for", "forr", "foreach", "if", "interface", "lock", "prop", "propg", "sim", "struct", "svm", "while"
         };
 
         internal override bool IsSnippetProvider => true;
@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
                     var solution = document.Project.Solution;
                     if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                         solution.WorkspaceKind == WorkspaceKind.Debugger ||
-                         solution.WorkspaceKind == WorkspaceKind.Interactive)
+                         solution.WorkspaceKind is WorkspaceKind.Debugger or WorkspaceKind.Interactive)
                     {
                         return;
                     }

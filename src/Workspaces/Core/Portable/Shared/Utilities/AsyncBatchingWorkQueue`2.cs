@@ -163,7 +163,7 @@ namespace Roslyn.Utilities
                     // No in-flight task.  Kick one off to process these messages a second from now.
                     // We always attach the task to the previous one so that notifications to the ui
                     // follow the same order as the notification the OOP server sent to us.
-                    _updateTask = ContinueAfterDelay(_updateTask);
+                    _updateTask = ContinueAfterDelayAsync(_updateTask);
                     _taskInFlight = true;
                 }
             }
@@ -187,7 +187,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            async Task<TResult?> ContinueAfterDelay(Task lastTask)
+            async Task<TResult?> ContinueAfterDelayAsync(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
 
@@ -230,13 +230,24 @@ namespace Roslyn.Utilities
                 if (nextBatch.IsEmpty)
                     return default;
 
-                return await _processBatchAsync(nextBatch, batchCancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (!_entireQueueCancellationToken.IsCancellationRequested)
-            {
-                // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
-                // to cancel this batch isn't something that should stop processing further batches.
-                return default;
+                var batchResultTask = _processBatchAsync(nextBatch, batchCancellationToken).Preserve();
+                await batchResultTask.NoThrowAwaitableInternal(false);
+                if (batchResultTask.IsCompletedSuccessfully)
+                {
+                    return batchResultTask.Result;
+                }
+                else if (batchResultTask.IsCanceled && !_entireQueueCancellationToken.IsCancellationRequested)
+                {
+                    // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
+                    // to cancel this batch isn't something that should stop processing further batches.
+                    return default;
+                }
+                else
+                {
+                    // Realize the completed result to force the exception to be thrown.
+                    batchResultTask.VerifyCompleted();
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
             {

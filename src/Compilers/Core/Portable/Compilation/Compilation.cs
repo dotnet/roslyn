@@ -875,6 +875,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
+
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
@@ -1763,6 +1766,20 @@ namespace Microsoft.CodeAnalysis
         /// within this compilation, the reference is considered to be used. Etc.
         /// The returned set is a subset of references returned by <see cref="References"/> API.
         /// The result is undefined if the compilation contains errors.
+        /// 
+        /// The effect of imported namespaces on result of this API depends on whether reporting of
+        /// unused imports is disabled for the compilation. The reporting of unused imports is disabled
+        /// if <see cref="ParseOptions.DocumentationMode"/> is set to <see cref="DocumentationMode.None"/>.
+        /// 
+        /// When unused imports reporting is disabled, all referenced assemblies containing any types
+        /// that belong to imported namespaces are included in the result. I.e. considered used.
+        /// 
+        /// When unused imports reporting is enabled, imported namespaces do not have effect on the result
+        /// of this API. Therefore, removing assembly references that aren't in the result, could potentially
+        /// cause error "CS0246: The type or namespace name could not be found (are you missing a using directive or an assembly reference?)"
+        /// on an unused namespace import. However, that import would be reported by compiler as unused
+        /// for the compilation on which this API was invoked. In order to avoid the errors, it is recommended to
+        /// remove unused assembly references and unused imports at the same time.
         /// </summary>
         public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 
@@ -1816,9 +1833,16 @@ namespace Microsoft.CodeAnalysis
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming, cancellationToken);
             incoming.Free();
             incoming = null;
+            return result;
+        }
+
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, DiagnosticBag incoming, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(incoming is object);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             return result;
         }
 
@@ -2432,8 +2456,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
-            bool emitMetadataOnly,
-            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken);
@@ -2568,8 +2590,6 @@ namespace Microsoft.CodeAnalysis
                 return CompileMethods(
                     moduleBuilder,
                     emittingPdb,
-                    emitMetadataOnly: false,
-                    emitTestCoverageData: false,
                     diagnostics: diagnostics,
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
@@ -2919,8 +2939,6 @@ namespace Microsoft.CodeAnalysis
                     success = CompileMethods(
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
-                        emitMetadataOnly: options.EmitMetadataOnly,
-                        emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
@@ -3202,10 +3220,10 @@ namespace Microsoft.CodeAnalysis
                 var signKind = IsRealSigned
                     ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
-                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitPeStream = new EmitStream(peStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
                     ? null
-                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
+                    : new EmitStream(metadataPEStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -3230,8 +3248,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
-                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
+                        emitPeStream.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -3239,7 +3257,7 @@ namespace Microsoft.CodeAnalysis
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitOptions.EmitTestCoverageData,
+                        emitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage),
                         privateKeyOpt,
                         cancellationToken))
                     {
@@ -3283,8 +3301,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return
-                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
-                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
+                    emitPeStream.Complete(MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(MessageProvider, diagnostics) ?? true);
             }
             finally
             {
@@ -3447,6 +3465,16 @@ namespace Microsoft.CodeAnalysis
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
+
+        #endregion
+
+        #region Features
+
+        /// <summary>
+        /// False when the "debug-analyzers" feature flag is set.
+        /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// </summary>
+        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
         #endregion
 

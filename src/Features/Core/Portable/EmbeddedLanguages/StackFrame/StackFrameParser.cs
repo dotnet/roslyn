@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             _lexer = lexer;
         }
 
-        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
+        private readonly StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
@@ -191,6 +191,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return Result<StackFrameQualifiedNameNode>.Empty;
             }
 
+            if (lhs.Kind is StackFrameKind.Constructor ||
+                lhs is StackFrameQualifiedNameNode { Right.Kind: StackFrameKind.Constructor })
+            {
+                // Constructors cannot be the lhs of a qualified name
+                return Result<StackFrameQualifiedNameNode>.Abort;
+            }
+
             // Check if this is a generated identifier
             (var success, StackFrameSimpleNameNode? rhs) = TryScanGeneratedName();
             if (!success)
@@ -327,6 +334,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
             {
+                if (identifierToken.Kind == StackFrameKind.ConstructorToken)
+                {
+                    return new(new StackFrameConstructorNode(identifierToken));
+                }
+
                 return new(new StackFrameIdentifierNameNode(identifierToken));
             }
 

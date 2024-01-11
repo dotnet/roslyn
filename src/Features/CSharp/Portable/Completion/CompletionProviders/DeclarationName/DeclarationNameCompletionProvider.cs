@@ -26,17 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(TupleNameCompletionProvider))]
     [Shared]
-    internal partial class DeclarationNameCompletionProvider : LSPCompletionProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders) : LSPCompletionProvider
     {
-        private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; }
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders)
-        {
-
-            Recommenders = ExtensionOrderer.Order(recommenders).ToImmutableArray();
-        }
+        private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; } = ExtensionOrderer.Order(recommenders).ToImmutableArray();
 
         internal override string Language => LanguageNames.CSharp;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
-#nullable enable
         /// <summary>
         /// Initial state for a MethodBodySemanticModel. Shared between here and the <see cref="MethodCompiler"/>. Used to make a <see cref="MethodBodySemanticModel"/>
         /// with the required syntax and optional precalculated starting state for the model.
@@ -100,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ClassDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 
@@ -258,11 +256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
-            if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
-                primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl)
+            if (MemberSymbol is SynthesizedPrimaryConstructor primaryCtor &&
+                primaryCtor.GetSyntax() is TypeDeclarationSyntax typeDecl)
             {
-                Debug.Assert(recordDecl.Kind() == SyntaxKind.RecordDeclaration);
-                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseTypeIfClass)
+                Debug.Assert(typeDecl.Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration));
+                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == typeDecl.PrimaryConstructorBaseTypeIfClass)
                 {
                     var binder = this.GetEnclosingBinder(position);
                     if (binder != null)

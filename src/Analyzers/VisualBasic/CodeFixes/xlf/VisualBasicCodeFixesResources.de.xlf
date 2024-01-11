@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
-        <target state="new">Make {0} an Async Function.</target>
+        <target state="translated">"{0}" in eine Async-Funktion umwandeln.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
@@ -34,17 +34,17 @@
       </trans-unit>
       <trans-unit id="Make_Async_Function">
         <source>Make Async Function</source>
-        <target state="new">Make Async Function</target>
+        <target state="translated">Funktion als asynchron definieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
-        <target state="new">Make Async Sub</target>
+        <target state="translated">Sub als asynchron definieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Unnötige Import-Direktiven entfernen</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

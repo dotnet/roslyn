@@ -22,6 +22,11 @@
         <target state="translated">Cla&amp;ssificar Importações</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Convenções do Codificação do VB</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;event&gt;</target>

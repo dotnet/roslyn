@@ -23,125 +23,125 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
         [Fact]
         public async Task TestMovePropertySimpleRecordInheritance_CodeFix()
         {
-            var initialMarkup = @"
-namespace N
-{
-    public record B
-    {
-        public int Foo { get; init; }
-    }
+            var initialMarkup = """
+                namespace N
+                {
+                    public record B
+                    {
+                        public int Foo { get; init; }
+                    }
 
-    public class C : [|B|]
-    {
-        public int P { get; init; }
-    }
-}
-";
-            var changedMarkup = @"
-namespace N
-{
-    public record B
-    {
-        public int Foo { get; init; }
-    }
+                    public class C : [|B|]
+                    {
+                        public int P { get; init; }
+                    }
+                }
+                """;
+            var changedMarkup = """
+                namespace N
+                {
+                    public record B
+                    {
+                        public int Foo { get; init; }
+                    }
 
-    public record C(int P) : B;
-}
-";
+                    public record C(int P) : B;
+                }
+                """;
             await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task TestMovePropertyPositionalParameterRecordInheritance_CodeFix()
         {
-            var initialMarkup = @"
-namespace N
-{
-    public record B(int Foo, int Bar);
+            var initialMarkup = """
+                namespace N
+                {
+                    public record B(int Foo, int Bar);
 
-    public class {|CS1729:C|} : [|B|]
-    {
-        public int P { get; init; }
-    }
-}
-";
-            var changedMarkup = @"
-namespace N
-{
-    public record B(int Foo, int Bar);
+                    public class {|CS1729:C|} : [|B|]
+                    {
+                        public int P { get; init; }
+                    }
+                }
+                """;
+            var changedMarkup = """
+                namespace N
+                {
+                    public record B(int Foo, int Bar);
 
-    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
-}
-";
+                    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+                }
+                """;
             await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task TestMovePropertyPositionalParameterRecordInheritanceWithComments_CodeFix()
         {
-            var initialMarkup = @"
-namespace N
-{
-    /// <summary> B </summary>
-    /// <param name=""Foo""> Foo is an int </param>
-    /// <param name=""Bar""> Bar is an int as well </param>
-    public record B(int Foo, int Bar);
+            var initialMarkup = """
+                namespace N
+                {
+                    /// <summary> B </summary>
+                    /// <param name="Foo"> Foo is an int </param>
+                    /// <param name="Bar"> Bar is an int as well </param>
+                    public record B(int Foo, int Bar);
 
-    /// <summary> C inherits from B </summary>
-    public class {|CS1729:C|} : [|B|]
-    {
-        /// <summary> P can be initialized </summary>
-        public int P { get; init; }
-    }
-}
-";
-            var changedMarkup = @"
-namespace N
-{
-    /// <summary> B </summary>
-    /// <param name=""Foo""> Foo is an int </param>
-    /// <param name=""Bar""> Bar is an int as well </param>
-    public record B(int Foo, int Bar);
+                    /// <summary> C inherits from B </summary>
+                    public class {|CS1729:C|} : [|B|]
+                    {
+                        /// <summary> P can be initialized </summary>
+                        public int P { get; init; }
+                    }
+                }
+                """;
+            var changedMarkup = """
+                namespace N
+                {
+                    /// <summary> B </summary>
+                    /// <param name="Foo"> Foo is an int </param>
+                    /// <param name="Bar"> Bar is an int as well </param>
+                    public record B(int Foo, int Bar);
 
-    /// <summary> C inherits from B </summary>
-    /// <param name=""Foo""><inheritdoc/></param>
-    /// <param name=""Bar""><inheritdoc/></param>
-    /// <param name=""P""> P can be initialized </param>
-    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
-}
-";
+                    /// <summary> C inherits from B </summary>
+                    /// <param name="Foo"><inheritdoc/></param>
+                    /// <param name="Bar"><inheritdoc/></param>
+                    /// <param name="P"> P can be initialized </param>
+                    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+                }
+                """;
             await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance_CodeFix()
         {
-            var initialMarkup = @"
-namespace N
-{
-    public record B(int Foo, int Bar);
+            var initialMarkup = """
+                namespace N
+                {
+                    public record B(int Foo, int Bar);
 
-    public class C : [|B|]
-    {
-        public int P { get; init; }
+                    public class C : [|B|]
+                    {
+                        public int P { get; init; }
 
-        public {|CS1729:C|}(int p, int bar, int foo)
-        {
-            P = p;
-            Bar = bar;
-            Foo = foo;
-        }
-    }
-}
-";
-            var changedMarkup = @"
-namespace N
-{
-    public record B(int Foo, int Bar);
+                        public {|CS1729:C|}(int p, int bar, int foo)
+                        {
+                            P = p;
+                            Bar = bar;
+                            Foo = foo;
+                        }
+                    }
+                }
+                """;
+            var changedMarkup = """
+                namespace N
+                {
+                    public record B(int Foo, int Bar);
 
-    public record C(int P, int Bar, int Foo) : B(Foo, Bar);
-}
-";
+                    public record C(int P, int Bar, int Foo) : B(Foo, Bar);
+                }
+                """;
             await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 

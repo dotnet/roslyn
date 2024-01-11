@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -111,6 +112,28 @@ public class C
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70782")]
+        public async Task TestNintNuint()
+        {
+            var source = @"
+
+public class C
+{
+    void M(nint x);
+    void N(nuint x);
+}
+";
+            var netstandardReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+            var netcoreReferences = await ReferenceAssemblies.Net.Net70.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, references: [.. netstandardReferences]);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, references: [.. netcoreReferences]);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation1, useSymbolEquivalence: false);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation2, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation1, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation2, useSymbolEquivalence: false);
         }
 
         [Fact]
@@ -283,7 +306,7 @@ public class C
             TestRoundTrip(symbols, compilation);
         }
 
-        [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14364")]
         public void TestVBParameterizedEvent()
         {
             var source = @"
@@ -373,6 +396,54 @@ public class C
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => ms.Parameters), compilation);
+        }
+
+        [Fact]
+        public void TestParameterRename()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int a, int x, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("x", resolved?.Name);
+        }
+
+        [Fact]
+        public void TestParameterReorder()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int b, int a, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("b", resolved?.Name);
         }
 
         [Fact]
@@ -672,7 +743,7 @@ public class C<S, T>
             TestRoundTrip(constructed, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestNestedGenericType()
         {
             var source = @"
@@ -692,7 +763,7 @@ public class A<TOuter>
             TestRoundTrip(inner, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestNestedGenericType1()
         {
             var source = @"
@@ -743,7 +814,7 @@ public class A<T1>
             TestRoundTrip(a_b_m_datetime, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestGenericTypeTypeParameter()
         {
             var source = @"class C<T> { }";
@@ -757,7 +828,7 @@ public class A<T1>
             TestRoundTrip(typeParameter, compilation);
         }
 
-        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
         public void TestGenericMethodTypeParameter()
         {
             var source = @"class C { void M<T>() { } }";
@@ -771,7 +842,7 @@ public class A<T1>
             TestRoundTrip(typeParameter, compilation);
         }
 
-        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
         {
             var markup = @"
@@ -815,7 +886,7 @@ class C
             Assert.NotEqual(default, SymbolKey.Create(xSymbol));
         }
 
-        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
         {
             var markup = @"
@@ -889,7 +960,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
         public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
         {
             var source = @"
@@ -930,7 +1001,7 @@ class C
             Assert.True(tested);
         }
 
-        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
         public void TestTupleWithLocalTypeReferences1()
         {
             var source = @"
@@ -967,7 +1038,7 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
         public void TestTupleWithLocalTypeReferences2()
         {
             var source = @"
@@ -1004,7 +1075,7 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorType_CSharp()
         {
             var source = @"
@@ -1040,7 +1111,7 @@ class C
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorType_VB()
         {
             var source = @"
@@ -1075,7 +1146,7 @@ end class";
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorTypeInNestedNamespace()
         {
             var source1 = @"
@@ -1125,7 +1196,7 @@ class X
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
-        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
         public void TestErrorTypeInNestedNamespace_VB()
         {
             var source1 = @"
@@ -1250,15 +1321,128 @@ public class C
             Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
         }
 
-        private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
+        [Fact]
+        public void TestBodySymbolsWithEdits()
         {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public void M()
+    {
+        void InteriorMethod()
+        {
+            int a, b;
+            if (a > b) {
+               int c = a + b;
+            }
+
+            {
+                string d = "";
+            }
+
+            {
+                double d = 0.0;
+            }
+
+            {
+                bool d = false;
+            }
+
+            var q = new { };
+
+            int[] xs = new int[] { 1, 2, 3, 4 };
+
+            {
+                var q = from x in xs where x > 2 select x;
+            }
+
+            {
+                var q2 = from x in xs where x < 4 select x;
+            }
+
+            start: goto end;
+            end: goto start;
+            end: ; // duplicate label
+
+            DeepLocalFunction();
+
+            void DeepLocalFunction()
+            {
+                int[] xs = new int[] { 1, 2, 3, 4 };
+
+                {
+                    string d = "";
+                }
+
+                {
+                    double d = 0.0;
+                }
+
+                {
+                    bool d = false;
+                }
+
+                {
+                    var q = from x in xs where x > 2 select x;
+                }
+
+                {
+                    var q2 = from x in xs where x < 4 select x;
+                }
+
+                InteriorMethod();
+            }
+        }
+    }
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var methods = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>();
+            var symbols = methods.SelectMany(ms => GetInteriorSymbols(ms, compilation)).Where(s => SymbolKey.IsBodyLevelSymbol(s)).ToList();
+            Assert.Equal(25, symbols.Count);
+
+            // Ensure we have coverage for all our body symbols.
+            Assert.True(symbols.Any(s => s is ILocalSymbol));
+            Assert.True(symbols.Any(s => s is ILabelSymbol));
+            Assert.True(symbols.Any(s => s is IRangeVariableSymbol));
+            Assert.True(symbols.Any(s => s.IsLocalFunction()));
+
+            TestRoundTrip(symbols, compilation);
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var text = syntaxTree.GetText();
+
+            // replace all spaces with double spaces.  So nothing is in the same location anymore.
+            var newTree = syntaxTree.WithChangedText(text.WithChanges(new TextChange(new TextSpan(0, text.Length), text.ToString().Replace(" ", "  "))));
+            var newCompilation = compilation.ReplaceSyntaxTree(syntaxTree, newTree);
+
             foreach (var symbol in symbols)
             {
-                TestRoundTrip(symbol, compilation, fnId: fnId);
+                var key = SymbolKey.Create(symbol);
+                var resolved = key.Resolve(newCompilation);
+
+                Assert.NotNull(resolved.Symbol);
+
+                Assert.Equal(resolved.Symbol.Name, symbol.Name);
+                Assert.Equal(resolved.Symbol.Kind, symbol.Kind);
+
+                // Ensure that the local moved later in the file.
+                Assert.True(resolved.Symbol.Locations[0].SourceSpan.Start > symbol.Locations[0].SourceSpan.Start);
             }
         }
 
-        private static void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(
+            IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
+        {
+            foreach (var symbol in symbols)
+                TestRoundTrip(symbol, compilation, fnId, useSymbolEquivalence);
+        }
+
+        private static void TestRoundTrip(
+            ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
         {
             var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
@@ -1273,7 +1457,14 @@ public class C
             }
             else
             {
-                Assert.Equal(symbol, found);
+                if (useSymbolEquivalence)
+                {
+                    Assert.True(SymbolEquivalenceComparer.Instance.Equals(symbol, found));
+                }
+                else
+                {
+                    Assert.Equal(symbol, found);
+                }
             }
         }
 
@@ -1299,7 +1490,7 @@ public class C
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(
+        private static List<ISymbol> GetAllSymbols(
             SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
@@ -1307,7 +1498,7 @@ public class C
             return list;
         }
 
-        private void GetAllSymbols(
+        private static void GetAllSymbols(
             SemanticModel model, SyntaxNode node,
             List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
@@ -1335,14 +1526,14 @@ public class C
             }
         }
 
-        private List<ISymbol> GetDeclaredSymbols(Compilation compilation)
+        private static List<ISymbol> GetDeclaredSymbols(Compilation compilation)
         {
             var list = new List<ISymbol>();
             GetDeclaredSymbols(compilation.Assembly.GlobalNamespace, list);
             return list;
         }
 
-        private void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
+        private static void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
         {
             foreach (var member in container.GetMembers())
             {
