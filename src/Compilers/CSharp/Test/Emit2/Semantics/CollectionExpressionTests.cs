@@ -13540,7 +13540,6 @@ partial class Program
                 .class public sealed MyCollectionBuilder
                 {
                   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
-                  .method public static class MyCollection`1<!!T> Create<T>(valuetype System.ReadOnlySpan`1<!!T> items) { ldnull ret }
                 }
                 """;
             var refA = CompileIL(sourceA);
@@ -13557,7 +13556,7 @@ partial class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         MyCollection<int> x = [];
