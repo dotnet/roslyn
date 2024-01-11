@@ -959,7 +959,7 @@ Namespace N1
 End Namespace")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System

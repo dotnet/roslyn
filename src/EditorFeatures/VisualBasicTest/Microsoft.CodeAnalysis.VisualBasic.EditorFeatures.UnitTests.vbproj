@@ -71,8 +71,8 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CodeActions\Utilities\" />
     <Folder Include="My Project\" />
+    <Compile Include="..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Debugging\Resources\*.*" />

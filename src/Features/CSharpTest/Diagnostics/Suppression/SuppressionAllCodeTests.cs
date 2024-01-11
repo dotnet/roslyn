@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
     public class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
     {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected override EditorTestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
-            => EditorTestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
+            => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
         internal override Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             => new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
