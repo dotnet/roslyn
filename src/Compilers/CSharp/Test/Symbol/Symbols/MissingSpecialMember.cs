@@ -1064,6 +1064,11 @@ namespace System
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
                     case WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T:
+                    case WellKnownMember.System_Span_T__ToArray:
+                    case WellKnownMember.System_ReadOnlySpan_T__ToArray:
+                    case WellKnownMember.System_Span_T__CopyTo_Span_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
                         // Not always available.
                         continue;
                 }

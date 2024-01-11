@@ -31,20 +31,17 @@
     <Border 
         BorderThickness="1"
         x:Name="Outline">
-        <StackPanel Orientation="Vertical" Margin="5" >
-            <Grid Margin="0 0 0 10">
+        <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
+            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="22" />
                 </Grid.ColumnDefinitions>
 
-                
-                <TextBox 
+                <rename:RenameUserInputPresenter
                     Grid.Column="0"
-                    x:Name="IdentifierTextBox" 
-                    Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
-                    GotFocus="IdentifierTextBox_GotFocus"
-                    HorizontalAlignment="Stretch" />
+                    x:Name="RenameUserInputPresenter"
+                    HorizontalAlignment="Stretch"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button 

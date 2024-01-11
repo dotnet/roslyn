@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
             var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
@@ -100,7 +100,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
             var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+            await service.SynchronizeSolutionAssetsAsync(await solution.CompilationState.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

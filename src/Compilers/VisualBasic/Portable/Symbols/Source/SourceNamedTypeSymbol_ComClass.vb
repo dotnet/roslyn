@@ -1031,6 +1031,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End Get
                 End Property
+
+                Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+                    guidString = Nothing
+                    Return False
+                End Function
             End Class
 
             Private Class SynthesizedComMethod

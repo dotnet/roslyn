@@ -2956,7 +2956,6 @@ class Program
                     case ErrorCode.ERR_RefReturningCallAndAwait:
                     case ErrorCode.ERR_SpecialByRefInLambda:
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                    case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
                     case ErrorCode.ERR_InterceptorSignatureMismatch:
@@ -2973,6 +2972,8 @@ class Program
                     case ErrorCode.ERR_InterceptorArityNotCompatible:
                     case ErrorCode.ERR_InterceptorCannotBeGeneric:
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

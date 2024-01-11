@@ -67,9 +67,9 @@
         <target state="translated">{0}:{1}에서 .runsettings 파일을 읽지 못했습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_run_restore_see_output_for_details">
-        <source>Failed to run restore, see output for details</source>
-        <target state="new">Failed to run restore, see output for details</target>
+      <trans-unit id="Failed_to_run_restore_on_0">
+        <source>Failed to run restore on {0}</source>
+        <target state="new">Failed to run restore on {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
@@ -100,6 +100,11 @@
       <trans-unit id="Passed">
         <source>Passed!</source>
         <target state="new">Passed!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_0_has_unresolved_dependencies">
+        <source>Project {0} has unresolved dependencies</source>
+        <target state="new">Project {0} has unresolved dependencies</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">

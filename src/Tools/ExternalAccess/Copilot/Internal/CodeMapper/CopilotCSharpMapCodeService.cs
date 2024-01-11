@@ -33,13 +33,16 @@ internal sealed class CSharpMapCodeService : IMapCodeService
 
     public Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
     {
-        return _service?.MapCodeAsync(document, contents, focusLocations, cancellationToken) ?? TryLoadAndInvokeViaReflection();
+        if (_service is not null)
+            return _service.MapCodeAsync(document, contents, focusLocations, cancellationToken);
+
+        return TryLoadAndInvokeViaReflectionAsync();
 
         // The implementation of ICSharpCopilotMapCodeService is in Copilot Chat repo, which can't reference the EA package
         // since it's shipped as a separate vsix and needs to maintain compatibility for older VS versions. So we try to call
         // the service via reflection here until they can move to newer Roslyn version.
         // https://github.com/dotnet/roslyn/issues/69967
-        Task<ImmutableArray<TextChange>?> TryLoadAndInvokeViaReflection()
+        Task<ImmutableArray<TextChange>?> TryLoadAndInvokeViaReflectionAsync()
         {
             try
             {

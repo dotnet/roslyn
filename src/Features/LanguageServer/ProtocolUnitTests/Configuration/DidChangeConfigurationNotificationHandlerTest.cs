@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -145,6 +145,7 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
+                "projects.dotnet_enable_automatic_restore"
             }.OrderBy(name => name);
 
             Assert.Equal(expectedNames, actualNames);

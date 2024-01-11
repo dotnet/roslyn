@@ -4,12 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -94,9 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId) : IObjectWritable
+        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
         {
-            private Checksum? _lazyChecksum;
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The unique Id of the solution.
@@ -137,8 +133,6 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -162,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }

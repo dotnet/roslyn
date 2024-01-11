@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// A wrapper around an array of <see cref="Microsoft.CodeAnalysis.Checksum"/>s, which also combines the value into a
 /// single aggregate checksum exposed through <see cref="Checksum"/>.
 /// </summary>
-internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
+internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
 {
     public Checksum Checksum { get; } = Checksum.Create(children);
 

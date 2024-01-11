@@ -1192,6 +1192,7 @@ namespace Microsoft.CodeAnalysis
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
         internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
+        /// <remarks>Should be kept in sync with <see cref="IsMoreImportantObsoleteKind(ObsoleteAttributeKind, ObsoleteAttributeKind)"/></remarks>
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
@@ -1238,6 +1239,26 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        /// <summary>
+        /// Indicates whether the first attribute should be prioritized over the second one.
+        /// Same order of priority as
+        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
+        /// </summary>
+        internal static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind firstKind, ObsoleteAttributeKind secondKind)
+        {
+            return getPriority(firstKind) <= getPriority(secondKind);
+
+            static int getPriority(ObsoleteAttributeKind kind) => kind switch
+            {
+                ObsoleteAttributeKind.Deprecated => 0,
+                ObsoleteAttributeKind.Obsolete => 1,
+                ObsoleteAttributeKind.WindowsExperimental => 2,
+                ObsoleteAttributeKind.Experimental => 3,
+                ObsoleteAttributeKind.Uninitialized => 4,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
+        }
+
         internal ObsoleteAttributeData? TryDecodeExperimentalAttributeData(EntityHandle handle, IAttributeNamedArgumentDecoder decoder)
         {
             var info = FindTargetAttribute(handle, AttributeDescription.ExperimentalAttribute);
@@ -1469,11 +1490,52 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
+        internal bool HasAttributeUsageAttribute(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, out AttributeUsageInfo usageInfo)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.AttributeUsageAttribute);
-            Debug.Assert(info.SignatureIndex == 0);
-            return info.Handle;
+
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryGetAttributeReader(info.Handle, out BlobReader sigReader) && CrackIntInAttributeValue(out int validOn, ref sigReader))
+                {
+                    bool allowMultiple = false;
+                    bool inherited = true;
+
+                    if (sigReader.RemainingBytes >= 2)
+                    {
+                        try
+                        {
+                            var numNamedArgs = sigReader.ReadUInt16();
+                            for (uint i = 0; i < numNamedArgs; i++)
+                            {
+                                (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                    attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                                if (namedArgValues is (_, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                                {
+                                    switch (namedArgValues.nameValuePair.Key)
+                                    {
+                                        case "AllowMultiple":
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                        case "Inherited":
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
+                    }
+
+                    usageInfo = new AttributeUsageInfo((AttributeTargets)validOn, allowMultiple, inherited);
+                    return true;
+                }
+            }
+
+            usageInfo = default;
+            return false;
         }
 
         internal bool HasInterfaceTypeAttribute(EntityHandle token, out ComInterfaceType interfaceType)

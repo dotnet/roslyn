@@ -65,20 +65,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             int correlationId,
             IUnitTestingIncrementalAnalyzer analyzer,
             int documentCount,
-            string languages
-#if false // Not used in unit testing crawling
-            , bool highPriority
-#endif
-            )
+            string languages)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
                 m[DocumentCount] = documentCount;
-#if false // Not used in unit testing crawling
-                m[HighPriority] = highPriority;
-#endif
                 m[Languages] = languages;
             }));
         }
@@ -190,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static void LogResetStates(CountLogAggregator<object> logAggregator)
             => logAggregator.IncreaseCount(ResetStates);
 
-        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers)
+        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator)
         {
             Logger.Log(FunctionId.IncrementalAnalyzerProcessor_Shutdown, KeyValueLogMessage.Create(m =>
             {
@@ -224,13 +217,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     result.WriteTelemetryPropertiesTo(m, prefix: propertyName);
                 }
             }));
-
-#if false // Not used in unit testing crawling
-            foreach (var analyzer in analyzers)
-            {
-                analyzer.LogAnalyzerCountSummary();
-            }
-#endif
         }
 
         private static int GetSolutionHash(Solution solution)

@@ -529,6 +529,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 return true;
             }
 
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
+                && token.Parent.IsKind(SyntaxKind.CollectionExpression))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -1511,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((TypePatternSyntax)node).Type;
 
         public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) };
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {

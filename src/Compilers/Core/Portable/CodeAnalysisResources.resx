@@ -724,6 +724,18 @@
   <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
     <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
   </data>
+  <data name="EncDeletedMethodInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</value>
+  </data>
+  <data name="EncDeletedLambdaInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</value>
+  </data>
+  <data name="EncLambdaRudeEdit" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</value>
+  </data>
+  <data name="EncLambdaRudeEdit_CapturedVariables" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</value>
+  </data>
   <data name="GeneratorNameColumnHeader" xml:space="preserve">
     <value>Generator</value>
   </data>

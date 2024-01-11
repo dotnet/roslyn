@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;
@@ -44,13 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             }
 
             var location = parent.GetLocation();
-            var options = context.Compilation.Options;
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor,
-                                        location,
-                                        Descriptor.GetEffectiveSeverity(options),
-                                        additionalLocations: null,
-                                        properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
 
         }
 

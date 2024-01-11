@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // We either calculate the tokens for the full document span, or the user 
             // can pass in a range from the full document if they wish.
-            ranges ??= new[] { ProtocolConversions.TextSpanToRange(root.FullSpan, text) };
+            ranges ??= [ProtocolConversions.TextSpanToRange(root.FullSpan, text)];
             using var _ = ArrayBuilder<TextSpan>.GetInstance(ranges.Length, out var textSpans);
             foreach (var range in ranges)
             {

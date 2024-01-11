@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -100,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
             var languageServices = document?.Project.Services ?? _services.GetLanguageServices(Language);
 
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
+            // Publicly available options do not affect this API. Force complete results from this public API since
+            // external consumers do not have access to Roslyn's waiters.
+            var completionOptions = CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true };
             var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionSet.Empty;
 
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
@@ -154,8 +156,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
+            var extensionManager = languageServices.SolutionServices.GetRequiredService<IExtensionManager>();
+
             var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions));
+            return providers.Any(p =>
+                extensionManager.PerformFunction(p,
+                    () => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions),
+                    defaultValue: false));
         }
 
         /// <summary>
@@ -205,9 +212,14 @@ namespace Microsoft.CodeAnalysis.Completion
             if (provider is null)
                 return CompletionDescription.Empty;
 
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-            var description = await provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
+            var description = await extensionManager.PerformFunctionAsync(
+                provider,
+                () => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
+                defaultValue: null).ConfigureAwait(false);
             GC.KeepAlive(semanticModel);
             return description;
         }
@@ -230,11 +242,19 @@ namespace Microsoft.CodeAnalysis.Completion
             var provider = GetProvider(item, document.Project);
             if (provider != null)
             {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
                 // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
                 (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-                var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
-                GC.KeepAlive(semanticModel);
 
+                var change = await extensionManager.PerformFunctionAsync(
+                    provider,
+                    () => provider.GetChangeAsync(document, item, commitCharacter, cancellationToken),
+                    defaultValue: null!).ConfigureAwait(false);
+                if (change == null)
+                    return CompletionChange.Create(new TextChange(new TextSpan(), ""));
+
+                GC.KeepAlive(semanticModel);
                 Debug.Assert(item.Span == change.TextChange.Span || item.IsComplexTextEdit);
                 return change;
             }
@@ -350,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-load project providers only.
         /// </summary>
-        internal void TriggerLoadProjectProviders(Project project)
-                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
+        internal void TriggerLoadProjectProviders(Project project, CompletionOptions options)
+                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, options);
 
         internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);
@@ -366,8 +386,8 @@ namespace Microsoft.CodeAnalysis.Completion
             public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
-            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+            public ImmutableArray<CompletionProvider> GetProjectProviders(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProviders(project);
 
             public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

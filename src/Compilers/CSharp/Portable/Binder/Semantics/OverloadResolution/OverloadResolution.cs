@@ -769,7 +769,9 @@ outerDefault:
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion: false,
-                allowRefOmittedArguments: false);
+                allowRefOmittedArguments: false,
+                _binder,
+                hasAnyRefOmittedArgument: out _);
 
             return IsApplicable(
                 constructor,
@@ -3206,19 +3208,6 @@ outerDefault:
             }
         }
 
-        private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
-            TMember member,
-            int argumentCount,
-            ImmutableArray<int> argToParamMap,
-            ArrayBuilder<RefKind> argumentRefKinds,
-            bool isMethodGroupConversion,
-            bool allowRefOmittedArguments)
-            where TMember : Symbol
-        {
-            bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
-        }
-
         private static EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
             TMember member,
             int argumentCount,
@@ -3450,11 +3439,11 @@ outerDefault:
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
 
+            TMember leastOverriddenMemberConstructedFrom = GetConstructedFrom(leastOverriddenMember);
             bool hasAnyRefOmittedArgument;
 
-            // To determine parameter types we use the originalMember.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInNormalForm(
-                GetConstructedFrom(leastOverriddenMember),
+                leastOverriddenMemberConstructedFrom,
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
@@ -3465,20 +3454,11 @@ outerDefault:
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
 
-            // To determine parameter types we use the originalMember.
-            EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInNormalForm(
-                leastOverriddenMember,
-                arguments.Arguments.Count,
-                argumentAnalysis.ArgsToParamsOpt,
-                arguments.RefKinds,
-                isMethodGroupConversion,
-                allowRefOmittedArguments);
-
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var applicableResult = IsApplicable(
-                member, leastOverriddenMember,
-                typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
+                member, leastOverriddenMemberConstructedFrom,
+                typeArguments, arguments, originalEffectiveParameters,
                 argumentAnalysis.ArgsToParamsOpt,
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: inferWithDynamic,
@@ -3520,11 +3500,11 @@ outerDefault:
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
 
+            TMember leastOverriddenMemberConstructedFrom = GetConstructedFrom(leastOverriddenMember);
             bool hasAnyRefOmittedArgument;
 
-            // To determine parameter types we use the least derived member.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInExpandedForm(
-                GetConstructedFrom(leastOverriddenMember),
+                leastOverriddenMemberConstructedFrom,
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
@@ -3535,20 +3515,11 @@ outerDefault:
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
 
-            // To determine parameter types we use the least derived member.
-            EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInExpandedForm(
-                leastOverriddenMember,
-                arguments.Arguments.Count,
-                argumentAnalysis.ArgsToParamsOpt,
-                arguments.RefKinds,
-                isMethodGroupConversion: false,
-                allowRefOmittedArguments);
-
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var result = IsApplicable(
-                member, leastOverriddenMember,
-                typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
+                member, leastOverriddenMemberConstructedFrom,
+                typeArguments, arguments, originalEffectiveParameters,
                 argumentAnalysis.ArgsToParamsOpt,
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: false,
@@ -3567,7 +3538,6 @@ outerDefault:
             ArrayBuilder<TypeWithAnnotations> typeArgumentsBuilder,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
-            EffectiveParameters constructedEffectiveParameters,
             ImmutableArray<int> argsToParamsMap,
             bool hasAnyRefOmittedArgument,
             bool inferWithDynamic,
@@ -3575,12 +3545,17 @@ outerDefault:
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
+            Debug.Assert(GetConstructedFrom(leastOverriddenMember) == (object)leastOverriddenMember);
+
             bool ignoreOpenTypes;
             MethodSymbol method;
-            EffectiveParameters effectiveParameters;
+            EffectiveParameters constructedEffectiveParameters;
             bool hasTypeArgumentsInferredFromFunctionType = false;
             if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
+                MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
+                ImmutableArray<TypeWithAnnotations> typeArguments;
+
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
                 {
                     // Spec 7.5.4: Compile-time checking of dynamic overload resolution:
@@ -3593,13 +3568,10 @@ outerDefault:
                     // We don't need to check constraints of types of the non-elided parameters since they 
                     // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
-                    effectiveParameters = constructedEffectiveParameters;
+                    typeArguments = method.TypeArgumentsWithAnnotations;
                 }
                 else
                 {
-                    MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
-
-                    ImmutableArray<TypeWithAnnotations> typeArguments;
                     if (typeArgumentsBuilder.Count > 0)
                     {
                         // generic type arguments explicitly specified at call-site:
@@ -3662,29 +3634,24 @@ outerDefault:
                         }
                     }
 
-                    // Types of constructed effective parameters might originate from a virtual/abstract method 
-                    // that the current "method" overrides. If the virtual/abstract method is generic we constructed it 
-                    // using the generic parameters of "method", so we can now substitute these type parameters 
-                    // in the constructed effective parameters.
-
-                    var map = new TypeMap(method.TypeParameters, typeArguments, allowAlpha: true);
-
-                    effectiveParameters = new EffectiveParameters(
-                        map.SubstituteTypes(constructedEffectiveParameters.ParameterTypes),
-                        constructedEffectiveParameters.ParameterRefKinds);
-
                     ignoreOpenTypes = false;
                 }
+
+                var map = new TypeMap(leastOverriddenMethod.TypeParameters, typeArguments, allowAlpha: true);
+
+                constructedEffectiveParameters = new EffectiveParameters(
+                    map.SubstituteTypes(originalEffectiveParameters.ParameterTypes),
+                    originalEffectiveParameters.ParameterRefKinds);
             }
             else
             {
-                effectiveParameters = constructedEffectiveParameters;
+                constructedEffectiveParameters = originalEffectiveParameters;
                 ignoreOpenTypes = false;
             }
 
             var applicableResult = IsApplicable(
                 member,
-                effectiveParameters,
+                constructedEffectiveParameters,
                 arguments,
                 argsToParamsMap,
                 isVararg: member.GetIsVararg(),
@@ -3830,7 +3797,10 @@ outerDefault:
                     }
 
                     bool hasInterpolatedStringRefMismatch = false;
-                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
+                    // We don't consider when we're in default parameter values or attribute arguments to avoid cycles. This is an error scenario,
+                    // so we don't care if we accidentally miss a parameter being applicable.
+                    if (!_binder.InParameterDefaultValue && !_binder.InAttributeArgument
+                        && argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
                         && parameterRefKind == RefKind.Ref
                         && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
                     {

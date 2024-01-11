@@ -1,13 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--
-        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
-        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
-
-        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
-    -->
-    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -21,6 +14,15 @@
     <IsPackable>true</IsPackable>
     <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
     <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
+
+    <!--
+        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
+        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
+
+        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
+    -->
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
+
     <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
     <!--
         Publish the platform specific executables before any of the pack related targets run.
@@ -64,6 +66,9 @@
 
     <!-- Not directly referenced but needed for Razor source generators -->
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+
+    <!-- Not directly referenced but needed for Route embedded language features -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,9 +79,8 @@
     <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformTranslationLayerVersion)" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
-    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
+    <PackageReference Include="NuGet.ProjectModel" Version="$(NuGetProjectModelVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
@@ -117,34 +121,6 @@
         <CopyToOutput>false</CopyToOutput>
         <BuildAction>None</BuildAction>
       </Content>
-    </ItemGroup>
-  </Target>
-
-  <!--
-    Deploy a net472 version of the BuildHost process.
-  -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net472</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-    </ItemGroup>
-
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)"
-             RemoveProperties="PackRuntimeIdentifier">
-      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

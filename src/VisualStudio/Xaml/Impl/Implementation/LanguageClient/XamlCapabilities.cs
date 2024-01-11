@@ -4,7 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             CompletionProvider = new CompletionOptions
             {
                 ResolveProvider = true,
-                TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" },
+                TriggerCharacters = ["<", " ", ":", ".", "=", "\"", "'", "{", ",", "("],
                 AllCommitCharacters = RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
             },
             HoverProvider = true,
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             DocumentFormattingProvider = true,
             DocumentRangeFormattingProvider = true,
             DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">" },
-            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/" } },
+            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["=", "/"] },
             TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.None,
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             },
             SupportsDiagnosticRequests = true,
             LinkedEditingRangeProvider = new LinkedEditingRangeOptions { },
-            ExecuteCommandProvider = new ExecuteCommandOptions { Commands = new[] { StringConstants.CreateEventHandlerCommand } },
+            ExecuteCommandProvider = new ExecuteCommandOptions { Commands = [StringConstants.CreateEventHandlerCommand] },
             DefinitionProvider = true,
         };
 

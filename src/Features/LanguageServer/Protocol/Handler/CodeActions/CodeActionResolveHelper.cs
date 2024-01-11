@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                     var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
                     var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
-                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = [edit] });
                 }
             }
 

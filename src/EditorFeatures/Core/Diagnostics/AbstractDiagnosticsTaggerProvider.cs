@@ -80,10 +80,10 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        using var taggers = TemporaryArray<ITagger<TTag>>.Empty;
+        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
         {
-            var innerTagger = taggerProvider.CreateTagger<TTag>(buffer);
+            var innerTagger = taggerProvider.CreateTagger(buffer);
             if (innerTagger != null)
                 taggers.Add(innerTagger);
         }

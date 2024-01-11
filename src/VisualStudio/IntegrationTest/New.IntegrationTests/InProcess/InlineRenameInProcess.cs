@@ -28,19 +28,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task ToggleIncludeCommentsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_C, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_C, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeStringsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_S, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_S, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeOverloadsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_O, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_O, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var testViewHost = await vsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
             var renameAdornmentLayer = testViewHost.TextView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
             var inlineRenameFlyout = (RenameFlyout)renameAdornmentLayer.Elements.Single().Adornment;
-            var actualStringInTextBox = inlineRenameFlyout.IdentifierTextBox.Text;
+            var actualStringInTextBox = inlineRenameFlyout.RenameUserInput.Text;
             Assert.Equal(expected, actualStringInTextBox);
         }
     }

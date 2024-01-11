@@ -1812,7 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (entryPoint is null)
                     {
-                        ImmutableBindingDiagnostic<AssemblySymbol> diagnostics;
+                        ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics;
                         var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
                         entryPoint = new EntryPoint(entryPointMethod, diagnostics);
                     }
@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var diagnostics = DiagnosticBag.GetInstance();
                         diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
                         entryPoint = new EntryPoint(entryPoint.MethodSymbol,
-                                                    new ImmutableBindingDiagnostic<AssemblySymbol>(
+                                                    new ReadOnlyBindingDiagnostic<AssemblySymbol>(
                                                         entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
                     }
                 }
@@ -1833,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
+        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ReadOnlyBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
             var diagnostics = BindingDiagnosticBag.GetInstance();
             RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
@@ -2176,11 +2176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class EntryPoint
         {
             public readonly MethodSymbol? MethodSymbol;
-            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
+            public readonly ReadOnlyBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public static readonly EntryPoint None = new EntryPoint(null, ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
+            public static readonly EntryPoint None = new EntryPoint(null, ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty);
 
-            public EntryPoint(MethodSymbol? methodSymbol, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+            public EntryPoint(MethodSymbol? methodSymbol, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.MethodSymbol = methodSymbol;
                 this.Diagnostics = diagnostics;
@@ -3103,7 +3103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
+        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
             UsingsFromOptions.Complete(this, cancellationToken);
 
@@ -3139,12 +3139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ImmutableBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+            ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
 
-            return new ImmutableBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
+            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
         }
 
-        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
+        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {
@@ -3164,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!_lazyClsComplianceDependencies.IsDefault);
             Debug.Assert(!_lazyClsComplianceDiagnostics.IsDefault);
-            return new ImmutableBindingDiagnostic<AssemblySymbol>(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies);
+            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies);
         }
 
         private static IEnumerable<Diagnostic> FilterDiagnosticsByLocation(IEnumerable<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? filterSpanWithinTree)

@@ -1193,15 +1193,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence;
             if (operatorKind == BinaryOperatorKind.Equal || operatorKind == BinaryOperatorKind.NotEqual)
             {
-                // tempx.HasValue ? tempX.GetValueOrDefault() == tempY.GetValueOrDefault() : true
-                consequence = RewriteConditionalOperator(
-                    syntax: syntax,
-                    rewrittenCondition: callX_HasValue,
-                    rewrittenConsequence: unliftedOp,
-                    rewrittenAlternative: MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType),
-                    constantValueOpt: null,
-                    rewrittenType: boolType,
-                    isRef: false);
+                // If one operand is known to be non-null, we would get `x.HasValue ? (x.HasValue ? x.GVOD() OP y.GVOD() : true) : false`.
+                // Hence, we don't need the nested conditional, only its consequence.
+                if (xNonNull != null || yNonNull != null)
+                {
+                    consequence = unliftedOp;
+                }
+                else
+                {
+                    // tempx.HasValue ? tempX.GetValueOrDefault() == tempY.GetValueOrDefault() : true
+                    consequence = RewriteConditionalOperator(
+                        syntax: syntax,
+                        rewrittenCondition: callX_HasValue,
+                        rewrittenConsequence: unliftedOp,
+                        rewrittenAlternative: MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType),
+                        constantValueOpt: null,
+                        rewrittenType: boolType,
+                        isRef: false);
+                }
             }
             else
             {
