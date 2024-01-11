@@ -11225,17 +11225,14 @@ namespace System
                     }
                 }
                 """;
+
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
-                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         List<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
-                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
         }
 
         [Fact]
@@ -11256,9 +11253,9 @@ namespace System
                     {
                         S<object?> x = [1];
                         x[0].ToString(); // 1
-                        S<object> y = [null]; // 2
+                        S<object> y = [null];
                         y[0].ToString();
-                        y = [2, null]; // 3
+                        y = [2, null];
                         y[1].ToString();
                     }
                 }
@@ -11267,13 +11264,7 @@ namespace System
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9),
-                // (15,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         S<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 24),
-                // (17,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9));
         }
 
         [Fact]
@@ -26531,6 +26522,36 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_ArrayCollection_InferredLocal()
+        {
+            string src = """
+                #nullable enable
+                var x1 = M1();
+                x1 = [null]; // 1
+
+                var x2 = M2();
+                x2 = [null];
+
+                var x3 = M3();
+                x3 = [null];
+
+                string[] M1() => throw null!;
+                string?[] M2() => throw null!;
+
+                #nullable disable
+                string[]
+                #nullable enable
+                    M3() => throw null!;
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // x1 = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 7)
+                );
+        }
+
+        [Fact]
         public void ElementNullability_ArrayCollection_Nested()
         {
             string src = """
@@ -26569,15 +26590,9 @@ partial class Program
                 // (2,13): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int[] x1 = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 13),
-                // (2,13): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                // int[] x1 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 13),
                 // (8,11): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     x3 = [null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 11),
-                // (8,11): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                //     x3 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(8, 11)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 11)
                 );
         }
 
@@ -26815,13 +26830,13 @@ partial class Program
                 using System.Runtime.CompilerServices;
 
                 #nullable enable
-                MyCollection<string?> x1 = [null];
-                MyCollection<string> x2 = [null];
+                MyCollection<string?> x1 = [null]; // 1
+                MyCollection<string> x2 = [null]; // 2
 
                 #nullable disable
                 MyCollection<string>
                 #nullable enable
-                    x3 = [null];
+                    x3 = [null]; // 3
 
                 [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
                 public struct MyCollection<T> : IEnumerable<T>
@@ -26841,18 +26856,15 @@ partial class Program
                 }
                 """;
 
-            // Note: we warn on x3 because the of type substitution rules for oblivious type argument
-            //   into Create method with MyCollection<T!> return type
+            // We're missing diagnostics for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                // MyCollection<string?> x1 = [null];
+                // MyCollection<string?> x1 = [null]; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // MyCollection<string> x2 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28),
-                // (13,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     x3 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 11)
+                // MyCollection<string> x2 = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
                 );
         }
 
@@ -26895,12 +26907,15 @@ partial class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 // MyCollection<string?> x1 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
                 );
         }
 
         [Fact]
-        public void ElementNullability_CollectionBuilderCollection_InInference()
+        public void ElementNullability_Inference_CollectionBuilderCollection()
         {
             string src = """
                 using System;
@@ -26936,16 +26951,66 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
-            Assert.Equal("""M("hi", [null])""", invocations[0].ToString());
-            Assert.Equal("void M<System.String>(System.String t, MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
-
-            Assert.Equal("M((string?)null, [null])", invocations[1].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_NullableValueType()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                M("hi", [null]);
+                M((string?)null, [null]);
+                M((string?)null, null);
+
+                void M<T>(T t, MyCollection<T>? mc) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, null)");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -26984,20 +27049,21 @@ partial class Program
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/68786: missing diagnostics
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,7): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 7)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-
-            Assert.Equal("M(ref notNull, [null])", invocations[0].ToString());
-            Assert.Equal("void M<System.String!>(ref System.String! t, MyCollection<System.String!> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
-
-            Assert.Equal("M(ref maybeNull, [null])", invocations[1].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
             Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref maybeNull, [null])");
+            Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -27045,12 +27111,15 @@ partial class Program
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/68786: Missing diagnostic for 1
-            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,12): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // notNull = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 12)
+                );
         }
 
         [Fact]
-        public void ElementNullability_CollectionBuilderCollection_InInference_SingleParameter()
+        public void ElementNullability_Inference_CollectionBuilderCollection_SingleParameter()
         {
             string src = """
                 using System;
@@ -27086,20 +27155,18 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
-            Assert.Equal("M([(string?)null])", invocations[0].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([(string?)null])");
+            Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi"])""", invocations[1].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi"])""");
+            Assert.Equal("void M<System.String!>(MyCollection<System.String!> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi", null])""", invocations[2].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi", null])""");
+            Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -27152,6 +27219,144 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_NullReturningCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+                string notNull = "";
+
+                M(ref maybeNull, [maybeNull]); // 1
+                M(ref notNull, [maybeNull]); // 2
+                M(ref maybeNull, [notNull]); // 3
+
+                void M<T>(ref T t, MyCollection<T> c) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T>? Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (10,18): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref maybeNull, [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[maybeNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(10, 18),
+                // (11,7): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(11, 7),
+                // (11,16): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[maybeNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(11, 16),
+                // (12,18): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref maybeNull, [notNull]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[notNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_ConstrainedCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+
+                M(ref maybeNull, [maybeNull]).ToString();
+
+                T M<T>(ref T t, MyCollection<T> c) => throw null!;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,1): warning CS8602: Dereference of a possibly null reference.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_ConstrainedCreate_NullableValueType()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+
+                M(ref maybeNull, [maybeNull]).ToString();
+
+                T M<T>(ref T t, MyCollection<T>? c) => throw null!;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,1): warning CS8602: Dereference of a possibly null reference.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+        }
+
+        [Fact]
         public void ElementNullability_CollectionBuilderCollection_NullReturningCreate_WithAttribute()
         {
             string src = """
@@ -27196,14 +27401,14 @@ partial class Program
         }
 
         [Fact]
-        public void ElementNullability_CollectionInitializerCollection()
+        public void ElementNullability_IEnumerableCollection()
         {
             string src = """
                 using System.Collections;
 
                 #nullable enable
 
-                CNotNull x1 = [null]; // 1
+                CNotNull x1 = [null];
                 CNullable x2 = [null];
                 COblivious x3 = [null];
 
@@ -27230,11 +27435,255 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(src).VerifyEmitDiagnostics(
-                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // CNotNull x1 = [null]; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16)
-                );
+            // We don't analyze the Add methods
+            CreateCompilation(src).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableCollection_AnalyzeAddMethods_Constraints()
+        {
+            string source = """
+                using System.Collections;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(new C(), [maybeNull]);
+                C c1 = [maybeNull];
+
+                M(new C(), [notNull]);
+                C c2 = [notNull];
+
+                void M<T>(T t1, T t2) { }
+
+                class C : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add<T>(T t) where T : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // Should we also produce W-warnings on `M(CreateAnnotated(notNull), [maybeNull])` and `M(CreateUnannotated(notNull), [maybeNull])`?
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods_Constraints()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(new C(), [maybeNull]);
+                C c1 = [maybeNull];
+
+                M(new C(), [notNull]);
+                C c2 = [notNull];
+
+                void M<T>(T t1, T t2) { }
+
+                class C : IEnumerable<object?>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<object?> IEnumerable<object?>.GetEnumerator() => throw null!;
+                    public void Add<T>(T t) where T : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_IEnumerableTCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object notNull = new object();
+
+                CAnnotated<object> c1 = [maybeNull]; // 1
+                CAnnotated<object?> c2 = [maybeNull];
+
+                CAnnotated<object> c3 = [notNull];
+                CAnnotated<object?> c4 = [notNull];
+
+                CUnannotated<object> c5 = [maybeNull]; // 2
+                CUnannotated<object?> c6 = [maybeNull];
+
+                CUnannotated<object> c7 = [notNull];
+                CUnannotated<object?> c8 = [notNull];
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // We should produce W-warnings on `c1` and `c5` for implicit conversion from the element to the iteration type.
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods_GenericWithNotNullConstraint()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add<U>(U u) where U : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -27269,15 +27718,10 @@ partial class Program
                 int y = null;
                 """;
 
-            // Note: the nullability diagnostic is superfluous and results from the bound tree
-            //   not containing element conversions in the error case.
             CreateCompilation(src).VerifyEmitDiagnostics(
                 // (2,12): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int[] x = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 12),
-                // (2,12): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                // int[] x = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 12),
                 // (3,9): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int y = null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(3, 9)
@@ -27297,6 +27741,1060 @@ partial class Program
                 // (3,15): warning CS8602: Dereference of a possibly null reference.
                 // string[] x = [o.ToString()];
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_MaybeNullElement()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string element = null; // 1
+                var collection = IdList([element]);
+                collection[0].ToString(); // 2
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 18),
+                // (6,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(6, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            Assert.Equal("[element]", collection.ToFullString());
+            var collectionConversion = model.GetConversion(collection);
+            Assert.True(collectionConversion.IsValid);
+            Assert.True(collectionConversion.IsCollectionExpression);
+
+            var element = collection.Elements.Single();
+            Assert.Equal("element", element.ToFullString());
+            var elementConversion = model.GetConversion(element);
+            Assert.True(elementConversion.IsValid);
+            Assert.True(elementConversion.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_NotNullElement()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string? element = "";
+                var collection = IdList([element]);
+                collection[0].ToString();
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String> IdList<System.String>(System.Collections.Generic.List<System.String> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string element1 = null; // 1
+                string element2 = "hi";
+                var collection = IdList([element1, element2]);
+                collection[0].ToString(); // 2
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 19),
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentTypes()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string? element1 = null;
+                object element2 = "hi";
+                var collection = IdList([element1, element2]);
+                collection[0].ToString(); // 1
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentTypes_ExplicitConversions()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                object? element1 = (string?)null;
+                object element2 = "hi";
+                var collection = IdList([(string?)element1, element2]);
+                collection[0].ToString(); // 1
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([(string?)element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("(string?)element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentGenericTypes()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                var element1 = new Container<string?>();
+                var element2 = new Container<string>();
+                var collection = IdList([element1, element2]); // 1
+                collection[0].Element.ToString();
+
+                List<T> IdList<T>(List<T> l) => l;
+
+                public class Container<T>
+                {
+                    public T Element = default!;
+                }
+                """;
+
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<Container<System.String>> IdList<Container<System.String>>(System.Collections.Generic.List<Container<System.String>> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull, ""]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, T[] a) { }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull, ""]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [maybeNull])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [notNull, ""])""");
+            Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]! a)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [maybeNull, ""])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [notNull, maybeNull, ""])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_ExplicitCast()
+        {
+            string src = """
+                #nullable enable
+                string element1 = null; // 1
+                string element2 = "hi";
+                var collection = IdList((string[])[element1, element2]); // 2
+                collection[0].ToString();
+
+                var collection2 = IdList([element1, element2]);
+                collection2[0].ToString(); // 3
+
+                T[] IdList<T>(T[] l) => l;
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(2, 19),
+                // (4,36): warning CS8601: Possible null reference assignment.
+                // var collection = IdList((string[])[element1, element2]); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "element1").WithLocation(4, 36),
+                // (8,1): warning CS8602: Dereference of a possibly null reference.
+                // collection2[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection2[0]").WithLocation(8, 1)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Nested()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [[null]]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull]]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[notNull, ""]]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull, ""]]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [[notNull, maybeNull, ""]]);
+                    }
+                    void M<T>(ref T t, T[][] a) { }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[null]]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[maybeNull]]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[maybeNull, ""]]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[null]])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[maybeNull]])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[notNull, ""]])""");
+            Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]![]! a)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[maybeNull, ""]])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [[notNull, maybeNull, ""]])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_WithNotNullConstraint()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [null]); // 1, 2
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 3, 4
+                    }
+                    void M3(string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]); // 5
+                    }
+                    void M<T>(ref T t, T[] a) where T : notnull { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref notNull, [null]); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(6, 9),
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1, 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref notNull, [maybeNull]); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(10, 9),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 3, 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref maybeNull, [notNull, maybeNull, ""]); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method([() => s]).ToString(); // 1
+                        if (s is null) return;
+                        Method([() => s]).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", [() => s]).ToString();
+                        Method2(s = null, [() => s]).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method([Method3(s = null), () => s.ToString()]); // 3
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    U Method2<T, U>(T t, System.Func<U>[] a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method([() => s]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method([() => s])").WithLocation(6, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method2(s = null, [() => s]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method2(s = null, [() => s])").WithLocation(13, 9),
+                // (18,42): warning CS8602: Dereference of a possibly null reference.
+                //         Method([Method3(s = null), () => s.ToString()]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 42)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_WithConditional()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        bool b = true;
+                        Method([b ? (() => s) : (() => s)]).ToString(); // 1
+                        Method2(b ? (() => s) : (() => s)).ToString(); // 2
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    T Method2<T>(System.Func<T> a) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Method<T>(Func<T>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method([b ? (() => s) : (() => s)]).ToString(); // 1
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Method2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method2(b ? (() => s) : (() => s)).ToString(); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method2").WithArguments("C.Method2<T>(System.Func<T>)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_WithSwitch()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        bool b = true;
+                        Method([b switch { true => () => s, _ => () => s }]).ToString(); // 1
+                        Method2(b switch { true => () => s, _ => () => s }).ToString(); // 2
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    T Method2<T>(System.Func<T> a) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Method<T>(Func<T>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method([b switch { true => () => s, _ => () => s }]).ToString(); // 1
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Method2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method2(b switch { true => () => s, _ => () => s }).ToString(); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method2").WithArguments("C.Method2<T>(System.Func<T>)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleElementNullability_Inference_Lambda()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method((42, () => s)).ToString(); // 1
+                        if (s is null) return;
+                        Method((42, () => s)).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", (42, () => s)).ToString();
+                        Method2(s = null, (42, () => s)).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method((Method3(s = null), () => s.ToString())); // 3
+                        Method((Method3(s = ""), () => s.ToString()));
+                    }
+
+                    T Method<T>((int, System.Func<T>) a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>) a) => throw null!;
+                    int Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,42): warning CS8602: Dereference of a possibly null reference.
+                //         Method((Method3(s = null), () => s.ToString())); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 42)
+                );
+
+            string src2 = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method(42, () => s).ToString(); // 1
+                        if (s is null) return;
+                        Method(42, () => s).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", 42, () => s).ToString();
+                        Method2(s = null, 42, () => s).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method(Method3(s = null), () => s.ToString()); // 3
+                        Method(Method3(s = ""), () => s.ToString());
+                    }
+
+                    T Method<T>(int a, System.Func<T> b) => throw null!;
+                    U Method2<T, U>(T t, int a, System.Func<U> b) => throw null!;
+                    int Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src2, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method(42, () => s).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method(42, () => s)").WithLocation(6, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method2(s = null, 42, () => s).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method2(s = null, 42, () => s)").WithLocation(13, 9),
+                // (18,41): warning CS8602: Dereference of a possibly null reference.
+                //         Method(Method3(s = null), () => s.ToString()); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 41)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_ContainingTuples()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method([(42, () => s)]).ToString(); // 1
+                        if (s is null) return;
+                        Method([(42, () => s)]).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", [(42, () => s)]).ToString();
+                        Method2(s = null, [(42, () => s)]).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method([(42, Method3(s = null)), (42, () => s.ToString())]); // 3
+                    }
+
+                    T Method<T>((int, System.Func<T>)[] a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>)[] a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,53): warning CS8602: Dereference of a possibly null reference.
+                //         Method([(42, Method3(s = null)), (42, () => s.ToString())]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 53)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_InsideTuples()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method((42, [() => s])).ToString(); // 1
+                        if (s is null) return;
+                        Method((42, [() => s])).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", (42, [() => s])).ToString();
+                        Method2(s = null, (42, [() => s])).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method((42, [Method3(s = null), () => s.ToString()])); // 3
+                    }
+
+                    T Method<T>((int, System.Func<T>[]) a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>[]) a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,47): warning CS8602: Dereference of a possibly null reference.
+                //         Method((42, [Method3(s = null), () => s.ToString()])); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 47)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_Constraint()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M([() => notNull]).ToString();
+                    }
+                    void M2(string? maybeNull)
+                    {
+                        M([() => maybeNull]).ToString(); // 1, 2, 3
+                    }
+                    T M<T>(System.Func<T>[] a) where T : notnull => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (10,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(Func<T>[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(System.Func<T>[])", "T", "string?").WithLocation(10, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M([() => maybeNull])").WithLocation(10, 9),
+                // (10,12): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "() =>").WithArguments("lambda expression", "System.Func<string?>").WithLocation(10, 12)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Chained()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull)
+                    {
+                        var result = M([Copy(maybeNull, out var maybeNull2), maybeNull2]);
+                        result.ToString();
+                    }
+                    void M2(string? maybeNull)
+                    {
+                        M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()]);
+                    }
+                    T M<T>(T[] a) => throw null!;
+                    object Copy<T>(T t, out T t2) => throw null!;
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         result.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "result").WithLocation(7, 9),
+                // (11,49): warning CS8602: Dereference of a possibly null reference.
+                //         M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()]);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "maybeNull2").WithLocation(11, 49)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2])");
+            Assert.Equal("System.Object? C.M<System.Object?>(System.Object?[]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])");
+            Assert.Equal("System.Object! C.M<System.Object!>(System.Object![]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ImmutableArrayCollection()
+        {
+            string src = """
+                using System.Collections.Immutable;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, ImmutableArray<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ImmutableArrayCollection_NestedInArray()
+        {
+            string src = """
+                using System.Collections.Immutable;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[null]]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull]]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[notNull, ""]]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [[notNull, maybeNull, ""]]);
+                    }
+                    void M<T>(ref T t, ImmutableArray<T>[] a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Theory, CombinatorialData]
+        public void ElementNullability_Inference_SpanCollection([CombinatorialValues("Span", "ReadOnlySpan")] string spanType)
+        {
+            string src = $$"""
+                using System;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, {{spanType}}<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ListCollection()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]).ToString(); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]).ToString(); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]).ToString();
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]).ToString(); // 3
+                    }
+                    T M<T>(ref T t, List<T> a) => throw null!;
+                }
+                """;
+
+            // The diagnostics on `notNull` are a bit unclear, but they match the behavior
+            // for non-collection expression scenarios (see below).
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref notNull, [null]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref notNull, [null])").WithLocation(8, 9),
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref notNull, [maybeNull]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref notNull, [maybeNull])").WithLocation(12, 9),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref maybeNull, [notNull, maybeNull, ""]).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"M(ref maybeNull, [notNull, maybeNull, """"])").WithLocation(20, 9));
+
+            src = """
+                #nullable enable
+                public class C
+                {
+                    void MA(string? maybeNull, string notNull)
+                    {
+                        M1(ref notNull, null).ToString(); // 1
+                    }
+                    void MB(string? maybeNull, string notNull)
+                    {
+                        M1(ref notNull, maybeNull).ToString(); // 2
+                    }
+                    void MC(string? maybeNull, string notNull)
+                    {
+                        M2(ref notNull, notNull, "").ToString();
+                    }
+                    void MD(string? maybeNull, string notNull)
+                    {
+                        M3(ref maybeNull, notNull, maybeNull, "").ToString(); // 3
+                    }
+                    T M1<T>(ref T t, T a) => throw null!;
+                    T M2<T>(ref T t, T a, T b) => throw null!;
+                    T M3<T>(ref T t, T a, T b, T c) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         M1(ref notNull, null).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(ref notNull, null)").WithLocation(6, 9),
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M1(ref notNull, null).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 16),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         M1(ref notNull, maybeNull).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(ref notNull, maybeNull)").WithLocation(10, 9),
+                // (10,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M1(ref notNull, maybeNull).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 16),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         M3(ref maybeNull, notNull, maybeNull, "").ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"M3(ref maybeNull, notNull, maybeNull, """")").WithLocation(18, 9));
+        }
+
+        [Theory]
+        [InlineData("System.Collections.Generic.IEnumerable")]
+        [InlineData("System.Collections.Generic.IReadOnlyCollection")]
+        [InlineData("System.Collections.Generic.IReadOnlyList")]
+        [InlineData("System.Collections.Generic.ICollection")]
+        [InlineData("System.Collections.Generic.IList")]
+        public void ElementNullability_Inference_InterfaceCollection(string interfaceType)
+        {
+            string src = $$"""
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, {{interfaceType}}<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_BadCall()
+        {
+            // This scenario illustrates a limitation in `NullableWalker.VisitArguments`.
+            // We expect that every target-typed expression with a pending completion
+            // should be able to be completed.
+            // However, in this case, the nullable walker's logic for finding the corresponding
+            // parameter type (ie. target-type for the conversion) lags behind the one we use
+            // in the binder (`Binder.BuildArgumentsForErrorRecovery`).
+            string src = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual([0, 1]);
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,9): error CS1929: 'Span<byte>' does not contain a definition for 'SequenceEqual' and the best extension method overload 'MemoryExtensions.SequenceEqual<int>(ReadOnlySpan<int>, ReadOnlySpan<int>)' requires a receiver of type 'System.ReadOnlySpan<int>'
+                //         a.AsSpan().SequenceEqual([0, 1]);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a.AsSpan()").WithArguments("System.Span<byte>", "SequenceEqual", "System.MemoryExtensions.SequenceEqual<int>(System.ReadOnlySpan<int>, System.ReadOnlySpan<int>)", "System.ReadOnlySpan<int>").WithLocation(9, 9)
                 );
         }
 
