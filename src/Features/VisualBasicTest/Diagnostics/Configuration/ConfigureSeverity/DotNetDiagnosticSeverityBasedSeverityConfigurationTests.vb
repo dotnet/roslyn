@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
     Partial Public MustInherit Class DotNetDiagnosticSeverityBasedSeverityConfigurationTests
-        Inherits AbstractSuppressionDiagnosticTest
+        Inherits AbstractSuppressionDiagnosticTest_NoEditor
 
         Private NotInheritable Class CustomDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer

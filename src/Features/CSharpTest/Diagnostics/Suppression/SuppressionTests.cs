@@ -30,7 +30,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
-    public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -756,7 +756,7 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(EditorTestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
@@ -998,7 +998,7 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(EditorTestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;

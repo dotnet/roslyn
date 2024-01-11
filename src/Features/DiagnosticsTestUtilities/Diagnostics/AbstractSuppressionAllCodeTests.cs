@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagnostic>
     {
-        protected abstract EditorTestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
+        protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
 
         internal abstract Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

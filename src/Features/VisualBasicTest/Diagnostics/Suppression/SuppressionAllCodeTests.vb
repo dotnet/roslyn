@@ -16,12 +16,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public Class VisualBasicSuppressionAllCodeTests
         Inherits AbstractSuppressionAllCodeTests
 
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = FeaturesTestCompositions.Features _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService)) _
+            .AddAssemblies(GetType(DiagnosticService).Assembly)
 
-        Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions) As EditorTestWorkspace
-            Return EditorTestWorkspace.CreateVisualBasic(definition, DirectCast(parseOptions, VisualBasicParseOptions), composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+        Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(definition, DirectCast(parseOptions, VisualBasicParseOptions), composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, IConfigurationFixProvider)

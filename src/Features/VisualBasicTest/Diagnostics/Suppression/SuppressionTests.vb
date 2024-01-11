@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppression
     Public MustInherit Class VisualBasicSuppressionTests
-        Inherits AbstractSuppressionDiagnosticTest
+        Inherits AbstractSuppressionDiagnosticTest_NoEditor
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script

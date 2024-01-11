@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle
 {
-    public abstract partial class MultipleCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class MultipleCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         protected abstract int OptionIndex { get; }
 

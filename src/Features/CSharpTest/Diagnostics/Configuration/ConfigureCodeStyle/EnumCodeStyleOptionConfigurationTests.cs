@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle
 {
-    public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 

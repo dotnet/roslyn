@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
-    public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         #region "Fix all occurrences tests"
 

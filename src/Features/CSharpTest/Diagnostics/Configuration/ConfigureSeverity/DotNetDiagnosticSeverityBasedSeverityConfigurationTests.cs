@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
 {
-    public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
     {
         private sealed class CustomDiagnosticAnalyzer : DiagnosticAnalyzer
         {
