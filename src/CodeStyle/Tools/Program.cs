@@ -70,7 +70,7 @@ namespace CodeStyleConfigFileGenerator
             {
                 CreateGlobalconfig(
                     configDir,
-                    $"AnalysisLevelStyle_{analysisMode}.editorconfig".ToLowerInvariant(),
+                    $"AnalysisLevelStyle_{analysisMode}.globalconfig".ToLowerInvariant(),
                     (AnalysisMode)analysisMode!,
                     allRulesById);
             }
@@ -251,7 +251,7 @@ $@"<Project>{GetTargetContents(language)}
                           <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == 'AllDisabledByDefault'">{nameof(AnalysisMode.None)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
                           <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">{nameof(AnalysisMode.Default)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
 
-                          <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).editorconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).globalconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
                           <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle.ToLowerInvariant())</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
 
                           <_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">$(MSBuildThisFileDirectory)config</_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle>
@@ -260,7 +260,7 @@ $@"<Project>{GetTargetContents(language)}
 
                         <!-- From .NET 9, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
                         <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
-                                               ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)' or $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '9.0')))">
+                                               ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)' or ('$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '9.0'))))">
                           <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
                         </ItemGroup>
 

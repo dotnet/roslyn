@@ -294,10 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             // The initializer can't be inlined if it's an actual lambda/method reference.
             // These cannot be invoked with `?.` (only delegate *values* can be).
             var initializer = declarator.Initializer.Value.WalkDownParentheses();
-            if (initializer.IsAnyLambdaOrAnonymousMethod())
-            {
+            if (initializer is AnonymousFunctionExpressionSyntax)
                 return false;
-            }
 
             var initializerSymbol = semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol();
             if (initializerSymbol is IMethodSymbol)

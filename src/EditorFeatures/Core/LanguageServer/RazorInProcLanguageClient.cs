@@ -16,8 +16,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 vsServerCapabilities.SupportsDiagnosticRequests = true;
                 vsServerCapabilities.SpellCheckingProvider = true;
                 vsServerCapabilities.Experimental ??= new Dictionary<string, bool>();
+                vsServerCapabilities.MapCodeProvider = true;
                 var experimental = (Dictionary<string, bool>)vsServerCapabilities.Experimental;
                 experimental[SimplifyMethodHandler.SimplifyMethodMethodName] = true;
                 experimental[FormatNewFileHandler.FormatNewFileMethodName] = true;
                 experimental[SemanticTokensRangesHandler.SemanticRangesMethodName] = true;
-                experimental[MapCodeHandler.WorkspaceMapCodeName] = true;
 
                 var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
                 var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));

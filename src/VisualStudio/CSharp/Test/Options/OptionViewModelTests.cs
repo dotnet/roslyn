@@ -51,7 +51,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestCheckBox()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
             var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestOptionLoading()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var optionStore = new OptionStore(workspace.GlobalOptions);
             workspace.GlobalOptions.SetGlobalOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, true);
 
@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestOptionSaving()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
             var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);

@@ -6856,6 +6856,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
     <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
   </data>
+  <data name="ERR_CollectionExpressionTargetNoElementType" xml:space="preserve">
+    <value>Collection expression target '{0}' has no element type.</value>
+  </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
   </data>

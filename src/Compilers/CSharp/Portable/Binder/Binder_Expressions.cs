@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
                         }
-                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), inConversion: false, diagnostics);
                     }
                     break;
                 default:
@@ -2761,12 +2761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionExpression:
                     {
-                        if (operand.Type is null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
-                            return;
-                        }
-                        break;
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
+                        return;
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
@@ -6857,7 +6853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
-                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType);
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false), boundType, typeDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false)), leftType);
                             }
 
                             typeDiagnostics.Free();
@@ -9738,7 +9734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            var sealedDiagnostics = ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);

@@ -14,14 +14,26 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 {
     [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-    public class BasicEditAndContinue : AbstractEditorTest
+    public abstract class BasicEditAndContinue(string projectTemplate)
+        : AbstractEditorTest()
     {
-        private const string module1FileName = "Module1.vb";
-
-        public BasicEditAndContinue()
-            : base()
+#if false // https://github.com/dotnet/roslyn/issues/70938
+        public class LegacyProject()
+            : BasicEditAndContinue(WellKnownProjectTemplates.ConsoleApplication)
         {
+            protected override string FileName => "Module1.vb";
         }
+#endif
+
+        public class CommonProjectSystem()
+            : BasicEditAndContinue(WellKnownProjectTemplates.VisualBasicNetCoreConsoleApplication)
+        {
+            protected override string FileName => "Program.vb";
+        }
+
+        protected abstract string FileName { get; }
+
+        private readonly string _projectTemplate = projectTemplate;
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
@@ -30,7 +42,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
             await base.InitializeAsync();
 
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicEditAndContinue), HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -55,7 +67,7 @@ End Module
 ", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "names(0)", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "names(0)", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("names(0)", "names(1)", HangMitigatingCancellationToken);
@@ -81,7 +93,7 @@ Module Module1
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "Console.WriteLine(1)", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Console.WriteLine(1)", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("Console.WriteLine(1)",
@@ -109,7 +121,7 @@ Module Module1
 End Module", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "x * x", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "x * x", charsOffset: -1, HangMitigatingCancellationToken);
 
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
@@ -166,7 +178,7 @@ End Module", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "Dim x", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Dim x", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Debugger.ExecuteStatementAsync("Module1.Main()", HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("x = 4", "x = 42", HangMitigatingCancellationToken);
             await TestServices.Debugger.StepOverAsync(waitForBreakOrEnd: true, HangMitigatingCancellationToken);
@@ -197,7 +209,7 @@ End Class
 ", cancellationToken);
 
             await TestServices.SolutionExplorer.AddProjectReferenceAsync(ProjectName, basicLibrary, cancellationToken);
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, module1FileName, cancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, FileName, cancellationToken);
 
             await TestServices.Editor.SetTextAsync(@"
 Imports System
@@ -218,7 +230,7 @@ End Module
         public async Task MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             await SetupMultiProjectSolutionAsync(HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "PrintX", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "PrintX", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("5", "42", HangMitigatingCancellationToken);
@@ -251,7 +263,7 @@ Module Module1
 End Module
 ", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "End Sub", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "End Sub", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("Dim goo As String = \"abc\"", "Dim goo As Single = 10", HangMitigatingCancellationToken);
@@ -283,11 +295,11 @@ Module Module1
 End Module
 ", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "Function bar(ByVal moo As Long) As Decimal", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Function bar(ByVal moo As Long) As Decimal", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.ReplaceTextAsync("Dim lLng As Long = 5", "Dim lLng As Long = 444", HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync(module1FileName, "Return 4", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "Return 4", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
 
             Assert.Equal(("Decimal", "0"), await TestServices.LocalsWindow.GetEntryAsync(["bar"], HangMitigatingCancellationToken));

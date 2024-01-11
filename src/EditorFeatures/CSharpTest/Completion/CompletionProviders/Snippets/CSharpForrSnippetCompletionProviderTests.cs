@@ -522,5 +522,133 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("byte")]
+        [InlineData("sbyte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public async Task InsertInlineForrSnippetWhenDottingBeforeContextualKeywordTest1(string intType)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M({{intType}} @int)
+                    {
+                        @int.$$
+                        var a = 0;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M({{intType}} @int)
+                    {
+                        for ({{intType}} i = @int - 1; i >= 0; i--)
+                        {
+                            $$
+                        }
+                        var a = 0;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("byte")]
+        [InlineData("sbyte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public async Task InsertInlineForrSnippetWhenDottingBeforeContextualKeywordTest2(string intType)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M({{intType}} @int, Task t)
+                    {
+                        @int.$$
+                        await t;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M({{intType}} @int, Task t)
+                    {
+                        for ({{intType}} i = @int - 1; i >= 0; i--)
+                        {
+                            $$
+                        }
+                        await t;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("Task")]
+        [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
+        public async Task InsertInlineForrSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int @int)
+                    {
+                        @int.$$
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int @int)
+                    {
+                        for (int i = @int - 1; i >= 0; i--)
+                        {
+                            $$
+                        }
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

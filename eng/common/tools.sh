@@ -112,7 +112,7 @@ function InitializeDotNetCli {
   export DOTNET_MULTILEVEL_LOOKUP=0
 
   # Disable first run since we want to control all package sources
-  export DOTNET_NOLOGO=1
+  export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
   # Disable telemetry on CI
   if [[ $ci == true ]]; then
@@ -165,7 +165,7 @@ function InitializeDotNetCli {
   Write-PipelinePrependPath -path "$dotnet_root"
 
   Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
-  Write-PipelineSetVariable -name "DOTNET_NOLOGO" -value "1"
+  Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
   # return value
   _InitializeDotNetCli="$dotnet_root"
@@ -310,7 +310,7 @@ function GetDotNetInstallScript {
       curl "$install_script_url" -sSL --retry 10 --create-dirs -o "$install_script" || {
         if command -v openssl &> /dev/null; then
           echo "Curl failed; dumping some information about dotnet.microsoft.com for later investigation"
-          echo | openssl s_client -showcerts -servername dotnet.microsoft.com  -connect dotnet.microsoft.com:443 || true
+          echo | openssl s_client -showcerts -servername dotnet.microsoft.com  -connect dotnet.microsoft.com:443
         fi
         echo "Will now retry the same URL with verbose logging."
         with_retries curl "$install_script_url" -sSL --verbose --retry 10 --create-dirs -o "$install_script" || {

@@ -722,13 +722,13 @@ class C
             VerifyTabs(code, expected);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
-            => TestWorkspace.CreateCSharp(initialMarkup);
+        protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+            => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
         protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
             => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
     }
 }

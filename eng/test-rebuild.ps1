@@ -6,6 +6,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,
+  [switch]$prepareMachine = $false,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$noBuild = $false,
   [switch]$help)
@@ -33,7 +34,7 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
   Subst-TempDir

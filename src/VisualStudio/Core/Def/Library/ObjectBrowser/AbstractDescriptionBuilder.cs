@@ -88,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         protected void AddTypeLink(ITypeSymbol typeSymbol, LinkFlags flags)
         {
-            if (typeSymbol.TypeKind == TypeKind.Unknown ||
-                typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.TypeParameter ||
+            if (typeSymbol.TypeKind is TypeKind.Unknown or TypeKind.Error or TypeKind.TypeParameter ||
                 typeSymbol.SpecialType == SpecialType.System_Void)
             {
                 AddName(typeSymbol.ToDisplayString(s_typeDisplay));
@@ -445,9 +443,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private static bool ShowReturnsDocumentation(ISymbol symbol)
         {
-            return (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).TypeKind == TypeKind.Delegate)
-                || symbol.Kind == SymbolKind.Method
-                || symbol.Kind == SymbolKind.Property;
+            return symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
+                || symbol.Kind is SymbolKind.Method or SymbolKind.Property;
         }
 
         private static bool ShowValueDocumentation(ISymbol symbol)

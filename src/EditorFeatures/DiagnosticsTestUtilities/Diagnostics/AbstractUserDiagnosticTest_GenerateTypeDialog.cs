@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -60,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool isCancelled = false)
         {
             using var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial, composition: s_composition)
+                ? EditorTestWorkspace.Create(initial, composition: s_composition)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial, composition: s_composition)
-                  : TestWorkspace.CreateVisualBasic(initial, composition: s_composition);
+                  ? EditorTestWorkspace.CreateCSharp(initial, composition: s_composition)
+                  : EditorTestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
             var testOptions = new TestParameters();
             var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);

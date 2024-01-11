@@ -568,7 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
-                return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                Debug.Assert(conversion.Kind is ConversionKind.NoConversion);
+                return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
             var syntax = (ExpressionSyntax)node.Syntax;
@@ -613,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (collectionBuilderMethod is null)
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
-                            return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                            return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
                         Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
@@ -636,12 +637,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     if (targetType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
                     {
                         diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, targetType.OriginalDefinition);
-                        return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
                     break;
             }
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableT or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 if (targetType is NamedTypeSymbol namedType)
@@ -722,7 +722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             elementConversion,
                             isCast: false,
                             conversionGroupOpt: null,
-                            wasCompilerGenerated: true,
                             destination: elementType,
                             diagnostics);
                     builder.Add(convertedElement!);
@@ -737,6 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
+                wasTargetTyped: true,
                 builder.ToImmutableAndFree(),
                 targetType);
 
@@ -753,7 +753,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementConversion,
                     isCast: false,
                     conversionGroupOpt: null,
-                    wasCompilerGenerated: true,
                     destination: elementType,
                     diagnostics);
                 return element.Update(
@@ -767,14 +766,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundExpression GetUnderlyingCollectionExpressionElement(BoundExpression element)
+        /// <summary>
+        /// If the element is from a collection type where elements are added with collection initializers,
+        /// return the argument to the collection initializer Add method or null if the element is not a
+        /// collection initializer node. Otherwise, return the element as is.
+        /// </summary>
+        internal static BoundExpression? GetUnderlyingCollectionExpressionElement(BoundCollectionExpression expr, BoundExpression? element)
         {
-            return element switch
+            if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
-                BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
-                _ => element,
-            };
+                return element switch
+                {
+                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                    _ => null,
+                };
+            }
+            return element;
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
@@ -794,6 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
+            bool inConversion,
             BindingDiagnosticBag diagnostics)
         {
             var syntax = node.Syntax;
@@ -813,6 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod: null,
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,
+                wasTargetTyped: inConversion,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
@@ -824,30 +834,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
+            switch (collectionTypeKind)
             {
-                Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
-                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
-                {
-                    Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
-                    return;
-                }
-                Debug.Assert(elementTypeWithAnnotations.HasType);
-            }
-
-            var elementType = elementTypeWithAnnotations.Type;
-            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
-                && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
-            {
-                // If we have a single IEnumerable<T> implementation, we can report conversion errors against that element type below
-                elementType = implementation.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
+                    if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
+                    {
+                        Error(
+                            diagnostics,
+                            collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder ?
+                                ErrorCode.ERR_CollectionBuilderNoElementType :
+                                ErrorCode.ERR_CollectionExpressionTargetNoElementType,
+                            node.Syntax,
+                            targetType);
+                        return;
+                    }
+                    Debug.Assert(elementTypeWithAnnotations.HasType);
+                    break;
             }
 
             bool reportedErrors = false;
 
-            if (collectionTypeKind != CollectionExpressionTypeKind.None &&
-                elementType is { })
+            if (collectionTypeKind != CollectionExpressionTypeKind.None)
             {
+                var elementType = elementTypeWithAnnotations.Type;
+                Debug.Assert(elementType is { });
+
                 var elements = node.Elements;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
@@ -889,27 +902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
-
-            static NamedTypeSymbol? findSingleIEnumerableTImplementation(TypeSymbol targetType, CSharpCompilation compilation)
-            {
-                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                NamedTypeSymbol? singleIEnumerableImplementation = null;
-                foreach (var @interface in allInterfaces)
-                {
-                    if (ReferenceEquals(@interface.OriginalDefinition, ienumerableType))
-                    {
-                        if (singleIEnumerableImplementation is not null)
-                        {
-                            return null;
-                        }
-
-                        singleIEnumerableImplementation = @interface;
-                    }
-                }
-
-                return singleIEnumerableImplementation;
-            }
         }
 
         private MethodSymbol? GetCollectionBuilderMethod(

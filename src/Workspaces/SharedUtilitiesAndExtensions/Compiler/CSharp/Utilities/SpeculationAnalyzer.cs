@@ -670,8 +670,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // Special case: Lambda expressions and anonymous delegates cannot appear
             // on the left-side of an 'is' or 'as' cast. We can handle this case syntactically.
-            if (!originalIsOrAsExpression.Left.WalkDownParentheses().IsAnyLambdaOrAnonymousMethod() &&
-                newIsOrAsExpression.Left.WalkDownParentheses().IsAnyLambdaOrAnonymousMethod())
+            if (originalIsOrAsExpression.Left.WalkDownParentheses() is not AnonymousFunctionExpressionSyntax &&
+                newIsOrAsExpression.Left.WalkDownParentheses() is AnonymousFunctionExpressionSyntax)
             {
                 return true;
             }
