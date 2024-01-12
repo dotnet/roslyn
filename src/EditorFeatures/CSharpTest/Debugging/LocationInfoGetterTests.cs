@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private static async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, parseOptions);
 
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;

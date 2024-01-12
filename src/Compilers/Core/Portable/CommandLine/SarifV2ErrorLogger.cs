@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(HasPath(diagnosticLocation));
 
-            FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+            FileLinePositionSpan span = diagnosticLocation.GetMappedLineSpan();
 
             _writer.WriteObjectStart(); // physicalLocation
 

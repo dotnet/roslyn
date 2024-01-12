@@ -4742,9 +4742,9 @@ static class Program
                 // (6,18): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         int* y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
-                // (7,17): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
+                // (7,23): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         var z = (int*)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("int*").WithLocation(7, 23));
         }
 
         [Fact]
@@ -4769,9 +4769,9 @@ static class Program
                 // (6,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
+                // (7,34): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("delegate*<void>").WithLocation(7, 34));
         }
 
         [Fact]
@@ -4818,7 +4818,7 @@ static class Program
         }
 
         [Fact]
-        public void PointerType_05()
+        public void PointerType_05A()
         {
             string source = """
                 using System.Collections;
@@ -4828,6 +4828,52 @@ static class Program
                     private List<nint> _list = new List<nint>();
                     unsafe public void Add(void* p) { _list.Add((nint)p); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    unsafe static void Main()
+                    {
+                        void* p = (void*)2;
+                        C c = [null, p];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(14,22): error CS0029: Cannot implicitly convert type 'void*' to 'object'
+                //         C c = [null, p];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p").WithArguments("void*", "object").WithLocation(14, 22));
+        }
+
+        [Fact]
+        public void PointerType_05B()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C : IEnumerable
+                {
+                    private List<nint> _list = new List<nint>();
+                    unsafe public void Add(void* p) { _list.Add((nint)p); }
+                    public Enumerator GetEnumerator() => new Enumerator(_list);
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Enumerator
+                {
+                    private readonly List<nint> _list;
+                    private int _index;
+                    public Enumerator(List<nint> list)
+                    {
+                        _list = list;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public unsafe void* Current => (void*)_list[_index];
                 }
                 class Program
                 {
@@ -5744,7 +5790,7 @@ static class Program
         [Fact]
         public void CollectionInitializerType_17()
         {
-            string source = """
+            string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
                 class C<T> : IEnumerable
@@ -5753,50 +5799,57 @@ static class Program
                     public void Add(params T[] args) { _list.AddRange(args); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
                 }
+                """;
+
+            string sourceB1 = """
                 class Program
                 {
                     static void Main()
                     {
-                        C<int> c = [[], [1, 2], 3];
+                        C<int> c = [[], [1, 2]];
                         c.Report();
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
+            var comp = CreateCompilation(new[] { sourceA, sourceB1, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,21): error CS9174: Cannot initialize type 'object' with a collection expression because the type is not constructible.
+                //         C<int> c = [[], [1, 2]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 21),
+                // 1.cs(5,25): error CS9174: Cannot initialize type 'object' with a collection expression because the type is not constructible.
+                //         C<int> c = [[], [1, 2]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("object").WithLocation(5, 25));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<int> c = [3];
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { sourceA, sourceB2, s_collectionExtensions }, expectedOutput: "[3], ");
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       61 (0x3d)
+                  // Code size       30 (0x1e)
                   .maxstack  5
                   .locals init (C<int> V_0)
                   IL_0000:  newobj     "C<int>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
-                  IL_0007:  call       "int[] System.Array.Empty<int>()"
-                  IL_000c:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0011:  ldloc.0
-                  IL_0012:  ldc.i4.2
-                  IL_0013:  newarr     "int"
-                  IL_0018:  dup
-                  IL_0019:  ldc.i4.0
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  stelem.i4
-                  IL_001c:  dup
-                  IL_001d:  ldc.i4.1
-                  IL_001e:  ldc.i4.2
-                  IL_001f:  stelem.i4
-                  IL_0020:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0025:  ldloc.0
-                  IL_0026:  ldc.i4.1
-                  IL_0027:  newarr     "int"
-                  IL_002c:  dup
-                  IL_002d:  ldc.i4.0
-                  IL_002e:  ldc.i4.3
-                  IL_002f:  stelem.i4
-                  IL_0030:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0035:  ldloc.0
-                  IL_0036:  ldc.i4.0
-                  IL_0037:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_003c:  ret
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  newarr     "int"
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ldc.i4.3
+                  IL_0010:  stelem.i4
+                  IL_0011:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001d:  ret
                 }
                 """);
         }
@@ -6254,6 +6307,416 @@ static class Program
                 """);
         }
 
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_Generic()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<int>
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public void Add(int i) { throw null; }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", null];
+                        MyCollection y = [..x, "3"];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, 3, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1, default];
+                        MyCollection y = [..x, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection x = [1, default];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(5, 27),
+                // 1.cs(6,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection y = [..x, 3];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_NonGeneric()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public void Add(int i) { throw null; }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", null];
+                        MyCollection y = [..x, "3"];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, 3, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1, default];
+                        MyCollection y = [..x, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection x = [1, default];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(5, 27),
+                // 1.cs(6,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         MyCollection y = [..x, 3];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_NoImplementations()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = new();
+                        c.Add("1");
+                        c.Add(default);
+                        foreach (var i in c)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", default];
+                        MyCollection y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection x = ["1", default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""1"", default]").WithArguments("MyCollection").WithLocation(5, 26),
+                // 1.cs(6,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection y = [..x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..x]").WithArguments("MyCollection").WithLocation(6, 26));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_RefStruct_Generic()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct R
+                {
+                    public R(object value) { Value = value; }
+                    public readonly object Value;
+                }
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(R r) { _list.Add(r.Value); }
+                    public MyEnumerator GetEnumerator() => new MyEnumerator(_list);
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyEnumerator
+                {
+                    private List<object> _list;
+                    private int _index = -1;
+                    public MyEnumerator(List<object> list) { _list = list; }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
+                }
+                """;
+
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [new R(1)];
+                        MyCollection y = [..x, new R(2)];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i.Value);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB }, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_RefStruct_NonGeneric()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct R
+                {
+                    public R(object value) { Value = value; }
+                    public readonly object Value;
+                }
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(R r) { _list.Add(r.Value); }
+                    public MyEnumerator GetEnumerator() => new MyEnumerator(_list);
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyEnumerator
+                {
+                    private List<object> _list;
+                    private int _index = -1;
+                    public MyEnumerator(List<object> list) { _list = list; }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
+                }
+                """;
+
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [new R(1)];
+                        MyCollection y = [..x, new R(2)];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i.Value);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB }, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71387")]
+        [Fact]
+        public void CollectionInitializerType_MultipleIEnumerableTImplementations_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>, IEnumerable<string>
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in new MyCollection()) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection()").WithArguments("MyCollection", "System.Collections.Generic.IEnumerable<T>").WithLocation(5, 27));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c;
+                        c = [];
+                        c = ["1"];
+                        c = [2];
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[]").WithArguments("MyCollection").WithLocation(6, 13),
+                // 1.cs(7,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = ["1"];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, @"[""1""]").WithArguments("MyCollection").WithLocation(7, 13),
+                // 1.cs(8,13): error CS9213: Collection expression target 'MyCollection' has no element type.
+                //         c = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[2]").WithArguments("MyCollection").WithLocation(8, 13));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71387")]
+        [Fact]
+        public void CollectionInitializerType_MultipleIEnumerableTImplementations_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T> : IEnumerable<T>
+                {
+                    public List<object> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+                    {
+                        foreach (var i in _list) yield return (T)i;
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollection<T, U> : MyCollectionBase<T>, IEnumerable<U>
+                {
+                    public void Add(U u) { _list.Add(u); }
+                    IEnumerator<U> IEnumerable<U>.GetEnumerator()
+                    {
+                        foreach (var i in _list) yield return (U)i;
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in new MyCollection<object, string>()) { }
+                        foreach (var i in new MyCollection<int, string>()) { }
+                    }
+                    static void F<T, U>()
+                    {
+                        foreach (var i in new MyCollection<T, U>()) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<object, string>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<object, string>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<object, string>()").WithArguments("MyCollection<object, string>", "System.Collections.Generic.IEnumerable<T>").WithLocation(5, 27),
+                // 1.cs(6,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<int, string>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<int, string>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<int, string>()").WithArguments("MyCollection<int, string>", "System.Collections.Generic.IEnumerable<T>").WithLocation(6, 27),
+                // 1.cs(10,27): error CS1640: foreach statement cannot operate on variables of type 'MyCollection<T, U>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var i in new MyCollection<T, U>()) { }
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "new MyCollection<T, U>()").WithArguments("MyCollection<T, U>", "System.Collections.Generic.IEnumerable<T>").WithLocation(10, 27));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<object, string>([]);
+                        Create<int, string>([2]);
+                    }
+                    static void F<T, U>(T t)
+                    {
+                        Create<T, U>([t]);
+                    }
+                    static void Create<T, U>(MyCollection<T, U> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<object, string>'
+                //         Create<object, string>([]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "MyCollection<object, string>").WithLocation(5, 32),
+                // 1.cs(6,29): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<int, string>'
+                //         Create<int, string>([2]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[2]").WithArguments("1", "collection expressions", "MyCollection<int, string>").WithLocation(6, 29),
+                // 1.cs(10,22): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<T, U>'
+                //         Create<T, U>([t]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[t]").WithArguments("1", "collection expressions", "MyCollection<T, U>").WithLocation(10, 22));
+
+            string sourceB3 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, int>([3]);
+                        F(4);
+                    }
+                    static void F<T>(T t)
+                    {
+                        Create<T, T>([t]);
+                    }
+                    static void Create<T, U>(MyCollection<T, U> c)
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB3, s_collectionExtensions }, expectedOutput: "[3], [4], ");
+        }
+
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
@@ -6496,9 +6959,9 @@ static class Program
                 // (8,15): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (9,24): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         object o = (S)([1, 2]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 24));
         }
 
         [Fact]
@@ -7616,26 +8079,316 @@ static class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
-        [Fact]
-        public void SpreadElement_Dynamic_03()
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_ArrayTarget(string targetElementType)
         {
-            string source = """
+            string source = $$"""
+                using System.Collections;
                 class Program
                 {
                     static void Main()
                     {
-                        dynamic x = new[] { 2, 3 };
-                        int[] y = [1, ..x];
-                        y.Report();
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetElementType}}[] a = [..d1, ..d2, ..e1, ..e2];
+                        a.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef });
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[1, 2, 3], "
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,25): error CS0029: Cannot implicitly convert type 'object' to 'int'
-                //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "int").WithLocation(6, 25));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(10,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 22),
+                    // 0.cs(10,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 28),
+                    // 0.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 0.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 40));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [CombinatorialData]
+        public void SpreadElement_Untyped_ArrayInterfaceTarget(
+            [CombinatorialValues("IEnumerable", "IReadOnlyList", "IList")] string targetInterfaceType,
+            [CombinatorialValues("int", "object")] string targetElementType)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetInterfaceType}}<{{targetElementType}}> c =
+                            [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(12,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(12, 16),
+                    // 0.cs(12,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(12, 22),
+                    // 0.cs(12,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(12, 28),
+                    // 0.cs(12,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(12, 34));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_NonGenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add({{targetElementType}} i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
+                    // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
+                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
+                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
+                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
+                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
+                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_GenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_CollectionBuilderTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(
+                    comp,
+                    verify: Verification.FailsPEVerify,
+                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], [5, 6], "));
+            }
         }
 
         [Fact]
@@ -9893,7 +10646,7 @@ static class Program
         [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyList_T })]
         [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
             SpecialType.System_Collections_Generic_IReadOnlyList_T })]
-        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes(SpecialType[] missingTypes)
+        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_01(SpecialType[] missingTypes)
         {
             string source = """
                 using System.Collections.Generic;
@@ -9940,6 +10693,269 @@ static class Program
                         "System.Collections.Generic.IList<T>",
                     }
                     : new[]
+                    {
+                        "System.Collections.IEnumerable",
+                        "System.Collections.ICollection",
+                        "System.Collections.IList",
+                        "System.Collections.Generic.IEnumerable<T>",
+                        "System.Collections.Generic.ICollection<T>",
+                        "System.Collections.Generic.IList<T>",
+                    },
+                    interfaces.ToTestDisplayStrings());
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_02()
+        {
+            string runtime = @"
+namespace System
+{
+    using System.Collections;
+    public class NotSupportedException : Exception {}
+    public class Array : ICollection, IList
+    {
+        public static T[] Empty<T>() => throw null;
+        IEnumerator IEnumerable.GetEnumerator() => throw null;
+        void ICollection.CopyTo(Array array, int index) => throw null;
+        int ICollection.Count => throw null;
+        object ICollection.SyncRoot => throw null;
+        bool ICollection.IsSynchronized => throw null;
+        object IList.this[int index]
+        {
+            get => throw null;
+            set => throw null;
+        }
+        int IList.Add(object value) => throw null;
+        bool IList.Contains(object value) => throw null;
+        void IList.Clear() => throw null;
+        bool IList.IsReadOnly => throw null;
+        bool IList.IsFixedSize => throw null;
+        int IList.IndexOf(object value) => throw null;
+        void IList.Insert(int index, object value)=> throw null;
+        void IList.Remove(object value) => throw null;
+        void IList.RemoveAt(int index)=> throw null;
+    }
+    public class Attribute { }
+    [Flags]
+    public enum AttributeTargets
+    {
+        Assembly = 0x1,
+        Module = 0x2,
+        Class = 0x4,
+        Struct = 0x8,
+        Enum = 0x10,
+        Constructor = 0x20,
+        Method = 0x40,
+        Property = 0x80,
+        Field = 0x100,
+        Event = 0x200,
+        Interface = 0x400,
+        Parameter = 0x800,
+        Delegate = 0x1000,
+        ReturnValue = 0x2000,
+        GenericParameter = 0x4000,
+        All = 0x7FFF
+    }
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    public sealed class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple
+        {
+            get => throw null;
+            set { }
+        }
+        public bool Inherited
+        {
+            get => throw null;
+            set { }
+        }
+        public AttributeTargets ValidOn => throw null;
+    }
+    public struct Boolean { }
+    public struct Byte { }
+    public class Delegate
+    {
+        public static Delegate CreateDelegate(Type type, object firstArgument, Reflection.MethodInfo method) => null;
+    }
+    public abstract class Enum : IComparable { }
+    public class Exception { }
+    public class FlagsAttribute : Attribute { }
+    public delegate T Func<out T>();
+    public delegate U Func<in T, out U>(T arg);
+    public interface IComparable { }
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+    public struct Int16 { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct IntPtr { }
+    public class MulticastDelegate : Delegate { }
+    public struct Nullable<T> { }
+    public class Object { }
+    public sealed class ParamArrayAttribute : Attribute { }
+    public struct RuntimeMethodHandle { }
+    public struct RuntimeTypeHandle { }
+    public class String : IComparable { public static String Empty = null; }
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+    public class ValueType { }
+    public struct Void { }
+    namespace Collections
+    {
+        public interface IEnumerable
+        {
+            IEnumerator GetEnumerator();
+        }
+        public interface IEnumerator
+        {
+            object Current { get; }
+            bool MoveNext();
+            void Reset();
+        }
+        public interface ICollection : IEnumerable
+        {
+            void CopyTo(Array array, int index);
+            int Count { get; }
+            object SyncRoot { get; }
+            bool IsSynchronized { get; }
+        }
+        public interface IList : ICollection
+        {
+            object this[int index] { get; set; }
+            int Add(object value);
+            bool Contains(object value);
+            void Clear();
+            bool IsReadOnly { get; }
+            bool IsFixedSize { get; }
+            int IndexOf(object value);
+            void Insert(int index, object value);
+            void Remove(object value);
+            void RemoveAt(int index);
+        }
+    }
+    namespace Collections.Generic
+    {
+        public interface IEnumerable<out T> : IEnumerable
+        {
+            new IEnumerator<T> GetEnumerator();
+        }
+        public interface IEnumerator<out T> : IEnumerator, IDisposable
+        {
+            new T Current { get; }
+        }
+        public interface ICollection<T> : IEnumerable<T>
+        {
+            int Count { get; }
+            bool IsReadOnly { get; }
+            void Add(T item);
+            void Clear();
+            bool Contains(T item);
+            void CopyTo(T[] array, int arrayIndex);
+            bool Remove(T item);
+        }
+        public interface IList<T> : ICollection<T>
+        {
+            T this[int index] { get; set; }
+            int IndexOf(T item);
+            void Insert(int index, T item);
+            void RemoveAt(int index);
+        }
+        public class List<T> : System.Collections.Generic.ICollection<T>, System.Collections.Generic.IEnumerable<T>, System.Collections.Generic.IList<T>, System.Collections.ICollection, System.Collections.IEnumerable, System.Collections.IList
+        {
+            public List() { }
+            public List(System.Collections.Generic.IEnumerable<T> collection) { }
+            public List(int capacity) { }
+            public int Capacity { get { throw null; } set { } }
+            public int Count { get { throw null; } }
+            public T this[int index] { get { throw null; } set { } }
+            bool System.Collections.Generic.ICollection<T>.IsReadOnly { get { throw null; } }
+            bool System.Collections.ICollection.IsSynchronized { get { throw null; } }
+            object System.Collections.ICollection.SyncRoot { get { throw null; } }
+            bool System.Collections.IList.IsFixedSize { get { throw null; } }
+            bool System.Collections.IList.IsReadOnly { get { throw null; } }
+            object System.Collections.IList.this[int index] { get { throw null; } set { } }
+            public void Add(T item) { }
+            public void Clear() { }
+            public bool Contains(T item) { throw null; }
+            public void CopyTo(int index, T[] array, int arrayIndex, int count) { }
+            public void CopyTo(T[] array) { }
+            public void CopyTo(T[] array, int arrayIndex) { }
+            public int EnsureCapacity(int capacity) { throw null; }
+            public int IndexOf(T item) { throw null; }
+            public int IndexOf(T item, int index) { throw null; }
+            public int IndexOf(T item, int index, int count) { throw null; }
+            public void Insert(int index, T item) { }
+            public bool Remove(T item) { throw null; }
+            public void RemoveAt(int index) { }
+            System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator() { throw null; }
+            void System.Collections.ICollection.CopyTo(System.Array array, int arrayIndex) { }
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { throw null; }
+            int System.Collections.IList.Add(object item) { throw null; }
+            bool System.Collections.IList.Contains(object item) { throw null; }
+            int System.Collections.IList.IndexOf(object item) { throw null; }
+            void System.Collections.IList.Insert(int index, object item) { }
+            void System.Collections.IList.Remove(object item) { }
+            public T[] ToArray() { throw null; }
+        }
+    }
+    namespace Reflection
+    {
+        public class AssemblyVersionAttribute : Attribute
+        {
+            public AssemblyVersionAttribute(string version) { }
+        }
+        public class DefaultMemberAttribute : Attribute
+        {
+            public DefaultMemberAttribute(string name) { }
+        }
+        public abstract class MemberInfo { }
+        public abstract class MethodBase : MemberInfo
+        {
+            public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => throw null;
+        }
+        public abstract class MethodInfo : MethodBase
+        {
+            public virtual Delegate CreateDelegate(Type delegateType, object target) => throw null;
+        }
+    }
+}
+";
+
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0, 1];
+                        IEnumerable<int> z = [..x];
+                    }
+                }
+                """;
+            var reference = CreateEmptyCompilation(runtime, assemblyName: "System.Runtime").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [reference]);
+
+            var verifier = CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    verifyInterfaces(module, "<>z__ReadOnlyArray");
+                    verifyInterfaces(module, "<>z__ReadOnlyList");
+                });
+            verifier.VerifyDiagnostics();
+
+            void verifyInterfaces(ModuleSymbol module, string typeName)
+            {
+                var synthesizedType = module.GlobalNamespace.GetTypeMember(typeName);
+                var interfaces = synthesizedType.InterfacesNoUseSiteDiagnostics();
+                AssertEx.Equal(
+                    new[]
                     {
                         "System.Collections.IEnumerable",
                         "System.Collections.ICollection",
@@ -10209,17 +11225,14 @@ static class Program
                     }
                 }
                 """;
+
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
-                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         List<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
-                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
         }
 
         [Fact]
@@ -10240,9 +11253,9 @@ static class Program
                     {
                         S<object?> x = [1];
                         x[0].ToString(); // 1
-                        S<object> y = [null]; // 2
+                        S<object> y = [null];
                         y[0].ToString();
-                        y = [2, null]; // 3
+                        y = [2, null];
                         y[1].ToString();
                     }
                 }
@@ -10251,13 +11264,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9),
-                // (15,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         S<object> y = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 24),
-                // (17,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = [2, null]; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9));
         }
 
         [Fact]
@@ -10872,7 +11879,7 @@ partial class Program
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
-                class C<T> : IEnumerable
+                class C<T> : IEnumerable<T>
                 {
                     private List<T> _list = new List<T>();
                     public void Add(T t)
@@ -10880,7 +11887,8 @@ partial class Program
                         Console.WriteLine("Add {0}", t);
                         _list.Add(t);
                     }
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 class Program
                 {
@@ -10940,9 +11948,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -10971,9 +11979,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11176,9 +12184,9 @@ partial class Program
                 // (20,17): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
+                // (26,24): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         var v12 = (S2)([]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(26, 24));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -12512,6 +13520,54 @@ partial class Program
         }
 
         [Fact]
+        public void CollectionBuilder_MissingBuilderMethod_FromMetadata()
+        {
+            // [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+            string sourceA = """
+                .class public sealed System.ReadOnlySpan`1<T> extends [mscorlib]System.ValueType
+                {
+                }
+                .class public sealed System.Runtime.CompilerServices.CollectionBuilderAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type builderType, string methodName) cil managed { ret }
+                }
+                .class public sealed MyCollection`1<T>
+                {
+                  .custom instance void System.Runtime.CompilerServices.CollectionBuilderAttribute::.ctor(class [mscorlib]System.Type, string) = { type(MyCollectionBuilder) string('Create') }
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method public instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!T> GetEnumerator() { ldnull ret }
+                }
+                .class public sealed MyCollectionBuilder
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  // Missing Create<T>() method
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 31),
+                // (7,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
+        }
+
+        [Fact]
         public void CollectionBuilder_NullBuilderType()
         {
             string sourceA = """
@@ -13693,7 +14749,7 @@ partial class Program
 
         [CombinatorialData]
         [Theory]
-        public void CollectionBuilder_InaccessibleMethod(bool useCompilationReference)
+        public void CollectionBuilder_InaccessibleMethod_01(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -13728,6 +14784,47 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 31),
+                // (7,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
+        }
+
+        [Fact]
+        public void CollectionBuilder_InaccessibleMethod_02()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                class MyCollectionBuilder
+                {
+                    private static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         MyCollection<int> x = [];
@@ -15459,13 +16556,17 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
+                // (17,42): error CS9188: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
+                //         static MyCollection<T> F<T>() => [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<T>").WithLocation(17, 42),
                 // (24,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(24, 31));
         }
 
-        [Fact]
-        public void CollectionBuilder_ExtensionMethodGetEnumerator_02()
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ExtensionMethodGetEnumerator_02(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -15482,12 +16583,11 @@ partial class Program
                 static class Extensions
                 {
                     public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => default;
-                    static MyCollection<T> F<T>() => [];
                 }
                 """;
             var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
-            var refA = comp.EmitToImageReference();
+            var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
                 #pragma warning disable 219
@@ -17485,6 +18585,7 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
         [Fact]
         public void ListConstruction_Dynamic_03()
         {
@@ -17499,7 +18600,6 @@ partial class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[4, 5], "
             var comp = CreateCompilation(
                 new[] { source, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80);
@@ -17817,11 +18917,29 @@ partial class Program
                 {
                     private List<int> _list = new List<int>();
                     public void Add(R r) { _list.Add(r._i); }
+                    public Enumerator GetEnumerator() => new Enumerator(_list);
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Enumerator
+                {
+                    private readonly List<int> _list;
+                    private int _index;
+                    public Enumerator(List<int> list)
+                    {
+                        _list = list;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public R Current => new R(_list[_index]);
                 }
                 ref struct R
                 {
                     public int _i;
+                    public R(int i) { _i = i; }
                     public R(ref int i) { _i = i; }
                 }
                 class Program
@@ -17834,7 +18952,7 @@ partial class Program
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[0, 1], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
         [CombinatorialData]
@@ -20303,6 +21421,60 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementConversion()
+        {
+            string source = """
+                using System;
+                DateTimeOffset d = default;
+                ReadOnlySpan<DateTime> x = [d];
+                var y = (ReadOnlySpan<DateTime>)[d];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,29): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // ReadOnlySpan<DateTime> x = [d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(3, 29),
+                // (4,34): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // var y = (ReadOnlySpan<DateTime>)[d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(4, 34));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementType()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T>
+                {
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = [];
+                        var y = (MyCollection<object>)[];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (15,34): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<object> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(15, 34),
+                // (16,39): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         var y = (MyCollection<object>)[];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(16, 39));
+        }
+
         [Fact]
         public void TopLevelStatement_01()
         {
@@ -22359,6 +23531,129 @@ partial class Program
         }
 
         [Fact]
+        public void IOperation_SpreadElement_NoConversion_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
+                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(15, 37),
+                // (15,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(15, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71339")]
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Test
+                {
+                    Dictionary<string, object> Config => /*<bind>*/[
+                        .. GetConfig(),
+                    ]/*</bind>*/;
+                    private Dictionary<string, object> GetConfig() => new();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
+                //         .. GetConfig(),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetConfig()").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(5, 12));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.String, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: '[ ... ]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.String, System.Object>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. GetConfig()')
+                        Operand:
+                          IInvocationOperation ( System.Collections.Generic.Dictionary<System.String, System.Object> Test.GetConfig()) (OperationKind.Invocation, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: 'GetConfig()')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsInvalid, IsImplicit) (Syntax: 'GetConfig')
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
         public void Async_01()
         {
             string source = """
@@ -22830,7 +24125,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (1,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [X([1, 2, C.M()])]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M()").WithLocation(1, 11)
@@ -23743,7 +25038,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (27,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(AbstractCollection)' and 'Program.F(NoConstructorCollection)'
                 //         F([]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(AbstractCollection)", "Program.F(NoConstructorCollection)").WithLocation(27, 9)
@@ -24092,8 +25387,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[1]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -24123,8 +25420,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[1]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Theory]
@@ -24150,9 +25449,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,16): error CS9174: Cannot initialize type 'Collection' with a collection expression because the type is not constructible.
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
                 // Collection c = ["hi"];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""hi""]").WithArguments("Collection").WithLocation(4, 16)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, @"[""hi""]").WithArguments("Collection").WithLocation(4, 16)
                 );
         }
 
@@ -24243,6 +25542,34 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [new C()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[new C()]").WithArguments("Collection").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void NonGenericIEnumerable_TwoCompatibleInterfaces()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new C()];
+
+                interface I1 { }
+                interface I2 { }
+
+                class C : I1, I2 { }
+
+                class Collection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(I1 i) => throw null;
+                    public void Add(I2 i) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (4,17): error CS0121: The call is ambiguous between the following methods or properties: 'Collection.Add(I1)' and 'Collection.Add(I2)'
                 // Collection c = [new C()];
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Collection.Add(I1)", "Collection.Add(I2)").WithLocation(4, 17)
@@ -24275,8 +25602,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"));
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9213: Collection expression target 'Collection' has no element type.
+                // Collection c = [new C()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[new C()]").WithArguments("Collection").WithLocation(4, 16));
         }
 
         [Fact]
@@ -24721,7 +26050,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
 
             // ImmutableCollectionsMarshal.AsImmutableArray is not sufficient to optimize collection expressions
             // targeting ImmutableArray<T>. ImmutableArray<T> must also have a [CollectionBuilder] attribute.
@@ -24745,7 +26074,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -25120,7 +26449,13 @@ partial class Program
                 ref struct S : IEnumerable
                 {
                     public void Add(params S[] x) => throw null;
-                    public IEnumerator GetEnumerator() => throw null;
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Enumerator
+                {
+                    public bool MoveNext() => false;
+                    public S Current => default;
                 }
                 class Program
                 {
@@ -25135,9 +26470,9 @@ partial class Program
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
-                // (9,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
+                // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(9, 21));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
@@ -25279,6 +26614,36 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_ArrayCollection_InferredLocal()
+        {
+            string src = """
+                #nullable enable
+                var x1 = M1();
+                x1 = [null]; // 1
+
+                var x2 = M2();
+                x2 = [null];
+
+                var x3 = M3();
+                x3 = [null];
+
+                string[] M1() => throw null!;
+                string?[] M2() => throw null!;
+
+                #nullable disable
+                string[]
+                #nullable enable
+                    M3() => throw null!;
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // x1 = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 7)
+                );
+        }
+
+        [Fact]
         public void ElementNullability_ArrayCollection_Nested()
         {
             string src = """
@@ -25317,15 +26682,9 @@ partial class Program
                 // (2,13): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int[] x1 = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 13),
-                // (2,13): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                // int[] x1 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 13),
                 // (8,11): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     x3 = [null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 11),
-                // (8,11): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                //     x3 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(8, 11)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 11)
                 );
         }
 
@@ -25563,13 +26922,13 @@ partial class Program
                 using System.Runtime.CompilerServices;
 
                 #nullable enable
-                MyCollection<string?> x1 = [null];
-                MyCollection<string> x2 = [null];
+                MyCollection<string?> x1 = [null]; // 1
+                MyCollection<string> x2 = [null]; // 2
 
                 #nullable disable
                 MyCollection<string>
                 #nullable enable
-                    x3 = [null];
+                    x3 = [null]; // 3
 
                 [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
                 public struct MyCollection<T> : IEnumerable<T>
@@ -25589,18 +26948,15 @@ partial class Program
                 }
                 """;
 
-            // Note: we warn on x3 because the of type substitution rules for oblivious type argument
-            //   into Create method with MyCollection<T!> return type
+            // We're missing diagnostics for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                // MyCollection<string?> x1 = [null];
+                // MyCollection<string?> x1 = [null]; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // MyCollection<string> x2 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28),
-                // (13,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     x3 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 11)
+                // MyCollection<string> x2 = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
                 );
         }
 
@@ -25643,12 +26999,15 @@ partial class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 // MyCollection<string?> x1 = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
                 );
         }
 
         [Fact]
-        public void ElementNullability_CollectionBuilderCollection_InInference()
+        public void ElementNullability_Inference_CollectionBuilderCollection()
         {
             string src = """
                 using System;
@@ -25684,16 +27043,66 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
-            Assert.Equal("""M("hi", [null])""", invocations[0].ToString());
-            Assert.Equal("void M<System.String>(System.String t, MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
-
-            Assert.Equal("M((string?)null, [null])", invocations[1].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_NullableValueType()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                M("hi", [null]);
+                M((string?)null, [null]);
+                M((string?)null, null);
+
+                void M<T>(T t, MyCollection<T>? mc) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, null)");
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25732,20 +27141,21 @@ partial class Program
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/68786: missing diagnostics
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,7): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 7)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-
-            Assert.Equal("M(ref notNull, [null])", invocations[0].ToString());
-            Assert.Equal("void M<System.String!>(ref System.String! t, MyCollection<System.String!> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
-
-            Assert.Equal("M(ref maybeNull, [null])", invocations[1].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
             Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref maybeNull, [null])");
+            Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25793,12 +27203,15 @@ partial class Program
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/68786: Missing diagnostic for 1
-            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,12): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // notNull = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 12)
+                );
         }
 
         [Fact]
-        public void ElementNullability_CollectionBuilderCollection_InInference_SingleParameter()
+        public void ElementNullability_Inference_CollectionBuilderCollection_SingleParameter()
         {
             string src = """
                 using System;
@@ -25834,20 +27247,18 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
-            Assert.Equal("M([(string?)null])", invocations[0].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([(string?)null])");
+            Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi"])""", invocations[1].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi"])""");
+            Assert.Equal("void M<System.String!>(MyCollection<System.String!> mc)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi", null])""", invocations[2].ToString());
-            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi", null])""");
+            Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25900,6 +27311,144 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_NullReturningCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+                string notNull = "";
+
+                M(ref maybeNull, [maybeNull]); // 1
+                M(ref notNull, [maybeNull]); // 2
+                M(ref maybeNull, [notNull]); // 3
+
+                void M<T>(ref T t, MyCollection<T> c) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T>? Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (10,18): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref maybeNull, [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[maybeNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(10, 18),
+                // (11,7): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(11, 7),
+                // (11,16): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[maybeNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(11, 16),
+                // (12,18): warning CS8604: Possible null reference argument for parameter 'c' in 'void M<string?>(ref string? t, MyCollection<string?> c)'.
+                // M(ref maybeNull, [notNull]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[notNull]").WithArguments("c", "void M<string?>(ref string? t, MyCollection<string?> c)").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_ConstrainedCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+
+                M(ref maybeNull, [maybeNull]).ToString();
+
+                T M<T>(ref T t, MyCollection<T> c) => throw null!;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,1): warning CS8602: Dereference of a possibly null reference.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_CollectionBuilderCollection_ConstrainedCreate_NullableValueType()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string? maybeNull = null;
+
+                M(ref maybeNull, [maybeNull]).ToString();
+
+                T M<T>(ref T t, MyCollection<T>? c) => throw null!;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,1): warning CS8602: Dereference of a possibly null reference.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+        }
+
+        [Fact]
         public void ElementNullability_CollectionBuilderCollection_NullReturningCreate_WithAttribute()
         {
             string src = """
@@ -25944,14 +27493,14 @@ partial class Program
         }
 
         [Fact]
-        public void ElementNullability_CollectionInitializerCollection()
+        public void ElementNullability_IEnumerableCollection()
         {
             string src = """
                 using System.Collections;
 
                 #nullable enable
 
-                CNotNull x1 = [null]; // 1
+                CNotNull x1 = [null];
                 CNullable x2 = [null];
                 COblivious x3 = [null];
 
@@ -25978,11 +27527,255 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(src).VerifyEmitDiagnostics(
-                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                // CNotNull x1 = [null]; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16)
-                );
+            // We don't analyze the Add methods
+            CreateCompilation(src).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableCollection_AnalyzeAddMethods_Constraints()
+        {
+            string source = """
+                using System.Collections;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(new C(), [maybeNull]);
+                C c1 = [maybeNull];
+
+                M(new C(), [notNull]);
+                C c2 = [notNull];
+
+                void M<T>(T t1, T t2) { }
+
+                class C : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add<T>(T t) where T : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // Should we also produce W-warnings on `M(CreateAnnotated(notNull), [maybeNull])` and `M(CreateUnannotated(notNull), [maybeNull])`?
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods_Constraints()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(new C(), [maybeNull]);
+                C c1 = [maybeNull];
+
+                M(new C(), [notNull]);
+                C c2 = [notNull];
+
+                void M<T>(T t1, T t2) { }
+
+                class C : IEnumerable<object?>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<object?> IEnumerable<object?>.GetEnumerator() => throw null!;
+                    public void Add<T>(T t) where T : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_IEnumerableTCollection_AnalyzeAddMethods()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object notNull = new object();
+
+                CAnnotated<object> c1 = [maybeNull]; // 1
+                CAnnotated<object?> c2 = [maybeNull];
+
+                CAnnotated<object> c3 = [notNull];
+                CAnnotated<object?> c4 = [notNull];
+
+                CUnannotated<object> c5 = [maybeNull]; // 2
+                CUnannotated<object?> c6 = [maybeNull];
+
+                CUnannotated<object> c7 = [notNull];
+                CUnannotated<object?> c8 = [notNull];
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T t) { }
+                }
+                """;
+
+            // We should produce W-warnings on `c1` and `c5` for implicit conversion from the element to the iteration type.
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_IEnumerableTCollection_AnalyzeAddMethods_GenericWithNotNullConstraint()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                #nullable enable
+
+                object? maybeNull = null;
+                object? notNull = new object();
+
+                M(CreateAnnotated(maybeNull), [maybeNull]);
+                M(CreateAnnotated(maybeNull), [notNull]);
+
+                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [notNull]);
+
+                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [notNull]);
+
+                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [notNull]);
+
+                void M<T>(T t1, T t2) { }
+
+                CAnnotated<T> CreateAnnotated<T>(T t) => throw null!;
+                CUnannotated<T> CreateUnannotated<T>(T t) => throw null!;
+
+                class CAnnotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add(T? t) { }
+                }
+
+                class CUnannotated<T> : IEnumerable<T>
+                {
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                    public void Add<U>(U u) where U : notnull { }
+                }
+                """;
+
+            // We don't analyze the Add methods
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -26017,15 +27810,10 @@ partial class Program
                 int y = null;
                 """;
 
-            // Note: the nullability diagnostic is superfluous and results from the bound tree
-            //   not containing element conversions in the error case.
             CreateCompilation(src).VerifyEmitDiagnostics(
                 // (2,12): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int[] x = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 12),
-                // (2,12): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-                // int[] x = [null];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 12),
                 // (3,9): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 // int y = null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(3, 9)
@@ -26045,6 +27833,1060 @@ partial class Program
                 // (3,15): warning CS8602: Dereference of a possibly null reference.
                 // string[] x = [o.ToString()];
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_MaybeNullElement()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string element = null; // 1
+                var collection = IdList([element]);
+                collection[0].ToString(); // 2
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 18),
+                // (6,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(6, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            Assert.Equal("[element]", collection.ToFullString());
+            var collectionConversion = model.GetConversion(collection);
+            Assert.True(collectionConversion.IsValid);
+            Assert.True(collectionConversion.IsCollectionExpression);
+
+            var element = collection.Elements.Single();
+            Assert.Equal("element", element.ToFullString());
+            var elementConversion = model.GetConversion(element);
+            Assert.True(elementConversion.IsValid);
+            Assert.True(elementConversion.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_NotNullElement()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string? element = "";
+                var collection = IdList([element]);
+                collection[0].ToString();
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String> IdList<System.String>(System.Collections.Generic.List<System.String> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string element1 = null; // 1
+                string element2 = "hi";
+                var collection = IdList([element1, element2]);
+                collection[0].ToString(); // 2
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 19),
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentTypes()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                string? element1 = null;
+                object element2 = "hi";
+                var collection = IdList([element1, element2]);
+                collection[0].ToString(); // 1
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentTypes_ExplicitConversions()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                object? element1 = (string?)null;
+                object element2 = "hi";
+                var collection = IdList([(string?)element1, element2]);
+                collection[0].ToString(); // 1
+
+                List<T> IdList<T>(List<T> l) => l;
+                """;
+
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (7,1): warning CS8602: Dereference of a possibly null reference.
+                // collection[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([(string?)element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("(string?)element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_TwoElements_DifferentGenericTypes()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                var element1 = new Container<string?>();
+                var element2 = new Container<string>();
+                var collection = IdList([element1, element2]); // 1
+                collection[0].Element.ToString();
+
+                List<T> IdList<T>(List<T> l) => l;
+
+                public class Container<T>
+                {
+                    public T Element = default!;
+                }
+                """;
+
+            // We should check conversion to the iteration type
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Collections.Generic.List<Container<System.String>> IdList<Container<System.String>>(System.Collections.Generic.List<Container<System.String>> l)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var element1 = collection.Elements.First();
+            Assert.Equal("element1", element1.ToFullString());
+            var elementConversion1 = model.GetConversion(element1);
+            Assert.True(elementConversion1.IsValid);
+            Assert.True(elementConversion1.IsIdentity);
+
+            var element2 = collection.Elements.Last();
+            Assert.Equal("element2", element2.ToFullString());
+            var elementConversion2 = model.GetConversion(element2);
+            Assert.True(elementConversion2.IsValid);
+            Assert.True(elementConversion2.IsIdentity);
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull, ""]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, T[] a) { }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull, ""]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [maybeNull])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [notNull, ""])""");
+            Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]! a)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [maybeNull, ""])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [notNull, maybeNull, ""])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_ExplicitCast()
+        {
+            string src = """
+                #nullable enable
+                string element1 = null; // 1
+                string element2 = "hi";
+                var collection = IdList((string[])[element1, element2]); // 2
+                collection[0].ToString();
+
+                var collection2 = IdList([element1, element2]);
+                collection2[0].ToString(); // 3
+
+                T[] IdList<T>(T[] l) => l;
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(2, 19),
+                // (4,36): warning CS8601: Possible null reference assignment.
+                // var collection = IdList((string[])[element1, element2]); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "element1").WithLocation(4, 36),
+                // (8,1): warning CS8602: Dereference of a possibly null reference.
+                // collection2[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection2[0]").WithLocation(8, 1)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Nested()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [[null]]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull]]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[notNull, ""]]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull, ""]]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [[notNull, maybeNull, ""]]);
+                    }
+                    void M<T>(ref T t, T[][] a) { }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[null]]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[maybeNull]]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[maybeNull, ""]]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[null]])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[maybeNull]])");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[notNull, ""]])""");
+            Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]![]! a)",
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[maybeNull, ""]])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [[notNull, maybeNull, ""]])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_WithNotNullConstraint()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M(ref notNull, [null]); // 1, 2
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 3, 4
+                    }
+                    void M3(string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]); // 5
+                    }
+                    void M<T>(ref T t, T[] a) where T : notnull { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref notNull, [null]); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(6, 9),
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1, 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref notNull, [maybeNull]); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(10, 9),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 3, 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(ref T, T[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M(ref maybeNull, [notNull, maybeNull, ""]); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(ref T, T[])", "T", "string?").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method([() => s]).ToString(); // 1
+                        if (s is null) return;
+                        Method([() => s]).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", [() => s]).ToString();
+                        Method2(s = null, [() => s]).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method([Method3(s = null), () => s.ToString()]); // 3
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    U Method2<T, U>(T t, System.Func<U>[] a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method([() => s]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method([() => s])").WithLocation(6, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method2(s = null, [() => s]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method2(s = null, [() => s])").WithLocation(13, 9),
+                // (18,42): warning CS8602: Dereference of a possibly null reference.
+                //         Method([Method3(s = null), () => s.ToString()]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 42)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_WithConditional()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        bool b = true;
+                        Method([b ? (() => s) : (() => s)]).ToString(); // 1
+                        Method2(b ? (() => s) : (() => s)).ToString(); // 2
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    T Method2<T>(System.Func<T> a) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Method<T>(Func<T>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method([b ? (() => s) : (() => s)]).ToString(); // 1
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Method2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method2(b ? (() => s) : (() => s)).ToString(); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method2").WithArguments("C.Method2<T>(System.Func<T>)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_WithSwitch()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        bool b = true;
+                        Method([b switch { true => () => s, _ => () => s }]).ToString(); // 1
+                        Method2(b switch { true => () => s, _ => () => s }).ToString(); // 2
+                    }
+
+                    T Method<T>(System.Func<T>[] a) => throw null!;
+                    T Method2<T>(System.Func<T> a) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Method<T>(Func<T>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method([b switch { true => () => s, _ => () => s }]).ToString(); // 1
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Method2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method2(b switch { true => () => s, _ => () => s }).ToString(); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method2").WithArguments("C.Method2<T>(System.Func<T>)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleElementNullability_Inference_Lambda()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method((42, () => s)).ToString(); // 1
+                        if (s is null) return;
+                        Method((42, () => s)).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", (42, () => s)).ToString();
+                        Method2(s = null, (42, () => s)).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method((Method3(s = null), () => s.ToString())); // 3
+                        Method((Method3(s = ""), () => s.ToString()));
+                    }
+
+                    T Method<T>((int, System.Func<T>) a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>) a) => throw null!;
+                    int Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,42): warning CS8602: Dereference of a possibly null reference.
+                //         Method((Method3(s = null), () => s.ToString())); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 42)
+                );
+
+            string src2 = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method(42, () => s).ToString(); // 1
+                        if (s is null) return;
+                        Method(42, () => s).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", 42, () => s).ToString();
+                        Method2(s = null, 42, () => s).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method(Method3(s = null), () => s.ToString()); // 3
+                        Method(Method3(s = ""), () => s.ToString());
+                    }
+
+                    T Method<T>(int a, System.Func<T> b) => throw null!;
+                    U Method2<T, U>(T t, int a, System.Func<U> b) => throw null!;
+                    int Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src2, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method(42, () => s).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method(42, () => s)").WithLocation(6, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         Method2(s = null, 42, () => s).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Method2(s = null, 42, () => s)").WithLocation(13, 9),
+                // (18,41): warning CS8602: Dereference of a possibly null reference.
+                //         Method(Method3(s = null), () => s.ToString()); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 41)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_ContainingTuples()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method([(42, () => s)]).ToString(); // 1
+                        if (s is null) return;
+                        Method([(42, () => s)]).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", [(42, () => s)]).ToString();
+                        Method2(s = null, [(42, () => s)]).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method([(42, Method3(s = null)), (42, () => s.ToString())]); // 3
+                    }
+
+                    T Method<T>((int, System.Func<T>)[] a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>)[] a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,53): warning CS8602: Dereference of a possibly null reference.
+                //         Method([(42, Method3(s = null)), (42, () => s.ToString())]); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 53)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_InsideTuples()
+        {
+            // Analyze captured variables at the location lambda is converted to a delegate
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? s)
+                    {
+                        Method((42, [() => s])).ToString(); // 1
+                        if (s is null) return;
+                        Method((42, [() => s])).ToString();
+                    }
+                    void M2(string? s)
+                    {
+                        Method2(s = "", (42, [() => s])).ToString();
+                        Method2(s = null, (42, [() => s])).ToString(); // 2
+                    }
+                    void M3(string? s)
+                    {
+                        s = "";
+                        Method((42, [Method3(s = null), () => s.ToString()])); // 3
+                    }
+
+                    T Method<T>((int, System.Func<T>[]) a) => throw null!;
+                    U Method2<T, U>(T t, (int, System.Func<U>[]) a) => throw null!;
+                    System.Func<string> Method3<T>(T t) => throw null!;
+                }
+                """;
+
+            // Tuples should be analyzed as-if they were flattened (but they current are not)
+            // Tracked by https://github.com/dotnet/roslyn/issues/71242
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (18,47): warning CS8602: Dereference of a possibly null reference.
+                //         Method((42, [Method3(s = null), () => s.ToString()])); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 47)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Lambda_Constraint()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string notNull)
+                    {
+                        M([() => notNull]).ToString();
+                    }
+                    void M2(string? maybeNull)
+                    {
+                        M([() => maybeNull]).ToString(); // 1, 2, 3
+                    }
+                    T M<T>(System.Func<T>[] a) where T : notnull => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (10,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(Func<T>[])'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("C.M<T>(System.Func<T>[])", "T", "string?").WithLocation(10, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M([() => maybeNull])").WithLocation(10, 9),
+                // (10,12): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         M([() => maybeNull]).ToString(); // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "() =>").WithArguments("lambda expression", "System.Func<string?>").WithLocation(10, 12)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ArrayCollection_Chained()
+        {
+            string src = """
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull)
+                    {
+                        var result = M([Copy(maybeNull, out var maybeNull2), maybeNull2]);
+                        result.ToString();
+                    }
+                    void M2(string? maybeNull)
+                    {
+                        M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()]);
+                    }
+                    T M<T>(T[] a) => throw null!;
+                    object Copy<T>(T t, out T t2) => throw null!;
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         result.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "result").WithLocation(7, 9),
+                // (11,49): warning CS8602: Dereference of a possibly null reference.
+                //         M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()]);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "maybeNull2").WithLocation(11, 49)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2])");
+            Assert.Equal("System.Object? C.M<System.Object?>(System.Object?[]! a)",
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])");
+            Assert.Equal("System.Object! C.M<System.Object!>(System.Object![]! a)",
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ImmutableArrayCollection()
+        {
+            string src = """
+                using System.Collections.Immutable;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, ImmutableArray<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ImmutableArrayCollection_NestedInArray()
+        {
+            string src = """
+                using System.Collections.Immutable;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[null]]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[maybeNull]]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [[notNull, ""]]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [[notNull, maybeNull, ""]]);
+                    }
+                    void M<T>(ref T t, ImmutableArray<T>[] a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Theory, CombinatorialData]
+        public void ElementNullability_Inference_SpanCollection([CombinatorialValues("Span", "ReadOnlySpan")] string spanType)
+        {
+            string src = $$"""
+                using System;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, {{spanType}}<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_ListCollection()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]).ToString(); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]).ToString(); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]).ToString();
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]).ToString(); // 3
+                    }
+                    T M<T>(ref T t, List<T> a) => throw null!;
+                }
+                """;
+
+            // The diagnostics on `notNull` are a bit unclear, but they match the behavior
+            // for non-collection expression scenarios (see below).
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref notNull, [null]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref notNull, [null])").WithLocation(8, 9),
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(8, 15),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref notNull, [maybeNull]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref notNull, [maybeNull])").WithLocation(12, 9),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(12, 15),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         M(ref maybeNull, [notNull, maybeNull, ""]).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"M(ref maybeNull, [notNull, maybeNull, """"])").WithLocation(20, 9));
+
+            src = """
+                #nullable enable
+                public class C
+                {
+                    void MA(string? maybeNull, string notNull)
+                    {
+                        M1(ref notNull, null).ToString(); // 1
+                    }
+                    void MB(string? maybeNull, string notNull)
+                    {
+                        M1(ref notNull, maybeNull).ToString(); // 2
+                    }
+                    void MC(string? maybeNull, string notNull)
+                    {
+                        M2(ref notNull, notNull, "").ToString();
+                    }
+                    void MD(string? maybeNull, string notNull)
+                    {
+                        M3(ref maybeNull, notNull, maybeNull, "").ToString(); // 3
+                    }
+                    T M1<T>(ref T t, T a) => throw null!;
+                    T M2<T>(ref T t, T a, T b) => throw null!;
+                    T M3<T>(ref T t, T a, T b, T c) => throw null!;
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         M1(ref notNull, null).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(ref notNull, null)").WithLocation(6, 9),
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M1(ref notNull, null).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 16),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         M1(ref notNull, maybeNull).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(ref notNull, maybeNull)").WithLocation(10, 9),
+                // (10,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M1(ref notNull, maybeNull).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 16),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         M3(ref maybeNull, notNull, maybeNull, "").ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"M3(ref maybeNull, notNull, maybeNull, """")").WithLocation(18, 9));
+        }
+
+        [Theory]
+        [InlineData("System.Collections.Generic.IEnumerable")]
+        [InlineData("System.Collections.Generic.IReadOnlyCollection")]
+        [InlineData("System.Collections.Generic.IReadOnlyList")]
+        [InlineData("System.Collections.Generic.ICollection")]
+        [InlineData("System.Collections.Generic.IList")]
+        public void ElementNullability_Inference_InterfaceCollection(string interfaceType)
+        {
+            string src = $$"""
+                #nullable enable
+                public class C
+                {
+                    void M1(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [null]); // 1
+                    }
+                    void M2(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [maybeNull]); // 2
+                    }
+                    void M3(string? maybeNull, string notNull)
+                    {
+                        M(ref notNull, [notNull, ""]);
+                    }
+                    void M4(string? maybeNull, string notNull)
+                    {
+                        M(ref maybeNull, [notNull, maybeNull, ""]);
+                    }
+                    void M<T>(ref T t, {{interfaceType}}<T> a) { }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [null]); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_BadCall()
+        {
+            // This scenario illustrates a limitation in `NullableWalker.VisitArguments`.
+            // We expect that every target-typed expression with a pending completion
+            // should be able to be completed.
+            // However, in this case, the nullable walker's logic for finding the corresponding
+            // parameter type (ie. target-type for the conversion) lags behind the one we use
+            // in the binder (`Binder.BuildArgumentsForErrorRecovery`).
+            string src = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual([0, 1]);
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,9): error CS1929: 'Span<byte>' does not contain a definition for 'SequenceEqual' and the best extension method overload 'MemoryExtensions.SequenceEqual<int>(ReadOnlySpan<int>, ReadOnlySpan<int>)' requires a receiver of type 'System.ReadOnlySpan<int>'
+                //         a.AsSpan().SequenceEqual([0, 1]);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a.AsSpan()").WithArguments("System.Span<byte>", "SequenceEqual", "System.MemoryExtensions.SequenceEqual<int>(System.ReadOnlySpan<int>, System.ReadOnlySpan<int>)", "System.ReadOnlySpan<int>").WithLocation(9, 9)
                 );
         }
 
@@ -26154,7 +28996,7 @@ partial class Program
 
                     }
 
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                    public IEnumerator<MyCollection> GetEnumerator() => throw new NotImplementedException();
 
                     IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
                 }
@@ -26191,7 +29033,7 @@ partial class Program
 
                     }
 
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                    public IEnumerator<MyCollection> GetEnumerator() => throw new NotImplementedException();
 
                     IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
                 }
@@ -27734,6 +30576,210 @@ partial class Program
         }
 
         [Fact]
+        public void Spread_ExtensionGetEnumerator_NonGeneric()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        object[] y = Convert(x);
+                        y.Report();
+                    }
+                    static object[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "System.Collections.IEnumerator Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001d
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_001d:  ldloc.1
+                    IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0023:  brtrue.s   IL_000f
+                    IL_0025:  leave.s    IL_0038
+                  }
+                  finally
+                  {
+                    IL_0027:  ldloc.1
+                    IL_0028:  isinst     "System.IDisposable"
+                    IL_002d:  stloc.3
+                    IL_002e:  ldloc.3
+                    IL_002f:  brfalse.s  IL_0037
+                    IL_0031:  ldloc.3
+                    IL_0032:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0037:  endfinally
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_003e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_ExtensionGetEnumerator_Generic()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        int[] y = Convert(x);
+                        y.Report();
+                    }
+                    static T[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                System.Collections.Generic.IEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "System.Collections.Generic.IEnumerator<T> Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001d
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                    IL_001d:  ldloc.1
+                    IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0023:  brtrue.s   IL_000f
+                    IL_0025:  leave.s    IL_0031
+                  }
+                  finally
+                  {
+                    IL_0027:  ldloc.1
+                    IL_0028:  brfalse.s  IL_0030
+                    IL_002a:  ldloc.1
+                    IL_002b:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0030:  endfinally
+                  }
+                  IL_0031:  ldloc.0
+                  IL_0032:  callvirt   "T[] System.Collections.Generic.List<T>.ToArray()"
+                  IL_0037:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_ExtensionGetEnumerator_Pattern()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                struct MyEnumerator<T>
+                {
+                    private IEnumerator<T> _enumerator;
+                    public MyEnumerator(IEnumerator<T> enumerator) { _enumerator = enumerator; }
+                    public bool MoveNext() => _enumerator.MoveNext();
+                    public T Current => _enumerator.Current;
+                }
+                static class Extensions
+                {
+                    public static MyEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => new(c.Items.GetEnumerator());
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        int[] y = Convert(x);
+                        y.Report();
+                    }
+                    static T[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       46 (0x2e)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                MyEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "MyEnumerator<T> Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  IL_000d:  br.s       IL_001e
+                  IL_000f:  ldloca.s   V_1
+                  IL_0011:  call       "T MyEnumerator<T>.Current.get"
+                  IL_0016:  stloc.2
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.2
+                  IL_0019:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  call       "bool MyEnumerator<T>.MoveNext()"
+                  IL_0025:  brtrue.s   IL_000f
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "T[] System.Collections.Generic.List<T>.ToArray()"
+                  IL_002d:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void List_AddRange_IEnumerable()
         {
             var source = """
@@ -28066,6 +31112,268 @@ partial class Program
                   IL_009d:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_00a2:  ret
                 }
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_List()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        List<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Array()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        object[] items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Object[]) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Span()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        Span<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ReadOnlySpan()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.ReadOnlySpan<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImmutableArray()
+        {
+            var source = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_IEnumerableT()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImplementsIEnumerable()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection items = [new()];
+                    }
+                }
+
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(object obj) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
                 """);
         }
     }

@@ -290,22 +290,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            if (oldSolution.ProjectIds.Count != newSolution.ProjectIds.Count)
-            {
-                return true;
-            }
-
             foreach (var newProject in newSolution.Projects)
             {
+                if (!newProject.SupportsEditAndContinue())
+                {
+                    continue;
+                }
+
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null || await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments: null, cancellationToken).ConfigureAwait(false))
                 {
+                    // project added or has changes
                     return true;
                 }
             }
 
-            // The number of projects in both solution is the same and there are no new projects and no changes in existing projects.
-            // Therefore there are no changes.
+            foreach (var oldProject in oldSolution.Projects)
+            {
+                if (!oldProject.SupportsEditAndContinue())
+                {
+                    continue;
+                }
+
+                var newProject = newSolution.GetProject(oldProject.Id);
+                if (newProject == null)
+                {
+                    // project removed
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -424,11 +438,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
             {
@@ -488,11 +502,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
             {
