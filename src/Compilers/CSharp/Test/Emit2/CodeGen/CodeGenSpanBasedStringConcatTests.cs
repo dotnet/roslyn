@@ -1974,4 +1974,268 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             }
             """);
     }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatFive_Char(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(CharInFirstFourArgs(s, c));
+                    Console.Write(CharAfterFirstFourArgs(s, c));
+                }
+
+                static string CharInFirstFourArgs(string s, char c) => s + c + s + s + s;
+                static string CharAfterFirstFourArgs(string s, char c) => s + s + s + s + c;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "scsssssssc" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // When lengths of inputs are low it is actually more optimal to first concat 4 operands with span-based concat and then concat that result with the remaining operand.
+        // However when inputs become large enough cost of allocating a params array becomes lower than cost of creating an intermediate string.
+        // + code size for using params array is less than code size from intermediate concat approach, especially when the amount of operands is high.
+        // So in the end we always prefer overload with params array when there are 5+ operands
+        verifier.VerifyIL("Test.CharInFirstFourArgs", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  4
+              IL_0000:  ldc.i4.5
+              IL_0001:  newarr     "string"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldarg.0
+              IL_0009:  stelem.ref
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarga.s   V_1
+              IL_000e:  call       "string char.ToString()"
+              IL_0013:  stelem.ref
+              IL_0014:  dup
+              IL_0015:  ldc.i4.2
+              IL_0016:  ldarg.0
+              IL_0017:  stelem.ref
+              IL_0018:  dup
+              IL_0019:  ldc.i4.3
+              IL_001a:  ldarg.0
+              IL_001b:  stelem.ref
+              IL_001c:  dup
+              IL_001d:  ldc.i4.4
+              IL_001e:  ldarg.0
+              IL_001f:  stelem.ref
+              IL_0020:  call       "string string.Concat(params string[])"
+              IL_0025:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.CharAfterFirstFourArgs", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  4
+              IL_0000:  ldc.i4.5
+              IL_0001:  newarr     "string"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldarg.0
+              IL_0009:  stelem.ref
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  stelem.ref
+              IL_000e:  dup
+              IL_000f:  ldc.i4.2
+              IL_0010:  ldarg.0
+              IL_0011:  stelem.ref
+              IL_0012:  dup
+              IL_0013:  ldc.i4.3
+              IL_0014:  ldarg.0
+              IL_0015:  stelem.ref
+              IL_0016:  dup
+              IL_0017:  ldc.i4.4
+              IL_0018:  ldarga.s   V_1
+              IL_001a:  call       "string char.ToString()"
+              IL_001f:  stelem.ref
+              IL_0020:  call       "string string.Concat(params string[])"
+              IL_0025:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData("(s + s) + c + s + s")]
+    [InlineData("s + (s + c) + s + s")]
+    [InlineData("s + s + (c + s) + s")]
+    [InlineData("s + s + c + (s + s)")]
+    [InlineData("(s + s + c) + s + s")]
+    [InlineData("s + (s + c + s) + s")]
+    [InlineData("s + s + (c + s + s)")]
+    [InlineData("(s + s + c + s) + s")]
+    [InlineData("s + (s + c + s + s)")]
+    [InlineData("(s + s) + (c + s) + s")]
+    [InlineData("(s + s) + c + (s + s)")]
+    [InlineData("s + (s + c) + (s + s)")]
+    [InlineData("(s + s + c) + (s + s)")]
+    [InlineData("(s + s) + (c + s + s)")]
+    [InlineData("string.Concat(s, s) + c + s + s")]
+    [InlineData("s + string.Concat(s, c.ToString()) + s + s")]
+    [InlineData("s + s + string.Concat(c.ToString(), s) + s")]
+    [InlineData("s + s + c + string.Concat(s, s)")]
+    [InlineData("string.Concat(s, s, c.ToString()) + s + s")]
+    [InlineData("s + string.Concat(s, c.ToString(), s) + s")]
+    [InlineData("s + s + string.Concat(c.ToString(), s, s)")]
+    [InlineData("string.Concat(s, s, c.ToString(), s) + s")]
+    [InlineData("s + string.Concat(s, c.ToString(), s, s)")]
+    [InlineData("string.Concat(s, s) + string.Concat(c.ToString(), s) + s")]
+    [InlineData("string.Concat(s, s) + c + string.Concat(s, s)")]
+    [InlineData("s + string.Concat(s, c.ToString()) + string.Concat(s, s)")]
+    [InlineData("string.Concat(s, s, c.ToString()) + string.Concat(s, s)")]
+    [InlineData("string.Concat(s, s) + string.Concat(c.ToString(), s, s)")]
+    public void ConcatFive_Char_OperandGroupingAndUserInputOfStringBasedConcats(string expression)
+    {
+        var source = $$"""
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M(s, c));
+                }
+
+                static string M(string s, char c) => {{expression}};
+            }
+            """;
+
+        var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sscss" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  4
+              IL_0000:  ldc.i4.5
+              IL_0001:  newarr     "string"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldarg.0
+              IL_0009:  stelem.ref
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  stelem.ref
+              IL_000e:  dup
+              IL_000f:  ldc.i4.2
+              IL_0010:  ldarga.s   V_1
+              IL_0012:  call       "string char.ToString()"
+              IL_0017:  stelem.ref
+              IL_0018:  dup
+              IL_0019:  ldc.i4.3
+              IL_001a:  ldarg.0
+              IL_001b:  stelem.ref
+              IL_001c:  dup
+              IL_001d:  ldc.i4.4
+              IL_001e:  ldarg.0
+              IL_001f:  stelem.ref
+              IL_0020:  call       "string string.Concat(params string[])"
+              IL_0025:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatFiveCharToStrings(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var c1 = 'a';
+                    var c2 = 'b';
+                    var c3 = 'c';
+                    var c4 = 'd';
+                    var c5 = 'e';
+                    Console.Write(M(c1, c2, c3, c4, c5));
+                }
+
+                static string M(char c1, char c2, char c3, char c4, char c5) => c1.ToString() + c2.ToString() + c3.ToString() + c4.ToString() + c5.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcde" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size       62 (0x3e)
+              .maxstack  4
+              IL_0000:  ldc.i4.5
+              IL_0001:  newarr     "string"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldarga.s   V_0
+              IL_000a:  call       "string char.ToString()"
+              IL_000f:  stelem.ref
+              IL_0010:  dup
+              IL_0011:  ldc.i4.1
+              IL_0012:  ldarga.s   V_1
+              IL_0014:  call       "string char.ToString()"
+              IL_0019:  stelem.ref
+              IL_001a:  dup
+              IL_001b:  ldc.i4.2
+              IL_001c:  ldarga.s   V_2
+              IL_001e:  call       "string char.ToString()"
+              IL_0023:  stelem.ref
+              IL_0024:  dup
+              IL_0025:  ldc.i4.3
+              IL_0026:  ldarga.s   V_3
+              IL_0028:  call       "string char.ToString()"
+              IL_002d:  stelem.ref
+              IL_002e:  dup
+              IL_002f:  ldc.i4.4
+              IL_0030:  ldarga.s   V_4
+              IL_0032:  call       "string char.ToString()"
+              IL_0037:  stelem.ref
+              IL_0038:  call       "string string.Concat(params string[])"
+              IL_003d:  ret
+            }
+            """);
+    }
 }
