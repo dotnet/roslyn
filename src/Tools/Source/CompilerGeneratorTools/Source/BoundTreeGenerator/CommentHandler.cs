@@ -6,10 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using BoundTreeGenerator;
 
 namespace BoundTreeGenerator
 {
+    internal struct CommentHandlerOptions
+    {
+        public int MaxCommentCount = int.MaxValue;
+        public string multiCommentSeparator = "-----------\r\n";
+
+        public CommentHandlerOptions()
+        {
+        }
+    }
+
     internal static class CommentHandler
     {
         private static IEnumerable<XNode> GetPreviousNodes(XElement node)
@@ -45,12 +54,17 @@ namespace BoundTreeGenerator
             }
         }
 
-        public static void HandleElementComment(XElement element, object obj, int maxCommentCount = int.MaxValue, string multiCommentSeparator = "-----------\r\n")
+        public static void HandleElementComment(XElement element, object obj)
+        {
+            HandleElementComment(element, obj, new());
+        }
+
+        public static void HandleElementComment(XElement element, object obj, CommentHandlerOptions options)
         {
             if (obj is CommentedNode commentedNode)
             {
                 StringBuilder? strBuilder = null;
-                foreach (var commentText in GetPreviousComments(element).Reverse().Take(maxCommentCount))
+                foreach (var commentText in GetPreviousComments(element).Reverse().Take(options.MaxCommentCount))
                 {
                     if (strBuilder == null)
                     {
@@ -58,7 +72,7 @@ namespace BoundTreeGenerator
                     }
                     else
                     {
-                        strBuilder.Append(multiCommentSeparator);
+                        strBuilder.Append(options.multiCommentSeparator);
                     }
                     strBuilder.AppendLine(commentText);
                 }
