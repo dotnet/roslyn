@@ -229,8 +229,12 @@ namespace RunTests
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
+                var logDirectory = Path.Combine("%HELIX_WORKITEM_ROOT%", "artifacts", "log", options.Configuration);
                 if (options.TestVsi)
                 {
+                    command.AppendLine($"set XUNIT_LOGS={logDirectory}");
+                    command.AppendLine("echo %XUNIT_LOGS%");
+
                     var args = $"-configuration {options.Configuration} -ci";
                     if (options.Oop64Bit)
                     {
@@ -297,10 +301,9 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
-                    var testResultsDirectory = Path.Combine("artifacts", "TestResults", options.Configuration);
-                    // Copy integration test artifacts to the helix upload directory.
-                    // TODO - delete - we collect all dump files below.
-                    postCommands.AppendLine($@"xcopy %HELIX_WORKITEM_ROOT%\{testResultsDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E");
+                    // Zip up and copy test logs to the helix upload directory.  This is where screenshots and other log files are written to.
+                    postCommands.AppendLine($@"tar.exe -a -c -f screenshots.zip {logDirectory}");
+                    postCommands.AppendLine($@"copy screenshots.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
 
                     // Zip up VS logs and copy them to the helix upload directory.
                     postCommands.AppendLine($@"tar.exe -a -c -f servicehub_logs.zip %TEMP%\servicehub\logs");

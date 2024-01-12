@@ -107,7 +107,7 @@ namespace RunTests
             if (options.UseHelix)
             {
                 // Helix tests run on a different machine, so we have to use a relative directory.
-                return Path.Combine("artifacts", "TestResults", options.Configuration, fileName);
+                return Path.Combine("artifacts", "log", options.Configuration, fileName);
             }
             else
             {
