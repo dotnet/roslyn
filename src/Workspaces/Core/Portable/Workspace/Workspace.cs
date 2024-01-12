@@ -267,45 +267,45 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken).ConfigureAwait(false);
 
             return (oldSolution != newSolution, newSolution);
+        }
 
-            static Solution UnifyLinkedDocumentContents(Solution oldSolution, Solution newSolution)
+        internal static Solution UnifyLinkedDocumentContents(Solution oldSolution, Solution newSolution)
+        {
+            // note: if it turns out this is too expensive, we could consider using the passed in projectId/document
+            // to limit the set of changes we look at.  However, GetChanges *should* be fairly fast as it does
+            // workspace-green-node identity checks to quickly narrow down what changed.
+
+            var changes = newSolution.GetChanges(oldSolution);
+
+            // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
+            foreach (var addedProject in changes.GetAddedProjects())
             {
-                // note: if it turns out this is too expensive, we could consider using the passed in projectId/document
-                // to limit the set of changes we look at.  However, GetChanges *should* be fairly fast as it does
-                // workspace-green-node identity checks to quickly narrow down what changed.
+                // Ignore projects that don't even have syntax trees to share.
+                if (!addedProject.SupportsCompilation)
+                    continue;
 
-                var changes = newSolution.GetChanges(oldSolution);
-
-                // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
-                foreach (var addedProject in changes.GetAddedProjects())
-                {
-                    // Ignore projects that don't even have syntax trees to share.
-                    if (!addedProject.SupportsCompilation)
-                        continue;
-
-                    foreach (var addedDocument in addedProject.Documents)
-                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
-                }
-
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
-
-                foreach (var projectChanges in changes.GetProjectChanges())
-                {
-                    // Ignore projects that don't even have syntax trees to share.
-                    if (!projectChanges.NewProject.SupportsCompilation)
-                        continue;
-
-                    // Now do the same for all added documents in a project.
-                    foreach (var addedDocument in projectChanges.GetAddedDocuments())
-                        newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
-
-                    // now, for any changed document, ensure we go and make all links to it have the same text/tree.
-                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-                        newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
-                }
-
-                return newSolution;
+                foreach (var addedDocument in addedProject.Documents)
+                    newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
             }
+
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
+
+            foreach (var projectChanges in changes.GetProjectChanges())
+            {
+                // Ignore projects that don't even have syntax trees to share.
+                if (!projectChanges.NewProject.SupportsCompilation)
+                    continue;
+
+                // Now do the same for all added documents in a project.
+                foreach (var addedDocument in projectChanges.GetAddedDocuments())
+                    newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
+
+                // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+                foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+                    newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+            }
+
+            return newSolution;
 
             static Solution UpdateAddedDocumentToExistingContentsInSolution(Solution solution, DocumentId addedDocumentId)
             {

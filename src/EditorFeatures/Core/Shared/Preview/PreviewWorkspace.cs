@@ -32,6 +32,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
+        public PreviewWorkspace(Solution oldSolution, Solution newSolution)
+            : base(newSolution.Workspace.Services.HostServices, WorkspaceKind.Preview)
+        {
+            // First, initialize us to the state of 'oldSolution'
+            var (_, _) = this.SetCurrentSolutionEx(oldSolution);
+
+            // Next, move us from that state to the state of 'newSolution'. This will have the benefit of ensuring that
+            // all linked files for any changed documents now have the same contents/trees.  This will help speed things
+            // up later when features light up on this preview workspace and want to get document contents (esp. frozen
+            // document contents).
+            this.SetCurrentSolution(
+                _ => newSolution,
+                (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null));
+
+            // Don't need to raise an workspace event.  It already happens in SetCurrentSolution above.
+        }
+
         public void EnableSolutionCrawler()
         {
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
