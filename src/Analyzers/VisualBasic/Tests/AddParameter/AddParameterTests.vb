@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddParameter
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
     Public Class AddParameterTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAddParameterCodeFixProvider())

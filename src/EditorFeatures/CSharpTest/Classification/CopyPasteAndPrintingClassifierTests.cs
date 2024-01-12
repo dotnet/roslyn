@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class C { C c; }");
             var document = workspace.Documents.First();
 
             var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();

@@ -13,7 +13,7 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
     <Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
     Public Class ValidateJsonStringTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Public Sub New(logger As ITestOutputHelper)
             MyBase.New(logger)

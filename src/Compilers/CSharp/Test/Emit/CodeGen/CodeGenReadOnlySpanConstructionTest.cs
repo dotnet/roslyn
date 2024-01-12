@@ -1586,7 +1586,7 @@ public class Test
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void MultipleArrays_InPlaceAndUsed()
         {
             string csharp = @$"

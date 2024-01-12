@@ -359,7 +359,7 @@ End Class</code>
 
         Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return CreateSession(
-                TestWorkspace.CreateVisualBasic(code),
+                EditorTestWorkspace.CreateVisualBasic(code),
                 Parenthesis.OpenCharacter, Parenthesis.CloseCharacter)
         End Function
     End Class

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-    public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public PassInCapturedVariablesAsArgumentsCodeFixProviderTests(ITestOutputHelper logger)
           : base(logger)

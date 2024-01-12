@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override TestWorkspace CreateWorkspace(string content, TestComposition composition)
-            => TestWorkspace.CreateCSharp(content, composition: composition);
+        protected override EditorTestWorkspace CreateWorkspace(string content, TestComposition composition)
+            => EditorTestWorkspace.CreateCSharp(content, composition: composition);
 
         [Theory]
         [CombinatorialData]
@@ -1352,7 +1352,7 @@ public class Goo
         [WorkItem("https://github.com/dotnet/roslyn/issues/8009")]
         public async Task NavigateToGeneratedFiles()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1433,7 +1433,7 @@ class C
         [Fact]
         public async Task DoNotIncludeTrivialPartialContainer()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1466,7 +1466,7 @@ class C
         [Fact]
         public async Task DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1500,7 +1500,7 @@ class C
         [Fact]
         public async Task DoNotIncludeWhenAllAreTrivialPartialContainer()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1530,7 +1530,7 @@ class C
         [Fact]
         public async Task DoIncludeNonTrivialPartialContainer()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1564,7 +1564,7 @@ class C
         [Fact]
         public async Task DoIncludeNonTrivialPartialContainerWithNestedType()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1599,7 +1599,7 @@ class C
         [Fact]
         public async Task DoIncludePartialWithNoContents()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1625,7 +1625,7 @@ class C
         [Fact]
         public async Task DoIncludeNonPartialOnlyContainingNestedTypes()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="File1.cs">
@@ -1652,7 +1652,7 @@ class C
         [Fact]
         public async Task DoIncludeSymbolsFromSourceGeneratedFiles()
         {
-            using var workspace = TestWorkspace.Create("""
+            using var workspace = EditorTestWorkspace.Create("""
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <DocumentFromSourceGenerator>
@@ -1678,7 +1678,7 @@ class C
         [Fact]
         public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
         {
-            using var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = EditorTestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
                 sourceGeneratedFiles: new[]
                 {

@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
     <Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
     Public Class FullyQualifyTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicFullyQualifyCodeFixProvider())
@@ -850,7 +850,7 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
                 Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),

@@ -363,14 +363,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
-                originalParentConversion.GetConversion().IsImplicit)
+            //
+            // One special case of this is Span<T> => ReadOnlySpan<T>.  This is technically a user-defined-conversion on
+            // Span<T>, but it can be removed for a collection expression as the compiler knows directly how to make that 
+            // into a ReadOnlySpan
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversionOperation)
             {
-                if (!rewrittenConversion.IsUserDefined)
-                    return false;
+                var originalParentConversion = originalParentConversionOperation.GetConversion();
+                if (originalParentConversion.IsImplicit)
+                {
+                    var isAcceptableSpanConversion = originalConversionOperation.Type.IsSpan() && originalParentConversionOperation.Type.IsReadOnlySpan();
 
-                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
-                    return false;
+                    if (!isAcceptableSpanConversion)
+                    {
+                        if (!rewrittenConversion.IsUserDefined)
+                            return false;
+
+                        if (!Equals(originalParentConversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                            return false;
+                    }
+                }
             }
 
             // Identity fp-casts can actually change the runtime value of the fp number.  This can happen because the
@@ -462,6 +474,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
+            // Casts on collection can fundamentally change the runtime representation of the collection.  We do not
+            // want to ever remove them in that case as that's precisely the reason a user may have provided them.
+            if (originalConversion.IsCollectionExpression || rewrittenConversion.IsCollectionExpression)
+            {
+                // Both need to be collection expression conversions, both before and after the cast removal.  If not,
+                // we have no idea what is going on and should not remove.
+                if (!originalConversion.IsCollectionExpression || !rewrittenConversion.IsCollectionExpression)
+                    return false;
+
+                if (IsCollectionExpressionCastThatMustBePreserved(castNode, originalSemanticModel, originalConvertedType, cancellationToken))
+                    return false;
+            }
+
             // If the types of the expressions are the same, then we can remove safely.
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return true;
@@ -518,6 +543,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             #endregion allowed cases.
 
             return false;
+        }
+
+        private static bool IsCollectionExpressionCastThatMustBePreserved(
+            ExpressionSyntax castNode,
+            SemanticModel originalSemanticModel,
+            ITypeSymbol originalConvertedType,
+            CancellationToken cancellationToken)
+        {
+            // If we can't figure out the type we were casting to, then preserve this cast.
+            var castedType = originalSemanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+            if (castedType is null)
+                return true;
+
+            // If the types are exactly the same, like:
+            //
+            // int[] x = (int[])[1, 2, 3];
+            //
+            // then this is fine to remove.
+            if (originalConvertedType.Equals(castedType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            // the original and resultant types are *not* the same.  This is sometimes ok to remove depending on which
+            // types it is.  Currently, we only support special behavior for named types.
+
+            if (castedType is not INamedTypeSymbol namedCastedType ||
+                originalConvertedType is not INamedTypeSymbol originalNamedConvertedType)
+            {
+                return true;
+            }
+
+            if (namedCastedType.TypeArguments.Length != 1 && originalNamedConvertedType.TypeArguments.Length != 1)
+                return true;
+
+            if (!originalNamedConvertedType.TypeArguments[0].Equals(namedCastedType.TypeArguments[0], SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            // ReadOnlySpan<T> x = (Span<T>)[a, b, c];
+            //
+            // unnecessary cast to widened span type.  Because it narrows again,
+            // this is safe to elide as the compiler will go directly to ReadOnlySpan<T> itself.
+            if (originalConvertedType.IsReadOnlySpan() && castedType.IsSpan())
+                return false;
+
+            // IEnumerable<T> x = (DerivedReadOnlyInterfaceType<T>)[a, b, c]; // also for IReadOnlyCollection and IReadOnlyList
+            if (originalNamedConvertedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T &&
+                namedCastedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IReadOnlyCollection_T or SpecialType.System_Collections_Generic_IReadOnlyList_T)
+            {
+                return false;
+            }
+
+            // ICollection<T> x = (IList<T>)[a, b, c];
+            if (originalNamedConvertedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T &&
+                namedCastedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IList_T)
+            {
+                return false;
+            }
+
+            // ICollection<T> x = (List<T>)[a, b, c]; // also for IList
+            if (originalNamedConvertedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T or SpecialType.System_Collections_Generic_IList_T &&
+                namedCastedType.OriginalDefinition.Equals(originalSemanticModel.Compilation.ListOfTType()))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsIdentityStructCastThatMustBePreserved(

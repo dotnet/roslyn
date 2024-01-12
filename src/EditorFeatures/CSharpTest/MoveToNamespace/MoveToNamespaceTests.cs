@@ -1258,7 +1258,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
                 }
                 """;
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithoutOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithoutOptions);
             using var testState = new TestState(workspace);
             Assert.Null(testState.TestMoveToNamespaceOptionsService);
 
@@ -1414,7 +1414,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
                     }
                 }
                 """;
-            using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
+            using var workspace = EditorTestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
             // Set the target namespace to "B"
             var testDocument = workspace.Projects.Single(p => p.Name == "Proj1").Documents.Single();

@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
     Partial Public Class ImplementInterfaceTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider)
@@ -40,7 +40,7 @@ Class C
 End Class")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestInterfaceWithTuple() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
