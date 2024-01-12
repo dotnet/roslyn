@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -29,6 +27,14 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassificationUtilities
     {
+        /// <summary>
+        /// It's very common for several classification requests to come in for the same document (esp. with
+        /// cancellation involved).  To assist with this, we cache the frozen version of a document so we don't have to
+        /// continuously recompute it (as the actual computation is not cheap).  These will be discarded once the
+        /// solution moves forward and the document snapshots are released.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Document, AsyncLazy<Document>> s_documentToFrozenDocumentMap = new();
+
         public static TagSpan<IClassificationTag> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ClassifiedSpan classifiedSpan)
         {
             return new TagSpan<IClassificationTag>(
@@ -59,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
             // as we do not have to wait on skeletons to be built.
 
-            document = document.WithFrozenPartialSemantics(cancellationToken);
+            document = await GetFrozenPartialDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classified = await TryClassifyContainingMemberSpanAsync(
@@ -73,6 +79,13 @@ namespace Microsoft.CodeAnalysis.Classification
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
                 context, document, spanToTag.SnapshotSpan, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Document> GetFrozenPartialDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
+            var lazy = s_documentToFrozenDocumentMap.GetValue(
+                document, static d => AsyncLazy.Create(c => Task.FromResult(d.WithFrozenPartialSemantics(c))));
+            return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpanAsync(
