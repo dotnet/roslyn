@@ -94,10 +94,14 @@ namespace BoundTreeGenerator
             return Activator.CreateInstance(type) ?? throw new NotSupportedException($"Unable to create node: {type}");
         }
 
+        public event Action<XElement, object> OnObjectDeserialized;
+
         public object DeserializeElement(XElement element, Type type)
         {
             var obj = CreateObjectByType(type);
             LoadMemberData(element, obj, type);
+
+            OnObjectDeserialized?.Invoke(element, obj);
             return obj;
         }
 
