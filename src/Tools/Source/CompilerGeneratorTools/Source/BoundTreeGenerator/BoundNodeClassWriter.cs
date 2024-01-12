@@ -290,6 +290,7 @@ namespace BoundTreeGenerator
         }
 
         public bool PreferMultiLineComment { get; set; } = false;
+        public bool EmitLineBreakTags { get; set; } = true;
 
         private void WriteComment(CommentedNode node)
         {
@@ -327,7 +328,31 @@ namespace BoundTreeGenerator
 
             string GetCommentText()
             {
-                var summaryNode = new XElement("summary", new XText(node.Comment));
+                List<object> contents = new();
+                if (EmitLineBreakTags)
+                {
+                    using var reader = new StringReader(node.Comment);
+                    bool isFirst = true;
+                    while (reader.ReadLine() is { } line)
+                    {
+                        if (isFirst)
+                        {
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            contents.Add(new XElement("br"));
+                            contents.Add(new XText("\r\n"));
+                        }
+                        contents.Add(new XText(line));
+                    }
+                }
+                else
+                {
+                    contents.Add(new XText(node.Comment));
+                }
+
+                var summaryNode = new XElement("summary", contents.ToArray());
                 return summaryNode.ToString(SaveOptions.None);
             }
 
