@@ -4533,7 +4533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim invokeParameter As ParameterSymbol = invoke.Parameters(0)
 
             ' Do not allow Optional, ParamArray and ByRef.
-            If invokeParameter.IsOptional OrElse invokeParameter.IsByRef OrElse invokeParameter.IsParamArray Then
+            If invokeParameter.IsOptional OrElse invokeParameter.IsByRef OrElse invokeParameter.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                 Return Nothing
             End If
 

@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
-
+            // PROTOTYPE(ParamsCollections): Is this code path going to handle non-array params collections?
             return MakeArgumentsAndCall(
                 syntax,
                 expression,

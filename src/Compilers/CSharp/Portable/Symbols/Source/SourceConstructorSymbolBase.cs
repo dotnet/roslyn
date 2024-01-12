@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
+                diagnostics.Add(ErrorCode.ERR_BadVarargs, location); // PROTOTYPE(ParamsCollections): Test this code path
             }
         }
 

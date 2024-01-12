@@ -2050,7 +2050,7 @@ ProduceBoundNode:
                             Exit For
                         End If
 
-                        If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then
+                        If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                             Exit For
                         End If
 
@@ -2074,7 +2074,7 @@ ProduceBoundNode:
                         End If
 
                     ElseIf paramIndex = candidate.ParameterCount - 1 AndAlso
-                           candidate.Parameters(paramIndex).IsParamArray Then
+                           candidate.Parameters(paramIndex).IsParamArray Then  ' PROTOTYPE(ParamsCollections): adjust?
 
                         ' Collect ParamArray arguments
                         While i < arguments.Length
@@ -2144,7 +2144,7 @@ ProduceBoundNode:
                     End If
 
                     If paramIndex = candidate.ParameterCount - 1 AndAlso
-                        candidate.Parameters(paramIndex).IsParamArray Then
+                        candidate.Parameters(paramIndex).IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                         ' ERRID_NamedParamArrayArgument
                         ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamArrayArgument)
                         someArgumentsBad = True
@@ -2299,7 +2299,7 @@ ProduceBoundNode:
 
                     If param.IsParamArray AndAlso paramIndex = candidate.ParameterCount - 1 Then
 
-                        If targetType.Kind <> SymbolKind.ArrayType Then
+                        If targetType.Kind <> SymbolKind.ArrayType Then ' PROTOTYPE(ParamsCollections): adjust?
 
                             If targetType.Kind <> SymbolKind.ErrorType Then
                                 ' ERRID_ParamArrayWrongType
@@ -2375,7 +2375,7 @@ ProduceBoundNode:
                         ElseIf allowExpandedParamArrayForm Then
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If Not arrayType.IsSZArray Then
+                            If Not arrayType.IsSZArray Then ' PROTOTYPE(ParamsCollections): follow up
                                 ' ERRID_ParamArrayWrongType
                                 ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                                 someArgumentsBad = True
@@ -2724,7 +2724,7 @@ ProduceBoundNode:
                     argument = If(argIndex = -1, Nothing, arguments(argIndex))
 
                     If argument IsNot Nothing AndAlso paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-                       param.IsParamArray Then
+                       param.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                         argument = ApplyImplicitConversion(argument.Syntax, targetType, argument, diagnostics)
                         ' Leave both conversions at identity since we already applied the conversion
                     ElseIf argIndex > -1 Then

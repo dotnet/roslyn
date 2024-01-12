@@ -2883,6 +2883,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
+            // PROTOTYPE(ParamsCollections): Adjust?
             Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(

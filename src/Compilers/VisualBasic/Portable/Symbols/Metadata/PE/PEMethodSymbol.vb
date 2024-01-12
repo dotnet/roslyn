@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         Dim firstParam As ParameterSymbol = Me.Parameters(0)
 
-                        result = Not (firstParam.IsOptional OrElse firstParam.IsParamArray)
+                        result = Not (firstParam.IsOptional OrElse firstParam.IsParamArray) ' PROTOTYPE(ParamsCollections): adjust?
                     End If
 
                     _packedFlags.InitializeIsExtensionMethod(result)

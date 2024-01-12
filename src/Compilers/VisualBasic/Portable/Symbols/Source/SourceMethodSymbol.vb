@@ -1505,7 +1505,7 @@ lReportErrorOnTwoTokens:
                         Dim firstParam As ParameterSymbol = Me.Parameters(0)
 
                         If Not firstParam.IsOptional AndAlso
-                           Not firstParam.IsParamArray AndAlso
+                           Not firstParam.IsParamArray AndAlso ' PROTOTYPE(ParamsCollections): adjust?
                            ValidateGenericConstraintsOnExtensionMethodDefinition() Then
                             isExtensionMethod = m_containingType.MightContainExtensionMethods
                         End If
@@ -1617,7 +1617,7 @@ lReportErrorOnTwoTokens:
                     If firstParam.IsOptional Then
                         diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
 
-                    ElseIf firstParam.IsParamArray Then
+                    ElseIf firstParam.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                         diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
 
                     ElseIf Not Me.ValidateGenericConstraintsOnExtensionMethodDefinition() Then

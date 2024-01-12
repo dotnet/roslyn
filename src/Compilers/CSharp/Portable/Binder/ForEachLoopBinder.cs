@@ -1207,6 +1207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
+
+                    // PROTOTYPE(ParamsCollections): Test this code path
                     bool expanded = patternDisposeMethod.HasParamsParameter();
 
                     BindDefaultArgumentsAndParamsCollection(

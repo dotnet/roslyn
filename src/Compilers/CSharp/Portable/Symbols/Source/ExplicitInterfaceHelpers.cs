@@ -282,6 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (hasParamsParam && !interfaceMember.HasParamsParameter())
                         {
+                            // PROTOTYPE(ParamsCollections): Test this code path
+
                             // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
                             // Still counts as an implementation.
                             diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);

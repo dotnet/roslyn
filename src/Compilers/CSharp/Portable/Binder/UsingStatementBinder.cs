@@ -224,7 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
+
+                        // PROTOTYPE(ParamsCollections): Test this code path
                         bool expanded = disposeMethod.HasParamsParameter();
+
                         originalBinder.BindDefaultArgumentsAndParamsCollection(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation

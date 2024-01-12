@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
             {
                 // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-                if (invoke.IsParams())
+                if (invoke.IsParams()) // PROTOTYPE(ParamsCollections): Test this code path
                 {
                     Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
                         Compilation,

@@ -614,7 +614,7 @@ Done:
                     End If
 
                     If (comparisons And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
-                        If param1.IsParamArray <> param2.IsParamArray Then
+                        If param1.IsParamArray <> param2.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
                             results = results Or SymbolComparisonResults.ParamArrayMismatch
                             If (stopIfAny And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                                 GoTo Done

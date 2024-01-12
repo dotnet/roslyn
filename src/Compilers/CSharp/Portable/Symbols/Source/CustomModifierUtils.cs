@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.AddRange(destinationParameters, i); //add up to, but not including, the current parameter
                     }
 
-                    bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
+                    bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams; // PROTOTYPE(ParamsCollections): Test this code path
                     builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type,
                                                                                   sourceParameter.TypeWithAnnotations.CustomModifiers,
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty,

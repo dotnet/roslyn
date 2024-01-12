@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsParams)
             {
+                // PROTOTYPE(ParamsCollections): Test emitted metadata
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
 
