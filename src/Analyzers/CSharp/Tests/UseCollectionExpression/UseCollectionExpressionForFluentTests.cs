@@ -2789,7 +2789,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
     public async Task TestAddRangeOfCollectionExpression1()
     {
         await new VerifyCS.Test
@@ -2825,7 +2825,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
     public async Task TestAddRangeOfCollectionExpression2()
     {
         await new VerifyCS.Test

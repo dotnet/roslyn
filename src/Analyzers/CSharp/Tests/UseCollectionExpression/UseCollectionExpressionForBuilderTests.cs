@@ -998,6 +998,7 @@ public partial class UseCollectionExpressionForBuilderTests
     }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
     public async Task TestAddRange5(string pattern)
     {
         await new VerifyCS.Test
