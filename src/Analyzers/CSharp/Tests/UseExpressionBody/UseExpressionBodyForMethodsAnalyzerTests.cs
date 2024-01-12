@@ -69,15 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
             option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
             Assert.Equal(ExpressionBodyPreference.Never, option.Value);
-            Assert.Equal(NotificationOption2.Error, option.Notification);
+            Assert.Equal(NotificationOption2.Error.WithIsExplicitlySpecified(true), option.Notification);
 
             option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
             Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
-            Assert.Equal(NotificationOption2.Warning, option.Notification);
+            Assert.Equal(NotificationOption2.Warning.WithIsExplicitlySpecified(true), option.Notification);
 
             option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
             Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
-            Assert.Equal(NotificationOption2.Suggestion, option.Notification);
+            Assert.Equal(NotificationOption2.Suggestion.WithIsExplicitlySpecified(true), option.Notification);
         }
 
         [Fact]

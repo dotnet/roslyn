@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
     Public Class UseAutoPropertyTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseAutoPropertyAnalyzer(), GetVisualBasicUseAutoPropertyCodeFixProvider())

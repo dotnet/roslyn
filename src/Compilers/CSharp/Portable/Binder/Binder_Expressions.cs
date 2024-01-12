@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
                         }
-                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), inConversion: false, diagnostics);
                     }
                     break;
                 default:
@@ -2763,12 +2763,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionExpression:
                     {
-                        if (operand.Type is null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
-                            return;
-                        }
-                        break;
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
+                        return;
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
@@ -4741,32 +4737,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics, int nestingLevel = 0)
         {
+            const int MaxNestingLevel = 64;
+            if (nestingLevel >= MaxNestingLevel)
+            {
+                // An expression is too long or complex to compile
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, syntax.Location);
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType());
+            }
+
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                builder.Add(bindElement(element, diagnostics));
+                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
-            BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
                 return syntax switch
                 {
-                    ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
-                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
+                    ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
+                    ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
 
-            BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
-                var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+                var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
@@ -4787,13 +4792,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                var convertedExpression = ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+                var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
                 BoundExpression? lengthOrCount;
-                if (!TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
                 {
                     lengthOrCount = null;
                 }
@@ -4806,8 +4811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: lengthOrCount,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false)
-                { WasCompilerGenerated = true };
+                    hasErrors: false);
             }
         }
 #nullable disable
@@ -5399,6 +5403,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)boundMember;
+                    MessageID.IDS_ImplicitIndexerInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
+
+                    if (isRhsNestedInitializer && GetPropertySymbol(implicitIndexer, out _, out _) is { } property)
+                    {
+                        hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
+                    }
+
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
+
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
 
@@ -5977,12 +5992,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
-                syntax,
-                implicitReceiver,
-                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
-                diagnostics);
+            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
+                syntax.Expression,
+                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
+                hasEnumerableInitializerType: true,
+                collectionInitializerAddMethodBinder,
+                diagnostics,
+                implicitReceiver);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
@@ -6845,7 +6861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
-                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType);
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false), boundType, typeDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false)), leftType);
                             }
 
                             typeDiagnostics.Free();
@@ -8688,13 +8704,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
-                var spanMethod = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
-                if (spanMethod is { ContainingType: { Kind: SymbolKind.NamedType } spanType })
+                if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
                 {
-                    spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations)).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
+                    method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(expr.Type), elementField.TypeWithAnnotations)).
+                        CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
                 }
 
                 if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
@@ -9885,7 +9902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            var sealedDiagnostics = ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);

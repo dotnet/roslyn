@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -63,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        internal virtual IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
+        internal virtual IBraceMatchingService GetBraceMatchingService(EditorTestWorkspace workspace)
             => workspace.GetService<IBraceMatchingService>();
 
-        protected abstract TestWorkspace CreateWorkspace(string markup, ParseOptions options);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options);
     }
 }

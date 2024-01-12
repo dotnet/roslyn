@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             if (useTabs && expectedOutputMarkup != null)
             {

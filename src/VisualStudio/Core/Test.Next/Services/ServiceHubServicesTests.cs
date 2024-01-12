@@ -62,8 +62,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteWorkpace = client.GetRemoteWorkspace();
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkpace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkpace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
         {
             // make sure checksum is calculated
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
             map ??= new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Ensure remote workspace is in sync with normal workspace.
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
             var callback = new DesignerAttributeComputerCallback();
@@ -196,14 +196,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // No serializable remote options affect options checksum, so the checksums should match.
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             solution = solution.RemoveProject(solution.ProjectIds.Single());
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
         }
 
         [Theory]
@@ -225,24 +225,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await VerifyAssetStorageAsync(client, solution);
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // incrementally update
             solution = await VerifyIncrementalUpdatesAsync(
                 workspace, remoteWorkspace, client, solution, applyInBatch, csAddition: " ", vbAddition: " ");
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // incrementally update
             solution = await VerifyIncrementalUpdatesAsync(
                 workspace, remoteWorkspace, client, solution, applyInBatch, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52578")]
@@ -270,8 +270,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await VerifyAssetStorageAsync(client, solution);
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // reverse project references and incrementally update
             solution = solution.RemoveProjectReference(projectId1, project1ToProject2);
@@ -281,8 +281,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await UpdatePrimaryWorkspace(client, solution);
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
 
             // reverse project references again and incrementally update
             solution = solution.RemoveProjectReference(projectId2, project2ToProject1);
@@ -292,8 +292,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await UpdatePrimaryWorkspace(client, solution);
 
             Assert.Equal(
-                await solution.State.GetChecksumAsync(CancellationToken.None),
-                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+                await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -750,8 +750,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     remoteSolution = currentRemoteSolution;
 
                     Assert.Equal(
-                        await solution.State.GetChecksumAsync(CancellationToken.None),
-                        await remoteSolution.State.GetChecksumAsync(CancellationToken.None));
+                        await solution.CompilationState.GetChecksumAsync(CancellationToken.None),
+                        await remoteSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
                 }
             }
 

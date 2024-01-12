@@ -2701,6 +2701,59 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")>
+        Public Sub ConstInAttributes_NoCycle_01()
+            Dim source = "
+                Imports ILGPU
+                Imports System.Runtime.CompilerServices
+
+                <Assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)>
+
+                Namespace ILGPU
+                    Public Class Context
+                        Public Const RuntimeAssemblyName As String = RuntimeSystem.AssemblyName
+                        Public Property RuntimeSystem As RuntimeSystem
+                    End Class
+                End Namespace
+                "
+
+            CreateCompilation(source).AssertTheseDiagnostics(<expected><![CDATA[
+BC31537: Friend declaration '' is invalid and cannot be resolved.
+                <Assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)>
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+                        Public Const RuntimeAssemblyName As String = RuntimeSystem.AssemblyName
+                                                                     ~~~~~~~~~~~~~
+BC30002: Type 'RuntimeSystem' is not defined.
+                        Public Property RuntimeSystem As RuntimeSystem
+                                                         ~~~~~~~~~~~~~]]></expected>
+            )
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")>
+        Public Sub ConstInAttributes_NoCycle_02()
+            Dim source = "
+                Imports ILGPU
+                Imports System.Runtime.CompilerServices
+
+                <Assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)>
+
+                Namespace ILGPU
+                    Public Class Context
+                        Public Const RuntimeAssemblyName As String = RuntimeSystem.AssemblyName
+                        Public Property RuntimeSystem As RuntimeSystem
+                    End Class
+
+                    Public Class RuntimeSystem
+                        Public Const AssemblyName As String = ""RuntimeSystem""
+                    End Class
+                End Namespace
+                "
+
+            Dim compilation = CreateCompilation(source)
+            CompileAndVerify(compilation)
+        End Sub
+
         <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036()

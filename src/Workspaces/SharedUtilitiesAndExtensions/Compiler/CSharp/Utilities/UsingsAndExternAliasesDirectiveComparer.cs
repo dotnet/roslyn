@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             if (directive1 is null)
                 return directive2 is null ? 0 : -1;
-            else if (directive2 is null)
+
+            if (directive2 is null)
                 return 1;
 
             if (directive1 == directive2)
@@ -102,9 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             var directiveKindDifference = directive1Kind - directive2Kind;
             if (directiveKindDifference != 0)
-            {
                 return directiveKindDifference;
-            }
+
+            var directive1IsGlobal = IsGlobal(directive1Kind);
+            var directive2IsGlobal = IsGlobal(directive2Kind);
+
+            // Place global directives first.
+            if (directive1IsGlobal != directive2IsGlobal)
+                return directive1IsGlobal ? -1 : 1;
 
             // ok, it's the same type of using now.
             switch (directive1Kind)
@@ -114,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return _tokenComparer.Compare(extern1!.Identifier, extern2!.Identifier);
 
                 case UsingKind.Alias:
+                case UsingKind.GlobalAlias:
                     var aliasComparisonResult = _tokenComparer.Compare(using1!.Alias!.Name.Identifier, using2!.Alias!.Name.Identifier);
 
                     if (aliasComparisonResult == 0 && using1.Name != null && using2.Name != null)
@@ -129,6 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     Contract.ThrowIfNull(using2!.Name);
                     return _nameComparer.Compare(using1!.Name, using2!.Name);
             }
+
+            static bool IsGlobal(UsingKind kind)
+                => kind is UsingKind.GlobalAlias or UsingKind.GlobalNamespace or UsingKind.GlobalUsingStatic;
         }
     }
 }

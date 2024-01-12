@@ -81,11 +81,11 @@ stages:
     demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.8') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.9') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.8
+        MirrorBranch: release/dev17.9
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -138,7 +138,7 @@ stages:
         versionSpec: '4.9.2'
 
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
@@ -180,6 +180,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack
@@ -300,21 +301,6 @@ stages:
         PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
         ArtifactName: 'PackageArtifacts'
       condition: succeeded()
-
-    # Publish language server package
-    - powershell: Write-Host "##vso[task.setvariable variable=NPMFileName]$((ls -file $(Build.SourcesDirectory)\artifacts\packages\Release\NPM\ | select -First 1).FullName)"
-      displayName: Setting NPM Package Variable
-
-    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
-    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
-    - task: npmAuthenticate@0
-      displayName: Authenticate NPM Feed
-      inputs:
-        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/DevKit/Impl/.npmrc
-        customEndpoint: devdiv-vs-green-npm-package-feed
-
-    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\DevKit\Impl\.npmrc $(NPMFileName)
-      displayName: Publish Language Server NPM Package
 
     # Publish Asset Manifests for Build Asset Registry job
     - task: PublishBuildArtifacts@1

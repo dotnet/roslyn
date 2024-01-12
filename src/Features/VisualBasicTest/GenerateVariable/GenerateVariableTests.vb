@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateVariable
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
     Public Class GenerateVariableTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicGenerateVariableCodeFixProvider())
@@ -719,7 +719,7 @@ index:=1)
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528229")>
-        <WpfFact(Skip:="528229")>
+        <Fact(Skip:="528229")>
         Public Async Function TestRefLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]

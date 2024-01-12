@@ -2367,24 +2367,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
-            EmitExpression(expression.Count, used);
-
-            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
-            // we can ignore that if the actual result is unused
+            var initializer = expression.InitializerOpt;
             if (used)
             {
-                _sawStackalloc = true;
-                _builder.EmitOpCode(ILOpCode.Localloc);
+                EmitStackAlloc(expression.Type, initializer, expression.Count);
             }
-
-            var initializer = expression.InitializerOpt;
-            if (initializer != null)
+            else
             {
-                if (used)
-                {
-                    EmitStackAllocInitializers(expression.Type, initializer);
-                }
-                else
+                // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
+                // we can ignore that if the actual result is unused
+                EmitExpression(expression.Count, used: false);
+
+                if (initializer != null)
                 {
                     // If not used, just emit initializer elements to preserve possible sideeffects
                     foreach (var init in initializer.Initializers)
@@ -2417,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlaceTarget: null, out _))
+                if (TryEmitOptimizedReadonlySpan(expression, used, inPlaceTarget: null, out _))
                 {
                     return;
                 }
@@ -2436,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
+        private bool TryEmitOptimizedReadonlySpan(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
         {
             int argumentsLength = expression.Arguments.Length;
             avoidInPlace = false;
@@ -2444,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
+                   TryEmitOptimizedReadonlySpanCreation((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
@@ -2666,7 +2660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
 
             // ReadOnlySpan may just refer to the blob, if possible.
-            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, target, out bool avoidInPlace))
+            if (TryEmitOptimizedReadonlySpan(objCreation, used, target, out bool avoidInPlace))
             {
                 return true;
             }

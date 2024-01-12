@@ -253,6 +253,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
-#nullable disable
     }
 }

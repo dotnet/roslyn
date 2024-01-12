@@ -11,8 +11,8 @@
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
-    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Utils.vb" Link="Utils.vb" />
+    <Compile Include="..\..\..\Features\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor.vb" />
+    <Compile Include="..\..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />

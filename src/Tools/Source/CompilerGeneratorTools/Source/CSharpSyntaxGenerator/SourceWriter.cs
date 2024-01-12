@@ -37,6 +37,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
+            WriteLine("using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine();
         }
 
@@ -44,38 +45,30 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
 
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            CloseBlock();
         }
 
         private void WriteSyntax()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedTypes();
-            CloseBlock();
         }
 
         private void WriteMain()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
-            CloseBlock();
         }
 
         private void WriteGreenTypes()
@@ -131,7 +124,7 @@ namespace CSharpSyntaxGenerator
                         if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
-                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} {{ get; }}");
+                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}CoreSyntax.{field.Type} {field.Name} {{ get; }}");
                         }
                         else
                         {
@@ -215,15 +208,18 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.SyntaxList<CSharpSyntaxNode>";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else
                     {
@@ -381,10 +377,10 @@ namespace CSharpSyntaxGenerator
             Write(CommaJoin(node.Fields.Select(f =>
             {
                 var type =
-                    f.Type == "SyntaxNodeOrTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>" :
-                    f.Type == "SyntaxTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>" :
-                    IsNodeList(f.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + f.Type :
-                    IsSeparatedNodeList(f.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + f.Type :
+                    f.Type == "SyntaxNodeOrTokenList" ? "CoreSyntax.SyntaxList<CSharpSyntaxNode>" :
+                    f.Type == "SyntaxTokenList" ? "CoreSyntax.SyntaxList<SyntaxToken>" :
+                    IsNodeList(f.Type) ? "CoreSyntax." + f.Type :
+                    IsSeparatedNodeList(f.Type) ? "CoreSyntax." + f.Type :
                     f.Type;
 
                 return $"{type} {CamelCase(f.Name)}";
@@ -654,8 +650,8 @@ namespace CSharpSyntaxGenerator
                 {
                     var type = f.Type switch
                     {
-                        "SyntaxNodeOrTokenList" => "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>",
-                        _ when IsSeparatedNodeList(f.Type) || IsNodeList(f.Type) => $"Microsoft.CodeAnalysis.Syntax.InternalSyntax.{f.Type}",
+                        "SyntaxNodeOrTokenList" => "CoreSyntax.SyntaxList<CSharpSyntaxNode>",
+                        _ when IsSeparatedNodeList(f.Type) || IsNodeList(f.Type) => $"CoreSyntax.{f.Type}",
                         _ => GetFieldType(f, green: true),
                     };
 
@@ -868,7 +864,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteLine($" => new SyntaxToken(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
+                            WriteLine($" => new SyntaxToken(this, ((InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
                         }
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
@@ -927,7 +923,7 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     WriteComment(field.PropertyComment, "");
-                    WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((Syntax.InternalSyntax.{node.Name})this.Green).{field.Name};");
+                    WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
                     WriteLine();
                 }
 

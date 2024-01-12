@@ -3,16 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text.Editor.SmartRename
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -583,10 +581,6 @@ class D : B
                     edit.Apply()
                 End Using
 
-#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
-                Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
-#Enable Warning BC40000
-
                 Using dashboard = New RenameDashboard(
                     New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
                     editorFormatMapService:=Nothing,
@@ -625,13 +619,15 @@ class D : B
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
+                    editorFormatMapService,
                     threadingContext,
                     listenerProvider)
 
@@ -714,36 +710,21 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
-#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
-                Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
-#Enable Warning BC40000
-
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 
             End Using
         End Sub
     End Class
-
-#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
-
-    Friend Class TestSmartRenameSessionFactory
-        Implements ISmartRenameSessionFactory
-
-        Public Function CreateSmartRenameSession(renamedIdentifier As VisualStudio.Text.SnapshotSpan) As ISmartRenameSession Implements ISmartRenameSessionFactory.CreateSmartRenameSession
-            Return Nothing
-        End Function
-    End Class
-#Enable Warning BC40000
 
     Friend Class TestQuickInfoBroker
         Implements IAsyncQuickInfoBroker

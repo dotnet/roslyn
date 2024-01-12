@@ -35,10 +35,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             return (EnvDTE100.Debugger5)dte.Debugger;
         }
 
-        public Task SetBreakpointAsync(string fileName, string text, CancellationToken cancellationToken)
-            => SetBreakpointAsync(fileName, text, charsOffset: 0, cancellationToken);
+        public Task SetBreakpointAsync(string projectName, string fileName, string text, CancellationToken cancellationToken)
+            => SetBreakpointAsync(projectName, fileName, text, charsOffset: 0, cancellationToken);
 
-        public async Task SetBreakpointAsync(string fileName, string text, int charsOffset, CancellationToken cancellationToken)
+        public async Task SetBreakpointAsync(string projectName, string fileName, string text, int charsOffset, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -47,16 +47,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
             caretPosition.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
-            await SetBreakpointAsync(fileName, lineNumber, characterIndex + charsOffset, cancellationToken);
+            await SetBreakpointAsync(projectName, fileName, lineNumber, characterIndex + charsOffset, cancellationToken);
         }
 
-        public async Task SetBreakpointAsync(string fileName, int lineNumber, int characterIndex, CancellationToken cancellationToken)
+        public async Task SetBreakpointAsync(string projectName, string fileName, int lineNumber, int characterIndex, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var breakpointFile = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(projectName, fileName, cancellationToken);
+
             var debugger = await GetDebuggerAsync(cancellationToken);
             // Need to increment the line number because editor line numbers starts from 0 but the debugger ones starts from 1.
-            debugger.Breakpoints.Add(File: fileName, Line: lineNumber + 1, Column: characterIndex);
+            debugger.Breakpoints.Add(File: breakpointFile, Line: lineNumber + 1, Column: characterIndex);
         }
 
         public async Task GoAsync(bool waitForBreakMode, CancellationToken cancellationToken)

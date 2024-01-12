@@ -3760,7 +3760,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
         public void WhenWithAlwaysThrowingExpression_01()
         {

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -498,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
                 var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
                 var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -902,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var sourceText = SourceText.From(source, Encoding.UTF8);
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
 
-                using var workspace = (TestWorkspace)project.Solution.Workspace;
+                using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
 
                 var service = workspace.GetService<IMetadataAsSourceFileService>();
                 try
@@ -954,7 +955,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var sourceText1 = SourceText.From(source1, Encoding.UTF8);
                 var sourceText2 = SourceText.From(source2, Encoding.UTF8);
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>

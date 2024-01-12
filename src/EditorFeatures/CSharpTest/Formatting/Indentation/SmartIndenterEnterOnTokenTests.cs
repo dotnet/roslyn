@@ -1406,7 +1406,7 @@ class C
             bool useTabs)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
 
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
@@ -1446,7 +1446,7 @@ class C
             IndentStyle indentStyle)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;
