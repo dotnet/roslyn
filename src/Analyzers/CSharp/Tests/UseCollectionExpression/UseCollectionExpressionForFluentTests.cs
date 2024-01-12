@@ -2788,4 +2788,92 @@ public class UseCollectionExpressionForFluentTests
                 """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestAddRangeOfCollectionExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.AddRange([1, 2]).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = [1, 2];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(9,52): error CS0121: The call is ambiguous between the following methods or properties: 'ImmutableArray<T>.AddRange(ImmutableArray<T>)' and 'ImmutableArray<T>.AddRange(ReadOnlySpan<T>)'
+                    DiagnosticResult.CompilerError("CS0121").WithSpan(9, 52, 9, 60).WithArguments("System.Collections.Immutable.ImmutableArray<T>.AddRange(System.Collections.Immutable.ImmutableArray<T>)", "System.Collections.Immutable.ImmutableArray<T>.AddRange(System.ReadOnlySpan<T>)"),
+                }
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAddRangeOfCollectionExpression2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.AddRange([1, .. x]).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> list = [1, .. x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(9,52): error CS0121: The call is ambiguous between the following methods or properties: 'ImmutableArray<T>.AddRange(ImmutableArray<T>)' and 'ImmutableArray<T>.AddRange(ReadOnlySpan<T>)'
+                    DiagnosticResult.CompilerError("CS0121").WithSpan(9, 52, 9, 60).WithArguments("System.Collections.Immutable.ImmutableArray<T>.AddRange(System.Collections.Immutable.ImmutableArray<T>)", "System.Collections.Immutable.ImmutableArray<T>.AddRange(System.ReadOnlySpan<T>)"),
+                }
+            }
+        }.RunAsync();
+    }
 }

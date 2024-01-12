@@ -243,12 +243,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                if (matchesInReverse != null)
-                {
-                    AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
-                }
-
-                return true;
+                return TryAddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
             }
 
             // If we're bottomed out at some different type of expression, and we started with an AsSpan, and we did not
@@ -362,15 +357,40 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
     }
 
-    private static void AddArgumentsInReverse(
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>> matchesInReverse,
+    private static bool TryAddArgumentsInReverse(
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool useSpread)
     {
         Contract.ThrowIfTrue(useSpread && arguments.Count != 1);
 
-        for (var i = arguments.Count - 1; i >= 0; i--)
-            matchesInReverse.Add(new(arguments[i], useSpread));
+        // If we're going to spread a collection expression, just take the values *within* that collection expression
+        // and make them arguments to the collection expression we're creating.
+        if (useSpread && arguments[0].Expression is CollectionExpressionSyntax collectionExpression)
+        {
+            for (var i = collectionExpression.Elements.Count - 1; i >= 0; i--)
+            {
+                var element = collectionExpression.Elements[i];
+                var (expression, innerUseSpread) = element switch
+                {
+                    SpreadElementSyntax spreadElement => (spreadElement.Expression, true),
+                    ExpressionElementSyntax expressionElement => (expressionElement.Expression, false),
+                    _ => default,
+                };
+
+                if (expression is null)
+                    return false;
+
+                matchesInReverse?.Add(new(SyntaxFactory.Argument(expression), innerUseSpread));
+            }
+        }
+        else
+        {
+            for (var i = arguments.Count - 1; i >= 0; i--)
+                matchesInReverse?.Add(new(arguments[i], useSpread));
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -416,8 +436,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // Check for Add/AddRange/Concat
             if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
             {
-                if (matchesInReverse != null)
-                    AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
+                if (!TryAddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread))
+                    return false;
 
                 isAdditionMatch = true;
                 return true;
