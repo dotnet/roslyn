@@ -23,7 +23,12 @@ namespace BoundTreeGenerator
         public List<TreeType> Types;
     }
 
-    public class TreeType
+    public class CommentedNode
+    {
+        public string Comment;
+    }
+
+    public class TreeType : CommentedNode
     {
         [XmlAttribute]
         public string Name;
@@ -64,13 +69,13 @@ namespace BoundTreeGenerator
         public List<Kind> Kinds;
     }
 
-    public class Kind
+    public class Kind : CommentedNode
     {
         [XmlAttribute]
         public string Name;
     }
 
-    public class Field
+    public class Field : CommentedNode
     {
         [XmlAttribute]
         public string Name;
@@ -106,7 +111,7 @@ namespace BoundTreeGenerator
         public List<EnumField> Fields;
     }
 
-    public class EnumField
+    public class EnumField : CommentedNode
     {
         [XmlAttribute]
         public string Name;
