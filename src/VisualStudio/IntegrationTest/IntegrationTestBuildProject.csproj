@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.Build.Traversal">
   <PropertyGroup>
+   <TargetFrameworks>net472</TargetFrameworks>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <!--

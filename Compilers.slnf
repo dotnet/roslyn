@@ -63,6 +63,7 @@
       "src\\Scripting\\VisualBasicTest\\Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.vbproj",
       "src\\Scripting\\VisualBasic\\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
+      "src\\Tools\\BuildBoss\\BuildBoss.csproj",
       "src\\Tools\\BuildValidator\\BuildValidator.csproj",
       "src\\Tools\\PrepareTests\\PrepareTests.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
