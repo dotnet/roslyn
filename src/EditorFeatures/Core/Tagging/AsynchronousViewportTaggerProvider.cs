@@ -103,6 +103,12 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.SpanTrackingMode"/>
     protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
+    /// <summary>
+    /// Indicates whether a tagger should be created for this text view and buffer.
+    /// </summary>
+    /// <param name="textView">The text view for which a tagger is attempting to be created</param>
+    /// <param name="buffer">The text buffer for which a tagger is attempting to be created</param>
+    /// <returns>Whether a tagger should be created</returns>
     protected virtual bool CanCreateTagger(ITextView textView, ITextBuffer buffer) => true;
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
