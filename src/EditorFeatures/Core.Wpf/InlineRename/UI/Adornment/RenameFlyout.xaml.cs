@@ -127,7 +127,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string ApplyRename => EditorFeaturesResources.Apply1;
         public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
-        public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
+        public string SubmitText
+            => _viewModel.SmartRenameViewModel is not null
+            ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
+            : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
         private void TextView_ViewPortChanged(object sender, EventArgs e)

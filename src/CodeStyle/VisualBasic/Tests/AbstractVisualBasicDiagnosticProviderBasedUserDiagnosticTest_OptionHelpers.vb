@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
-    Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+    Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
         Friend Shared Function SingleOption(Of T)(optionParam As Option2(Of T), enabled As T) As (OptionKey2, Object)
             Return (New OptionKey2(optionParam), enabled)
         End Function

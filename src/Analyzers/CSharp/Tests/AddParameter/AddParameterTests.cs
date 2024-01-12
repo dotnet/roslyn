@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddParameterTests(ITestOutputHelper logger)
            : base(logger)

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task PopulateOldProjectMapAsync()
                 {
-                    foreach (var (projectId, projectState) in solution.State.ProjectStates)
+                    foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
                     {
                         var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                         if (olds.Object.Contains(projectChecksums.Checksum))

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Host
                 var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
-                foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
+                foreach (var (_, projectState) in compileTimeSolution.SolutionState.ProjectStates)
                 {
                     using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                     using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);

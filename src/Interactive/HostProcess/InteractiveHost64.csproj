@@ -5,8 +5,8 @@
   <PropertyGroup>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net6.0-windows7.0</TargetFrameworks>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <TargetFrameworks>net472;$(NetVS)-windows</TargetFrameworks>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>

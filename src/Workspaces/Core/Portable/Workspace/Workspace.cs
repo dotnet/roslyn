@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    var changedOptions = newSolution.State.Options.GetChangedOptions();
+                    var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                     _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
                 }
 

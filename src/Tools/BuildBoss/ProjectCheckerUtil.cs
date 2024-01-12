@@ -34,7 +34,7 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
-                if (!_projectUtil.IsNewSdk)
+                if (!_projectUtil.IsNewSdk())
                 {
                     textWriter.WriteLine($"Project must new .NET SDK based");
                     allGood = false;
@@ -277,22 +277,26 @@ namespace BuildBoss
 
         private bool CheckTargetFrameworks(TextWriter textWriter)
         {
-            if (!_data.IsUnitTestProject)
-            {
-                return true;
-            }
-
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
+                // !!!NOTE!!!
+                // This check ensures that projects match the target framework expectations laid out in 
+                // Target Framework Strategy.md. Before changing this list, even simply adding a new 
+                // tfm, please consult with the infrastructure team so they can validate the change is in
+                // line with how the product is constructed.
                 switch (targetFramework)
                 {
                     case "net472":
-                    case "netcoreapp3.1":
-                    case "net6.0":
-                    case "net6.0-windows":
-                    case "net7.0":
-                    case "net8.0":
+                    case "netstandard2.0":
+                    case "$(NetRoslyn)":
+                    case "$(NetRoslynSourceBuild)":
+                    case "$(NetRoslynToolset)":
+                    case "$(NetRoslynAll)":
+                    case "$(NetVS)":
+                    case "$(NetVS)-windows":
+                    case "$(NetVSCode)":
+                    case "$(NetVSShared)":
                         continue;
                 }
 

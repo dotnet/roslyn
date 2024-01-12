@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
             var currentSolution = _workspace.CurrentSolution;
-            var hostAnalyzers = currentSolution.State.Analyzers;
+            var hostAnalyzers = currentSolution.SolutionState.Analyzers;
 
             if (hierarchy == null)
             {

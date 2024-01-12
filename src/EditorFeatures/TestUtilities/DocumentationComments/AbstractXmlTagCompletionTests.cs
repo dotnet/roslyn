@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -21,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     [UseExportProvider]
     public abstract class AbstractXmlTagCompletionTests
     {
-        private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace testWorkspace);
-        private protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace testWorkspace);
+        private protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {

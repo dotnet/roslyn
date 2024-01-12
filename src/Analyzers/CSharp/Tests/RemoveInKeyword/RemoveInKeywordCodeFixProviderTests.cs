@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveInKeyword
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveInKeyword)]
-    public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveInKeywordCodeFixProviderTests(ITestOutputHelper logger)
           : base(logger)

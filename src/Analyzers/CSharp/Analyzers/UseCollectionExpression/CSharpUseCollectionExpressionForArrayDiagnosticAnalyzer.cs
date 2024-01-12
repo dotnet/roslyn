@@ -69,6 +69,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             semanticModel,
             expression,
             expressionType,
+            isSingletonInstance: false,
             allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,
@@ -78,7 +79,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             return default;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -97,7 +98,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
         // from within the initializer.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -135,7 +136,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
                 semanticModel, arrayCreationExpression, replacementCollectionExpression,
-                expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken,
+                expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken,
                 out var changesSemantics))
         {
             return;
