@@ -23,7 +23,7 @@ namespace BoundTreeGenerator
         public List<TreeType> Types;
     }
 
-    public class CommentedNode
+    public abstract class CommentedNode
     {
         public string Comment;
     }
