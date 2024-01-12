@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace BoundTreeGenerator
 {
@@ -288,8 +289,66 @@ namespace BoundTreeGenerator
             return !_typeMap.Values.Contains(node.Name);
         }
 
+        public bool PreferMultiLineComment { get; set; } = false;
+
+        private void WriteComment(CommentedNode node)
+        {
+            if (node.Comment is null or { Length: 0 })
+            {
+                return;
+            }
+
+            if (PreferMultiLineComment && _targetLang == TargetLanguage.CSharp)
+            {
+                WriteSimpleLine("/**");
+                var commentText = GetCommentText();
+                WriteSimpleMultiLine(commentText);
+                WriteSimpleLine("*/");
+            }
+            else
+            {
+                var commentLineStart = _targetLang switch
+                {
+                    TargetLanguage.CSharp => "/// ",
+                    TargetLanguage.VB => "''' ",
+                    _ => null
+                };
+
+                if (commentLineStart is { })
+                {
+                    var commentText = GetCommentText().Trim();
+                    using var reader = new StringReader(commentText);
+                    while (reader.ReadLine() is { } line)
+                    {
+                        WriteSimpleLine($"{commentLineStart}{line}");
+                    }
+                }
+            }
+
+            string GetCommentText()
+            {
+                var summaryNode = new XElement("summary", new XText(node.Comment));
+                return summaryNode.ToString(SaveOptions.None);
+            }
+
+            void WriteSimpleLine(string text)
+            {
+                WriteLine("{0}", text);
+            }
+
+            void WriteSimpleMultiLine(string text)
+            {
+                using var reader = new StringReader(text);
+                while (reader.ReadLine() is { } line)
+                {
+                    WriteSimpleLine(line);
+                }
+            }
+        }
+
         private void WriteClassHeader(TreeType node)
         {
+            WriteComment(node);
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
@@ -822,6 +881,7 @@ namespace BoundTreeGenerator
 
         private void WriteField(TreeType node, Field field)
         {
+            WriteComment(field);
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
