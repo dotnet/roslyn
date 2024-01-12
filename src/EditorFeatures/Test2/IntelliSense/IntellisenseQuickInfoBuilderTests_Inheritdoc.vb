@@ -197,6 +197,52 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         <WpfFact>
+        Public Async Function ExplicitInheritedQuickInfoForSummary3() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+
+                            /// &lt;summary&gt;
+                            /// &lt;code&gt;
+                            /// Dim test = 0
+                            /// &lt;/code&gt;
+                            /// &lt;/summary&gt;
+                            class BaseClass
+                            {
+                            }
+
+                            /// &lt;inheritdoc cref="BaseClass"/&gt;
+                            class My$$Class {
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ClassInternal)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Dim test = 0", ClassifiedTextRunStyle.UseClassificationFont))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact>
         Public Async Function InheritedQuickInfoForParameterButNotSummary1() As Task
             Dim workspace =
                 <Workspace>
