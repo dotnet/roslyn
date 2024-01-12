@@ -17,7 +17,7 @@ Friend Class GoToHelpers
             Optional shouldSucceed As Boolean = True,
             Optional metadataDefinitions As String() = Nothing) As Task
 
-        Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
+        Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 

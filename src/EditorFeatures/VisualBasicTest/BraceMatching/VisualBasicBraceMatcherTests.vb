@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     Public Class VisualBasicBraceMatcherTests
         Inherits AbstractBraceMatcherTests
 
-        Protected Overrides Function CreateWorkspaceFromCode(code As String, options As ParseOptions) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
+        Protected Overrides Function CreateWorkspaceFromCode(code As String, options As ParseOptions) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code)
         End Function
 
         Private Async Function TestInClassAsync(code As String, expectedCode As String) As Task

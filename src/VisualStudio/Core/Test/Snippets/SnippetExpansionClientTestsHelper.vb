@@ -4,13 +4,14 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend Class SnippetExpansionClientTestsHelper
         Public Shared Sub TestProjectionBuffer(snippetExpansionClient As AbstractSnippetExpansionClient,
-                 surfaceBufferDocument As TestHostDocument,
+                 surfaceBufferDocument As EditorTestHostDocument,
                  expectedSurfaceBuffer As XElement)
 
             Dim mockExpansionSession = New TestExpansionSession()
@@ -48,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Friend Shared Sub TestFormattingAndCaretPosition(
                  snippetExpansionClient As AbstractSnippetExpansionClient,
-                 document As TestHostDocument,
+                 document As EditorTestHostDocument,
                  expectedResult As XElement,
                  expectedVirtualSpacing As Integer)
 

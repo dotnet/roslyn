@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCollectionInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
     Public Class UseCollectionInitializerTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),

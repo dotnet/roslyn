@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         where TTag : class, ITag
     {
         internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(EditorTestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
         {
             var source = new TestDiagnosticUpdateSource();
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             return spans;
         }
 
-        internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
+        internal static DiagnosticData CreateDiagnosticData(EditorTestHostDocument document, TextSpan span)
         {
             Contract.ThrowIfNull(document.FilePath);
 

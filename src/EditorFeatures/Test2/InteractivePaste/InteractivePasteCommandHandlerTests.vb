@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
 
-        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As EditorTestWorkspace) As InteractivePasteCommandHandler
             Dim handler = workspace.ExportProvider.GetCommandHandler(Of InteractivePasteCommandHandler)(PredefinedCommandHandlerNames.InteractivePaste)
             handler.RoslynClipboard = New MockClipboard()
             Return handler
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         Public Sub PasteCommandWithInteractiveFormat()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         Public Sub PasteCommandWithOutInteractiveFormat()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         Public Sub PasteCommandWithInteractiveFormatAsLineCopy()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>

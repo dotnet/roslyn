@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-    public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         private const int FieldIndex = 0;
         private const int ReadonlyFieldIndex = 1;

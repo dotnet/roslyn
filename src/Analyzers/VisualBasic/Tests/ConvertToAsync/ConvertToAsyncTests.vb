@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToAsync
     Public Class ConvertToAsyncTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicConvertToAsyncFunctionCodeFixProvider())

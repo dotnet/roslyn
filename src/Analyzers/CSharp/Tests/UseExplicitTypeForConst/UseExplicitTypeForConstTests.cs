@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTypeForConst
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTypeForConst)]
-    public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseExplicitTypeForConstTests(ITestOutputHelper logger)
             : base(logger)
