@@ -5165,8 +5165,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     void M()
                     {
-                        List<int> numbers = new() { 1, 2 };
-                        numbers.AddRange([4, 5]);
+                        List<int> numbers = [|new|]() { 1, 2 };
+                        [|numbers.AddRange(|][4, 5]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> numbers = [1, 2, 4, 5];
                     }
                 }
                 """,
