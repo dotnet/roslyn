@@ -103,8 +103,13 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.SpanTrackingMode"/>
     protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
+    protected virtual bool CanCreateTagger(ITextView textView, ITextBuffer buffer) => true;
+
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
+        if (!CanCreateTagger(textView, buffer))
+            return null;
+
         var tagger = CreateTagger(textView, buffer);
         if (tagger is not ITagger<T> genericTagger)
         {

@@ -52,6 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
+        protected override bool CanCreateTagger(ITextView textView, ITextBuffer buffer)
+        {
+            return !textView.Roles.Contains(TextViewRoles.PreviewRole);
+        }
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
