@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using BoundTreeGenerator;
@@ -29,22 +30,37 @@ namespace BoundTreeGenerator
             }
         }
 
-        public static void HandleElementComment(XElement element, object obj)
+        private static IEnumerable<string> GetPreviousComments(XElement element)
+        {
+            foreach (var node in GetPreviousNodes(element))
+            {
+                if (node is XElement)
+                {
+                    break;
+                }
+                if (node is XComment { Value: { Length: > 0 } commentText })
+                {
+                    yield return commentText;
+                }
+            }
+        }
+
+        public static void HandleElementComment(XElement element, object obj, int maxCommentCount = int.MaxValue, string multiCommentSeparator = "-----------\r\n")
         {
             if (obj is CommentedNode commentedNode)
             {
                 StringBuilder? strBuilder = null;
-                foreach (var node in GetPreviousNodes(element))
+                foreach (var commentText in GetPreviousComments(element).Reverse().Take(maxCommentCount))
                 {
-                    if (node is XElement)
+                    if (strBuilder == null)
                     {
-                        break;
+                        strBuilder = new();
                     }
-                    if (node is XComment { Value: { Length: > 0 } commentText })
+                    else
                     {
-                        strBuilder ??= new();
-                        strBuilder.AppendLine(commentText);
+                        strBuilder.Append(multiCommentSeparator);
                     }
+                    strBuilder.AppendLine(commentText);
                 }
                 if (strBuilder is { })
                 {
