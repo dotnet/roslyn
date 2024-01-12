@@ -1619,6 +1619,7 @@ public class Test
             var peVerifyMessage = "[ : Test::Main][offset 0x00000002] Cannot modify an imaged based (RVA) static";
 
             var ilVerifyMessage = """
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x2 }
                 [Main]: Unexpected type on the stack. { Offset = 0x8, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
                 """;
 

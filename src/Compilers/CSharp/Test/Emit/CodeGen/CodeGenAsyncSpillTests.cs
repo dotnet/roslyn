@@ -3274,6 +3274,7 @@ public class AsyncBug {
 }
 ";
 
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
             var verifier = CompileAndVerify(source, expectedOutput: "System.Int32",
                 verify: Verification.FailsILVerify with { ILVerifyMessage = "[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x6d }" });
 

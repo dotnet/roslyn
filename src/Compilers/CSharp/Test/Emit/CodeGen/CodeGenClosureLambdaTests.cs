@@ -3244,6 +3244,7 @@ class Program
         Console.Write(f.Invoke());
     }
 }";
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
             var verifier = CompileAndVerify(source, expectedOutput: "42",
                 verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0xe }" });
 

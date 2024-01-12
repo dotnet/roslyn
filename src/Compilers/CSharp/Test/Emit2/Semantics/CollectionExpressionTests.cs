@@ -10659,6 +10659,7 @@ partial class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"),
                 verify: Verification.Fails with { ILVerifyMessage = """
+                    [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
                     [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
                     """ });
 

@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => _block;
-        public override bool IsReadOnly => false;
+        public override bool IsReadOnly => true;
     }
 
     /// <summary>
