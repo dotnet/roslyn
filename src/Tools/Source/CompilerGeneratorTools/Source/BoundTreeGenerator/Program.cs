@@ -47,6 +47,7 @@ namespace BoundTreeGenerator
             using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
             {
                 var deserializer = new Deserializer();
+                deserializer.OnObjectDeserialized += CommentHandler.HandleElementComment;
                 tree = deserializer.DeserializeElement<Tree>(stream);
             }
 
