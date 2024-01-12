@@ -51,7 +51,6 @@ namespace BoundTreeGenerator
                 tree = deserializer.DeserializeElement<Tree>(stream);
             }
 
-
             if (!ValidateTree(tree))
             {
                 Console.WriteLine("Validation failed. Stopping generation");
