@@ -3305,7 +3305,7 @@ outerDefault:
                     return argRefKind;
                 }
             }
-            else if (AreRefsCompatibleForMethodConversion(source: paramRefKind, destination: argRefKind, binder.Compilation))
+            else if (AreRefsCompatibleForMethodConversion(candidateMethodParameterRefKind: paramRefKind, delegateParameterRefKind: argRefKind, binder.Compilation))
             {
                 return argRefKind;
             }
@@ -3323,19 +3323,18 @@ outerDefault:
         }
 
         // In method group conversions,
-        // - 'in' is allowed to be converted to 'ref',
-        // - 'ref readonly' is allowed to be converted to 'ref' or 'in',
-        // - 'in' is allowed to be converted to 'ref readonly'.
-        internal static bool AreRefsCompatibleForMethodConversion(RefKind source, RefKind destination, CSharpCompilation compilation)
+        // - 'ref readonly' parameter of the candidate method is allowed to match 'in' or 'ref' parameter of the delegate,
+        // - 'in' parameter of the candidate method is allowed to match 'ref readonly' or (in C# 12+) 'ref' parameter of the delegate.
+        internal static bool AreRefsCompatibleForMethodConversion(RefKind candidateMethodParameterRefKind, RefKind delegateParameterRefKind, CSharpCompilation compilation)
         {
             Debug.Assert(compilation is not null);
 
-            if (source == destination)
+            if (candidateMethodParameterRefKind == delegateParameterRefKind)
             {
                 return true;
             }
 
-            if ((source, destination) is
+            if ((candidateMethodParameterRefKind, delegateParameterRefKind) is
                 (RefKind.RefReadOnlyParameter, RefKind.Ref) or
                 (RefKind.RefReadOnlyParameter, RefKind.In) or
                 (RefKind.In, RefKind.RefReadOnlyParameter))
@@ -3344,7 +3343,7 @@ outerDefault:
             }
 
             if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
-                (source, destination) is (RefKind.In, RefKind.Ref))
+                (candidateMethodParameterRefKind, delegateParameterRefKind) is (RefKind.In, RefKind.Ref))
             {
                 return true;
             }
