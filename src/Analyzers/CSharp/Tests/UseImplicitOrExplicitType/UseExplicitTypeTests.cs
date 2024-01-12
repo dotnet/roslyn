@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -11,9 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpUseExplicitTypeDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.TypeStyle.UseExplicitTypeCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
@@ -2818,6 +2823,103 @@ options: ExplicitTypeEverywhere());
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
+        }
+
+        /// <summary>
+        /// This test verifies that a Fix All operation triggered from a diagnostic with severity
+        /// <see cref="DiagnosticSeverity.Warning"/> will not attempt to fix other diagnostics with the same ID but
+        /// lower severity.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task OnlyFixWarningsForBuiltInTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        """
+                        using System.Collections.Generic;
+                        class Program
+                        {
+                            void Method(int x, List<int> values)
+                            {
+                                {|#0:var|} y1 = x;
+                                {|#1:var|} y2 = x;
+                                {|#2:var|} z = values;
+                            }
+                        }
+                        """,
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(6,9): warning IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(0).WithSeverity(DiagnosticSeverity.Warning),
+                        // /0/Test0.cs(7,9): warning IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(1).WithSeverity(DiagnosticSeverity.Warning),
+                        // /0/Test0.cs(8,9): hidden IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(2).WithSeverity(DiagnosticSeverity.Hidden),
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        """
+                        using System.Collections.Generic;
+                        class Program
+                        {
+                            void Method(int x, List<int> values)
+                            {
+                                int y1 = x;
+                                {|#1:var|} y2 = x;
+                                {|#2:var|} z = values;
+                            }
+                        }
+                        """,
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(7,9): warning IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(1).WithSeverity(DiagnosticSeverity.Warning),
+                        // /0/Test0.cs(8,9): hidden IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(2).WithSeverity(DiagnosticSeverity.Hidden),
+                    },
+                },
+                BatchFixedState =
+                {
+                    Sources =
+                    {
+                        """
+                        using System.Collections.Generic;
+                        class Program
+                        {
+                            void Method(int x, List<int> values)
+                            {
+                                int y1 = x;
+                                int y2 = x;
+                                {|#2:var|} z = values;
+                            }
+                        }
+                        """,
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(8,9): hidden IDE0008: Use explicit type instead of 'var'
+                        VerifyCS.Diagnostic().WithLocation(2).WithSeverity(DiagnosticSeverity.Hidden),
+                    },
+                },
+                DiagnosticSelector = static diagnostics => diagnostics.FirstOrDefault(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Warning),
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, false, NotificationOption2.Warning },
+                },
+            }.RunAsync();
         }
     }
 }
