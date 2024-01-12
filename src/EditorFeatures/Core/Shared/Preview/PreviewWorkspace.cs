@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             : base(newSolution.Workspace.Services.HostServices, WorkspaceKind.Preview)
         {
             // First, initialize us to the state of 'oldSolution'
-            var (_, _) = this.SetCurrentSolutionEx(oldSolution);
+            this.SetCurrentSolutionEx(oldSolution);
 
             // Next, move us from that state to the state of 'newSolution'. This will have the benefit of ensuring that
             // all linked files for any changed documents now have the same contents/trees.  This will help speed things
