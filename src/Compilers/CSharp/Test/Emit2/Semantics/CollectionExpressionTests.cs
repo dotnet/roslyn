@@ -6308,6 +6308,147 @@ static class Program
         }
 
         [Fact]
+        public void CollectionInitializerType_AddByRef_Out()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    public void Add(out T t) => throw null;
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,42): error CS1954: The best overloaded method match 'MyCollection<object>.Add(out object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> x = new() { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyCollection<object>.Add(out object)").WithLocation(13, 42),
+                // (14,31): error CS1954: The best overloaded method match 'MyCollection<int>.Add(out int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<int> y = [];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[]").WithArguments("MyCollection<int>.Add(out int)").WithLocation(14, 31),
+                // (15,34): error CS1954: The best overloaded method match 'MyCollection<object>.Add(out object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> z = [..x, ..y, 3];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(out object)").WithLocation(15, 34));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_Ref()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    public void Add(ref T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,42): error CS1954: The best overloaded method match 'MyCollection<object>.Add(ref object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> x = new() { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyCollection<object>.Add(ref object)").WithLocation(13, 42),
+                // (14,31): error CS1954: The best overloaded method match 'MyCollection<int>.Add(ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<int> y = [];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[]").WithArguments("MyCollection<int>.Add(ref int)").WithLocation(14, 31),
+                // (15,34): error CS1954: The best overloaded method match 'MyCollection<object>.Add(ref object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> z = [..x, ..y, 3];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(ref object)").WithLocation(15, 34));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_In()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public void Add(in T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "1, 3, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_RefReadonly()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public void Add(ref readonly T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        int v = 4;
+                        MyCollection<object> z = [..x, ..y, 3, v];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (14,42): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                //         MyCollection<object> x = new() { 1 };
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(14, 42),
+                // (17,35): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                //         MyCollection<object> z = [..x, ..y, 3, v];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..x").WithArguments("1").WithLocation(17, 35),
+                // (17,40): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                //         MyCollection<object> z = [..x, ..y, 3, v];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..y").WithArguments("1").WithLocation(17, 40),
+                // (17,45): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                //         MyCollection<object> z = [..x, ..y, 3, v];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("1").WithLocation(17, 45));
+            CompileAndVerify(comp, expectedOutput: "1, 3, 4, ");
+        }
+
+        [Fact]
         public void CollectionInitializerType_Dynamic_01()
         {
             string source = """
