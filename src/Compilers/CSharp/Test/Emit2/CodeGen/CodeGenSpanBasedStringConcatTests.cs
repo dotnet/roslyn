@@ -1369,11 +1369,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     [InlineData("s + c + (s + s)")]
     [InlineData("(s + c + s) + s")]
     [InlineData("s + (c + s + s)")]
+    [InlineData("(s + c) + (s + s)")]
     [InlineData("string.Concat(s, c.ToString()) + s + s")]
     [InlineData("s + string.Concat(c.ToString(), s) + s")]
     [InlineData("s + c + string.Concat(s, s)")]
     [InlineData("string.Concat(s, c.ToString(), s) + s")]
     [InlineData("s + string.Concat(c.ToString(), s, s)")]
+    [InlineData("string.Concat(s, c.ToString()) + string.Concat(s, s)")]
     public void ConcatFour_ReadOnlySpan_OperandGroupingAndUserInputOfStringBasedConcats(string expression)
     {
         var source = $$"""
