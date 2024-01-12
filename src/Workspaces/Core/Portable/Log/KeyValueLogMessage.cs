@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// LogMessage that creates key value map lazily
     /// </summary>
-    internal sealed class KeyValueLogMessage : LogMessage
+    internal sealed class KeyValueLogMessage : LogMessage, IDisposable
     {
         private static readonly ObjectPool<KeyValueLogMessage> s_pool = new(() => new KeyValueLogMessage(), 20);
 
@@ -154,6 +154,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             // always pool it back
             s_pool.Free(this);
+        }
+
+        public void Dispose()
+        {
+            Free();
         }
 
         [MemberNotNull(nameof(_lazyMap))]

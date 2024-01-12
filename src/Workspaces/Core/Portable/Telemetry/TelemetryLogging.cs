@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         public const string KeyName = "Name";
         public const string KeyValue = "Value";
         public const string KeyLanguageName = "LanguageName";
-        public const string KeyMetricName = "MetricName>";
+        public const string KeyMetricName = "MetricName";
 
         public static void SetLogProvider(ITelemetryLogProvider logProvider)
         {
