@@ -116,11 +116,6 @@
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
-
-    <!-- Workaround for https://github.com/dotnet/roslyn/issues/71377 -->
-    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" />
-    <PackageReference Update="Microsoft.VisualStudio.Composition.Analyzers" />
-
     <PackageReference Include="Microsoft.VisualStudio.Search" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.Common" />

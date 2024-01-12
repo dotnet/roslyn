@@ -30,6 +30,9 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.CommandLine" />
+
+    <!-- Make sure that we restore Desktop reference assemblies, so that we index them when validating assemblies we built that target net472 -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" />
   </ItemGroup>
 
   <ItemGroup>

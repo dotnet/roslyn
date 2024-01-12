@@ -22,10 +22,10 @@
   
   <!-- Include the VSIX installer so we have it in the build payload for integration tests -->
   <ItemGroup>
-    <PackageReference Include="RoslynTools.VSIXExpInstaller" />
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" GeneratePathProperty="true" />
   </ItemGroup>
   <ItemGroup>
-    <_CopyItems Include="$(NuGetPackageRoot)roslyntools.vsixexpinstaller\$(RoslynToolsVSIXExpInstallerVersion)\tools\*.*" />
+    <_CopyItems Include="$(PkgRoslynTools_VSIXExpInstaller)\tools\*.*" />
   </ItemGroup>
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Copy SourceFiles="@(_CopyItems)" DestinationFolder="$(OutDir)/VSIXExpInstaller" />

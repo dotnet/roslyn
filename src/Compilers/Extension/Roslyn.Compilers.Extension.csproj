@@ -111,9 +111,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
-
-    <!-- Workaround for https://github.com/dotnet/roslyn/issues/71377 -->
-    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" />
-    <PackageReference Update="Microsoft.VisualStudio.Composition.Analyzers" />
   </ItemGroup>
 </Project>
