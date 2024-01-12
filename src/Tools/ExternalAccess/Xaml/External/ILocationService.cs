@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -17,10 +16,10 @@ internal interface ILocationService
     /// <summary>
     /// Gets the locations for the given symbol in the given project.
     /// </summary>
-    Task<LSP.Location[]> GetSymbolLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
+    Task<FileLinePositionSpan[]> GetSymbolLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the definition locations for a text span in a document document.
+    /// Gets the location for a text span in a document document.
     /// </summary>
-    Task<LSP.Location?> GetLocationAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken);
+    Task<FileLinePositionSpan?> GetLocationAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken);
 }

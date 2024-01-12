@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -80,6 +80,10 @@ internal sealed class DescriptionService : IDescriptionService
         return builder.ToImmutableArray();
     }
 
-    public LSP.MarkupContent GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
-        => ProtocolConversions.GetDocumentationMarkupContent(tags, language, featureSupportsMarkdown);
+    public (string content, bool isMarkdown) GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
+    {
+        var markup = ProtocolConversions.GetDocumentationMarkupContent(tags, language, featureSupportsMarkdown);
+
+        return (markup.Value, markup.Kind == LSP.MarkupKind.Markdown);
+    }
 }

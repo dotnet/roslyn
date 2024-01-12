@@ -3,21 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -35,12 +30,21 @@ internal sealed class LocationService : ILocationService
         _globalOptions = globalOptions;
     }
 
-    public Task<LSP.Location?> GetLocationAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken)
-        => ProtocolConversions.TextSpanToLocationAsync(document, textSpan, isStale: false, cancellationToken);
-
-    public async Task<LSP.Location[]> GetSymbolLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    public async Task<FileLinePositionSpan?> GetLocationAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<LSP.Location>.GetInstance(out var locations);
+        if (document.FilePath is null)
+        {
+            return null;
+        }
+
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var linePosSpan = sourceText.Lines.GetLinePositionSpan(textSpan);
+        return new FileLinePositionSpan(document.FilePath, linePosSpan);
+    }
+
+    public async Task<FileLinePositionSpan[]> GetSymbolLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<FileLinePositionSpan>.GetInstance(out var locations);
 
         var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(project.Solution, symbol, displayTaggedParts: null, cancellationToken);
         if (items.Any())
@@ -48,8 +52,7 @@ internal sealed class LocationService : ILocationService
             foreach (var item in items)
             {
                 var document = await item.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
-                var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
+                var location = await GetLocationAsync(document, item.SourceSpan, cancellationToken).ConfigureAwait(false);
                 locations.AddIfNotNull(location);
             }
         }
@@ -60,11 +63,7 @@ internal sealed class LocationService : ILocationService
                 var options = _globalOptions.GetMetadataAsSourceOptions(project.Services);
                 var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
                 var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                locations.Add(new LSP.Location
-                {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
-                    Range = ProtocolConversions.LinePositionToRange(linePosSpan),
-                });
+                locations.Add(new FileLinePositionSpan(declarationFile.FilePath, linePosSpan));
             }
         }
 

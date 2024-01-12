@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -23,7 +23,10 @@ internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServic
 
     public bool RequiresLSPSolution => true;
 
-    public abstract LSP.TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request);
+    public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request)
+        => new() { Uri = GetTextDocumentUri(request) };
+
+    public abstract Uri GetTextDocumentUri(TRequest request);
 
     public Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
         => _xamlRequestHandler?.HandleRequestAsync(request, XamlRequestContext.FromRequestContext(context), cancellationToken) ?? throw new NotImplementedException();

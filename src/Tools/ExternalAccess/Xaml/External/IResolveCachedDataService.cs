@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 /// </remarks>
 internal interface IResolveCachedDataService
 {
-    object ToResolveData(object data, LSP.TextDocumentIdentifier document);
-    (object? data, LSP.TextDocumentIdentifier? document) FromResolveData(object? resolveData);
+    object ToResolveData(object data, Uri uri);
+    (object? data, Uri? uri) FromResolveData(object? resolveData);
 }

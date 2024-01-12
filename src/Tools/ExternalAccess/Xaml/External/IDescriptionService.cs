@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -21,7 +20,7 @@ internal interface IDescriptionService
     Task<IEnumerable<TaggedText>> GetDescriptionAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Converts the given <paramref name="tags"/> to <see cref="LSP.MarkupContent"/>.
+    /// Converts the given <paramref name="tags"/> to markdown content if supported.
     /// </summary>
-    LSP.MarkupContent GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown);
+    (string content, bool isMarkdown) GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown);
 }

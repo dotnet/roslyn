@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServer.Protocol;
+namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// LSP Params for textDocument/mapCode calls.

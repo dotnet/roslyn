@@ -1573,6 +1573,7 @@ unsafe struct S
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 struct IntWrapper
@@ -1654,7 +1655,7 @@ unsafe class C
         s.i = 2;
         var returnWrapper = UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out var del)(&s, 3.5f);
         Console.Write(returnWrapper.i1);
-        Console.Write(returnWrapper.f2);
+        Console.Write(returnWrapper.f2.ToString(CultureInfo.InvariantCulture));
         GC.KeepAlive(del);
     }
 }", expectedOutput: @"
@@ -1689,35 +1690,41 @@ unsafe class C
 }
 ");
 
-            verifier.VerifyIL("C.TestMultiple()", @"
+            verifier.VerifyIL("C.TestMultiple()", """
 {
-  // Code size       66 (0x42)
+  // Code size       79 (0x4f)
   .maxstack  3
   .locals init (S V_0, //s
-                UnmanagedFunctionPointer.MultipleParams V_1, //del
-                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_2)
+                ReturnWrapper V_1, //returnWrapper
+                UnmanagedFunctionPointer.MultipleParams V_2, //del
+                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_3)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""S""
+  IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
-  IL_000b:  stfld      ""int S.i""
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)""
-  IL_0017:  stloc.2
+  IL_000b:  stfld      "int S.i"
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       "delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)"
+  IL_0017:  stloc.3
   IL_0018:  ldloca.s   V_0
   IL_001a:  conv.u
   IL_001b:  ldc.r4     3.5
-  IL_0020:  ldloc.2
-  IL_0021:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
-  IL_0026:  dup
-  IL_0027:  ldfld      ""int ReturnWrapper.i1""
-  IL_002c:  call       ""void System.Console.Write(int)""
-  IL_0031:  ldfld      ""float ReturnWrapper.f2""
-  IL_0036:  call       ""void System.Console.Write(float)""
-  IL_003b:  ldloc.1
-  IL_003c:  call       ""void System.GC.KeepAlive(object)""
-  IL_0041:  ret
-}");
+  IL_0020:  ldloc.3
+  IL_0021:  calli      "delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>"
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.1
+  IL_0028:  ldfld      "int ReturnWrapper.i1"
+  IL_002d:  call       "void System.Console.Write(int)"
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  ldflda     "float ReturnWrapper.f2"
+  IL_0039:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_003e:  call       "string float.ToString(System.IFormatProvider)"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ldloc.2
+  IL_0049:  call       "void System.GC.KeepAlive(object)"
+  IL_004e:  ret
+}
+""");
         }
 
         [Fact]

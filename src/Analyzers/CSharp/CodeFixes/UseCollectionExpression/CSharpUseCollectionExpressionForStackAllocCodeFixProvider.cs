@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
-    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>(
+    : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
 {
@@ -83,7 +84,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 // be added to the collection expression.
                 StackAllocArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, cancellationToken),
+                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),
