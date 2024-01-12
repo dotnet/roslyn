@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -35,15 +37,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
         {
             if (info.Symbol != null)
+                return [info.Symbol];
+
+            if (info.CandidateSymbols.Contains(null))
             {
-                return ImmutableArray.Create(info.Symbol);
-            }
-            else if (info.CandidateSymbols.Length > 0)
-            {
-                return info.CandidateSymbols;
+                using var result = TemporaryArray<ISymbol>.Empty;
+                foreach (var symbol in info.CandidateSymbols)
+                    result.AsRef().AddIfNotNull(symbol);
+
+                return result.ToImmutableAndClear();
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return info.CandidateSymbols;
         }
     }
 }
