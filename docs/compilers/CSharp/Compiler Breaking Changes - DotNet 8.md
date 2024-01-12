@@ -1,5 +1,24 @@
 # This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
 
+## Collection expression target type must have constructor and `Add` method
+
+***Introduced in Visual Studio 2022 version 17.10***
+
+*Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a `CollectionBuilderAttribute` requires the target type to have an accessible constructor that can be called with no arguments and an accessible `Add` method that can be called with a single argument of [*iteration type*](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/statements.md#1395-the-foreach-statement) of the target type.
+
+Previously, the constructor and `Add` methods were required for *construction* of the collection instance but not for *conversion*. That meant the following call was ambiguous since both `char[]` and `string` were valid target types for the collection expression. The call is no longer ambiguous because `string` does not have a parameterless constructor or `Add` method.
+```csharp
+Print(['a', 'b', 'c']); // calls Print(char[])
+
+static void Print(char[] arg) { }
+static void Print(string arg) { }
+```
+
+Previously, an `Add` method was not required for an empty collection expression. That meant the following assignment was allowed even though `Dictionary<TKey, TValue>` does not have an accessible `Add(KeyValuePair<TKey, TValue>)` method. The assignment is now an error.
+```csharp
+Dictionary<string, object> d = []; // error: no accessible Add(KeyValuePair<string, object>)
+```
+
 ## `ref` arguments can be passed to `in` parameters
 
 ***Introduced in Visual Studio 2022 version 17.8p2***
