@@ -9,6 +9,7 @@ using System.Xml.Serialization;
 using System.Xml.Linq;
 using System.Collections;
 using System.IO;
+using System.Threading;
 
 namespace BoundTreeGenerator
 {
@@ -193,6 +194,10 @@ namespace BoundTreeGenerator
                 {
                     collection.Add(value);
                 }
+            }
+            else
+            {
+                throw new NotSupportedException($"collection type: {collectionType}");
             }
             AssignValue(obj, info, collectionObject);
         }
