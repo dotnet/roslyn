@@ -8,15 +8,36 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    public static class SyntaxList
+    {
+        public static SyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes) where TNode : SyntaxNode
+        {
+            if (nodes.Length == 0)
+                return default;
+
+            if (nodes.Length == 1)
+                return new SyntaxList<TNode>(nodes[0]);
+
+            var builder = new SyntaxListBuilder<TNode>(nodes.Length);
+
+            foreach (var node in nodes)
+                builder.Add(node);
+
+            return new SyntaxList<TNode>(builder.ToList().Node);
+        }
+    }
+
     /// <summary>
     /// A list of <see cref="SyntaxNode"/>.
     /// </summary>
+    [CollectionBuilder(typeof(Microsoft.CodeAnalysis.SyntaxList), methodName: "Create")]
     public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {
