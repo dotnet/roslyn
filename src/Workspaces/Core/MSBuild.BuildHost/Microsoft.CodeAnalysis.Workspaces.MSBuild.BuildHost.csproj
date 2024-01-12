@@ -54,8 +54,16 @@
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
-  <PropertyGroup>
-    <!-- Force a deps.json to be included when packaging the language server, so we get proper assembly resolution using the directory as a binding path -->
-    <_UseBuildDependencyFile>true</_UseBuildDependencyFile>
-  </PropertyGroup>
+
+  <!--
+    This target is used by Microsoft.CodeAnalysis.Workspaces.MSBuild to copy the .deps.json file into its BuildHost subfolder.
+    The .deps.json file is required for the BuildHost to resolve assemblies using the directory as a binding path
+    -->
+  <Target Name="OutputProjectDepsJsonFile" Returns="@(ProjectDepsJsonFile)">
+    <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+      <ProjectDepsJsonFile Include="$(ProjectDepsFilePath)">
+        <TargetPath>$(ProjectDepsFileName)</TargetPath>
+      </ProjectDepsJsonFile>
+    </ItemGroup>
+  </Target>
 </Project>
