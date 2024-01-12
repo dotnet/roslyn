@@ -11,29 +11,29 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" Link="Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicFormatEngine.vb" Link="Formatting\Engine\VisualBasicFormatEngine.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" Link="Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\FormattingHelpers.vb" Link="Formatting\FormattingHelpers.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AdjustSpaceFormattingRule.vb" Link="Formatting\Rules\AdjustSpaceFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AlignTokensFormattingRule.vb" Link="Formatting\Rules\AlignTokensFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\BaseFormattingRule.vb" Link="Formatting\Rules\BaseFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\ElasticTriviaFormattingRule.vb" Link="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormatting.vb" Link="Formatting\VisualBasicSyntaxFormatting.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\ElasticTriviaFormattingRule.vb" Link="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\BaseFormattingRule.vb" Link="Formatting\Rules\BaseFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AlignTokensFormattingRule.vb" Link="Formatting\Rules\AlignTokensFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AdjustSpaceFormattingRule.vb" Link="Formatting\Rules\AdjustSpaceFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\FormattingHelpers.vb" Link="Formatting\FormattingHelpers.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" Link="Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicFormatEngine.vb" Link="Formatting\Engine\VisualBasicFormatEngine.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" Link="Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

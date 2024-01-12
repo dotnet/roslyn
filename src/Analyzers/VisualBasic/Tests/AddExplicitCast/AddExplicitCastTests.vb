@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddExplicitCast
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
     Partial Public Class AddExplicitCastTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAddExplicitCastCodeFixProvider)

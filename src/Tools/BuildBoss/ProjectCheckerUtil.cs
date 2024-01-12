@@ -34,7 +34,7 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
-                if (!_projectUtil.IsNewSdk)
+                if (!_projectUtil.IsNewSdk())
                 {
                     textWriter.WriteLine($"Project must new .NET SDK based");
                     allGood = false;
