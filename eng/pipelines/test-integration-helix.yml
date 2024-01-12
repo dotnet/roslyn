@@ -30,7 +30,7 @@ stages:
       poolName: ${{ parameters.poolName }}
       queueName: ${{ parameters.queueName }}
       restoreArguments: -msbuildEngine vs
-      buildArguments: -msbuildEngine vs
+      buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
 
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build

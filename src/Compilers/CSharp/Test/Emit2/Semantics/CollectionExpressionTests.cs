@@ -13520,6 +13520,54 @@ partial class Program
         }
 
         [Fact]
+        public void CollectionBuilder_MissingBuilderMethod_FromMetadata()
+        {
+            // [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+            string sourceA = """
+                .class public sealed System.ReadOnlySpan`1<T> extends [mscorlib]System.ValueType
+                {
+                }
+                .class public sealed System.Runtime.CompilerServices.CollectionBuilderAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type builderType, string methodName) cil managed { ret }
+                }
+                .class public sealed MyCollection`1<T>
+                {
+                  .custom instance void System.Runtime.CompilerServices.CollectionBuilderAttribute::.ctor(class [mscorlib]System.Type, string) = { type(MyCollectionBuilder) string('Create') }
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method public instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!T> GetEnumerator() { ldnull ret }
+                }
+                .class public sealed MyCollectionBuilder
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  // Missing Create<T>() method
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 31),
+                // (7,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
+        }
+
+        [Fact]
         public void CollectionBuilder_NullBuilderType()
         {
             string sourceA = """
@@ -14701,7 +14749,7 @@ partial class Program
 
         [CombinatorialData]
         [Theory]
-        public void CollectionBuilder_InaccessibleMethod(bool useCompilationReference)
+        public void CollectionBuilder_InaccessibleMethod_01(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -14736,6 +14784,47 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 31),
+                // (7,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
+        }
+
+        [Fact]
+        public void CollectionBuilder_InaccessibleMethod_02()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                class MyCollectionBuilder
+                {
+                    private static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (6,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         MyCollection<int> x = [];
@@ -16467,13 +16556,17 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
+                // (17,42): error CS9188: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
+                //         static MyCollection<T> F<T>() => [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<T>").WithLocation(17, 42),
                 // (24,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(24, 31));
         }
 
-        [Fact]
-        public void CollectionBuilder_ExtensionMethodGetEnumerator_02()
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ExtensionMethodGetEnumerator_02(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -16490,12 +16583,11 @@ partial class Program
                 static class Extensions
                 {
                     public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => default;
-                    static MyCollection<T> F<T>() => [];
                 }
                 """;
             var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
-            var refA = comp.EmitToImageReference();
+            var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
                 #pragma warning disable 219
@@ -30481,6 +30573,210 @@ partial class Program
                   IL_008e:  ret
                 }
             """);
+        }
+
+        [Fact]
+        public void Spread_ExtensionGetEnumerator_NonGeneric()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        object[] y = Convert(x);
+                        y.Report();
+                    }
+                    static object[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "System.Collections.IEnumerator Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001d
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_001d:  ldloc.1
+                    IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0023:  brtrue.s   IL_000f
+                    IL_0025:  leave.s    IL_0038
+                  }
+                  finally
+                  {
+                    IL_0027:  ldloc.1
+                    IL_0028:  isinst     "System.IDisposable"
+                    IL_002d:  stloc.3
+                    IL_002e:  ldloc.3
+                    IL_002f:  brfalse.s  IL_0037
+                    IL_0031:  ldloc.3
+                    IL_0032:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0037:  endfinally
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_003e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_ExtensionGetEnumerator_Generic()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        int[] y = Convert(x);
+                        y.Report();
+                    }
+                    static T[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                System.Collections.Generic.IEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "System.Collections.Generic.IEnumerator<T> Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001d
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                    IL_001d:  ldloc.1
+                    IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0023:  brtrue.s   IL_000f
+                    IL_0025:  leave.s    IL_0031
+                  }
+                  finally
+                  {
+                    IL_0027:  ldloc.1
+                    IL_0028:  brfalse.s  IL_0030
+                    IL_002a:  ldloc.1
+                    IL_002b:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0030:  endfinally
+                  }
+                  IL_0031:  ldloc.0
+                  IL_0032:  callvirt   "T[] System.Collections.Generic.List<T>.ToArray()"
+                  IL_0037:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_ExtensionGetEnumerator_Pattern()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(IEnumerable<T> items) { Items = new(items); }
+                }
+                struct MyEnumerator<T>
+                {
+                    private IEnumerator<T> _enumerator;
+                    public MyEnumerator(IEnumerator<T> enumerator) { _enumerator = enumerator; }
+                    public bool MoveNext() => _enumerator.MoveNext();
+                    public T Current => _enumerator.Current;
+                }
+                static class Extensions
+                {
+                    public static MyEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => new(c.Items.GetEnumerator());
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new([1, 2, 3]);
+                        int[] y = Convert(x);
+                        y.Report();
+                    }
+                    static T[] Convert<T>(MyCollection<T> c) => [..c];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Convert<T>", """
+                {
+                  // Code size       46 (0x2e)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                MyEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "MyEnumerator<T> Extensions.GetEnumerator<T>(MyCollection<T>)"
+                  IL_000c:  stloc.1
+                  IL_000d:  br.s       IL_001e
+                  IL_000f:  ldloca.s   V_1
+                  IL_0011:  call       "T MyEnumerator<T>.Current.get"
+                  IL_0016:  stloc.2
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.2
+                  IL_0019:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  call       "bool MyEnumerator<T>.MoveNext()"
+                  IL_0025:  brtrue.s   IL_000f
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "T[] System.Collections.Generic.List<T>.ToArray()"
+                  IL_002d:  ret
+                }
+                """);
         }
 
         [Fact]
