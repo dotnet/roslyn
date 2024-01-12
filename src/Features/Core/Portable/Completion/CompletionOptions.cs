@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
-        public bool ShowNewSnippetExperienceUserOption { get; init; } = true;
+        public bool ShowNewSnippetExperienceUserOption { get; init; } = false;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
