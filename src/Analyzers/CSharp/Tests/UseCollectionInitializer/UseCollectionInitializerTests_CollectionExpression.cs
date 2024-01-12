@@ -5214,7 +5214,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 
                 class C
                 {
-                    void M()
+                    void M(int[] x)
                     {
                         List<int> numbers = [1, 2, 4, .. x];
                     }
