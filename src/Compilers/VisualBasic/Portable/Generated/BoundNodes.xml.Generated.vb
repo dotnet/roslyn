@@ -232,6 +232,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>An expression is classified as one of the following:<br />
+    '''   A value. Every value has an associated type.<br />
+    '''   A variable. Every variable has an associated type.<br />
+    '''   A namespace. <br />
+    '''   A type.<br />
+    '''   A method group. ...<br />
+    '''   A property group<br />
+    '''   A method pointer<br />
+    '''   A lambda method.<br />
+    '''   An anonymous function. <br />
+    '''   A property access. Properties have an associated type.<br />
+    '''   An event access. <br />
+    '''   A late bound access. Type is always Object.<br />
+    '''   An anonymous array<br />
+    '''   Void. (An expression which is a method call that returns void.)<br />
+    '''   Nothing literal</summary>
     Partial Friend NotInheritable Class BoundTypeArguments
         Inherits BoundExpression
 
@@ -320,6 +336,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
+    ''' <summary>Wrapper node is used to wrap l-value when we need to preserve identity of<br />
+    '''          the l-value node; in lowering it is being substituted with rewritten l-value <br />
+    '''          converted to an r-value</summary>
     Partial Friend NotInheritable Class BoundLValueToRValueWrapper
         Inherits BoundExpression
 
@@ -398,6 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
+    ''' <summary>Placeholder being used for With statement L-Value expression</summary>
     Partial Friend NotInheritable Class BoundWithLValueExpressionPlaceholder
         Inherits BoundLValuePlaceholderBase
 
@@ -431,6 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Placeholder being used for With statement R-Value expression</summary>
     Partial Friend NotInheritable Class BoundWithRValueExpressionPlaceholder
         Inherits BoundRValuePlaceholderBase
 
@@ -464,6 +485,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This node is used to represent an expression returning value of a certain type. <br />
+    '''     It is used to perform intermediate binding, and will not survive the local rewriting.</summary>
     Partial Friend NotInheritable Class BoundRValuePlaceholder
         Inherits BoundRValuePlaceholderBase
 
@@ -544,6 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>only used by codegen</summary>
     Partial Friend NotInheritable Class BoundDup
         Inherits BoundExpression
 
@@ -557,6 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsReference = isReference
         End Sub
 
+        ''' <summary>when duplicating a local or parameter, must remember if the original ref kind was a reference</summary>
 
         Private ReadOnly _IsReference As Boolean
         Public ReadOnly Property IsReference As Boolean
@@ -580,6 +605,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This node is used when we can't create a real expression node because things are too broken. <br />
+    '''        Example: lookup of a name fails to find anything.</summary>
     Partial Friend NotInheritable Class BoundBadExpression
         Inherits BoundExpression
 
@@ -599,6 +626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>Categorizes the way in which "Symbols" is bad.</summary>
 
         Private ReadOnly _ResultKind As LookupResultKind
         Public Overrides ReadOnly Property ResultKind As LookupResultKind
@@ -606,6 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ResultKind
             End Get
         End Property
+        ''' <summary>These symbols will be returned from the GetSemanticInfo API if it examines this bound node.</summary>
 
         Private ReadOnly _Symbols As ImmutableArray(Of Symbol)
         Public ReadOnly Property Symbols As ImmutableArray(Of Symbol)
@@ -613,6 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Symbols
             End Get
         End Property
+        ''' <summary>Any child bound nodes that we need to preserve are put here.</summary>
 
         Private ReadOnly _ChildBoundNodes As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ChildBoundNodes As ImmutableArray(Of BoundExpression)
@@ -636,6 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This node is used when we can't create a real statement because things are too broken.</summary>
     Partial Friend NotInheritable Class BoundBadStatement
         Inherits BoundStatement
 
@@ -647,6 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ChildBoundNodes = childBoundNodes
         End Sub
 
+        ''' <summary>Any child bound nodes that we need to preserve are put here.</summary>
 
         Private ReadOnly _ChildBoundNodes As ImmutableArray(Of BoundNode)
         Public ReadOnly Property ChildBoundNodes As ImmutableArray(Of BoundNode)
@@ -709,6 +741,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This is an error node.  It is created when an lvalue is needed and we don't want to create a specific lvalue such as a local.<br />
+    '''          The typesymbol will be an errorsymbol <br />
+    '''          The expression is the expression that could not be used as an lvalue</summary>
     Partial Friend NotInheritable Class BoundBadVariable
         Inherits BoundExpression
 
@@ -808,6 +843,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents an operation that is special in both IL and Expression trees -<br />
+    '''     getting length of a one-dimensional 0-based array (vector)<br />
+    '''   <br />
+    '''     This node should not be produced in initial binding since it is not a part of <br />
+    '''     language (.Length is just a property on System.Array) <br />
+    '''     and is normally introduced during the lowering phases.</summary>
     Partial Friend NotInheritable Class BoundArrayLength
         Inherits BoundExpression
 
@@ -855,6 +896,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SourceType = sourceType
         End Sub
 
+        ''' <summary>Typically TypeExpressions are not included in the bound nodes. However,<br />
+        '''              the GetType type has special binding behavior because open generic types<br />
+        '''              are allowed. So a BoundTypeExpression is place here so the semantic model<br />
+        '''              doesn't use normal type binding rules that wouldn't work for open generic<br />
+        '''              types.</summary>
 
         Private ReadOnly _SourceType As BoundTypeExpression
         Public ReadOnly Property SourceType As BoundTypeExpression
@@ -878,6 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Like GetType, but for fields. Gets the reflection object for the given field.</summary>
     Partial Friend NotInheritable Class BoundFieldInfo
         Inherits BoundExpression
 
@@ -922,6 +969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Like GetType, but for methods. Gets the reflection object for the given field.</summary>
     Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
@@ -966,6 +1014,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Note: BoundTypeExpressions are NOT required in the bound tree for semantic <br />
+    '''          model purposes if the following is true:<br />
+    '''          a) The type syntax is always bound with type/namespace rules. In particular,<br />
+    '''             Syntax.IsInNamespaceOrTypeContext(node) returns True.<br />
+    '''          b) The type syntax is bound with the usual type binding rules, and has no<br />
+    '''             special binding rules that need to be reflected in the semantic model.</summary>
     Partial Friend NotInheritable Class BoundTypeExpression
         Inherits BoundExpression
 
@@ -1008,6 +1062,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>When binding "name1.name2" we normally can tell what name1 is.<br />
+    '''     <br />
+    '''     There is however a case where name1 could be either <br />
+    '''     a value (field, property, parameter, local) or its type. <br />
+    '''     This only happens if value named exactly the same as its type - <br />
+    '''     famous "Color As Color".<br />
+    '''     <br />
+    '''     That alone is not enough to cause trouble as we can do a lookup for <br />
+    '''     name2 and see if it requires a receiver (then name1 is a value) <br />
+    '''     or if it does not (then name1 is a type).<br />
+    '''     <br />
+    '''     The problem only arises when name2 is an overloaded property.<br />
+    '''     In such case we must defer type/value decision until overload resolution <br />
+    '''     selects one of the candidates.<br />
+    '''     <br />
+    '''     As a result we need this node that represents name1 in the state where <br />
+    '''     we only know its type and syntax, but do not know yet if it is a <br />
+    '''     Type or Value.<br />
+    '''     <br />
+    '''     NOTE:<br />
+    '''     * The node should never be placed in the bound tree without errors.<br />
+    '''     * The node can only be a qualifier of a method or a property group access <br />
+    '''       as only those may require overload resolution.</summary>
     Partial Friend NotInheritable Class BoundTypeOrValueExpression
         Inherits BoundExpression
 
@@ -1105,6 +1182,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents the raw metadata token index value for a method definition.<br />
+    '''          Used by dynamic instrumentation to index into tables or arrays of per-method information.</summary>
     Partial Friend NotInheritable Class BoundMethodDefIndex
         Inherits BoundExpression
 
@@ -1149,6 +1228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents the maximum raw metadata token index value for any method definition in the current module.</summary>
     Partial Friend NotInheritable Class BoundMaximumMethodDefIndex
         Inherits BoundExpression
 
@@ -1182,6 +1262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module.<br />
+    '''          Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol.</summary>
     Partial Friend NotInheritable Class BoundInstrumentationPayloadRoot
         Inherits BoundExpression
 
@@ -1233,6 +1315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents the GUID that is the current module's MVID.<br />
+    '''          Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol.</summary>
     Partial Friend NotInheritable Class BoundModuleVersionId
         Inherits BoundExpression
 
@@ -1275,6 +1359,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents a string encoding of the GUID that is the current module's MVID.<br />
+    '''          Implemented as a reference to a string constant that is backpatched after the MVID is computed.</summary>
     Partial Friend NotInheritable Class BoundModuleVersionIdString
         Inherits BoundExpression
 
@@ -1308,6 +1394,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents the index in the documents table of the source document containing a method definition.<br />
+    '''          Used by dynamic instrumentation to identify the source document containing a method.</summary>
     Partial Friend NotInheritable Class BoundSourceDocumentIndex
         Inherits BoundExpression
 
@@ -1441,6 +1529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _OperatorKind
             End Get
         End Property
+        ''' <summary>The operator call or bad expression</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -1464,6 +1553,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents fake IsTrue operator on Nullable(Of Boolean), <br />
+    '''          it is semantically equivalent to calling GetValueOrDefault method, but<br />
+    '''          rewriter might dig into the operand expression and choose more efficient <br />
+    '''          rewrite.</summary>
     Partial Friend NotInheritable Class BoundNullableIsTrueOperator
         Inherits BoundExpression
 
@@ -1603,6 +1696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _OperatorKind
             End Get
         End Property
+        ''' <summary>The operator call or bad expression</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -1610,6 +1704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _UnderlyingExpression
             End Get
         End Property
+        ''' <summary>NOTE: This flag does not have any meaning outside Expression Lambda</summary>
 
         Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
@@ -1653,6 +1748,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>In case of success, contains left operand of the short-circuiting operator.<br />
+        '''              In case of failure it will be used directly by BitwiseOperator node.</summary>
 
         Private ReadOnly _LeftOperand As BoundExpression
         Public ReadOnly Property LeftOperand As BoundExpression
@@ -1660,6 +1757,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LeftOperand
             End Get
         End Property
+        ''' <summary>Placeholder used in place of IsTrue/IsFalse operand and<br />
+        '''              left operand of And/Or operator. Can be Null in case of failure.</summary>
 
         Private ReadOnly _LeftOperandPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property LeftOperandPlaceholder As BoundRValuePlaceholder
@@ -1667,6 +1766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LeftOperandPlaceholder
             End Get
         End Property
+        ''' <summary>IsFalse/IsTrue test. Can be Null in case of failure.</summary>
 
         Private ReadOnly _LeftTest As BoundExpression
         Public ReadOnly Property LeftTest As BoundExpression
@@ -1674,6 +1774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LeftTest
             End Get
         End Property
+        ''' <summary>And/Or</summary>
 
         Private ReadOnly _BitwiseOperator As BoundUserDefinedBinaryOperator
         Public ReadOnly Property BitwiseOperator As BoundUserDefinedBinaryOperator
@@ -1758,6 +1859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Left
             End Get
         End Property
+        ''' <summary>Placeholder used to refer to the left on the right side of a compound assignment</summary>
 
         Private ReadOnly _LeftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder
         Public ReadOnly Property LeftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder
@@ -1772,6 +1874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Right
             End Get
         End Property
+        ''' <summary>Suppress GetObjectValue call injection for this assignment</summary>
 
         Private ReadOnly _SuppressObjectClone As Boolean
         Public ReadOnly Property SuppressObjectClone As Boolean
@@ -1795,6 +1898,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This is a special node to represent an assignment of a managed reference <br />
+    '''          to a ByRef local. Result is the value referred to by the reference.<br />
+    '''             EmitExpression   will store the reference and load underlying value indirectly (through the reference).<br />
+    '''             EmitAddress      will store the reference and then load it (the reference).<br />
+    '''             <br />
+    '''          The node can also be used as the Left hand side of a BoundAssignmentOperator, which means that the reference <br />
+    '''          should be stored in the local, then the Right hand side should be evaluated, then the result of evaluation <br />
+    '''          should be stored indirectly (through the reference stored in the local).</summary>
     Partial Friend NotInheritable Class BoundReferenceAssignment
         Inherits BoundExpression
 
@@ -1872,6 +1983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Binder
             End Get
         End Property
+        ''' <summary>Track dependencies while resolving the delegate</summary>
 
         Private ReadOnly _WithDependencies As Boolean
         Public ReadOnly Property WithDependencies As Boolean
@@ -1924,6 +2036,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>NOTE: in case of rewritten binary conditional expression, Condition is not actually a boolean expression, <br />
+        '''            it is of a reference type and is assumed to have 'boolean semantic' (Nothing = False, True otherwise)</summary>
 
         Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
@@ -1968,6 +2082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>NOTE: The first argument of IF(...) should not be a non-nullable value type.</summary>
     Partial Friend NotInheritable Class BoundBinaryConditionalExpression
         Inherits BoundExpression
 
@@ -1990,6 +2105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>TestExpression stores bound expression to be used in test WITHOUT any conversions to dominant type</summary>
 
         Private ReadOnly _TestExpression As BoundExpression
         Public ReadOnly Property TestExpression As BoundExpression
@@ -1997,6 +2113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _TestExpression
             End Get
         End Property
+        ''' <summary>Optional converted bound expression and placeholder if used</summary>
 
         Private ReadOnly _ConvertedTestExpression As BoundExpression
         Public ReadOnly Property ConvertedTestExpression As BoundExpression
@@ -2011,6 +2128,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _TestExpressionPlaceholder
             End Get
         End Property
+        ''' <summary>ElseExpression the expression to be returned if TestExpression IS Nothing <br />
+        '''            (including possible conversions applied)</summary>
 
         Private ReadOnly _ElseExpression As BoundExpression
         Public ReadOnly Property ElseExpression As BoundExpression
@@ -2153,6 +2272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
+    ''' <summary>Captures information about relaxation lambda necessary for a conversion</summary>
     Partial Friend NotInheritable Class BoundRelaxationLambda
         Inherits BoundExtendedConversionInfo
 
@@ -2172,6 +2292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Lambda
             End Get
         End Property
+        ''' <summary>The placeholder of a captured receiver for the relaxation lambda</summary>
 
         Private ReadOnly _ReceiverPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property ReceiverPlaceholderOpt As BoundRValuePlaceholder
@@ -2195,6 +2316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Used when source is not a tuple literal</summary>
     Partial Friend NotInheritable Class BoundConvertedTupleElements
         Inherits BoundExtendedConversionInfo
 
@@ -2243,6 +2365,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This node is created to represent a user-defined conversion operator call <br />
+    '''          It is used in place of BoundConversion.Operand and the initial operand of <br />
+    '''          the conversion is an argument (possibly converted) of the underlying call expression,<br />
+    '''          which might be converted as well.<br />
+    '''          BoundUserDefinedConversion.Type = operand.Type<br />
+    '''          UnderlyingExpression.Type = BoundConversion.Type</summary>
     Partial Friend NotInheritable Class BoundUserDefinedConversion
         Inherits BoundExpression
 
@@ -2261,6 +2389,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>Represents the process of conversion:<br />
+        '''            1) [ predefined conversion  operand to operator's parameter type]<br />
+        '''            2) operator call<br />
+        '''            3) [ predefined conversion operator's return type to the target type]<br />
+        '''            <br />
+        '''            Steps 1 and 3 are optional given the types are identical.</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -2268,6 +2402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _UnderlyingExpression
             End Get
         End Property
+        ''' <summary>Bit 0 is set if there is "in" conversion, bit 1 is set if there is "out" conversion.</summary>
 
         Private ReadOnly _InOutConversionFlags As Byte
         Public ReadOnly Property InOutConversionFlags As Byte
@@ -2340,6 +2475,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ConstantValueOpt
             End Get
         End Property
+        ''' <summary>If this is a lambda conversion which requires a stub, additional lambda <br />
+        '''                representing the stub is stored here</summary>
 
         Private ReadOnly _RelaxationLambdaOpt As BoundLambda
         Public ReadOnly Property RelaxationLambdaOpt As BoundLambda
@@ -2404,6 +2541,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ConstantValueOpt
             End Get
         End Property
+        ''' <summary>If this is a lambda conversion which requires a stub, additional lambda <br />
+        '''                  representing the stub is stored here</summary>
 
         Private ReadOnly _RelaxationLambdaOpt As BoundLambda
         Public ReadOnly Property RelaxationLambdaOpt As BoundLambda
@@ -2500,6 +2639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._StatementOpt = statementOpt
         End Sub
 
+        ''' <summary>if Statement results in no code produced, a NOP will be emitted, to make sure the point is not <br />
+        '''       associated with next statement (which could be a fairly random statement in random scope).</summary>
 
         Private ReadOnly _StatementOpt As BoundStatement
         Public ReadOnly Property StatementOpt As BoundStatement
@@ -2523,6 +2664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Use this in the event that the sequence point must be applied to expression.</summary>
     Partial Friend NotInheritable Class BoundSequencePointExpression
         Inherits BoundExpression
 
@@ -2557,6 +2699,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>EDMAURER Use this in the event that the span you must represent<br />
+    '''     is not that of a SyntaxNode. If a SyntaxNode captures the correct span,<br />
+    '''     use a BoundSequencPoint.</summary>
     Partial Friend NotInheritable Class BoundSequencePointWithSpan
         Inherits BoundStatement
 
@@ -2566,6 +2711,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Span = span
         End Sub
 
+        ''' <summary>if Statement is null, a NOP may be emitted, to make sure the point is not <br />
+        '''       associated with next statement (which could be a fairly random statement in random scope).</summary>
 
         Private ReadOnly _StatementOpt As BoundStatement
         Public ReadOnly Property StatementOpt As BoundStatement
@@ -2609,6 +2756,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Flavor = flavor
         End Sub
 
+        ''' <summary>No operation. Empty statement. <br />
+        ''' -----------<br />
+        '''  BoundNoOpStatement node may serve as a vehicle for passing some internal<br />
+        '''              information between lowering phases and/or codegen; for example, async rewriter<br />
+        '''              needs to mark some particular places in the emitted code so that we could<br />
+        '''              emit proper PDB information for generated methods.</summary>
 
         Private ReadOnly _Flavor As NoOpStatementFlavor
         Public ReadOnly Property Flavor As NoOpStatementFlavor
@@ -2779,6 +2932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ExpressionOpt
             End Get
         End Property
+        ''' <summary>VB BoundReturnStatement includes local symbol for return value</summary>
 
         Private ReadOnly _FunctionLocalOpt As LocalSymbol
         Public ReadOnly Property FunctionLocalOpt As LocalSymbol
@@ -3043,6 +3197,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Method
             End Get
         End Property
+        ''' <summary>NOTE: MethodGroupOpt is being used solely for providing <br />
+        '''              semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
@@ -3064,6 +3220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Arguments
             End Get
         End Property
+        ''' <summary>Which arguments are default. Used by IOperation for determining ArgumentKind.</summary>
 
         Private ReadOnly _DefaultArguments As BitVector
         Public ReadOnly Property DefaultArguments As BitVector
@@ -3085,6 +3242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _IsLValue
             End Get
         End Property
+        ''' <summary>Suppress GetObjectValue call injection for arguments of this method call</summary>
 
         Private ReadOnly _SuppressObjectClone As Boolean
         Public ReadOnly Property SuppressObjectClone As Boolean
@@ -3176,6 +3334,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represent a latebound reference to a member.<br />
+    '''   Generally we do not know what it is. It could be a field, property, call, indexer...<br />
+    '''   <br />
+    '''   NOTE: case like "obj.foo(Of Integer)(bar:=42) = 123" is valid.<br />
+    '''   <br />
+    '''   Even when late reference is a target of an assignment it may have type parameters.</summary>
     Partial Friend NotInheritable Class BoundLateMemberAccess
         Inherits BoundExpression
 
@@ -3196,6 +3360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>The name of the property or method on the call object. Can be null when indexing.</summary>
 
         Private ReadOnly _NameOpt As String
         Public ReadOnly Property NameOpt As String
@@ -3203,6 +3368,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _NameOpt
             End Get
         End Property
+        ''' <summary>Doc for "LateCall" explain the following as "The type of the call object".<br />
+        '''     But semantically it is a type of the container and is allowed to be Nothing<br />
+        '''     when there is a receiver.<br />
+        '''     <br />
+        ''' -----------<br />
+        ''' "Type" argument of the LateCall method. Optional when there is a receiver object.</summary>
 
         Private ReadOnly _ContainerTypeOpt As TypeSymbol
         Public ReadOnly Property ContainerTypeOpt As TypeSymbol
@@ -3210,6 +3381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ContainerTypeOpt
             End Get
         End Property
+        ''' <summary>An instance of the call object exposing the property or method. Can be null when access is static.</summary>
 
         Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
@@ -3268,6 +3440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>What we are invoking. BoundLateMemberAccess or BoundBadExpression</summary>
 
         Private ReadOnly _Member As BoundExpression
         Public ReadOnly Property Member As BoundExpression
@@ -3296,6 +3469,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _AccessKind
             End Get
         End Property
+        ''' <summary>NOTE: BoundMethodOrPropertyGroup is being used solely for providing <br />
+        '''              semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _MethodOrPropertyGroupOpt As BoundMethodOrPropertyGroup
         Public ReadOnly Property MethodOrPropertyGroupOpt As BoundMethodOrPropertyGroup
@@ -3362,6 +3537,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Tuple literals can exist in two forms - literal and converted literal.<br />
+    '''   This is the base node for both forms.</summary>
     Partial Friend MustInherit Class BoundTupleExpression
         Inherits BoundExpression
 
@@ -3382,6 +3559,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>Tuple literals can convert to the target type.<br />
+    '''   Once converted to a target type, they cannot be target-typed again. <br />
+    '''   The tuple literal is one which has not been converted to a target type.</summary>
     Partial Friend NotInheritable Class BoundTupleLiteral
         Inherits BoundTupleExpression
 
@@ -3395,6 +3575,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._InferredNamesOpt = inferredNamesOpt
         End Sub
 
+        ''' <summary>InferredType is the type of the literal if there is no target type available.<br />
+        '''     Inferred type is a tuple type that combines default types of arguments.<br />
+        '''     <br />
+        '''     Important thing to note:<br />
+        '''     1) InferredType is generally available even if the literal otherwise has no type <br />
+        '''        For example   (Nothing, Nothing)   has no type, but has InferredType (Object, Object)<br />
+        '''     2) Sometimes InferredType is not available.<br />
+        '''        For example   (AddressOf Main, AddressOf Main) has no InferredType because <br />
+        '''        AddressOf Main has no default type</summary>
 
         Private ReadOnly _InferredType As TupleTypeSymbol
         Public ReadOnly Property InferredType As TupleTypeSymbol
@@ -3409,6 +3598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ArgumentNamesOpt
             End Get
         End Property
+        ''' <summary>Which argument names were inferred (as opposed to explicitly provided)?</summary>
 
         Private ReadOnly _InferredNamesOpt As ImmutableArray(Of Boolean)
         Public ReadOnly Property InferredNamesOpt As ImmutableArray(Of Boolean)
@@ -3432,6 +3622,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Tuple literals can convert to the target type.<br />
+    '''   Once converted to a target type, they cannot be target-typed again. <br />
+    '''   The Converted tuple literal is one which has been already converted to a target type.<br />
+    '''   Converted tuple literal always has a type.</summary>
     Partial Friend NotInheritable Class BoundConvertedTupleLiteral
         Inherits BoundTupleExpression
 
@@ -3444,6 +3638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._NaturalTypeOpt = naturalTypeOpt
         End Sub
 
+        ''' <summary>Natural type is preserved for the purpose of semantic model. Can be null</summary>
 
         Private ReadOnly _NaturalTypeOpt As TypeSymbol
         Public ReadOnly Property NaturalTypeOpt As TypeSymbol
@@ -3492,6 +3687,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>Constructor is optional because value types can be created without calling any constructor -<br />
+    '''  <br />
+    '''      dim x as integer = new integer()</summary>
     Partial Friend NotInheritable Class BoundObjectCreationExpression
         Inherits BoundObjectCreationExpressionBase
 
@@ -3512,6 +3710,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>Constructor symbol may only be omitted in case the type being constructed <br />
+        '''              is a ValueType AND the constructor is inaccessible. <br />
+        '''              Details: Because metadata loader creates a synthesized constructor for ValueTypes <br />
+        '''              if there is no parameterless constructor available or such a constructor exists <br />
+        '''              but is private, ConstructorOpt being Nothing is just an indication of the fact <br />
+        '''              that the constructor cannot be used because of accessibility level.</summary>
 
         Private ReadOnly _ConstructorOpt As MethodSymbol
         Public ReadOnly Property ConstructorOpt As MethodSymbol
@@ -3519,6 +3723,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ConstructorOpt
             End Get
         End Property
+        ''' <summary>NOTE: MethodGroupOpt is being used solely for providing <br />
+        '''              semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
@@ -3533,6 +3739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Arguments
             End Get
         End Property
+        ''' <summary>Which arguments are default. Used by IOperation for determining ArgumentKind.</summary>
 
         Private ReadOnly _DefaultArguments As BitVector
         Public ReadOnly Property DefaultArguments As BitVector
@@ -3590,6 +3797,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents expression like 'New With { .a = 1, .b = .a + 1 }';<br />
+    '''          is rewritten into object creation expression in lowering phase</summary>
     Partial Friend NotInheritable Class BoundAnonymousTypeCreationExpression
         Inherits BoundExpression
 
@@ -3611,6 +3820,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _BinderOpt
             End Get
         End Property
+        ''' <summary>collection of BoundAnonymousTypePropertyAccess nodes representing bound <br />
+        '''            identifiers for explicitly named field initializers, discarded during rewrite<br />
+        '''            <br />
+        '''            NOTE: 'Declarations' collection contain one node for each explicitly named <br />
+        '''                  field and does not have any for implicitly named ones, thus it may be <br />
+        '''                  empty in case there are no explicitly named fields</summary>
 
         Private ReadOnly _Declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess)
         Public ReadOnly Property Declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess)
@@ -3618,6 +3833,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Declarations
             End Get
         End Property
+        ''' <summary>collection of bound expressions being passed to constructor OR<br />
+        '''            used in local symbol initialization if local is being used <br />
+        '''            <br />
+        '''            NOTE: 'Arguments' collection items match correspondent <br />
+        '''                  fields/properties in anonymous type declaration</summary>
 
         Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
@@ -3641,6 +3861,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>BoundAnonymousTypePropertyAccess node is created for each 'reference' to anonymous type property, <br />
+    '''       for example for |New With { .a = 1, .b = .a + 1 }|, three such node will be created: <br />
+    '''       <br />
+    '''         - two nodes (representing the first .a and .b) will be placed into Declarations <br />
+    '''           collection of the owning BoundAnonymousTypeCreationExpression node<br />
+    '''         - one node (representing the second .a) will be placed into bound sub-tree for the second <br />
+    '''           element in Arguments collection of the owning BoundAnonymousTypeCreationExpression node<br />
+    '''       <br />
+    '''       Those nodes stored in 'Arguments' collection are rewritten into bound locals. Those stored <br />
+    '''       in 'Declarations' collection are discarded during lowering phase, their sole purpose is to <br />
+    '''       provide information for Semantic API</summary>
     Partial Friend NotInheritable Class BoundAnonymousTypePropertyAccess
         Inherits BoundExpression
 
@@ -3662,6 +3893,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._PropertyIndex = propertyIndex
         End Sub
 
+        ''' <summary>NOTE: 'Binder' is not optional, currently BoundAnonymousTypePropertyAccess nodes can <br />
+        '''            only be created by AnonymousTypeCreationBinder which is essential for their functionality</summary>
 
         Private ReadOnly _Binder As Binder.AnonymousTypeCreationBinder
         Public ReadOnly Property Binder As Binder.AnonymousTypeCreationBinder
@@ -3692,6 +3925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Created for FieldInitializerSyntax within AnonymousObjectCreationExpressionSyntax, used by SemanticModel.</summary>
     Partial Friend NotInheritable Class BoundAnonymousTypeFieldInitializer
         Inherits BoundExpression
 
@@ -3735,6 +3969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Abstract base class for object initializer nodes</summary>
     Partial Friend MustInherit Class BoundObjectInitializerExpressionBase
         Inherits BoundExpression
 
@@ -3747,6 +3982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Initializers = initializers
         End Sub
 
+        ''' <summary>An expression placeholder value representing the initialized variable or the object creation expression</summary>
 
         Private ReadOnly _PlaceholderOpt As BoundWithLValueExpressionPlaceholder
         Public ReadOnly Property PlaceholderOpt As BoundWithLValueExpressionPlaceholder
@@ -3754,6 +3990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _PlaceholderOpt
             End Get
         End Property
+        ''' <summary>A list of expressions generated from the initializers</summary>
 
         Private ReadOnly _Initializers As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Initializers As ImmutableArray(Of BoundExpression)
@@ -3763,6 +4000,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>Represents an ObjectInitializer used to initialize an object creation expression<br />
+    '''      <br />
+    '''       Dim x As AType = New AType() With {...}<br />
+    '''       Dim x As New AType = New AType() With {...}</summary>
     Partial Friend NotInheritable Class BoundObjectInitializerExpression
         Inherits BoundObjectInitializerExpressionBase
 
@@ -3802,6 +4043,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents a CollectionInitializer used to initialize an object creation expression<br />
+    '''       <br />
+    '''       Dim x As CollectionType = New T() From {...}<br />
+    '''       Dim x As New CollectionType = New T() From {...}</summary>
     Partial Friend NotInheritable Class BoundCollectionInitializerExpression
         Inherits BoundObjectInitializerExpressionBase
 
@@ -3864,6 +4109,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Node that constructs delegates.<br />
+    '''       All other nodes that may result in delegate creation (like ObjectCreationExpression)<br />
+    '''       should rewrite to this one.</summary>
     Partial Friend NotInheritable Class BoundDelegateCreationExpression
         Inherits BoundExpression
 
@@ -3901,6 +4149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _RelaxationLambdaOpt
             End Get
         End Property
+        ''' <summary>The placeholder of a captured receiver for the relaxation lambda</summary>
 
         Private ReadOnly _RelaxationReceiverPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property RelaxationReceiverPlaceholderOpt As BoundRValuePlaceholder
@@ -3908,6 +4157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _RelaxationReceiverPlaceholderOpt
             End Get
         End Property
+        ''' <summary>NOTE: MethodGroupOpt is being used solely for providing <br />
+        '''              semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
@@ -3973,6 +4224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _InitializerOpt
             End Get
         End Property
+        ''' <summary>NOTE: ArrayLiteralOpt is being used solely for providing semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _ArrayLiteralOpt As BoundArrayLiteral
         Public ReadOnly Property ArrayLiteralOpt As BoundArrayLiteral
@@ -3980,6 +4232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ArrayLiteralOpt
             End Get
         End Property
+        ''' <summary>NOTE: ArrayLiteralConversion is being used solely for providing semantic information</summary>
 
         Private ReadOnly _ArrayLiteralConversion As ConversionKind
         Public ReadOnly Property ArrayLiteralConversion As ConversionKind
@@ -4218,6 +4471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _PropertySymbol
             End Get
         End Property
+        ''' <summary>NOTE: PropertyGroupOpt is being used solely for providing <br />
+        '''              semantic information, it is discarded in the rewriter</summary>
 
         Private ReadOnly _PropertyGroupOpt As BoundPropertyGroup
         Public ReadOnly Property PropertyGroupOpt As BoundPropertyGroup
@@ -4232,6 +4487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _AccessKind
             End Get
         End Property
+        ''' <summary>autoproperty could be writable even when having no setter <br />
+        '''              when in a corresponding constructor or initializer</summary>
 
         Private ReadOnly _IsWriteable As Boolean
         Public ReadOnly Property IsWriteable As Boolean
@@ -4260,6 +4517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Arguments
             End Get
         End Property
+        ''' <summary>Which arguments are default. Used by IOperation for determining ArgumentKind.</summary>
 
         Private ReadOnly _DefaultArguments As BitVector
         Public ReadOnly Property DefaultArguments As BitVector
@@ -4326,6 +4584,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>BoundBlock contains <br />
+    '''     a) Statements - actions performed within the scope of the block<br />
+    '''     b) Locals     - local variable symbols that are visible within the scope of the block<br />
+    ''' <br />
+    '''     BoundBlock specify SCOPE (visibility) of a variable.<br />
+    '''   <br />
+    '''     TODO: Note - in VB variable's extent is the whole method and can be larger than its scope. <br />
+    '''           That is why unassigned use is just a warning and jumps into blocks are generally allowed.</summary>
     Partial Friend NotInheritable Class BoundBlock
         Inherits BoundStatement
 
@@ -4377,6 +4643,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>BoundStateMachineScope represents a scope within a translated iterator/async method, in which<br />
+    '''     some local variables have been moved to fields of the class that implements the iterator/async.<br />
+    '''     The fields have names of the form "$VB$ResumableLocal_{x}${i}" where x is the name of the local<br />
+    '''     variable and i is a unique index assigned to these hoisted variables, assigned sequentially<br />
+    '''     starting at 0.</summary>
     Partial Friend NotInheritable Class BoundStateMachineScope
         Inherits BoundStatement
 
@@ -4420,6 +4691,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>An abstract base class so that BoundLocalDeclaration and BoundAsNewLocalDeclarations <br />
+    '''         can be in the LocalDeclarations of a BoundMultipleLocalDeclarations.</summary>
     Partial Friend MustInherit Class BoundLocalDeclarationBase
         Inherits BoundStatement
 
@@ -4433,6 +4706,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
+    ''' <summary>Bound node that represents a single local declaration:<br />
+    '''     Dim x As integer = Foo()<br />
+    '''     <br />
+    '''         or one of the locals in an as-new declaration<br />
+    '''     <br />
+    '''     dim x, y as new C<br />
+    '''     <br />
+    '''     In the latter case, x and y will be BoundLocalDeclarations with nothing<br />
+    '''     for the initializerOpt but InitializedByAsNew set to true. The initializer<br />
+    '''     will be stored in the BoundAsNewLocalDeclarations node.<br />
+    '''     <br />
+    '''   NOTE: The node does NOT introduce the referenced local into surrounding scope.<br />
+    '''         A local must be explicitly declared in a BoundBlock to be usable inside it.</summary>
     Partial Friend NotInheritable Class BoundLocalDeclaration
         Inherits BoundLocalDeclarationBase
 
@@ -4548,6 +4834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents DIM statement and contains one or several local declarations.</summary>
     Partial Friend NotInheritable Class BoundDimStatement
         Inherits BoundStatement
 
@@ -4590,6 +4877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents field or property initialization or global statement.</summary>
     Partial Friend Class BoundInitializer
         Inherits BoundStatement
 
@@ -4616,6 +4904,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents a field or property initialization.<br />
+    '''   It's used to capture the relationship between a symbol and its initialization value.</summary>
     Partial Friend MustInherit Class BoundFieldOrPropertyInitializer
         Inherits BoundInitializer
 
@@ -4629,6 +4919,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._BinderOpt = binderOpt
         End Sub
 
+        ''' <summary>In case the field or property initializer only initializes one symbol,<br />
+        '''          the MemberAccessExpressionOpt field is the left side of the assignment operator<br />
+        '''          to which the initializer will be rewritten.</summary>
 
         Private ReadOnly _MemberAccessExpressionOpt As BoundExpression
         Public ReadOnly Property MemberAccessExpressionOpt As BoundExpression
@@ -4636,6 +4929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _MemberAccessExpressionOpt
             End Get
         End Property
+        ''' <summary>The expression representing the initial value</summary>
 
         Private ReadOnly _InitialValue As BoundExpression
         Public ReadOnly Property InitialValue As BoundExpression
@@ -4652,6 +4946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>Bound node that represents a field initialization.</summary>
     Partial Friend NotInheritable Class BoundFieldInitializer
         Inherits BoundFieldOrPropertyInitializer
 
@@ -4664,6 +4959,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._InitializedFields = initializedFields
         End Sub
 
+        ''' <summary>List of fields that get initialized by this initializer. Typically it's one symbol, but there might<br />
+        '''          be more for an AsNew declaration with multiple variable names, e.g.<br />
+        '''          Class C1<br />
+        '''             Public Field1, Field2 As New TypeName() = Expression<br />
+        '''          End Class</summary>
 
         Private ReadOnly _InitializedFields As ImmutableArray(Of FieldSymbol)
         Public ReadOnly Property InitializedFields As ImmutableArray(Of FieldSymbol)
@@ -4687,6 +4987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents a property initialization.</summary>
     Partial Friend NotInheritable Class BoundPropertyInitializer
         Inherits BoundFieldOrPropertyInitializer
 
@@ -4699,6 +5000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._InitializedProperties = initializedProperties
         End Sub
 
+        ''' <summary>Properties that get initialized by this initializer.</summary>
 
         Private ReadOnly _InitializedProperties As ImmutableArray(Of PropertySymbol)
         Public ReadOnly Property InitializedProperties As ImmutableArray(Of PropertySymbol)
@@ -4722,6 +5024,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents the binding of an "= Value" construct in a parameter declaration.<br />
+    '''   Appears only in bound trees generated by a SemanticModel.</summary>
     Partial Friend NotInheritable Class BoundParameterEqualsValue
         Inherits BoundNode
 
@@ -4735,6 +5039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Value = value
         End Sub
 
+        ''' <summary>Parameter receiving the value.</summary>
 
         Private ReadOnly _Parameter As ParameterSymbol
         Public ReadOnly Property Parameter As ParameterSymbol
@@ -4742,6 +5047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Parameter
             End Get
         End Property
+        ''' <summary>Expression representing the value.</summary>
 
         Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
@@ -4765,6 +5071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents a global statement.</summary>
     Partial Friend NotInheritable Class BoundGlobalStatementInitializer
         Inherits BoundInitializer
 
@@ -4799,6 +5106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>A node specially to represent the idea of <br />
+    '''     "compute this side effects while discarding results, and then compute this optional value"<br />
+    '''     <br />
+    '''     The node may also declare locals (temporaries). <br />
+    '''     The sequence node is both SCOPE and EXTENT of these locals. <br />
+    '''     As a result nonintersecting sequences can reuse variable slots.</summary>
     Partial Friend NotInheritable Class BoundSequence
         Inherits BoundExpression
 
@@ -4833,6 +5146,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _SideEffects
             End Get
         End Property
+        ''' <summary>Ideally a bound sequence must always have non-null value.<br />
+        '''           However, BoundSequence node is also used to represent the earlier<br />
+        '''           BoundSequenceValueSideEffects node, which had the following semantics:<br />
+        '''           "compute this value, and then compute this side effects while discarding results".<br />
+        '''           <br />
+        '''           If the value has void type, we might end up moving the bound value<br />
+        '''           expression to the side effects and end up with null value.</summary>
 
         Private ReadOnly _ValueOpt As BoundExpression
         Public ReadOnly Property ValueOpt As BoundExpression
@@ -5425,6 +5745,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._NextVariablesOpt = nextVariablesOpt
         End Sub
 
+        ''' <summary>There are four mutually exclusive ways to introduce a For control variable <br />
+        '''       1: by declaring and initializing a variable -<br />
+        '''                   For x as integer = 0 to 100 <br />
+        '''                   <br />
+        '''       2: by initializing an existing variable -  <br />
+        '''                   For Me.Field1 = 0 to 100 <br />
+        '''                   <br />
+        '''       3: by inferring a variable with Option Infer On<br />
+        '''                   For x = 0 to 100<br />
+        '''                   <br />
+        '''       4: by implicitly creating a variable with Option Explicit off.                    <br />
+        '''                   <br />
+        '''       Note that initial value is always specified in non-optional "InitialValue".<br />
+        '''       (this is also how ForStatement is parsed - there is always an initial value and never an initializer.)<br />
+        '''       <br />
+        '''       The DeclaredOrInferredLocalOpt is nothing for cases 2 and 4 above and non nothing for 1 and 3.</summary>
 
         Private ReadOnly _DeclaredOrInferredLocalOpt As LocalSymbol
         Public ReadOnly Property DeclaredOrInferredLocalOpt As LocalSymbol
@@ -5432,6 +5768,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _DeclaredOrInferredLocalOpt
             End Get
         End Property
+        ''' <summary>Parts that describe loop behavior.      <br />
+        '''       <br />
+        '''       Note that expressions that specify values are not necessarily constant.<br />
+        '''       Therefore values that are used more than once must be evaluated once and <br />
+        '''       stored into temps.</summary>
 
         Private ReadOnly _ControlVariable As BoundExpression
         Public ReadOnly Property ControlVariable As BoundExpression
@@ -5628,6 +5969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._EnumeratorInfo = enumeratorInfo
         End Sub
 
+        ''' <summary>The bound collection that this for each iterates over.</summary>
 
         Private ReadOnly _Collection As BoundExpression
         Public ReadOnly Property Collection As BoundExpression
@@ -5635,6 +5977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Collection
             End Get
         End Property
+        ''' <summary>All information needed to rewrite the for each statement in the local rewriter.</summary>
 
         Private ReadOnly _EnumeratorInfo As ForEachEnumeratorInfo
         Public ReadOnly Property EnumeratorInfo As ForEachEnumeratorInfo
@@ -5778,6 +6121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _FinallyBlockOpt
             End Get
         End Property
+        ''' <summary>Exit label is optional because synthetic try's (foreach and using) do not need it.</summary>
 
         Private ReadOnly _ExitLabelOpt As LabelSymbol
         Public ReadOnly Property ExitLabelOpt As LabelSymbol
@@ -5817,6 +6161,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsSynthesizedAsyncCatchAll = isSynthesizedAsyncCatchAll
         End Sub
 
+        ''' <summary>There are two ways to introduce a variable that represents<br />
+        '''       exception within catch block.<br />
+        '''       1) By declaring a local scoped to the catch block.<br />
+        '''       2) By referring to existing local/parameter. <br />
+        '''           Note that Byref parameter, implicit return variables, static locals are ok.</summary>
 
         Private ReadOnly _LocalOpt As LocalSymbol
         Public ReadOnly Property LocalOpt As LocalSymbol
@@ -5824,6 +6173,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LocalOpt
             End Get
         End Property
+        ''' <summary>Refers to the location where the exception object is stored. Usually that's a bound local.<br />
+        '''       But it might also be a BoundSequence, whose last expression refers to the location<br />
+        '''       and the sideeffects initialize the storage (e.g. if the catch identifier is lifted <br />
+        '''       into a closure the sideeffects initialize the closure).<br />
+        '''       <br />
+        '''       The type of this expression is the type that we are catching.<br />
+        '''       <br />
+        '''       If Nothing the catch catches System.Exception, but not using the exception object.</summary>
 
         Private ReadOnly _ExceptionSourceOpt As BoundExpression
         Public ReadOnly Property ExceptionSourceOpt As BoundExpression
@@ -5957,6 +6314,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This bound node represents a 'Me' reference of the value type when it is being passed<br />
+    '''     to other methods ByRef; by default in user code BoundMeReference is being copied into a <br />
+    '''     local and a reference of this local is being passed, this is intentional and reflects VB <br />
+    '''     language semantics; but in some cases when we generate code (such as in Await operator <br />
+    '''     lowering) we need to pass 'Me' by ref, this node should be used in such cases</summary>
     Partial Friend NotInheritable Class BoundValueTypeMeReference
         Inherits BoundExpression
 
@@ -6084,6 +6446,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SourceType = sourceType
         End Sub
 
+        ''' <summary>Used for "Me" that binds to a class that implements an interactive submission. <br />
+        '''       The SourceType is the type of the class that contains the reference, Type is the type of the target submission class.</summary>
 
         Private ReadOnly _SourceType As NamedTypeSymbol
         Public ReadOnly Property SourceType As NamedTypeSymbol
@@ -6333,6 +6697,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents the fact that the local variable, struct field, etc... <br />
+    '''       is being passed to a method as byref parameter</summary>
     Partial Friend NotInheritable Class BoundByRefArgumentPlaceholder
         Inherits BoundValuePlaceholderBase
 
@@ -6375,6 +6741,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents the fact that an argument passed ByRef <br />
+    '''       should be passed via temp with copy-back. Used only in BoundCall.Arguments<br />
+    '''       or BoundObjectCreationExpression.Arguments and is removed from the tree in <br />
+    '''       LocalRewriter.</summary>
     Partial Friend NotInheritable Class BoundByRefArgumentWithCopyBack
         Inherits BoundExpression
 
@@ -6399,6 +6769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>Either an LValue or a PropertyAccess</summary>
 
         Private ReadOnly _OriginalArgument As BoundExpression
         Public ReadOnly Property OriginalArgument As BoundExpression
@@ -6450,6 +6821,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Bound node that represents the fact that the value of an argument of a <br />
+    '''       late bound invocation (BoundLateInvocation), which supports an assignment,<br />
+    '''       should be captured in a local before the argument is passed. <br />
+    '''       Used only in BoundLateInvocation.ArgumentsOpt, added and removed from the tree in <br />
+    '''       LocalRewriter.</summary>
     Partial Friend NotInheritable Class BoundLateBoundArgumentSupportingAssignmentWithCapture
         Inherits BoundExpression
 
@@ -6475,6 +6851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _OriginalArgument
             End Get
         End Property
+        ''' <summary>The value should be captured in this local</summary>
 
         Private ReadOnly _LocalSymbol As SynthesizedLocal
         Public ReadOnly Property LocalSymbol As SynthesizedLocal
@@ -6517,6 +6894,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
+        ''' <summary>A label is not actually a statement but it is convenient to model it as one <br />
+        '''     because then you can do rewrites without having to know "what comes next".<br />
+        '''     For example suppose you have statement list <br />
+        '''     <br />
+        '''     A();<br />
+        '''     if(B()) C(); else D();<br />
+        '''     E();<br />
+        '''     <br />
+        '''     If you are rewriting the "if" then it is convenient to be able to rewrite it as<br />
+        '''     <br />
+        '''     GotoIfFalse B() LabElse<br />
+        '''     C();<br />
+        '''     Goto LabDone<br />
+        '''     LabElse<br />
+        '''     D();<br />
+        '''     LabDone<br />
+        '''     <br />
+        '''     without having to rewrite E(); as a labeled statement.</summary>
 
         Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
@@ -6540,6 +6935,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This represents the bound form of a label reference (i.e. in a goto).<br />
+    '''     It is only used for the SemanticModel API.</summary>
     Partial Friend NotInheritable Class BoundLabel
         Inherits BoundExpression
 
@@ -6635,6 +7032,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Statements = statements
         End Sub
 
+        ''' <summary>A statement list is produced by a rewrite that turns one statement into<br />
+        '''     multiple statements. It does not have the semantics of a block.</summary>
 
         Private ReadOnly _Statements As ImmutableArray(Of BoundStatement)
         Public ReadOnly Property Statements As ImmutableArray(Of BoundStatement)
@@ -6672,6 +7071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
+        ''' <summary>A compiler-generated conditional goto - jumps if condition == JumpIfTrue</summary>
 
         Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
@@ -6813,6 +7213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Flags
             End Get
         End Property
+        ''' <summary>Parameter symbols are actually instances of UnboundLambdaParameterSymbol</summary>
 
         Private ReadOnly _Parameters As ImmutableArray(Of ParameterSymbol)
         Public ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
@@ -6900,6 +7301,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LambdaBinderOpt
             End Get
         End Property
+        ''' <summary>This is a delegate relaxation that eventually will be incorporated into ConversionKind of a <br />
+        '''       BoundConversion/BoundTryCast/BoundDirectCast node and it captures the delegate relaxation <br />
+        '''       for lambda reclassification as a delegate with the same shape as the LambdaSymbol.</summary>
 
         Private ReadOnly _DelegateRelaxation As ConversionKind
         Public ReadOnly Property DelegateRelaxation As ConversionKind
@@ -6984,6 +7388,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
+    ''' <summary>The bound source "collection" as it appears in syntax, <br />
+    '''          without AsQueryable, AsEnumerable, Cast  "conversions"</summary>
     Partial Friend NotInheritable Class BoundQuerySource
         Inherits BoundQueryPart
 
@@ -7019,6 +7425,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Always compiler generated. <br />
+    '''          AsQueryable "conversion" applied to BoundQuerySource, or<br />
+    '''          AsEnumerable "conversion" applied to BoundQuerySource, or<br />
+    '''          Cast(Of Object) "conversion" applied to BoundQuerySource.</summary>
     Partial Friend NotInheritable Class BoundToQueryableCollectionConversion
         Inherits BoundQueryPart
 
@@ -7054,6 +7464,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Base class for all query operators that have special syntax. <br />
+    '''          AsQueryable/AsEnumerable/Cast don't have one.</summary>
     Partial Friend MustInherit Class BoundQueryClauseBase
         Inherits BoundQueryPart
 
@@ -7083,6 +7495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Binders = binders
         End Sub
 
+        ''' <summary>Range variables in scope after this operator, could be none in case of "nameless" range variables.</summary>
 
         Private ReadOnly _RangeVariables As ImmutableArray(Of RangeVariableSymbol)
         Public ReadOnly Property RangeVariables As ImmutableArray(Of RangeVariableSymbol)
@@ -7097,6 +7510,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _CompoundVariableType
             End Get
         End Property
+        ''' <summary>Binders used to bind various parts/clauses of the operator, in order of evaluation of the parts. <br />
+        '''            This information is needed for SemanticModel.</summary>
 
         Private ReadOnly _Binders As ImmutableArray(Of Binder)
         Public ReadOnly Property Binders As ImmutableArray(Of Binder)
@@ -7106,6 +7521,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    ''' <summary>Corresponds to CollectionRangeVariableSyntax. <br />
+    '''          Even thought strictly speaking it is not an operator, but it is very close<br />
+    '''          because it brings a range variable in scope. Treating it as an operator<br />
+    '''          allows avoiding special handling during binding.</summary>
     Partial Friend NotInheritable Class BoundQueryableSource
         Inherits BoundQueryClauseBase
 
@@ -7127,6 +7546,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>This is always either <br />
+        '''       a BoundQuerySource, or <br />
+        '''       a BoundToQueryableCollectionConversion, or<br />
+        '''       a BoundQueryClause for implicit Select.</summary>
 
         Private ReadOnly _Source As BoundQueryPart
         Public ReadOnly Property Source As BoundQueryPart
@@ -7134,6 +7557,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Source
             End Get
         End Property
+        ''' <summary>RangeVariables always contains 1 item, the range variable added to the scope. <br />
+        '''            However, in error recovery mode, it might contain range variable symbol that <br />
+        '''            doesn't match the one declared, because the one declared has a duplicate name, etc.<br />
+        '''            So the one declared, if any, is referenced by RangeVariableOpt.</summary>
 
         Private ReadOnly _RangeVariableOpt As RangeVariableSymbol
         Public ReadOnly Property RangeVariableOpt As RangeVariableSymbol
@@ -7157,6 +7584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Corresponds to all query operator syntax nodes except AggregateClauseSyntax.</summary>
     Partial Friend NotInheritable Class BoundQueryClause
         Inherits BoundQueryClauseBase
 
@@ -7172,6 +7600,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UnderlyingExpression = underlyingExpression
         End Sub
 
+        ''' <summary>Either a BoundCall, or <br />
+        '''            a BoundBadExpression, or<br />
+        '''            another BoundQueryClause for the join, which absorbed the Select, or<br />
+        '''            a BounOrdering for the last OrderingSyntax in Order By.</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -7195,6 +7627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Corresponds to OrderingSyntax</summary>
     Partial Friend NotInheritable Class BoundOrdering
         Inherits BoundQueryPart
 
@@ -7207,6 +7640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UnderlyingExpression = underlyingExpression
         End Sub
 
+        ''' <summary>Either a BoundCall or a BoundBadExpression</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -7246,6 +7680,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ExprIsOperandOfConditionalBranch = exprIsOperandOfConditionalBranch
         End Sub
 
+        ''' <summary>The lambda symbol describing the target shape. <br />
+        '''       <br />
+        '''            If return type isn't fixed, i.e. it is allowed to convert expression to the return <br />
+        '''            type of the target delegate, LambdaSymbol's ReturnType will be LambdaSymbol.ReturnTypePendingDelegate <br />
+        '''            and it should be replaced with the final type after successful overload resolution. <br />
+        '''            <br />
+        '''            Note, that this will mutate the symbol, but it shouldn't be a problem because we will <br />
+        '''            not reuse the same lambda symbol across different overload resolutions and no-one should need <br />
+        '''            to examine the ReturnType before the resolution is complete. If we were to replace LambdaSymbol<br />
+        '''            with a different symbol instead, we would have to update the Expression and symbols used by it <br />
+        '''            as they might have references to the original LambdaSymbol because it is the ContainingMember <br />
+        '''            for the binder used to interpret the Expression.</summary>
 
         Private ReadOnly _LambdaSymbol As SynthesizedLambdaSymbol
         Public ReadOnly Property LambdaSymbol As SynthesizedLambdaSymbol
@@ -7253,6 +7699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LambdaSymbol
             End Get
         End Property
+        ''' <summary>Range variables in scope within Expression</summary>
 
         Private ReadOnly _RangeVariables As ImmutableArray(Of RangeVariableSymbol)
         Public ReadOnly Property RangeVariables As ImmutableArray(Of RangeVariableSymbol)
@@ -7260,6 +7707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _RangeVariables
             End Get
         End Property
+        ''' <summary>The body of the lambda</summary>
 
         Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
@@ -7290,6 +7738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Corresponds to ExpressionRangeVariableSyntax or AggregationRangeVariableSyntax.</summary>
     Partial Friend NotInheritable Class BoundRangeVariableAssignment
         Inherits BoundQueryPart
 
@@ -7334,6 +7783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Helper node, used by initial binding to infer type of the group. Never left in the tree after query is bound.</summary>
     Partial Friend NotInheritable Class GroupTypeInferenceLambda
         Inherits BoundExpression
 
@@ -7398,6 +7848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Corresponds to AggregateClauseSyntax.</summary>
     Partial Friend NotInheritable Class BoundAggregateClause
         Inherits BoundQueryClauseBase
 
@@ -7415,6 +7866,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UnderlyingExpression = underlyingExpression
         End Sub
 
+        ''' <summary>If this is stand alone AggregateClauseSyntax, which <br />
+        '''            has more than one item in the [Into] clause, then we are <br />
+        '''            capturing resulting group in this field. Otherwise, Nothing.</summary>
 
         Private ReadOnly _CapturedGroupOpt As BoundQueryClauseBase
         Public ReadOnly Property CapturedGroupOpt As BoundQueryClauseBase
@@ -7422,6 +7876,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _CapturedGroupOpt
             End Get
         End Property
+        ''' <summary>If CapturedGroupOpt is not Nothing, this field will store <br />
+        '''            a placeholder node used by UnderlyingExpression to refer to the group.</summary>
 
         Private ReadOnly _GroupPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property GroupPlaceholderOpt As BoundRValuePlaceholder
@@ -7429,6 +7885,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _GroupPlaceholderOpt
             End Get
         End Property
+        ''' <summary>Either a BoundCall, or <br />
+        '''            a BoundBadExpression, or<br />
+        '''            an Anonymous Type creation expression for the case of stand alone <br />
+        '''            AggregateClauseSyntax with multiple items in the [Into], or<br />
+        '''            absorbing join.</summary>
 
         Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
@@ -7452,6 +7913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Corresponds to GroupAggregationSyntax.</summary>
     Partial Friend NotInheritable Class BoundGroupAggregation
         Inherits BoundQueryPart
 
@@ -7544,6 +8006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Handler = handler
         End Sub
 
+        ''' <summary>Should normally be BoundEventAccess, but we also allow BoundParenthesized.</summary>
 
         Private ReadOnly _EventAccess As BoundExpression
         Public ReadOnly Property EventAccess As BoundExpression
@@ -7634,6 +8097,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _EventSymbol
             End Get
         End Property
+        ''' <summary>Either a BoundCall, or <br />
+        '''            a BoundBadExpression</summary>
 
         Private ReadOnly _EventInvocation As BoundExpression
         Public ReadOnly Property EventInvocation As BoundExpression
@@ -7738,6 +8203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Body = body
         End Sub
 
+        ''' <summary>The bound lock object expression</summary>
 
         Private ReadOnly _LockExpression As BoundExpression
         Public ReadOnly Property LockExpression As BoundExpression
@@ -7745,6 +8211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _LockExpression
             End Get
         End Property
+        ''' <summary>The bound SyncLock body</summary>
 
         Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
@@ -8411,6 +8878,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>A special synthetic node created during initial binding to enclose statements <br />
+    '''        that should participate in Unstructured Exception Handling. The node is eliminated<br />
+    '''        in LocalRewriter.</summary>
     Partial Friend NotInheritable Class BoundUnstructuredExceptionHandlingStatement
         Inherits BoundStatement
 
@@ -8431,6 +8901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>The block contains an [On Error] statement.</summary>
 
         Private ReadOnly _ContainsOnError As Boolean
         Public ReadOnly Property ContainsOnError As Boolean
@@ -8438,6 +8909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ContainsOnError
             End Get
         End Property
+        ''' <summary>The block contains a [Resume [...]] or an [On Error Resume Next] statement.</summary>
 
         Private ReadOnly _ContainsResume As Boolean
         Public ReadOnly Property ContainsResume As Boolean
@@ -8445,6 +8917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ContainsResume
             End Get
         End Property
+        ''' <summary>The first [Resume], [Resume Next] or [On Error Resume Next] statement, if any.</summary>
 
         Private ReadOnly _ResumeWithoutLabelOpt As StatementSyntax
         Public ReadOnly Property ResumeWithoutLabelOpt As StatementSyntax
@@ -8482,6 +8955,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>A special synthetic node created in LocalRewriter and used as a filter expression <br />
+    '''        for an "On Error" catch block. CodeGen handles this node specially.</summary>
     Partial Friend NotInheritable Class BoundUnstructuredExceptionHandlingCatchFilter
         Inherits BoundExpression
 
@@ -8531,6 +9006,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>A special synthetic node created in LocalRewriter to represent "On Error" switch, <br />
+    '''        CodeGen handles this node specially.</summary>
     Partial Friend NotInheritable Class BoundUnstructuredExceptionOnErrorSwitch
         Inherits BoundStatement
 
@@ -8579,6 +9056,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>A special synthetic node created in LocalRewriter to represent "Resume" switch, <br />
+    '''        CodeGen handles this node specially.</summary>
     Partial Friend NotInheritable Class BoundUnstructuredExceptionResumeSwitch
         Inherits BoundStatement
 
@@ -8679,6 +9158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _Operand
             End Get
         End Property
+        ''' <summary>Used to refer to the Operand in GetAwaiter</summary>
 
         Private ReadOnly _AwaitableInstancePlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property AwaitableInstancePlaceholder As BoundRValuePlaceholder
@@ -8693,6 +9173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _GetAwaiter
             End Get
         End Property
+        ''' <summary>Used to refer to result of GetAwaiter in IsCompleted and GetResult</summary>
 
         Private ReadOnly _AwaiterInstancePlaceholder As BoundLValuePlaceholder
         Public ReadOnly Property AwaiterInstancePlaceholder As BoundLValuePlaceholder
@@ -8730,6 +9211,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Normal sequence nodes can't be used for await expressions, because await<br />
+    '''        expression side-effects include control flow.<br />
+    '''        <br />
+    '''        These nodes are only temporarily created in async rewriting pass and never leave it. <br />
+    '''        They should never be used by or visible to anything other than the async rewriter.</summary>
     Partial Friend NotInheritable Class BoundSpillSequence
         Inherits BoundExpression
 
@@ -8831,6 +9317,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>Represents resulting string of a Mid assignment, <br />
+    '''        used only as the BoundAssignmentOperator.Right, possibly<br />
+    '''        with conversion on top of it.</summary>
     Partial Friend NotInheritable Class BoundMidResult
         Inherits BoundExpression
 
@@ -8853,6 +9342,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
+        ''' <summary>This represents the left operand of the assignment, converted to string.<br />
+        '''          BoundCompoundAssignmentTargetPlaceholder from BoundAssignmentOperator.LeftOnTheRightOpt<br />
+        '''          is used to refer to the original target.</summary>
 
         Private ReadOnly _Original As BoundExpression
         Public ReadOnly Property Original As BoundExpression
@@ -9080,6 +9572,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>This node represents a complex receiver for a conditional access. <br />
+    '''        At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver.<br />
+    '''        Otherwise, ReferenceTypeReceiver should be used. <br />
+    '''        This kind of receiver is created only by Async rewriter.</summary>
     Partial Friend NotInheritable Class BoundComplexConditionalAccessReceiver
         Inherits BoundExpression
 
@@ -9266,6 +9762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    ''' <summary>There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose.</summary>
     Partial Friend NotInheritable Class BoundInterpolation
         Inherits BoundNode
 
