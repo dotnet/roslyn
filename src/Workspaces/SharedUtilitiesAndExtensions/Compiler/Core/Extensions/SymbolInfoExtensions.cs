@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -17,19 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => GetAllSymbolsWorker(info).Distinct();
 
         private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
-        {
-            if (info.Symbol == null)
-            {
-                return info.CandidateSymbols;
-            }
-            else
-            {
-                var builder = ArrayBuilder<ISymbol>.GetInstance(info.CandidateSymbols.Length + 1);
-                builder.Add(info.Symbol);
-                builder.AddRange(info.CandidateSymbols);
-                return builder.ToImmutableAndFree();
-            }
-        }
+            => info.Symbol == null ? info.CandidateSymbols : [info.Symbol, .. info.CandidateSymbols];
 
         public static ISymbol? GetAnySymbol(this SymbolInfo info)
             => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
@@ -39,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (info.Symbol != null)
                 return [info.Symbol];
 
-            if (info.CandidateSymbols.Contains(null))
+            if (info.CandidateSymbols.Contains(null!))
             {
                 using var result = TemporaryArray<ISymbol>.Empty;
                 foreach (var symbol in info.CandidateSymbols)
