@@ -926,7 +926,7 @@ HandleAsAGeneralExpression:
 
                     If param.IsParamArray AndAlso paramIndex = candidate.ParameterCount - 1 Then
 
-                        If targetType.Kind <> SymbolKind.ArrayType Then
+                        If targetType.Kind <> SymbolKind.ArrayType Then ' PROTOTYPE(ParamsCollections): adjust?
                             Continue For
                         End If
 
@@ -962,7 +962,7 @@ HandleAsAGeneralExpression:
                             ' Perform the conversions to the element type of the ParamArray here.
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If Not arrayType.IsSZArray Then
+                            If Not arrayType.IsSZArray Then ' PROTOTYPE(ParamsCollections): follow up
                                 Continue For
                             End If
 

@@ -811,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 #End If
             ElseIf lastCommonIndex >= 0 AndAlso
-                    bestCandidate.Parameters(lastCommonIndex).IsParamArray AndAlso
+                    bestCandidate.Parameters(lastCommonIndex).IsParamArray AndAlso ' PROTOTYPE(ParamsCollections): adjust?
                     delegateInvoke.Parameters(lastCommonIndex).IsByRef AndAlso
                     bestCandidate.Parameters(lastCommonIndex).IsByRef AndAlso
                     Not bestResult.ConversionsOpt.IsDefaultOrEmpty AndAlso
