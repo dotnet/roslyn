@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis
 
             var builder = new StringBuilder();
             var generator = new PrefixAndDeclarationGenerator(builder);
-            return generator.Visit(symbol) ? builder.ToString() : null;
+            generator.Visit(symbol);
+
+            return generator.Failed ? null : builder.ToString();
         }
 
         /// <summary>
@@ -315,17 +317,19 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see langword="bool"/> generic type argument indicates if we succeeded at writing out the declaration ID
         /// or not.  Callers should only call into <see cref="SymbolVisitor{TResult}.Visit(ISymbol?)"/> and should check
-        /// the return type to see if it failed (in the case of an arbitrary symbol) or that it produced an expected
-        /// value (in the case a known symbol type was used).
+        /// <see cref="Failed"/> to see if it failed (in the case of an arbitrary symbol) or that it produced an
+        /// expected value (in the case a known symbol type was used).
         /// </summary>
         /// <remarks>
         /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
         /// succeed for other symbols.
         /// </remarks>
-        private sealed class PrefixAndDeclarationGenerator : SymbolVisitor<bool>
+        private sealed class PrefixAndDeclarationGenerator : SymbolVisitor
         {
             private readonly StringBuilder _builder;
             private readonly DeclarationGenerator _generator;
+
+            private bool _failed;
 
             public PrefixAndDeclarationGenerator(StringBuilder builder)
             {
@@ -336,45 +340,47 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// If we hit anything we don't know about, indicate failure.
             /// </summary>
-            public override bool DefaultVisit(ISymbol symbol)
-                => false;
+            public override void DefaultVisit(ISymbol symbol)
+            {
+                _failed = true;
+            }
 
-            public override bool VisitEvent(IEventSymbol symbol)
+            public bool Failed => _failed || _generator.Failed;
+
+            public override void VisitEvent(IEventSymbol symbol)
             {
                 _builder.Append("E:");
-                return _generator.Visit(symbol);
+                _generator.Visit(symbol);
             }
 
-            public override bool VisitField(IFieldSymbol symbol)
+            public override void VisitField(IFieldSymbol symbol)
             {
                 _builder.Append("F:");
-                return _generator.Visit(symbol);
+                _generator.Visit(symbol);
             }
 
-            public override bool VisitProperty(IPropertySymbol symbol)
+            public override void VisitProperty(IPropertySymbol symbol)
             {
                 _builder.Append("P:");
-                return _generator.Visit(symbol);
+                _generator.Visit(symbol);
             }
 
-            public override bool VisitMethod(IMethodSymbol symbol)
+            public override void VisitMethod(IMethodSymbol symbol)
             {
                 _builder.Append("M:");
-                return _generator.Visit(symbol);
+                _generator.Visit(symbol);
             }
 
-            public override bool VisitNamespace(INamespaceSymbol symbol)
+            public override void VisitNamespace(INamespaceSymbol symbol)
             {
                 _builder.Append("N:");
                 AppendNamespace(symbol, _builder);
-                return true;
             }
 
-            public override bool VisitNamedType(INamedTypeSymbol symbol)
+            public override void VisitNamedType(INamedTypeSymbol symbol)
             {
                 _builder.Append("T:");
-                _generator.VisitNamedType(symbol);
-                return true;
+                AppendNamedType(symbol, _builder);
             }
 
             private static void AppendNamespace(INamespaceSymbol symbol, StringBuilder builder)
@@ -413,10 +419,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private sealed class DeclarationGenerator : SymbolVisitor<bool>
+            private sealed class DeclarationGenerator : SymbolVisitor
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
+
+                public bool Failed;
 
                 public DeclarationGenerator(StringBuilder builder)
                 {
@@ -436,47 +444,36 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// If we hit anything we don't know about, indicate failure.
                 /// </summary>
-                public override bool DefaultVisit(ISymbol symbol)
-                    => false;
-
-                public override bool VisitEvent(IEventSymbol symbol)
+                public override void DefaultVisit(ISymbol symbol)
                 {
-                    if (!this.Visit(symbol.ContainingSymbol))
-                        return false;
-
-                    _builder.Append('.');
-                    _builder.Append(EncodeName(symbol.Name));
-                    return true;
+                    Failed = true;
                 }
 
-                public override bool VisitField(IFieldSymbol symbol)
+                public override void VisitEvent(IEventSymbol symbol)
                 {
-                    if (!this.Visit(symbol.ContainingSymbol))
-                        return false;
-
+                    this.Visit(symbol.ContainingSymbol);
                     _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
-                    return true;
                 }
 
-                public override bool VisitProperty(IPropertySymbol symbol)
+                public override void VisitField(IFieldSymbol symbol)
                 {
-                    if (!this.Visit(symbol.ContainingSymbol))
-                        return false;
+                    this.Visit(symbol.ContainingSymbol);
+                    _builder.Append('.');
+                    _builder.Append(EncodeName(symbol.Name));
+                }
 
+                public override void VisitProperty(IPropertySymbol symbol)
+                {
+                    this.Visit(symbol.ContainingSymbol);
                     _builder.Append('.');
                     _builder.Append(EncodeName(EncodePropertyName(symbol.Name)));
-
                     AppendParameterTypes(symbol.Parameters);
-
-                    return true;
                 }
 
-                public override bool VisitMethod(IMethodSymbol symbol)
+                public override void VisitMethod(IMethodSymbol symbol)
                 {
-                    if (!this.Visit(symbol.ContainingSymbol))
-                        return false;
-
+                    this.Visit(symbol.ContainingSymbol);
                     _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
 
@@ -493,8 +490,6 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("~");
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
-
-                    return true;
                 }
 
                 private void AppendParameterTypes(ImmutableArray<IParameterSymbol> parameters)
@@ -522,17 +517,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public override bool VisitNamespace(INamespaceSymbol symbol)
-                {
-                    AppendNamespace(symbol, _builder);
-                    return true;
-                }
+                public override void VisitNamespace(INamespaceSymbol symbol)
+                    => AppendNamespace(symbol, _builder);
 
-                public override bool VisitNamedType(INamedTypeSymbol symbol)
-                {
-                    AppendNamedType(symbol, _builder);
-                    return true;
-                }
+                public override void VisitNamedType(INamedTypeSymbol symbol)
+                    => AppendNamedType(symbol, _builder);
             }
         }
 
@@ -643,7 +632,8 @@ namespace Microsoft.CodeAnalysis
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
                     Debug.Assert(symbol.ContainingSymbol is INamedTypeSymbol or IMethodSymbol);
-                    Debug.Assert(declarer.Visit(symbol.ContainingSymbol), "Should always be able to write out a type parameter's containing type or method");
+                    declarer.Visit(symbol.ContainingSymbol);
+                    Debug.Assert(!declarer.Failed, "Should always be able to write out a type parameter's containing type or method");
                     _builder.Append(":");
                 }
 
