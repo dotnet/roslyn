@@ -7,6 +7,7 @@
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <!-- Prevents ambiguity caused by InternalsVisibleTo from dependent assemblies. -->
