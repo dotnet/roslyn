@@ -11,6 +11,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -2633,6 +2634,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+#if NETCOREAPP
+        [SupportedOSPlatform("windows")]
+#endif
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
