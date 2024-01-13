@@ -26,17 +26,29 @@
     MSBuild - need to use older packages when targeting net7.0 since the newer versions only support net472 and net8.0.
   -->
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net7.0'">
-    <PackageVersion Include="Microsoft.Build" Version="17.9.0-preview-23551-05" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.9.0-preview-23551-05" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.9.0-preview-23551-05" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotnetBuildFromSource)' == 'true'">
+      <ItemGroup>
+        <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
+        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net7.0'">
+      <ItemGroup>
+        <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
+        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageVersion Include="Microsoft.Build" Version="17.9.0-preview-23551-05" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.9.0-preview-23551-05" />
+        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.9.0-preview-23551-05" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>  
 
   <ItemGroup>
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
@@ -160,11 +172,11 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net451" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.0" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net451" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="4.5.1" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.23407.1" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
