@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AnalyzedArguments
     {
         public readonly ArrayBuilder<BoundExpression> Arguments;
-        public readonly ArrayBuilder<IdentifierNameSyntax> Names;
+        public readonly ArrayBuilder<(string Name, Location Location)?> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
         public bool IsExtensionMethodInvocation;
         private ThreeState _lazyHasDynamicArgument;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal AnalyzedArguments()
         {
             this.Arguments = new ArrayBuilder<BoundExpression>(32);
-            this.Names = new ArrayBuilder<IdentifierNameSyntax>(32);
+            this.Names = new ArrayBuilder<(string, Location)?>(32);
             this.RefKinds = new ArrayBuilder<RefKind>(32);
         }
 
@@ -40,18 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Arguments[i];
         }
 
-        public string Name(int i)
+        public void AddName(IdentifierNameSyntax name)
+        {
+            Names.Add((name.Identifier.ValueText, name.Location));
+        }
+
+        public string? Name(int i)
         {
             if (Names.Count == 0)
             {
                 return null;
             }
 
-            IdentifierNameSyntax syntax = Names[i];
-            return syntax == null ? null : syntax.Identifier.ValueText;
+            var nameAndLocation = Names[i];
+            return nameAndLocation?.Name;
         }
 
-        public ImmutableArray<string> GetNames()
+        public ImmutableArray<string?> GetNames()
         {
             int count = this.Names.Count;
 
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default;
             }
 
-            var builder = ArrayBuilder<string>.GetInstance(this.Names.Count);
+            var builder = ArrayBuilder<string?>.GetInstance(this.Names.Count);
             for (int i = 0; i < this.Names.Count; ++i)
             {
                 builder.Add(Name(i));
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = Arguments[i];
 
                     // By-ref dynamic arguments don't make the invocation dynamic.
-                    if ((object)argument.Type != null && argument.Type.IsDynamic() && (!hasRefKinds || RefKinds[i] == Microsoft.CodeAnalysis.RefKind.None))
+                    if ((object?)argument.Type != null && argument.Type.IsDynamic() && (!hasRefKinds || RefKinds[i] == Microsoft.CodeAnalysis.RefKind.None))
                     {
                         _lazyHasDynamicArgument = ThreeState.True;
                         return true;
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnalyzedArguments GetInstance(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+            ImmutableArray<(string, Location)?> argumentNamesOpt)
         {
             var instance = GetInstance();
             instance.Arguments.AddRange(arguments);
@@ -172,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ObjectPool<AnalyzedArguments> CreatePool()
         {
-            ObjectPool<AnalyzedArguments> pool = null;
+            ObjectPool<AnalyzedArguments>? pool = null;
             pool = new ObjectPool<AnalyzedArguments>(() => new AnalyzedArguments(), 10);
             return pool;
         }

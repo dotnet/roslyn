@@ -5,12 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -18,8 +24,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -31,50 +35,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         internal static ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> Create(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
+            bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
-            return new FileCodeModel(state, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
+            // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create);
+            return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
-        private readonly ComHandle<object, object> _parentHandle;
+        private readonly ComHandle<object?, object?> _parentHandle;
 
         /// <summary>
         /// Don't use directly. Instead, call <see cref="GetDocumentId()"/>.
         /// </summary>
-        private DocumentId _documentId;
+        private DocumentId? _documentId;
+        private readonly bool _isSourceGeneratedOutput;
 
         // Note: these are only valid when the underlying file is being renamed. Do not use.
-        private ProjectId _incomingProjectId;
-        private string _incomingFilePath;
-        private Document _previousDocument;
+        private ProjectId? _incomingProjectId;
+        private string? _incomingFilePath;
+        private Document? _previousDocument;
 
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
         private bool _batchMode;
-        private List<AbstractKeyedCodeElement> _batchElements;
-        private Document _batchDocument;
+        private List<AbstractKeyedCodeElement>? _batchElements;
+        private Document? _batchDocument;
 
         // track state to make sure we open editor only once
         private int _editCount;
-        private IInvisibleEditor _invisibleEditor;
+        private IInvisibleEditor? _invisibleEditor;
 
         private SyntaxTree _lastSyntaxTree;
 
         private FileCodeModel(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
+            bool isSourceGeneratedOutput,
             ITextManagerAdapter textManagerAdapter)
             : base(state)
         {
-            Debug.Assert(documentId != null);
-            Debug.Assert(textManagerAdapter != null);
+            RoslynDebug.AssertNotNull(documentId);
+            RoslynDebug.AssertNotNull(textManagerAdapter);
 
-            _parentHandle = new ComHandle<object, object>(parent);
+            _parentHandle = new ComHandle<object?, object?>(parent);
             _documentId = documentId;
+            _isSourceGeneratedOutput = isSourceGeneratedOutput;
             TextManagerAdapter = textManagerAdapter;
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
@@ -89,6 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get; set;
         }
 
+        internal IGlobalOptionService GlobalOptions
+            => State.ProjectCodeModelFactory.GlobalOptions;
+
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file
         /// is renamed, the DocumentId will become invalid because the Roslyn VS workspace treats file renames as a remove/add pair.
@@ -101,11 +114,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             Debug.Assert(_editCount == 0, "FileCodeModel have an open edit and the underlying file is being renamed. This is a bug.");
 
-            if (_documentId != null)
-            {
-                _previousDocument = Workspace.CurrentSolution.GetDocument(_documentId);
-            }
+            RoslynDebug.AssertNotNull(_documentId);
 
+            _previousDocument = Workspace.CurrentSolution.GetDocument(_documentId);
             _incomingFilePath = newFilePath;
             _incomingProjectId = _documentId.ProjectId;
 
@@ -123,13 +134,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
 
-                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(() => { _invisibleEditor.Dispose(); });
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(
+                    cancellationToken =>
+                    {
+                        // Ignore cancellationToken: we always need to call Dispose since it triggers the file save.
+                        _ = cancellationToken;
+
+                        _invisibleEditor.Dispose();
+                    });
             }
 
             base.Shutdown();
         }
 
-        private bool TryGetDocumentId(out DocumentId documentId)
+        private bool TryGetDocumentId([NotNullWhen(true)] out DocumentId? documentId)
         {
             if (_documentId != null)
             {
@@ -235,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     if (codeElement != null)
                     {
-                        var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
+                        var element = ComAggregate.GetManagedObject<AbstractCodeElement>(codeElement);
                         if (element.IsValidNode())
                         {
                             if (codeElement is T tcodeElement)
@@ -257,6 +275,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void InitializeEditor()
         {
+            // If this is a source generated file, we can't edit it, so just block this at the very start.
+            // E_FAIL is probably as a good as anything else, is and is also what we use files that go missing
+            // so it's consistent for "this file isn't something you can use."
+            if (_isSourceGeneratedOutput)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
             _editCount++;
 
             if (_editCount == 1)
@@ -275,7 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _editCount--;
             if (_editCount == 0)
             {
-                Debug.Assert(_invisibleEditor != null);
+                RoslynDebug.AssertNotNull(_invisibleEditor);
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
 
                 _invisibleEditor.Dispose();
@@ -320,8 +346,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(CancellationToken.None);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+
+                    return formatted;
+                });
 
                 ApplyChanges(workspace, formatted);
             });
@@ -352,7 +384,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                workspace.TryApplyChanges(document.Project.Solution);
+                var applied = workspace.TryApplyChanges(document.Project.Solution);
+                if (!applied)
+                {
+                    FatalError.ReportAndPropagate(new Exception("Failed to apply the workspace changes."), ErrorSeverity.Critical);
+                }
             }
         }
 
@@ -366,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return document;
         }
 
-        internal bool TryGetDocument(out Document document)
+        internal bool TryGetDocument([NotNullWhen(true)] out Document? document)
         {
             if (IsBatchOpen && _batchDocument != null)
             {
@@ -374,21 +410,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return true;
             }
 
-            if (!TryGetDocumentId(out var documentId) && _previousDocument != null)
+            if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
             }
+            else if (_isSourceGeneratedOutput)
+            {
+                document = State.ThreadingContext.JoinableTaskFactory.Run(
+                    () => Workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(GetDocumentId(), CancellationToken.None).AsTask());
+            }
             else
             {
-                // HACK HACK HACK: Ensure we've processed all files being opened before we let designers work further.
-                // In https://devdiv.visualstudio.com/DevDiv/_workitems/edit/728035, a file is opened in an invisible editor and contents are written
-                // to it. The file isn't saved, but it's added to the workspace; we won't have yet hooked up to the open file since that work was deferred.
-                // Since we're on the UI thread here, we can ensure those are all wired up since the analysis of this document may depend on that other file.
-                // We choose to do this here rather than in the project system code when it's added because we don't want to pay the penalty of checking the RDT for
-                // all files being opened on the UI thread if we really don't need it. This uses an 'as' cast, because in unit tests the workspace is a different
-                // derived form of VisualStudioWorkspace, and there we aren't dealing with open files at all so it doesn't matter.
-                (State.Workspace as VisualStudioWorkspaceImpl)?.ProcessQueuedWorkOnUIThread();
-
                 document = Workspace.CurrentSolution.GetDocument(GetDocumentId());
             }
 
@@ -397,43 +429,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal SyntaxTree GetSyntaxTree()
         {
-            return GetDocument()
-                .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
         }
 
         internal SyntaxNode GetSyntaxRoot()
         {
-            return GetDocument()
-                .GetSyntaxRootAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetRequiredSyntaxRootSynchronously(CancellationToken.None);
         }
 
         internal SemanticModel GetSemanticModel()
-        {
-            return GetDocument()
-                .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
+            });
+
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
+            });
 
         internal Compilation GetCompilation()
-        {
-            return GetDocument().Project
-                .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument().Project
+                    .GetRequiredCompilationAsync(CancellationToken.None);
+            });
 
         internal ProjectId GetProjectId()
             => GetDocumentId().ProjectId;
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)
             => CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
-
-        internal TSyntaxNode LookupNode<TSyntaxNode>(SyntaxNodeKey nodeKey)
-            where TSyntaxNode : SyntaxNode
-        {
-            return CodeModelService.LookupNode(nodeKey, GetSyntaxTree()) as TSyntaxNode;
-        }
 
         public EnvDTE.CodeAttribute AddAttribute(string name, string value, object position)
         {
@@ -532,11 +561,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return position;
         }
 
-        internal EnvDTE.CodeElement CodeElementFromPosition(int position, EnvDTE.vsCMElement scope)
+        internal EnvDTE.CodeElement? CodeElementFromPosition(int position, EnvDTE.vsCMElement scope)
         {
             var root = GetSyntaxRoot();
-            var leftToken = SyntaxFactsService.FindTokenOnLeftOfPosition(root, position);
-            var rightToken = SyntaxFactsService.FindTokenOnRightOfPosition(root, position);
+            var leftToken = root.FindTokenOnLeftOfPosition(position);
+            var rightToken = root.FindTokenOnRightOfPosition(position);
 
             // We apply a set of heuristics to determine which member we pick to start searching.
             var token = leftToken;
@@ -609,7 +638,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get { return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty); }
         }
 
-        public EnvDTE.ProjectItem Parent
+        public EnvDTE.ProjectItem? Parent
         {
             get { return _parentHandle.Object as EnvDTE.ProjectItem; }
         }
@@ -618,10 +647,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
 
             if (codeElement == null)
             {
@@ -657,7 +683,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 if (_editCount == 1)
                 {
-                    List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>> elementAndPaths = null;
+                    RoslynDebug.AssertNotNull(_batchElements);
+                    RoslynDebug.AssertNotNull(_invisibleEditor);
+
+                    List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>? elementAndPaths = null;
                     if (_batchElements.Count > 0)
                     {
                         foreach (var element in _batchElements)
@@ -674,7 +703,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                        {
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                            return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
+                        });
+
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
                         // done using batch document
@@ -728,6 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             ErrorHandler.ThrowOnFailure(temp.EndEdit());
         }
 
+        [MemberNotNullWhen(true, nameof(_batchElements))]
         public bool IsBatchOpen
         {
             get
@@ -793,10 +828,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
-                if (keyedElement != null)
-                {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
-                }
+                keyedElement?.ReacquireNodeKey(globalNodeKey.Path, default);
             }
         }
     }

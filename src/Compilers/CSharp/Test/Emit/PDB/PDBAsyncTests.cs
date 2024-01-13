@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -60,140 +62,145 @@ class Driver
         return Driver.Result;
     }
 }");
-            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-            var v = CompileAndVerify(compilation);
+            verify(text);
+            verify(text.Replace("public static int Count = 0;", "public static int Count;"));
 
-            v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
-  // Code size      303 (0x12f)
-  .maxstack  3
-  .locals init (int V_0,
-                System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
-                TestCase.<Run>d__1 V_2,
-                bool V_3,
-                System.Exception V_4)
- ~IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int TestCase.<Run>d__1.<>1__state""
-  IL_0006:  stloc.0
-  .try
-  {
-   ~IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_008b
-   -IL_000e:  nop
-   -IL_000f:  ldarg.0
-    IL_0010:  newobj     ""DynamicMembers..ctor()""
-    IL_0015:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-   -IL_001a:  ldarg.0
-    IL_001b:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-    IL_0020:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
-    IL_0025:  dup
-    IL_0026:  brtrue.s   IL_003f
-    IL_0028:  pop
-    IL_0029:  ldsfld     ""TestCase.<>c TestCase.<>c.<>9""
-    IL_002e:  ldftn      ""System.Threading.Tasks.Task<int> TestCase.<>c.<Run>b__1_0()""
-    IL_0034:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
-    IL_0039:  dup
-    IL_003a:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
-    IL_003f:  callvirt   ""void DynamicMembers.Prop.set""
-    IL_0044:  nop
-   -IL_0045:  ldarg.0
-    IL_0046:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-    IL_004b:  callvirt   ""System.Func<System.Threading.Tasks.Task<int>> DynamicMembers.Prop.get""
-    IL_0050:  callvirt   ""System.Threading.Tasks.Task<int> System.Func<System.Threading.Tasks.Task<int>>.Invoke()""
-    IL_0055:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_005a:  stloc.1
-   ~IL_005b:  ldloca.s   V_1
-    IL_005d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0062:  brtrue.s   IL_00a7
-    IL_0064:  ldarg.0
-    IL_0065:  ldc.i4.0
-    IL_0066:  dup
-    IL_0067:  stloc.0
-    IL_0068:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-   <IL_006d:  ldarg.0
-    IL_006e:  ldloc.1
-    IL_006f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_0074:  ldarg.0
-    IL_0075:  stloc.2
-    IL_0076:  ldarg.0
-    IL_0077:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-    IL_007c:  ldloca.s   V_1
-    IL_007e:  ldloca.s   V_2
-    IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, TestCase.<Run>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref TestCase.<Run>d__1)""
-    IL_0085:  nop
-    IL_0086:  leave      IL_012e
-   >IL_008b:  ldarg.0
-    IL_008c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_0091:  stloc.1
-    IL_0092:  ldarg.0
-    IL_0093:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_0098:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_009e:  ldarg.0
-    IL_009f:  ldc.i4.m1
-    IL_00a0:  dup
-    IL_00a1:  stloc.0
-    IL_00a2:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-    IL_00a7:  ldarg.0
-    IL_00a8:  ldloca.s   V_1
-    IL_00aa:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00af:  stfld      ""int TestCase.<Run>d__1.<>s__3""
-    IL_00b4:  ldarg.0
-    IL_00b5:  ldarg.0
-    IL_00b6:  ldfld      ""int TestCase.<Run>d__1.<>s__3""
-    IL_00bb:  stfld      ""int TestCase.<Run>d__1.<rez2>5__2""
-   -IL_00c0:  ldarg.0
-    IL_00c1:  ldfld      ""int TestCase.<Run>d__1.<rez2>5__2""
-    IL_00c6:  ldc.i4.3
-    IL_00c7:  ceq
-    IL_00c9:  stloc.3
-   ~IL_00ca:  ldloc.3
-    IL_00cb:  brfalse.s  IL_00d9
-   -IL_00cd:  ldsfld     ""int TestCase.Count""
-    IL_00d2:  ldc.i4.1
-    IL_00d3:  add
-    IL_00d4:  stsfld     ""int TestCase.Count""
-   -IL_00d9:  ldsfld     ""int TestCase.Count""
-    IL_00de:  ldc.i4.1
-    IL_00df:  sub
-    IL_00e0:  stsfld     ""int Driver.Result""
-   -IL_00e5:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
-    IL_00ea:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
-    IL_00ef:  pop
-    IL_00f0:  leave.s    IL_0113
-  }
-  catch System.Exception
-  {
-  ~$IL_00f2:  stloc.s    V_4
-    IL_00f4:  ldarg.0
-    IL_00f5:  ldc.i4.s   -2
-    IL_00f7:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-    IL_00fc:  ldarg.0
-    IL_00fd:  ldnull
-    IL_00fe:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-    IL_0103:  ldarg.0
-    IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-    IL_0109:  ldloc.s    V_4
-    IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_0110:  nop
-    IL_0111:  leave.s    IL_012e
-  }
- -IL_0113:  ldarg.0
-  IL_0114:  ldc.i4.s   -2
-  IL_0116:  stfld      ""int TestCase.<Run>d__1.<>1__state""
- ~IL_011b:  ldarg.0
-  IL_011c:  ldnull
-  IL_011d:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-  IL_0122:  ldarg.0
-  IL_0123:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-  IL_0128:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_012d:  nop
-  IL_012e:  ret
-}",
-sequencePoints: "TestCase+<Run>d__1.MoveNext");
+            void verify(string text)
+            {
+                var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+                var v = CompileAndVerify(compilation);
 
-            v.VerifyPdb(@"
+                v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+    {
+    // Code size      303 (0x12f)
+    .maxstack  3
+    .locals init (int V_0,
+                    System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
+                    TestCase.<Run>d__1 V_2,
+                    bool V_3,
+                    System.Exception V_4)
+    ~IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int TestCase.<Run>d__1.<>1__state""
+    IL_0006:  stloc.0
+    .try
+    {
+    ~IL_0007:  ldloc.0
+        IL_0008:  brfalse.s  IL_000c
+        IL_000a:  br.s       IL_000e
+        IL_000c:  br.s       IL_008b
+    -IL_000e:  nop
+    -IL_000f:  ldarg.0
+        IL_0010:  newobj     ""DynamicMembers..ctor()""
+        IL_0015:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+    -IL_001a:  ldarg.0
+        IL_001b:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+        IL_0020:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
+        IL_0025:  dup
+        IL_0026:  brtrue.s   IL_003f
+        IL_0028:  pop
+        IL_0029:  ldsfld     ""TestCase.<>c TestCase.<>c.<>9""
+        IL_002e:  ldftn      ""System.Threading.Tasks.Task<int> TestCase.<>c.<Run>b__1_0()""
+        IL_0034:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
+        IL_0039:  dup
+        IL_003a:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
+        IL_003f:  callvirt   ""void DynamicMembers.Prop.set""
+        IL_0044:  nop
+    -IL_0045:  ldarg.0
+        IL_0046:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+        IL_004b:  callvirt   ""System.Func<System.Threading.Tasks.Task<int>> DynamicMembers.Prop.get""
+        IL_0050:  callvirt   ""System.Threading.Tasks.Task<int> System.Func<System.Threading.Tasks.Task<int>>.Invoke()""
+        IL_0055:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+        IL_005a:  stloc.1
+    ~IL_005b:  ldloca.s   V_1
+        IL_005d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+        IL_0062:  brtrue.s   IL_00a7
+        IL_0064:  ldarg.0
+        IL_0065:  ldc.i4.0
+        IL_0066:  dup
+        IL_0067:  stloc.0
+        IL_0068:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+    <IL_006d:  ldarg.0
+        IL_006e:  ldloc.1
+        IL_006f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
+        IL_0074:  ldarg.0
+        IL_0075:  stloc.2
+        IL_0076:  ldarg.0
+        IL_0077:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+        IL_007c:  ldloca.s   V_1
+        IL_007e:  ldloca.s   V_2
+        IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, TestCase.<Run>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref TestCase.<Run>d__1)""
+        IL_0085:  nop
+        IL_0086:  leave      IL_012e
+    >IL_008b:  ldarg.0
+        IL_008c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
+        IL_0091:  stloc.1
+        IL_0092:  ldarg.0
+        IL_0093:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
+        IL_0098:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+        IL_009e:  ldarg.0
+        IL_009f:  ldc.i4.m1
+        IL_00a0:  dup
+        IL_00a1:  stloc.0
+        IL_00a2:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+        IL_00a7:  ldarg.0
+        IL_00a8:  ldloca.s   V_1
+        IL_00aa:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+        IL_00af:  stfld      ""int TestCase.<Run>d__1.<>s__3""
+        IL_00b4:  ldarg.0
+        IL_00b5:  ldarg.0
+        IL_00b6:  ldfld      ""int TestCase.<Run>d__1.<>s__3""
+        IL_00bb:  stfld      ""int TestCase.<Run>d__1.<rez2>5__2""
+    -IL_00c0:  ldarg.0
+        IL_00c1:  ldfld      ""int TestCase.<Run>d__1.<rez2>5__2""
+        IL_00c6:  ldc.i4.3
+        IL_00c7:  ceq
+        IL_00c9:  stloc.3
+    ~IL_00ca:  ldloc.3
+        IL_00cb:  brfalse.s  IL_00d9
+    -IL_00cd:  ldsfld     ""int TestCase.Count""
+        IL_00d2:  ldc.i4.1
+        IL_00d3:  add
+        IL_00d4:  stsfld     ""int TestCase.Count""
+    -IL_00d9:  ldsfld     ""int TestCase.Count""
+        IL_00de:  ldc.i4.1
+        IL_00df:  sub
+        IL_00e0:  stsfld     ""int Driver.Result""
+    -IL_00e5:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
+        IL_00ea:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
+        IL_00ef:  pop
+        IL_00f0:  leave.s    IL_0113
+    }
+    catch System.Exception
+    {
+    ~$IL_00f2:  stloc.s    V_4
+        IL_00f4:  ldarg.0
+        IL_00f5:  ldc.i4.s   -2
+        IL_00f7:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+        IL_00fc:  ldarg.0
+        IL_00fd:  ldnull
+        IL_00fe:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+        IL_0103:  ldarg.0
+        IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+        IL_0109:  ldloc.s    V_4
+        IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+        IL_0110:  nop
+        IL_0111:  leave.s    IL_012e
+    }
+    -IL_0113:  ldarg.0
+    IL_0114:  ldc.i4.s   -2
+    IL_0116:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+    ~IL_011b:  ldarg.0
+    IL_011c:  ldnull
+    IL_011d:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+    IL_0122:  ldarg.0
+    IL_0123:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+    IL_0128:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+    IL_012d:  nop
+    IL_012e:  ret
+    }",
+    sequencePoints: "TestCase+<Run>d__1.MoveNext");
+
+                v.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -221,26 +228,16 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
           <methodOrdinal>1</methodOrdinal>
           <lambda offset=""86"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""146"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
-    <method containingType=""TestCase"" name="".cctor"">
+    <method containingType=""Driver"" name=""Main"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""3"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""33"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x7"">
-        <namespace name=""System"" />
-        <namespace name=""System.Threading"" />
-        <namespace name=""System.Threading.Tasks"" />
-      </scope>
-    </method>
-    <method containingType=""Driver"" name=""Main"">
-      <customDebugInfo>
-        <forward declaringType=""TestCase"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""21"" offset=""0"" />
@@ -255,12 +252,15 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x21"" startLine=""36"" startColumn=""5"" endLine=""36"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x23"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.Threading.Tasks"" />
         <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
     <method containingType=""Driver"" name="".cctor"">
       <customDebugInfo>
-        <forward declaringType=""TestCase"" methodName="".cctor"" />
+        <forward declaringType=""Driver"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""35"" document=""1"" />
@@ -270,11 +270,14 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     <method containingType=""TestCase+&lt;&gt;c"" name=""&lt;Run&gt;b__1_0"">
       <customDebugInfo>
         <forwardIterator name=""&lt;&lt;Run&gt;b__1_0&gt;d"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""88"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""TestCase"" methodName="".cctor"" />
+        <forward declaringType=""Driver"" methodName=""Main"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x12f"" />
           <slot startOffset=""0x0"" endOffset=""0x12f"" />
@@ -312,7 +315,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     </method>
     <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""TestCase"" methodName="".cctor"" />
+        <forward declaringType=""Driver"" methodName=""Main"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""86"" />
           <slot kind=""20"" offset=""86"" />
@@ -339,6 +342,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     </method>
   </methods>
 </symbols>");
+            }
         }
 
         [Fact]
@@ -407,6 +411,9 @@ namespace ConsoleApplication1
     <method containingType=""ConsoleApplication1.Program"" name=""QBar"">
       <customDebugInfo>
         <forwardIterator name=""&lt;QBar&gt;d__2"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""15"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""ZBar"">
@@ -420,6 +427,9 @@ namespace ConsoleApplication1
           <slot kind=""0"" offset=""132"" />
           <slot kind=""28"" offset=""141"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""141"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
@@ -551,6 +561,9 @@ class TestCase
           <slot kind=""28"" offset=""21"" ordinal=""1"" />
           <slot kind=""28"" offset=""21"" ordinal=""2"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""21"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""TestCase+&lt;Await&gt;d__0"" name=""MoveNext"">
@@ -902,6 +915,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1092,6 +1108,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1413,6 +1432,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""35"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1592,6 +1614,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""58"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1695,6 +1720,9 @@ class C
           <slot kind=""23"" offset=""34"" />
           <slot kind=""28"" offset=""105"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""105"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1966,14 +1994,18 @@ class C
           <slot kind=""29"" offset=""150"" ordinal=""2"" />
           <slot kind=""29"" offset=""150"" ordinal=""3"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""70"" />
+          <state number=""1"" offset=""150"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
 </symbols>");
         }
 
-        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
         [Fact]
+        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
         public void PartialKickoffMethod()
         {
             string src = @"
@@ -1982,7 +2014,7 @@ public partial class C
     partial void M();
     async partial void M() {}
 }";
-            var compilation = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib45(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var v = CompileAndVerify(compilation);
             v.VerifyPdb("C.M", @"
 <symbols>
@@ -2006,22 +2038,25 @@ public partial class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
+            Assert.True(result.Success);
 
             pdbStream.Position = 0;
-            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
-            {
-                var mdReader = provider.GetMetadataReader();
-                var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var mdReader = provider.GetMetadataReader();
+            var writer = new StringWriter();
+            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            visualizer.WriteMethodDebugInformation();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 20): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: #4
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -2033,8 +2068,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002A: <hidden>
 }
 5: nil",
-                    writer.ToString());
-            }
+                writer.ToString());
         }
 
         [Fact]

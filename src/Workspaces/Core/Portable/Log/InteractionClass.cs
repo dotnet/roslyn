@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -27,13 +29,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    internal class PerfGoalAttribute : Attribute
+    internal class PerfGoalAttribute(InteractionClass interactionClass) : Attribute
     {
-        private readonly InteractionClass _interactionClass;
-
-        public PerfGoalAttribute(InteractionClass interactionClass)
-            => _interactionClass = interactionClass;
-
-        public InteractionClass InteractionClass => _interactionClass;
+        public InteractionClass InteractionClass => interactionClass;
     }
 }

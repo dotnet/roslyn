@@ -19,13 +19,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
         End Sub
 
         Public Overrides Function GeneratePreviewDisplayParts(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel) As SymbolDisplayPart()
-            Return {
-                New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, addedParameterViewModel.ParameterName),
-                New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, " As " + addedParameterViewModel.Type)}
+            Dim parts = New List(Of SymbolDisplayPart)
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, addedParameterViewModel.ParameterName))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "As"))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
+
+            ' TO-DO We need to add proper colorization for added parameters: 
+            ' https://github.com/dotnet/roslyn/issues/47986
+            Dim isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.Type).Kind() = SyntaxKind.PredefinedType
+            Dim typePartKind = If(isPredefinedType, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.ClassName)
+
+            parts.Add(New SymbolDisplayPart(typePartKind, Nothing, addedParameterViewModel.Type))
+
+            If Not String.IsNullOrWhiteSpace(addedParameterViewModel.Default) Then
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "="))
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, addedParameterViewModel.Default))
+            End If
+
+            Return parts.ToArray()
         End Function
 
         Public Overrides Function IsTypeNameValid(typeName As String) As Boolean
-            Return Not SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics
+            Static visualBasicParseOptions As New VisualBasicParseOptions(LanguageVersion.Latest)
+            Return Not SyntaxFactory.ParseTypeName(typeName, options:=visualBasicParseOptions).ContainsDiagnostics
         End Function
 
         Public Overrides Function GetTypeNode(typeName As String) As SyntaxNode

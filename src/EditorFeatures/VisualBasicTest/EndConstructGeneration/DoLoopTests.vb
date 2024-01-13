@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class DoLoopTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterUnmatchedDo()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -25,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedDo()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -48,7 +48,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoNotApplyFromPairedDo()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -58,7 +58,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoNotApplyFromInsideDo()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -67,7 +67,7 @@ End Class",
                 caret:={1, 1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoNotApplyFromDoOutsideMethod()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -76,7 +76,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyDoWhile()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -96,7 +96,7 @@ End Class",
 
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedDoWhile()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -119,7 +119,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyDoUntil()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -138,7 +138,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedDoUntil()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -161,7 +161,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyDoWhileInBrokenSub()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -178,7 +178,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyDoUntilInvalidLocation01()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -189,14 +189,14 @@ End Class",
                 caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyDoUntilInvalidLocation02()
             VerifyStatementEndConstructNotApplied(
                 text:="Do",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyDoUntilInvalidLocation03()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C

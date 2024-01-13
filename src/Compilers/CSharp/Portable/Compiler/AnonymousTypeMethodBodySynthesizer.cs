@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  explicit base constructor call
                 Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
-                BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+                BoundExpression call = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
                     // This may happen if Object..ctor is not found or is inaccessible
@@ -67,11 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return true; }
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed partial class AnonymousTypePropertyGetAccessorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -91,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeEqualsMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -100,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 //  {
                 //      $anonymous$ local = value as $anonymous$;
-                //      return local != null 
+                //      return (object)local == this || (local != null 
                 //             && System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, local.backingFld_1)
                 //             ...
-                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N);
+                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N));
                 //  }
 
                 // Type and type expression
@@ -123,28 +127,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                          F.Convert(manager.System_Object, boundLocal),
                                                          F.Null(manager.System_Object));
 
-                //  prepare symbols
-                MethodSymbol equalityComparer_Equals = manager.System_Collections_Generic_EqualityComparer_T__Equals;
-                MethodSymbol equalityComparer_get_Default = manager.System_Collections_Generic_EqualityComparer_T__get_Default;
-                NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
-
                 // Compare fields
-                for (int index = 0; index < anonymousType.Properties.Length; index++)
+                if (anonymousType.Properties.Length > 0)
                 {
-                    // Prepare constructed symbols
-                    TypeParameterSymbol typeParameter = anonymousType.TypeParameters[index];
-                    FieldSymbol fieldSymbol = anonymousType.Properties[index].BackingField;
-                    NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(typeParameter);
-
-                    // Generate 'retExpression' = 'retExpression && System.Collections.Generic.EqualityComparer<T_index>.
-                    //                                                  Default.Equals(this.backingFld_index, local.backingFld_index)'
-                    retExpression = F.LogicalAnd(retExpression,
-                                                 F.Call(F.StaticCall(constructedEqualityComparer,
-                                                                     equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                                                        equalityComparer_Equals.AsMember(constructedEqualityComparer),
-                                                        F.Field(F.This(), fieldSymbol),
-                                                        F.Field(boundLocal, fieldSymbol)));
+                    var fields = ArrayBuilder<FieldSymbol>.GetInstance(anonymousType.Properties.Length);
+                    foreach (var prop in anonymousType.Properties)
+                    {
+                        fields.Add(prop.BackingField);
+                    }
+                    retExpression = MethodBodySynthesizer.GenerateFieldEquals(retExpression, boundLocal, fields, F);
+                    fields.Free();
                 }
+
+                // Compare references
+                retExpression = F.LogicalOr(F.ObjectEqual(F.This(), boundLocal), retExpression);
 
                 // Final return statement
                 BoundStatement retStatement = F.Return(retExpression);
@@ -161,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeGetHashCodeMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -183,8 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // Where GetFNVHashCode is the FNV-1a hash code.
 
-                const int HASH_FACTOR = -1521134295; // (int)0xa5555529
-
                 // Type expression
                 AnonymousTypeTemplateSymbol anonymousType = (AnonymousTypeTemplateSymbol)this.ContainingType;
 
@@ -192,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int initHash = 0;
                 foreach (var property in anonymousType.Properties)
                 {
-                    initHash = unchecked(initHash * HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
+                    initHash = unchecked(initHash * MethodBodySynthesizer.HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
                 }
 
                 //  Generate expression for return statement
@@ -202,30 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  prepare symbols
                 MethodSymbol equalityComparer_GetHashCode = manager.System_Collections_Generic_EqualityComparer_T__GetHashCode;
                 MethodSymbol equalityComparer_get_Default = manager.System_Collections_Generic_EqualityComparer_T__get_Default;
-                NamedTypeSymbol equalityComparerType = equalityComparer_GetHashCode.ContainingType;
 
                 //  bound HASH_FACTOR
-                BoundLiteral boundHashFactor = F.Literal(HASH_FACTOR);
+                BoundLiteral boundHashFactor = null;
 
                 // Process fields
                 for (int index = 0; index < anonymousType.Properties.Length; index++)
                 {
-                    // Prepare constructed symbols
-                    TypeParameterSymbol typeParameter = anonymousType.TypeParameters[index];
-                    NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(typeParameter);
-
-                    // Generate 'retExpression' <= 'retExpression * HASH_FACTOR 
-                    retExpression = F.Binary(BinaryOperatorKind.IntMultiplication, manager.System_Int32, retExpression, boundHashFactor);
-
-                    // Generate 'retExpression' <= 'retExpression + EqualityComparer<T_index>.Default.GetHashCode(this.backingFld_index)'
-                    retExpression = F.Binary(BinaryOperatorKind.IntAddition,
-                                             manager.System_Int32,
-                                             retExpression,
-                                             F.Call(
-                                                F.StaticCall(constructedEqualityComparer,
-                                                             equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                                                equalityComparer_GetHashCode.AsMember(constructedEqualityComparer),
-                                                F.Field(F.This(), anonymousType.Properties[index].BackingField)));
+                    retExpression = MethodBodySynthesizer.GenerateHashCombine(retExpression, equalityComparer_GetHashCode, equalityComparer_get_Default, ref boundHashFactor,
+                                                                              F.Field(F.This(), anonymousType.Properties[index].BackingField),
+                                                                              F);
                 }
 
                 // Create a bound block 
@@ -240,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeToStringMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -288,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                 type: property.BackingField.Type), manager.System_Object__ToString),
                                                                             null,
                                                                             id: i,
+                                                                            forceCopyOfNullableValueType: true,
                                                                             type: manager.System_String),
                                                  Conversion.ImplicitReference);
                     }

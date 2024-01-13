@@ -5,7 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                         Return Me.Document.SemanticModel.Compilation.GetSpecialType(SpecialType.System_String)
                 End Select
 
-                Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
+                Dim typeInference = Document.Project.Services.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
                     name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
@@ -142,12 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
 
             Protected Overrides Function DetermineParameterOptionality(cancellationToken As CancellationToken) As ImmutableArray(Of Boolean)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterOptionality(a, cancellationToken)).ToImmutableArray(),
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(AddressOf DetermineParameterOptionality).ToImmutableArray(),
                           ImmutableArray(Of Boolean).Empty)
             End Function
 
-            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax,
-                                                    cancellationToken As CancellationToken) As Boolean
+            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax) As Boolean
                 Return TypeOf argument Is OmittedArgumentSyntax
             End Function
 

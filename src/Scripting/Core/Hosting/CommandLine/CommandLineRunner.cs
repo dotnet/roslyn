@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             SarifErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogOptions?.Path != null)
             {
-                errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
+                errorLogger = _compiler.GetErrorLogger(_console.Error);
                 if (errorLogger == null)
                 {
                     return CommonCompiler.Failed;
@@ -75,6 +77,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (_compiler.Arguments.DisplayVersion)
             {
                 _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
+
+            if (_compiler.Arguments.DisplayLangVersions)
+            {
+                _compiler.PrintLangVersions(_console.Out);
                 return 0;
             }
 
@@ -110,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-
             // only emit symbols for non-interactive mode,
             var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
 
@@ -118,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
-            if (_compiler.ReportDiagnostics(errors, _console.Error, errorLogger))
+            if (_compiler.ReportDiagnostics(errors, _console.Error, errorLogger, compilation: null))
             {
                 return CommonCompiler.Failed;
             }
@@ -162,16 +169,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 allowUnsafe: true,
                 checkOverflow: false,
                 warningLevel: 4,
-                parseOptions: null);
+                parseOptions: arguments.ParseOptions);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
-            return new RuntimeMetadataReferenceResolver(
-                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                packageResolver: null,
-                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                useCoreResolver: !GacFileResolver.IsAvailable,
+            return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
+                arguments.ReferencePaths,
+                arguments.BaseDirectory,
                 fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
@@ -196,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch (CompilationErrorException e)
             {
-                _compiler.ReportDiagnostics(e.Diagnostics, _console.Error, errorLogger);
+                _compiler.ReportDiagnostics(e.Diagnostics, _console.Error, errorLogger, compilation: null);
                 return CommonCompiler.Failed;
             }
             catch (Exception e)
@@ -287,9 +292,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return;
             }
 
-            var task = (state == null) ?
-                newScript.RunAsync(globals, catchException: e => true, cancellationToken: cancellationToken) :
-                newScript.RunFromAsync(state, catchException: e => true, cancellationToken: cancellationToken);
+            var task = (state == null)
+                ? newScript.RunAsync(globals, catchException: e => true, cancellationToken: cancellationToken)
+                : newScript.RunFromAsync(state, catchException: e => true, cancellationToken: cancellationToken);
 
             state = task.GetAwaiter().GetResult();
             if (state.Exception != null)

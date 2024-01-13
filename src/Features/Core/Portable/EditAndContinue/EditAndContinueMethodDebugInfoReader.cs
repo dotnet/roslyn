@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,6 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal abstract class EditAndContinueMethodDebugInfoReader
     {
+        // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+        internal static bool IgnoreCaseWhenComparingDocumentNames;
+
         public abstract bool IsPortable { get; }
         public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
         public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
@@ -72,27 +77,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
                     debugInfo = null;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (Exception e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     throw new InvalidDataException(e.Message, e);
                 }
 
                 try
                 {
-                    ImmutableArray<byte> localSlots, lambdaMap;
+                    ImmutableArray<byte> localSlots, lambdaMap, stateMachineSuspensionPoints;
                     if (debugInfo != null)
                     {
                         localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
                         lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                        stateMachineSuspensionPoints = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueStateMachineStateMap);
                     }
                     else
                     {
-                        localSlots = lambdaMap = default;
+                        localSlots = lambdaMap = stateMachineSuspensionPoints = default;
                     }
 
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap, stateMachineSuspensionPoints);
                 }
-                catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (InvalidOperationException e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     // TODO: CustomDebugInfoReader should throw InvalidDataException
                     throw new InvalidDataException(e.Message, e);
@@ -103,12 +109,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
-        private sealed class Portable : EditAndContinueMethodDebugInfoReader
+        private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
         {
-            private readonly MetadataReader _pdbReader;
-
-            public Portable(MetadataReader pdbReader)
-                => _pdbReader = pdbReader;
+            private readonly MetadataReader _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 
@@ -118,7 +121,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
                 => EditAndContinueMethodDebugInformation.Create(
                     compressedSlotMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                    compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
             private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
                 => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?
@@ -153,7 +157,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var documentHandle in _pdbReader.Documents)
                 {
                     var document = _pdbReader.GetDocument(documentHandle);
-                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath))
+
+                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
                     {
                         checksum = _pdbReader.GetBlobContent(document.Hash);
                         algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);
@@ -181,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// Automatically detects the underlying PDB format and returns the appropriate reader.
         /// </remarks>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
+        public static unsafe EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
         {
             if (symReader == null)
             {
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns>
         /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
         /// </returns>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
+        public static unsafe EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
            => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
 
         internal static bool TryGetDocumentChecksum(ISymUnmanagedReader5 symReader, string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)

@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
-    internal interface IGlobalOperationNotificationService : IWorkspaceService
+    /// <summary>
+    /// Optional interface that can be used to hear about when expensive global operations (like a 'build') occur in the
+    /// current host.
+    /// </summary>
+    internal interface IGlobalOperationNotificationService
     {
         /// <summary>
         /// raised when global operation is started
@@ -17,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Notification
         /// <summary>
         /// raised when global operation is stopped
         /// </summary>
-        event EventHandler<GlobalOperationEventArgs> Stopped;
+        event EventHandler Stopped;
 
         /// <summary>
         /// start new global operation
         /// </summary>
-        GlobalOperationRegistration Start(string operation);
+        IDisposable Start(string operation);
     }
 }

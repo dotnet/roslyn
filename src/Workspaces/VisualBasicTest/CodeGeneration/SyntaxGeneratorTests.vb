@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -10,14 +11,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     <[UseExportProvider]>
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
 
-        Private _ienumerableInt As INamedTypeSymbol
+        Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
         Public Sub New()
             Me._ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32))
@@ -33,24 +34,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             End Get
         End Property
 
-        Public Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+        Public Shared Function Compile(code As String) As Compilation
+            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
-        Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            Assert.Equal(fixedExpectations, normalized)
+            AssertEx.Equal(fixedExpectations, normalized)
         End Sub
 
-        Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim text = type.ToFullString()
             Assert.Equal(expectedText, text)
         End Sub
 
-        Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
+        Private Shared Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
             Dim fixedText = text.Replace(vbLf, vbCrLf)
             Return SyntaxFactory.ParseCompilationUnit(fixedText)
         End Function
@@ -198,14 +199,14 @@ End Class
             VerifySyntax(Of AttributeListSyntax)(Generator.Attribute(GetAttributeData("
 Imports System
 Public Class MyAttribute
-  Inherits Attribute 
+  Inherits Attribute
   Public Property Value As Integer
 End Class
 ", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
 
         End Sub
 
-        Private Function GetAttributeData(decl As String, use As String) As AttributeData
+        Private Shared Function GetAttributeData(decl As String, use As String) As AttributeData
             Dim code = decl & vbCrLf & use & vbCrLf & "Public Class C " & vbCrLf & "End Class" & vbCrLf
             Dim compilation = Compile(code)
             Dim typeC = DirectCast(compilation.GlobalNamespace.GetMembers("C").First, INamedTypeSymbol)
@@ -553,8 +554,6 @@ End If")
 
         <Fact>
         Public Sub TestSwitchStatements()
-            Dim x = 10
-
             VerifySyntax(Of SelectBlockSyntax)(
                 Generator.SwitchStatement(Generator.IdentifierName("x"),
                     Generator.SwitchSection(Generator.IdentifierName("y"),
@@ -788,8 +787,8 @@ End Sub")
                 "Sub(x As y, a As b) z")
         End Sub
 
-        <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
-        Sub TestGetAttributeOnMethodBodies()
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31720")>
+        Public Sub TestGetAttributeOnMethodBodies()
             Dim compilation = Compile("
 Imports System
 <AttributeUsage(System.AttributeTargets.All)>
@@ -1058,6 +1057,26 @@ End Operator")
             VerifySyntax(Of OperatorBlockSyntax)(
                 Generator.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
 "Narrowing Operator CType(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")>
+        Public Sub TestConversionOperatorDeclaration()
+            Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
+            Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ExplicitConversionName AndAlso m.Parameters(0).Type.Equals(gcHandleType))
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Narrowing Operator CType(value As Global.System.Runtime.InteropServices.GCHandle) As Global.System.IntPtr
+End Operator")
+
+            Dim doubleType = _emptyCompilation.GetSpecialType(SpecialType.System_Decimal)
+            Conversion = doubleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ImplicitConversionName AndAlso m.Parameters(0).Type.Equals(_emptyCompilation.GetSpecialType(SpecialType.System_Byte)))
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
 End Operator")
         End Sub
 
@@ -1542,6 +1561,21 @@ End Interface")
 End Interface")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66377")>
+        Public Sub TestInterfaceVariance()
+            Dim compilation = Compile("
+interface I(of in X, out Y)
+end interface
+                ")
+
+            Dim symbol = compilation.GlobalNamespace.GetMembers("I").Single()
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                Generator.Declaration(symbol),
+"Friend Interface I(Of In X, Out Y)
+End Interface")
+        End Sub
+
         <Fact>
         Public Sub TestEnumDeclarations()
             VerifySyntax(Of EnumBlockSyntax)(
@@ -1650,7 +1684,6 @@ End Namespace")
 End Namespace")
         End Sub
 
-
         <Fact>
         Public Sub TestCompilationUnits()
             VerifySyntax(Of CompilationUnitSyntax)(
@@ -1750,7 +1783,7 @@ End Property")
     End Set
 End Property")
 
-            ' convert private method to public 
+            ' convert private method to public
             Dim pim = Generator.AsPrivateInterfaceImplementation(
                     Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t")),
                     Generator.IdentifierName("i"))
@@ -2186,6 +2219,18 @@ Namespace n
 End Namespace
 ")
 
+            VerifySyntax(Of CompilationUnitSyntax)(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+"<Assembly:a>
+<Assembly:b>
+Namespace n
+End Namespace
+")
+
             VerifySyntax(Of DelegateStatementSyntax)(
                 Generator.AddAttributes(
                     Generator.DelegateDeclaration("d"),
@@ -2195,8 +2240,7 @@ Delegate Sub d()")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"))
 
@@ -2205,10 +2249,10 @@ Class C
   Custom Event MyEvent As MyDelegate
       AddHandler(ByVal value As MyDelegate)
       End AddHandler
- 
+
       RemoveHandler(ByVal value As MyDelegate)
       End RemoveHandler
- 
+
       RaiseEvent(ByVal message As String)
       End RaiseEvent
   End Event
@@ -2275,6 +2319,145 @@ End Class ' end")
 
 End Interface")
         End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
+End Enum")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")>
+        Public Sub TestDelegateDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
+            Dim type = compilation.GetTypeByMetadataName("D")
+            VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")>
+        Public Sub TestMethodDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Sub M(ParamArray arr() As Integer)
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("M").Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Public Sub M(ParamArray arr As System.Int32())
+End Sub")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Get
+        End Get
+
+        Protected Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Get
+    End Get
+
+    Protected Set
+    End Set
+End Property")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol2()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Protected Get
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Protected Get
+    End Get
+
+    Set
+    End Set
+End Property")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")>
+        Public Sub TestDestructor1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Protected Overrides Sub Finalize()
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers(WellKnownMemberNames.DestructorName).Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Protected Overrides Sub Finalize()
+End Sub")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")>
+        Public Sub TestConstantDecimalFieldDeclarationFromMetadata()
+            Dim compilation = _emptyCompilation.
+                WithOptions(New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Const F As Decimal = 8675309000000 
+End Class"))
+            Dim reference = compilation.EmitToPortableExecutableReference()
+
+            compilation = _emptyCompilation.AddReferences(reference)
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim field = type.GetMembers("F").Single()
+
+            VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
+                "Public Const F As System.Decimal = 8675309000000D")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")>
+        Public Sub TestConstantFieldDeclarationSpecialTypes()
+            Dim field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(NameOf(UInt32.MaxValue)).Single()
+
+            VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
+                "Public Const MaxValue As System.UInt32 = 4294967295UI")
+        End Sub
+
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"
@@ -2537,6 +2720,29 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestWithModifiers_Sealed_Class()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23410")>
+        Public Sub TestWithModifiers_Sealed_Member()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
+            VerifySyntax(Of ClassBlockSyntax)(classBlock, "Class C
+
+    NotOverridable Sub Goo()
+    End Sub
+End Class")
+        End Sub
+
+        <Fact>
         Public Sub TestGetType()
             Assert.Equal("t", Generator.GetType(Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t"))).ToString())
             Assert.Null(Generator.GetType(Generator.MethodDeclaration("m")))
@@ -2649,7 +2855,7 @@ End Function")
 
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>
@@ -2971,11 +3177,6 @@ End Get")
             Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count)
         End Sub
 
-        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = Generator.RemoveNode(declaration, Generator.GetMembers(declaration).First(Function(m) Generator.GetName(m) = name))
-            AssertMemberNamesEqual(remainingNames, newDecl)
-        End Sub
-
         <Fact>
         Public Sub TestGetBaseAndInterfaceTypes()
             Dim classBI = SyntaxFactory.ParseCompilationUnit(
@@ -3170,8 +3371,7 @@ End Interface")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C
@@ -3442,7 +3642,7 @@ Public Class C
     Public Shared Z, Y, Z As Integer
 End Class")
 
-            ' Removing 
+            ' Removing
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.RemoveNode(declC, declX),
 "' Comment

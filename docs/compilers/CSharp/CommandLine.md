@@ -32,16 +32,16 @@
 | `/debug`{`+`&#124;`-`} | Emit (or do not Emit) debugging information
 | `/debug`:`full` | Emit debugging information to .pdb file using default format for the current platform: _Windows PDB_ on Windows, _Portable PDB_ on other systems
 | `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
-| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md)
-| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md).
-| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
+| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md)
+| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md).
+| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations (Short form: `/o`)
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
 | `/refonly` | Produce a reference assembly, instead of a full assembly, as the primary output 
 | **ERRORS AND WARNINGS**
 | `/warnaserror`{`+`&#124;`-`} | Report all warnings as errors
 | `/warnaserror`{`+`&#124;`-`}`:`*warn list* | Report specific warnings as errors
-| `/warn`:*n* | Set warning level (0-4) (Short form: `/w`)
+| `/warn`:*n* | Set warning level (non-negative integer) (Short form: `/w`)
 | `/nowarn`:*warn list* | Disable specific warning messages
 | `/ruleset`:*file* | Specify a ruleset file that disables specific diagnostics.
 | `/errorlog`:*file* | Specify a file to log all compiler and analyzer diagnostics.
@@ -72,7 +72,7 @@
 | `/main`:*type* | Specify the type that contains the entry point (ignore all other possible entry points) (Short form: `/m`)
 | `/fullpaths` | Compiler generates fully qualified paths
 | `/filealign`:*n* | Specify the alignment used for output file sections
-| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... | Specify a mapping for source path names output by the compiler.
+| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... | Specify a mapping for source path names output by the compiler. Two consecutive separator characters are treated as a single character that is part of the key or value (i.e. `==` stands for `=` and `,,` for `,`).
 | `/pdb:`*file* | Specify debug information file name (default: output file name with `.pdb` extension)
 | `/errorendlocation` | Output line and column of the end location of each error
 | `/preferreduilang` | Specify the preferred output language name.

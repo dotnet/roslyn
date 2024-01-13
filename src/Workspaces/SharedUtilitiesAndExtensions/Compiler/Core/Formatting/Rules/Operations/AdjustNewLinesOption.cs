@@ -5,12 +5,18 @@
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// Options for AdjustNewLinesOperation.
-    /// 
-    /// PreserveLines means the operation will leave lineBreaks as it is if original lineBreaks are
-    /// equal or greater than given lineBreaks
-    /// 
-    /// ForceLines means the operation will force existing lineBreaks to the given lineBreaks.
+    /// Options for <see cref="AdjustNewLinesOperation"/>.
+    ///
+    /// <list type="bullet">
+    ///   <item>
+    ///     <term><see cref="PreserveLines"/></term>
+    ///     <description>the operation will leave lineBreaks as it is if original lineBreaks are equal or greater than given lineBreaks</description>
+    ///   </item>
+    ///   <item>
+    ///     <term><see cref="ForceLines"/></term>
+    ///     <description>the operation will force existing lineBreaks to the given lineBreaks</description>
+    ///   </item>
+    /// </list>
     /// </summary>
     internal enum AdjustNewLinesOption
     {

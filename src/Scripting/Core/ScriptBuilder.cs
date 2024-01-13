@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
 
-        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+        private static readonly EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
             debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
             pdbChecksumAlgorithm: default(HashAlgorithmName));
 
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             try
             {
                 // get compilation diagnostics first.
-                diagnostics.AddRange(compilation.GetParseDiagnostics());
+                diagnostics.AddRange(compilation.GetParseDiagnostics(cancellationToken));
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
@@ -88,10 +90,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
 
-                if (executor == null)
-                {
-                    executor = (s) => Task.FromResult(default(T));
-                }
+                executor ??= (s) => Task.FromResult(default(T));
 
                 return executor;
             }
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
 
                 var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStreamOpt);
-                var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
+                var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
             }
@@ -187,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 cancellationToken: cancellationToken);
         }
 
-        internal static MethodInfo GetEntryPointRuntimeMethod(IMethodSymbol entryPoint, Assembly assembly, CancellationToken cancellationToken)
+        internal static MethodInfo GetEntryPointRuntimeMethod(IMethodSymbol entryPoint, Assembly assembly)
         {
             string entryPointTypeName = MetadataHelpers.BuildQualifiedName(entryPoint.ContainingNamespace.MetadataName, entryPoint.ContainingType.MetadataName);
             string entryPointMethodName = entryPoint.MetadataName;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -10,48 +11,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private const string BeforeCaretText = nameof(BeforeCaretText);
         private const string AfterCaretText = nameof(AfterCaretText);
-        private const string BeforeCaretTextOnSpace = nameof(BeforeCaretTextOnSpace);
-        private const string AfterCaretTextOnSpace = nameof(AfterCaretTextOnSpace);
 
-        public static CompletionItem Create(
-            string displayText,
-            string beforeCaretText, string afterCaretText,
-            string beforeCaretTextOnSpace, string afterCaretTextOnSpace,
-            CompletionItemRules rules)
+        public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
         {
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add(BeforeCaretText, beforeCaretText)
-                .Add(AfterCaretText, afterCaretText)
-                .Add(BeforeCaretTextOnSpace, beforeCaretTextOnSpace)
-                .Add(AfterCaretTextOnSpace, afterCaretTextOnSpace);
+            var props = ImmutableArray.Create(
+                new KeyValuePair<string, string>(BeforeCaretText, beforeCaretText),
+                new KeyValuePair<string, string>(AfterCaretText, afterCaretText));
 
+            // Set isComplexTextEdit to be always true for simplicity, even
+            // though we don't always need to make change outside the default
+            // completion list Span.
+            // See AbstractDocCommentCompletionProvider.GetChangeAsync for how
+            // the actual Span is calculated.
             return CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: "",
                 glyph: Glyph.Keyword,
                 properties: props,
-                rules: rules);
+                rules: rules,
+                isComplexTextEdit: true);
         }
 
         public static string GetBeforeCaretText(CompletionItem item)
-        {
-            item.Properties.TryGetValue(BeforeCaretText, out var beforeCaretText);
-            return beforeCaretText;
-        }
+            => item.GetProperty(BeforeCaretText);
 
-        public static string GetAfterCaretText(CompletionItem item)
-        {
-            item.Properties.TryGetValue(AfterCaretText, out var afterCaretText);
-            return afterCaretText;
-        }
-
-        public static bool TryGetInsertionTextOnSpace(CompletionItem item,
-            out string beforeCaretText, out string afterCaretText)
-        {
-            return
-                item.Properties.TryGetValue(BeforeCaretTextOnSpace, out beforeCaretText) &
-                item.Properties.TryGetValue(AfterCaretTextOnSpace, out afterCaretText) &&
-                (!string.IsNullOrEmpty(beforeCaretText) || !string.IsNullOrEmpty(afterCaretText));
-        }
+        public static string? GetAfterCaretText(CompletionItem item)
+            => item.GetProperty(AfterCaretText);
     }
 }

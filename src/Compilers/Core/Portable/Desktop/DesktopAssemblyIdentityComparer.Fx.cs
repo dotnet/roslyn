@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 #define NDP4_AUTO_VERSION_ROLLFORWARD
 
 using System;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public struct Value
+            public readonly struct Value
             {
                 public readonly ImmutableArray<byte> PublicKeyToken;
                 public readonly AssemblyVersion Version;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public struct Key : IEquatable<Key>
+            public readonly struct Key : IEquatable<Key>
             {
                 public readonly string Name;
                 public readonly ImmutableArray<byte> PublicKeyToken;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public struct Value
+            public readonly struct Value
             {
                 public readonly AssemblyVersion VersionLow;
                 public readonly AssemblyVersion VersionHigh;
@@ -110,7 +109,9 @@ namespace Microsoft.CodeAnalysis
                 string name,
                 ImmutableArray<byte> publicKeyToken,
                 AssemblyVersion versionLow,
+#pragma warning disable IDE0060 // Remove unused parameter
                 object versionHighNull,
+#pragma warning restore IDE0060 // Remove unused parameter
                 string newName,
                 ImmutableArray<byte> newPublicKeyToken,
                 AssemblyVersion newVersion)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.Text;
@@ -21,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new(CreateFallbackEncoding);
+
         /// <summary>
         /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
         ///     1. The default ANSI codepage
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
-
-        private static Encoding GetFallbackEncoding()
+        internal static Encoding CreateFallbackEncoding()
         {
             try
             {
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Initializes an instance of <see cref="SourceText"/> from the provided stream. This version differs
         /// from <see cref="SourceText.From(Stream, Encoding, SourceHashAlgorithm, bool)"/> in two ways:
         /// 1. It attempts to minimize allocations by trying to read the stream into a byte array.
-        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
+        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF-8 and, if that fails, it will
         ///    try CodePage 1252. If CodePage 1252 is not available on the system, then it will try Latin1.
         /// </summary>
         /// <param name="stream">The stream containing encoded text.</param>
@@ -83,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Text
                 canBeEmbedded: canBeEmbedded);
         }
 
-        private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream,
+            Lazy<Encoding> getEncoding,
             Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)

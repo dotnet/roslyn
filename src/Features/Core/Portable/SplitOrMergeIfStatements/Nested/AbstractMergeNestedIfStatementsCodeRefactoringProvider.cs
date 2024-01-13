@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -10,9 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -31,30 +34,36 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         //        Console.WriteLine();
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
-            => new MyCodeAction(createChangedDocument, direction, ifKeywordText);
+        {
+            var resourceText = direction == MergeDirection.Up ? FeaturesResources.Merge_with_outer_0_statement : FeaturesResources.Merge_with_nested_0_statement;
+            var title = string.Format(resourceText, ifKeywordText);
+            return CodeAction.Create(title, createChangedDocument, title);
+        }
 
         protected sealed override Task<bool> CanBeMergedUpAsync(
             Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode outerIfOrElseIf)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            if (!IsFirstStatementOfIfOrElseIf(syntaxFacts, ifGenerator, ifOrElseIf, out outerIfOrElseIf))
-                return Task.FromResult(false);
+            if (!IsFirstStatementOfIfOrElseIf(blockFacts, ifGenerator, ifOrElseIf, out outerIfOrElseIf))
+                return SpecializedTasks.False;
 
-            return CanBeMergedAsync(document, syntaxFacts, ifGenerator, outerIfOrElseIf, ifOrElseIf, cancellationToken);
+            return CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, outerIfOrElseIf, ifOrElseIf, cancellationToken);
         }
 
         protected sealed override Task<bool> CanBeMergedDownAsync(
             Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode innerIfStatement)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            if (!IsFirstStatementIfStatement(syntaxFacts, ifGenerator, ifOrElseIf, out innerIfStatement))
-                return Task.FromResult(false);
+            if (!IsFirstStatementIfStatement(blockFacts, ifGenerator, ifOrElseIf, out innerIfStatement))
+                return SpecializedTasks.False;
 
-            return CanBeMergedAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, innerIfStatement, cancellationToken);
+            return CanBeMergedAsync(document, syntaxFacts, blockFacts, ifGenerator, ifOrElseIf, innerIfStatement, cancellationToken);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode outerIfOrElseIf, SyntaxNode innerIfStatement)
@@ -76,8 +85,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return root.ReplaceNode(outerIfOrElseIf, newIfOrElseIf.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
-        private bool IsFirstStatementOfIfOrElseIf(
-            ISyntaxFactsService syntaxFacts,
+        private static bool IsFirstStatementOfIfOrElseIf(
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode statement,
             out SyntaxNode ifOrElseIf)
@@ -85,15 +94,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // Check whether the statement is a first statement inside an if or else if.
             // If it's inside a block, it has to be the first statement of the block.
 
-            // A statement should always be in a statement container, but we'll do a defensive check anyway so that
-            // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
-            Debug.Assert(syntaxFacts.IsStatementContainer(statement.Parent));
-            if (syntaxFacts.IsStatementContainer(statement.Parent))
+            // We can't assume that a statement will always be in a statement container, because an if statement
+            // in top level code will be in a GlobalStatement.
+            if (blockFacts.IsStatementContainer(statement.Parent))
             {
-                var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
+                var statements = blockFacts.GetStatementContainerStatements(statement.Parent);
                 if (statements.Count > 0 && statements[0] == statement)
                 {
-                    var rootStatements = WalkUpScopeBlocks(syntaxFacts, statements);
+                    var rootStatements = WalkUpScopeBlocks(blockFacts, statements);
                     if (rootStatements.Count > 0 && ifGenerator.IsIfOrElseIf(rootStatements[0].Parent))
                     {
                         ifOrElseIf = rootStatements[0].Parent;
@@ -106,8 +114,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private bool IsFirstStatementIfStatement(
-            ISyntaxFactsService syntaxFacts,
+        private static bool IsFirstStatementIfStatement(
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             out SyntaxNode ifStatement)
@@ -116,12 +124,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // If the if statement is inside a block, it has to be the first statement of the block.
 
             // An if or else if should always be a statement container, but we'll do a defensive check anyway.
-            Debug.Assert(syntaxFacts.IsStatementContainer(ifOrElseIf));
-            if (syntaxFacts.IsStatementContainer(ifOrElseIf))
+            Debug.Assert(blockFacts.IsStatementContainer(ifOrElseIf));
+            if (blockFacts.IsStatementContainer(ifOrElseIf))
             {
-                var rootStatements = syntaxFacts.GetStatementContainerStatements(ifOrElseIf);
+                var rootStatements = blockFacts.GetStatementContainerStatements(ifOrElseIf);
 
-                var statements = WalkDownScopeBlocks(syntaxFacts, rootStatements);
+                var statements = WalkDownScopeBlocks(blockFacts, rootStatements);
                 if (statements.Count > 0 && ifGenerator.IsIfOrElseIf(statements[0]))
                 {
                     ifStatement = statements[0];
@@ -133,9 +141,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private async Task<bool> CanBeMergedAsync(
+        private static async Task<bool> CanBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode outerIfOrElseIf,
             SyntaxNode innerIfStatement,
@@ -158,12 +167,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (!System.Linq.ImmutableArrayExtensions.SequenceEqual(
                     ifGenerator.GetElseIfAndElseClauses(outerIfOrElseIf),
                     ifGenerator.GetElseIfAndElseClauses(innerIfStatement),
-                    (a, b) => IsElseIfOrElseClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
+                    (a, b) => IsElseIfOrElseClauseEquivalent(syntaxFacts, blockFacts, ifGenerator, a, b)))
             {
                 return false;
             }
 
-            var statements = syntaxFacts.GetStatementContainerStatements(innerIfStatement.Parent);
+            var statements = blockFacts.GetStatementContainerStatements(innerIfStatement.Parent);
             if (statements.Count == 1)
             {
                 // There are no other statements below the inner if statement. Merging is OK.
@@ -192,13 +201,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
                 // A statement should always be in a statement container, but we'll do a defensive check anyway so that
                 // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
-                Debug.Assert(syntaxFacts.IsStatementContainer(outerIfStatement.Parent));
-                if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
+                Debug.Assert(blockFacts.GetStatementContainer(outerIfStatement) is object);
+                if (blockFacts.GetStatementContainer(outerIfStatement) is not { } container)
                 {
                     return false;
                 }
 
-                var outerStatements = syntaxFacts.GetStatementContainerStatements(outerIfStatement.Parent);
+                var outerStatements = blockFacts.GetStatementContainerStatements(container);
                 var outerIfStatementIndex = outerStatements.IndexOf(outerIfStatement);
 
                 var remainingStatements = statements.Skip(1);
@@ -216,8 +225,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             }
         }
 
-        private bool IsElseIfOrElseClauseEquivalent(
+        private static bool IsElseIfOrElseClauseEquivalent(
             ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode elseIfOrElseClause1,
             SyntaxNode elseIfOrElseClause2)
@@ -243,21 +253,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 }
             }
 
-            var statements1 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause1));
-            var statements2 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause2));
+            var statements1 = WalkDownScopeBlocks(blockFacts, blockFacts.GetStatementContainerStatements(elseIfOrElseClause1));
+            var statements2 = WalkDownScopeBlocks(blockFacts, blockFacts.GetStatementContainerStatements(elseIfOrElseClause2));
 
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
-                : base(string.Format(GetResourceText(direction), ifKeywordText), createChangedDocument)
-            {
-            }
-
-            private static string GetResourceText(MergeDirection direction)
-                => direction == MergeDirection.Up ? FeaturesResources.Merge_with_outer_0_statement : FeaturesResources.Merge_with_nested_0_statement;
         }
     }
 }

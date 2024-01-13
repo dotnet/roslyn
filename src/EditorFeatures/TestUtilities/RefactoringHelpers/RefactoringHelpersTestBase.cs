@@ -9,8 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -20,29 +18,24 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 {
     [UseExportProvider]
-    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
+    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected readonly TWorkspaceFixture fixture;
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
-        protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
-            => this.fixture = workspaceFixture;
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+            => _fixtureHelper.GetOrCreateFixture();
 
-        public override void Dispose()
-        {
-            this.fixture.DisposeAfterTest();
-            base.Dispose();
-        }
+        protected Task TestAsync<TNode>(string text, bool allowEmptyNodes = false) where TNode : SyntaxNode
+            => TestAsync(text, Functions<TNode>.True, allowEmptyNodes);
 
-        protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
-
-        protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             text = GetSelectionAndResultSpans(text, out var selection, out var result);
-            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
 
             Assert.NotNull(resultNode);
-            Assert.Equal(result, resultNode.Span);
+            Assert.Equal(result, resultNode!.Span);
         }
 
         protected async Task TestUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
@@ -59,22 +52,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             text = GetSelectionAndResultSpans(text, out var selection, out var result);
             var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
 
-            Assert.Equal(result, resultNode.Span);
+            Assert.NotNull(resultNode);
+            Assert.Equal(result, resultNode!.Span);
             Assert.False(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
         }
 
-        protected Task TestMissingAsync<TNode>(string text) where TNode : SyntaxNode => TestMissingAsync<TNode>(text, Functions<TNode>.True);
-        protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        protected Task TestMissingAsync<TNode>(string text, bool allowEmptyNodes = false) where TNode : SyntaxNode
+            => TestMissingAsync(text, Functions<TNode>.True, allowEmptyNodes);
+
+        protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             text = GetSelectionSpan(text, out var selection);
 
-            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
             Assert.Null(resultNode);
         }
 
         private static string GetSelectionSpan(string text, out TextSpan selection)
         {
-            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            MarkupTestFile.GetSpans(text, out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             if (spans.Count != 1 ||
                 !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1)
@@ -88,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 
         private static string GetSelectionAndResultSpans(string text, out TextSpan selection, out TextSpan result)
         {
-            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            MarkupTestFile.GetSpans(text, out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             if (spans.Count != 2 ||
                 !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1 ||
@@ -103,10 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             return text;
         }
 
-        private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        private async Task<TNode?> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
-            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
-            var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, CancellationToken.None).ConfigureAwait(false);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
+            var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, allowEmptyNodes, CancellationToken.None).ConfigureAwait(false);
 
             return relevantNodes.FirstOrDefault(predicate);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        private struct Token
+        private readonly struct Token
         {
             internal readonly TokenKind Kind;
             internal readonly string Text;
@@ -45,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             private string GetDebuggerDisplay()
             {
-                return (Text == null) ?
-                    Kind.ToString() :
-                    $"{Kind}: \"{Text}\"";
+                return (Text == null)
+                    ? Kind.ToString()
+                    : $"{Kind}: \"{Text}\"";
             }
         }
 
@@ -122,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     _offset++;
                 }
                 var text = _text.Substring(start, _offset - start);
-                var keywordKind = verbatim ?
-                    SyntaxKind.None :
-                    SyntaxFacts.GetKeywordKind(text);
+                var keywordKind = verbatim
+                    ? SyntaxKind.None
+                    : SyntaxFacts.GetKeywordKind(text);
                 if (keywordKind == SyntaxKind.None)
                 {
                     return new Token(TokenKind.Identifier, text);

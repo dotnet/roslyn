@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -124,31 +126,30 @@ namespace Test
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40Extended);
             comp.VerifyDiagnostics(
-    // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 54),
-    // (15,88): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 88),
-    // (15,93): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 93),
-    // (17,84): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 84),
-    // (17,118): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 118),
-    // (17,123): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-    //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-    Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 123),
-    // (15,21): error CS0826: No best type found for implicitly-typed array
-    //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}").WithLocation(15, 21),
-    // (17,35): error CS1929: '?[]' does not contain a definition for 'SequenceEqual' and the best extension method overload 'System.Linq.Queryable.SequenceEqual<Test.Program.E>(System.Linq.IQueryable<Test.Program.E>, System.Collections.Generic.IEnumerable<Test.Program.E>)' requires a receiver of type 'System.Linq.IQueryable<Test.Program.E>'
-    //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-    Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("?[]", "SequenceEqual", "System.Linq.Queryable.SequenceEqual<Test.Program.E>(System.Linq.IQueryable<Test.Program.E>, System.Collections.Generic.IEnumerable<Test.Program.E>)", "System.Linq.IQueryable<Test.Program.E>").WithLocation(17, 35)
-                );
+                // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 54),
+                // (15,88): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 88),
+                // (15,93): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 93),
+                // (15,21): error CS0826: No best type found for implicitly-typed array
+                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}").WithLocation(15, 21),
+                // (17,84): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 84),
+                // (17,118): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 118),
+                // (17,123): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 123),
+                // (17,35): error CS1929: '?[]' does not contain a definition for 'SequenceEqual' and the best extension method overload 'Queryable.SequenceEqual<Program.E>(IQueryable<Program.E>, IEnumerable<Program.E>)' requires a receiver of type 'IQueryable<Program.E>'
+                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("?[]", "SequenceEqual", "System.Linq.Queryable.SequenceEqual<Test.Program.E>(System.Linq.IQueryable<Test.Program.E>, System.Collections.Generic.IEnumerable<Test.Program.E>)", "System.Linq.IQueryable<Test.Program.E>").WithLocation(17, 35));
         }
 
         [Fact]
@@ -279,10 +280,7 @@ namespace Test
     }
 }
 ";
-            // The version of mscorlib checked in to the test resources in v4_0_30316 does not have
-            // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
-
-            var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib);
+            var mscorlib17626 = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1", targetFramework: TargetFramework.Empty);
         }
 

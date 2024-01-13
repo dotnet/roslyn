@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,13 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// with the annotations attached.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public sealed class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation?>
+    public sealed class SyntaxAnnotation : IEquatable<SyntaxAnnotation?>
     {
-        static SyntaxAnnotation()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxAnnotation), r => new SyntaxAnnotation(r));
-        }
-
         /// <summary>
         /// A predefined syntax annotation that indicates whether the syntax element has elastic trivia.
         /// </summary>
@@ -54,22 +46,6 @@ namespace Microsoft.CodeAnalysis
             this.Data = data;
         }
 
-        private SyntaxAnnotation(ObjectReader reader)
-        {
-            _id = reader.ReadInt64();
-            this.Kind = reader.ReadString();
-            this.Data = reader.ReadString();
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            writer.WriteInt64(_id);
-            writer.WriteString(this.Kind);
-            writer.WriteString(this.Data);
-        }
-
         private string GetDebuggerDisplay()
         {
             return string.Format("Annotation: Kind='{0}' Data='{1}'", this.Kind ?? "", this.Data ?? "");
@@ -90,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             return left.Equals(right);
         }
 
-        public static bool operator !=(SyntaxAnnotation left, SyntaxAnnotation right) =>
+        public static bool operator !=(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
             !(left == right);
 
         public override bool Equals(object? obj)

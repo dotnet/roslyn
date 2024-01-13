@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,13 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-                => GetProjectDiagnosticsAsync(project, true, cancellationToken);
+                => GetProjectDiagnosticsAsync(project, true);
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-                => GetProjectDiagnosticsAsync(project, false, cancellationToken);
+                => GetProjectDiagnosticsAsync(project, false);
 
             private async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(
-                Project project, bool includeAllDocumentDiagnostics, CancellationToken cancellationToken)
+                Project project, bool includeAllDocumentDiagnostics)
             {
                 var diags = includeAllDocumentDiagnostics
                     ? await _testDriver.GetAllDiagnosticsAsync(project)

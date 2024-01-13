@@ -19,10 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // TODO: Support options
 
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
-            if (codeElement != null)
-            {
-                codeElement.RenameSymbol(newName);
-            }
+            codeElement?.RenameSymbol(newName);
         }
 
         public void ReorderParameters(EnvDTE.CodeElement element)

@@ -6,47 +6,78 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentFoldingRangeName)]
-    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
+    [Method(Methods.TextDocumentFoldingRangeName)]
+    internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler()
+        public FoldingRangesHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+
+        public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
+            var document = context.Document;
+            if (document is null)
+                return null;
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
-            if (document == null)
+            var options = _globalOptions.GetBlockStructureOptions(document.Project) with
             {
-                return foldingRanges.ToArrayAndFree();
-            }
+                // Need to set the block structure guide options to true since the concept does not exist in vscode
+                // but we still want to categorize them as the correct BlockType.
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true,
+                ShowBlockStructureGuidesForDeclarationLevelConstructs = true,
+                ShowBlockStructureGuidesForCodeLevelConstructs = true
+            };
 
-            var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
-            if (blockStructureService == null)
-            {
-                return foldingRanges.ToArrayAndFree();
-            }
+            return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
+        }
 
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
+        /// <summary>
+        /// Used here and by lsif generator.
+        /// </summary>
+        public static async Task<FoldingRange[]> GetFoldingRangesAsync(
+            Document document,
+            BlockStructureOptions options,
+            CancellationToken cancellationToken)
+        {
+            var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
+                return Array.Empty<FoldingRange>();
+
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            return GetFoldingRanges(blockStructure, text);
+        }
+
+        private static FoldingRange[] GetFoldingRanges(BlockStructure blockStructure, SourceText text)
+        {
+            if (blockStructure.Spans.IsEmpty)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);
 
             foreach (var span in blockStructure.Spans)
             {
@@ -57,11 +88,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var linePositionSpan = text.Lines.GetLinePositionSpan(span.TextSpan);
 
+                // Filter out single line spans.
+                if (linePositionSpan.Start.Line == linePositionSpan.End.Line)
+                {
+                    continue;
+                }
+
                 // TODO - Figure out which blocks should be returned as a folding range (and what kind).
                 // https://github.com/dotnet/roslyn/projects/45#card-20049168
-                var foldingRangeKind = span.Type switch
+                FoldingRangeKind? foldingRangeKind = span.Type switch
                 {
-                    BlockTypes.Comment => (FoldingRangeKind?)FoldingRangeKind.Comment,
+                    BlockTypes.Comment => FoldingRangeKind.Comment,
                     BlockTypes.Imports => FoldingRangeKind.Imports,
                     BlockTypes.PreprocessorRegion => FoldingRangeKind.Region,
                     _ => null,
@@ -73,11 +110,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     StartCharacter = linePositionSpan.Start.Character,
                     EndLine = linePositionSpan.End.Line,
                     EndCharacter = linePositionSpan.End.Character,
-                    Kind = foldingRangeKind
+                    Kind = foldingRangeKind,
+                    CollapsedText = span.BannerText
                 });
             }
 
-            return foldingRanges.ToArrayAndFree();
+            return foldingRanges.ToArray();
         }
     }
 }

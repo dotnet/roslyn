@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
@@ -31,7 +33,15 @@ class Test
     }
 }";
             var comp = CreateCompilation(text);
+
+            var i = comp.GetMember<MethodSymbol>("Test.I");
+            Assert.True(i.IsIterator);
+            Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
             comp.VerifyDiagnostics();
+
+            Assert.True(i.IsIterator);
+            Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]

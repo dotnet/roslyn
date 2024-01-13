@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,8 +11,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,38 +26,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             private readonly INamedTypeSymbol _suppressMessageAttribute;
             private readonly IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> _diagnosticsBySymbol;
+            private readonly CodeActionOptionsProvider _fallbackOptions;
 
             private GlobalSuppressMessageFixAllCodeAction(
                 AbstractSuppressionCodeFixProvider fixer,
                 INamedTypeSymbol suppressMessageAttribute,
-                IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol, Project project)
+                IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol,
+                Project project,
+                CodeActionOptionsProvider fallbackOptions)
                 : base(fixer, project)
             {
                 _suppressMessageAttribute = suppressMessageAttribute;
                 _diagnosticsBySymbol = diagnosticsBySymbol;
+                _fallbackOptions = fallbackOptions;
             }
 
-            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument)
+            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, CodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
-                    ct => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, ct),
+                    (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, fallbackOptions, ct),
                     equivalenceKey: title);
             }
 
-            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject)
+            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
-                    ct => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, ct),
+                    (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, fallbackOptions, ct),
                     equivalenceKey: title);
             }
 
-            private class GlobalSuppressionSolutionChangeAction : SolutionChangeAction
+            private sealed class GlobalSuppressionSolutionChangeAction(
+                string title,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
+                string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
             {
-                public GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                    : base(title, createChangedSolution, equivalenceKey)
-                {
-                }
-
                 protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
                 {
                     // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.
@@ -62,7 +67,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            private static async Task<Solution> CreateChangedSolutionAsync(AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, CancellationToken cancellationToken)
+            private static async Task<Solution> CreateChangedSolutionAsync(
+                AbstractSuppressionCodeFixProvider fixer,
+                Document triggerDocument,
+                ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument,
+                CodeActionOptionsProvider fallbackOptions,
+                CancellationToken cancellationToken)
             {
                 var currentSolution = triggerDocument.Project.Solution;
                 foreach (var grouping in diagnosticsByDocument.GroupBy(d => d.Key.Project))
@@ -77,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(fixer, grouping, cancellationToken).ConfigureAwait(false);
                         if (diagnosticsBySymbol.Any())
                         {
-                            var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, diagnosticsBySymbol, currentProject);
+                            var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, diagnosticsBySymbol, currentProject, fallbackOptions);
                             var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                             currentSolution = newDocument.Project.Solution;
                         }
@@ -87,23 +97,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return currentSolution;
             }
 
-            private static async Task<Solution> CreateChangedSolutionAsync(AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CancellationToken cancellationToken)
+            private static async Task<Solution> CreateChangedSolutionAsync(
+                AbstractSuppressionCodeFixProvider fixer,
+                Project triggerProject,
+                ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
+                CodeActionOptionsProvider fallbackOptions,
+                CancellationToken cancellationToken)
             {
                 var currentSolution = triggerProject.Solution;
-                foreach (var kvp in diagnosticsByProject)
+                foreach (var (oldProject, diagnostics) in diagnosticsByProject)
                 {
-                    var oldProject = kvp.Key;
                     var currentProject = currentSolution.GetProject(oldProject.Id);
                     var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var suppressMessageAttribute = compilation.SuppressMessageAttributeType();
 
                     if (suppressMessageAttribute != null)
                     {
-                        var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(fixer, oldProject, kvp.Value, cancellationToken).ConfigureAwait(false);
+                        var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
                         if (diagnosticsBySymbol.Any())
                         {
                             var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(
-                                fixer, suppressMessageAttribute, diagnosticsBySymbol, currentProject);
+                                fixer, suppressMessageAttribute, diagnosticsBySymbol, currentProject, fallbackOptions);
                             var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                             currentSolution = newDocument.Project.Solution;
                         }
@@ -119,37 +133,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
-                var workspace = suppressionsDoc.Project.Solution.Workspace;
+                var services = suppressionsDoc.Project.Solution.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
+                var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                foreach (var kvp in _diagnosticsBySymbol)
+                foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
                 {
-                    var targetSymbol = kvp.Key;
-                    var diagnostics = kvp.Value;
-
                     foreach (var diagnostic in diagnostics)
                     {
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
                         suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
                             suppressionsRoot, targetSymbol, _suppressMessageAttribute, diagnostic,
-                            workspace, compilation, addImportsService, cancellationToken);
+                            services, cleanupOptions.FormattingOptions, addImportsService, cancellationToken);
                     }
                 }
 
                 var result = suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
-                var final = await CleanupDocumentAsync(result, cancellationToken).ConfigureAwait(false);
+                var final = await CleanupDocumentAsync(result, cleanupOptions, cancellationToken).ConfigureAwait(false);
                 return final;
             }
 
             private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, IEnumerable<KeyValuePair<Document, ImmutableArray<Diagnostic>>> diagnosticsByDocument, CancellationToken cancellationToken)
             {
                 var diagnosticsMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, List<Diagnostic>>();
-                foreach (var kvp in diagnosticsByDocument)
+                foreach (var (document, diagnostics) in diagnosticsByDocument)
                 {
-                    var document = kvp.Key;
-                    var diagnostics = kvp.Value;
                     foreach (var diagnostic in diagnostics)
                     {
                         Contract.ThrowIfFalse(diagnostic.Location.IsInSource);
@@ -166,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return CreateDiagnosticsBySymbol(diagnosticsMapBuilder);
             }
 
-            private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, Project project, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(Project project, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
                 var diagnosticsMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, List<Diagnostic>>();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -207,10 +216,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
-                foreach (var kvp in diagnosticsMapBuilder)
-                {
-                    builder.Add(KeyValuePairUtil.Create(kvp.Key, GetUniqueDiagnostics(kvp.Value)));
-                }
+                foreach (var (symbol, diagnostics) in diagnosticsMapBuilder)
+                    builder.Add(KeyValuePairUtil.Create(symbol, GetUniqueDiagnostics(diagnostics)));
 
                 return builder.OrderBy(kvp => kvp.Key.GetDocumentationCommentId() ?? string.Empty);
             }

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -102,7 +105,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: to match dev10, we're using the value text, rather
             // than the actual text.  For example, "@return" is equivalent
             // to "return".
-            return ToAttributeLocation(token.ValueText);
+            var result = ToAttributeLocation(token.ValueText);
+
+#if DEBUG
+            var kind = SyntaxFacts.GetKeywordKind(token.ValueText);
+            if (kind == SyntaxKind.None)
+            {
+                kind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+            }
+
+            Debug.Assert(result == AttributeLocation.None ^ SyntaxFacts.IsAttributeTargetSpecifier(kind));
+#endif
+
+            return result;
         }
 
         internal static AttributeLocation ToAttributeLocation(this Syntax.InternalSyntax.SyntaxToken token)

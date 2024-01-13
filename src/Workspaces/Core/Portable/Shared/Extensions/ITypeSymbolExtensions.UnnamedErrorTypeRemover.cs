@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -9,13 +11,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class UnnamedErrorTypeRemover : SymbolVisitor<ITypeSymbol>
+        private class UnnamedErrorTypeRemover(Compilation compilation) : SymbolVisitor<ITypeSymbol>
         {
-            private readonly Compilation _compilation;
-
-            public UnnamedErrorTypeRemover(Compilation compilation)
-                => _compilation = compilation;
-
             public override ITypeSymbol DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
@@ -30,14 +27,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): implement this
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
                 if (symbol.IsErrorType() && symbol.Name == string.Empty)
                 {
-                    return _compilation.ObjectType;
+                    return compilation.ObjectType;
                 }
 
                 var arguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreatePointerTypeSymbol(elementType);
+                return compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)

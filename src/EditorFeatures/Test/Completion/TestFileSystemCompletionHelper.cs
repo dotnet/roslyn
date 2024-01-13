@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,28 +39,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             _files = ImmutableArray.CreateRange(files);
         }
 
-        protected override string[] GetLogicalDrives() =>
-            _drives.ToArray();
+        protected override string[] GetLogicalDrives()
+            => _drives.ToArray();
 
-        protected override bool IsVisibleFileSystemEntry(string fullPath) =>
-            !fullPath.Contains("hidden");
+        protected override bool IsVisibleFileSystemEntry(string fullPath)
+            => !fullPath.Contains("hidden");
 
-        protected override bool DirectoryExists(string fullPath) =>
-            _directories.Contains(fullPath.TrimEnd(PathUtilities.DirectorySeparatorChar));
+        protected override bool DirectoryExists(string fullPath)
+            => _directories.Contains(fullPath.TrimEnd(PathUtilities.DirectorySeparatorChar));
 
-        protected override IEnumerable<string> EnumerateDirectories(string fullDirectoryPath) =>
-            Enumerate(_directories, fullDirectoryPath);
+        protected override IEnumerable<string> EnumerateDirectories(string fullDirectoryPath)
+            => Enumerate(_directories, fullDirectoryPath);
 
-        protected override IEnumerable<string> EnumerateFiles(string fullDirectoryPath) =>
-            Enumerate(_files, fullDirectoryPath);
+        protected override IEnumerable<string> EnumerateFiles(string fullDirectoryPath)
+            => Enumerate(_files, fullDirectoryPath);
 
-        private IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
+        private static IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
         {
             var withTrailingSeparator = fullDirectoryPath.TrimEnd(PathUtilities.DirectorySeparatorChar) + PathUtilities.DirectorySeparatorChar;
             return from d in entries
                    where d.StartsWith(withTrailingSeparator)
                    let nextSeparator = d.IndexOf(PathUtilities.DirectorySeparatorChar, withTrailingSeparator.Length)
-                   select d.Substring(0, (nextSeparator >= 0) ? nextSeparator : d.Length);
+                   select d[..((nextSeparator >= 0) ? nextSeparator : d.Length)];
         }
     }
 }

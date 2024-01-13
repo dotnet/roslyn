@@ -2,20 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class WorkspaceDiagnostic
+    public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
     {
-        public WorkspaceDiagnosticKind Kind { get; }
-        public string Message { get; }
-
-        public WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
-        {
-            this.Kind = kind;
-            this.Message = message;
-        }
+        public WorkspaceDiagnosticKind Kind { get; } = kind;
+        public string Message { get; } = message;
 
         public override string ToString()
         {

@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
-    internal class DefinitionHighlightTag : NavigableHighlightTag
+    internal sealed class DefinitionHighlightTag : NavigableHighlightTag
     {
-        public const string TagId = "MarkerFormatDefinition/HighlightedDefinition";
+        public const string TagId = ReferenceHighlightingConstants.DefinitionTagId;
 
-        public static readonly DefinitionHighlightTag Instance = new DefinitionHighlightTag();
+        public static readonly DefinitionHighlightTag Instance = new();
 
         private DefinitionHighlightTag()
             : base(TagId)

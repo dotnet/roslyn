@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class CustomEventTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterCustomEvent()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -29,7 +29,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterCustomEventWithImportsStatement()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
@@ -54,7 +54,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterCustomEventWithMissingDelegateType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
@@ -79,7 +79,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterCustomEventWithNonDelegateType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
@@ -104,7 +104,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterCustomEventWithGenericType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
@@ -129,7 +129,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoNotApplyAfterCustomEventAlreadyTerminated()
             VerifyStatementEndConstructNotApplied(
                 text:="Imports System

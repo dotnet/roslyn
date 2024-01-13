@@ -2,20 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Composition;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace(ExportProvider exportProvider = null)
+        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
         {
-            return TestWorkspace.CreateCSharp2(
-                new string[] { string.Empty, },
-                new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), },
-                exportProvider: exportProvider);
+            return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
+                LanguageNames.CSharp,
+                compilationOptions: null,
+                parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Regular),
+                composition: composition);
         }
     }
 }

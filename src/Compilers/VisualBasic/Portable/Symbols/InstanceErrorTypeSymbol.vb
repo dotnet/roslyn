@@ -137,6 +137,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public MustOverride Overrides Function GetHashCode() As Integer
+
+        Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            If other Is Me Then
+                Return True
+            End If
+
+            If other Is Nothing Then
+                Return False
+            End If
+
+            Dim otherInstance = TryCast(other, InstanceErrorTypeSymbol)
+
+            If otherInstance Is Nothing AndAlso (comparison And TypeCompareKind.AllIgnoreOptionsForVB) = 0 Then
+                Return False
+            End If
+
+            Dim otherTuple = TryCast(other, TupleTypeSymbol)
+            If otherTuple IsNot Nothing Then
+                Return otherTuple.Equals(Me, comparison)
+            End If
+
+            If otherInstance IsNot Nothing Then
+                Return SpecializedEquals(otherInstance)
+            End If
+
+            Debug.Assert((comparison And TypeCompareKind.AllIgnoreOptionsForVB) <> 0)
+
+            If Not Me.Equals(other.OriginalDefinition) Then
+                Return False
+            End If
+
+            ' Delegate comparison to the other type to ensure symmetry
+            Debug.Assert(TypeOf other Is SubstitutedErrorType)
+            Return other.Equals(Me, comparison)
+        End Function
+
+        Protected MustOverride Function SpecializedEquals(other As InstanceErrorTypeSymbol) As Boolean
+
         Private NotInheritable Class ErrorTypeParameterSymbol
             Inherits TypeParameterSymbol
 
@@ -222,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(_container.GetHashCode(), _ordinal)
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
+            Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
                 If obj Is Nothing Then
                     Return False
                 End If
@@ -233,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim other = TryCast(obj, ErrorTypeParameterSymbol)
 
-                Return other IsNot Nothing AndAlso other._ordinal = Me._ordinal AndAlso other._container.Equals(Me._container)
+                Return other IsNot Nothing AndAlso other._ordinal = Me._ordinal AndAlso other._container.Equals(Me._container, comparison)
             End Function
 
             Friend Overrides Sub EnsureAllConstraintsAreResolved()

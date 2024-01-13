@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SourceNamedTypeSymbol
+    Partial Friend Class SourceNamedTypeSymbol
 
-        Protected Overrides Sub AddGroupClassMembersIfNeeded(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
+        Protected Overrides Sub AddGroupClassMembersIfNeeded(membersBuilder As MembersAndInitializersBuilder, diagnostics As BindingDiagnosticBag)
             ' For reference, see Bindable::IsMyGroupCollection and Bindable::CrackAttributesOnAllSymbolsInContainer in native code.
             If Me.TypeKind = TypeKind.Class AndAlso Not Me.IsGenericType Then
 
@@ -119,14 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Function GetMyGroupCollectionAttributeData(diagnostics As DiagnosticBag, <Out> ByRef binder As Binder, <Out> ByRef attributeSyntax As AttributeSyntax) As VisualBasicAttributeData
+        Private Function GetMyGroupCollectionAttributeData(diagnostics As BindingDiagnosticBag, <Out> ByRef binder As Binder, <Out> ByRef attributeSyntax As AttributeSyntax) As VisualBasicAttributeData
 
             ' Calling GetAttributes() here is likely to get us in a cycle. Also, we want this function to be 
             ' as cheap as possible, it is called for every class and we don't want to bind all attributes
             ' attached to the declaration (even when it doesn't cause a cycle) before we able to create symbol's
             ' members. So, we will have to manually bind only those attributes that potentially could be 
             ' MyGroupCollectionAttribute, by examining syntax ourselves.
-            Dim throwAwayDiagnostics = DiagnosticBag.GetInstance()
             Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations()
             Dim attributeData As VisualBasicAttributeData = Nothing
 
@@ -140,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If (quickChecker.CheckAttribute(attr) And QuickAttributes.MyGroupCollection) <> 0 Then
                                 ' This attribute syntax might be an application of MyGroupCollectionAttribute.
                                 ' Let's bind it.
-                                Dim attributeType As NamedTypeSymbol = Binder.BindAttributeType(binder, attr, Me, throwAwayDiagnostics)
+                                Dim attributeType As NamedTypeSymbol = Binder.BindAttributeType(binder, attr, Me, BindingDiagnosticBag.Discarded)
                                 If Not attributeType.IsErrorType() Then
                                     If VisualBasicAttributeData.IsTargetEarlyAttribute(attributeType, attr, AttributeDescription.MyGroupCollectionAttribute) Then
                                         ' Calling GetAttribute can still get us into cycle if MyGroupCollectionAttribute is applied to itself.
@@ -177,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Dim generatedDiagnostics As Boolean = False
                                         Dim data As VisualBasicAttributeData = (New EarlyWellKnownAttributeBinder(Me, binder)).GetAttribute(attr, attributeType, generatedDiagnostics)
                                         If Not data.HasErrors AndAlso Not generatedDiagnostics AndAlso
-                                           data.IsTargetAttribute(Me, AttributeDescription.MyGroupCollectionAttribute) Then
+                                           data.IsTargetAttribute(AttributeDescription.MyGroupCollectionAttribute) Then
                                             ' Looks like we've found MyGroupCollectionAttribute
                                             If attributeData IsNot Nothing Then
                                                 ' Ambiguity, the attribute cannot be applied multiple times. Let's ignore all of them,
@@ -199,8 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 DoneWithBindingAttributes:
-            throwAwayDiagnostics.Free()
-
             If attributeData Is Nothing Then
                 binder = Nothing
                 attributeSyntax = Nothing
@@ -208,7 +205,6 @@ DoneWithBindingAttributes:
 
             Return attributeData
         End Function
-
 
         Private Shared Sub FindGroupClassBaseTypes(nameParts() As String, current As NamespaceOrTypeSymbol, nextPart As Integer, candidates As ArrayBuilder(Of NamedTypeSymbol))
             ' Bindable::FindBaseInMyGroupCollection
@@ -254,7 +250,7 @@ DoneWithBindingAttributes:
                            named.TypeKind = TypeKind.Class AndAlso
                            Not named.IsGenericType AndAlso
                            Not named.IsMustInherit AndAlso
-                           binder.IsAccessible(named, useSiteDiagnostics:=Nothing) Then
+                           binder.IsAccessible(named, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                             Dim matchingItem As Integer = FindBaseInMyGroupCollection(named, baseTypes)
 
                             If matchingItem >= 0 AndAlso
@@ -293,8 +289,9 @@ DoneWithBindingAttributes:
 
         Private Shared Function MyGroupCollectionCandidateHasPublicParameterlessConstructor(candidate As SourceNamedTypeSymbol) As Boolean
             ' Simply calling HasPublicParameterlessConstructor might get us in a cycle.
+            Debug.Assert(candidate.TypeKind = TypeKind.Class)
             If candidate.MembersHaveBeenCreated Then
-                Return HasPublicParameterlessConstructor(candidate)
+                Return HasPublicParameterlessConstructor(candidate) = ConstructorConstraintError.None
             Else
                 Return candidate.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
             End If
@@ -304,7 +301,12 @@ DoneWithBindingAttributes:
         Protected Overrides Sub VerifyMembers()
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
-                Debug.Assert(HasPublicParameterlessConstructor(Me) = InferFromSyntaxIfClassWillHavePublicParameterlessConstructor())
+                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me)
+                If InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.None OrElse constructorConstraintError = ConstructorConstraintError.HasRequiredMembers)
+                Else
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.NoPublicParameterlessConstructor)
+                End If
             End If
         End Sub
 #End If
@@ -377,7 +379,7 @@ DoneWithBindingAttributes:
             membersBuilder As MembersAndInitializersBuilder,
             binder As Binder,
             attributeSyntax As AttributeSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Dim propertyName As String
 

@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../LanguageServerResources.resx">
+    <body>
+      <trans-unit id="Aborted">
+        <source>Aborted!</source>
+        <target state="new">Aborted!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attaching_debugger_to_process_0">
+        <source>Attaching debugger to process {0}</source>
+        <target state="translated">Asociando el depurador al {0} de procesos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Building_project">
+        <source>Building project...</source>
+        <target state="new">Building project...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Canceled">
+        <source>Canceled!</source>
+        <target state="new">Canceled!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Client_failed_to_attach_the_debugger">
+        <source>Client failed to attach the debugger</source>
+        <target state="translated">El cliente no pudo asociar el depurador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completed_reload_of_all_projects_in_0">
+        <source>Completed (re)load of all projects in {0}</source>
+        <target state="translated">Carga completada (re)de todos los proyectos en {0}</target>
+        <note>The placeholder is a time duration like 00:15</note>
+      </trans-unit>
+      <trans-unit id="Debugger_attached">
+        <source>Debugger attached</source>
+        <target state="translated">Depurador asociado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debugging_tests">
+        <source>Debugging tests...</source>
+        <target state="new">Debugging tests...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discovering_tests">
+        <source>Discovering tests...</source>
+        <target state="new">Discovering tests...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exception_thrown_while_loading_0">
+        <source>Exception thrown while loading {0}</source>
+        <target state="translated">Se produjo una excepción al cargar {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed">
+        <source>Failed!</source>
+        <target state="new">Failed!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4">
+        <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
+        <target state="translated">Error: {0}, correcto: {1}, omitido: {2}, total: {3}, duración: {4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+        <source>Failed to read .runsettings file at {0}:{1}</source>
+        <target state="translated">No se pudo leer el archivo .runsettings en {0}:{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_run_restore_on_0">
+        <source>Failed to run restore on {0}</source>
+        <target state="translated">No se pudo ejecutar la restauración en {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_tests_in_1">
+        <source>Found {0} tests in {1}</source>
+        <target state="translated">Se encontraron pruebas {0} en {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_0">
+        <source>Loading {0}...</source>
+        <target state="new">Loading {0}...</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Message">
+        <source>Message</source>
+        <target state="translated">Mensaje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_test_methods_found_in_requested_range">
+        <source>No test methods found in requested range</source>
+        <target state="translated">No se encontraron métodos de prueba en el intervalo solicitado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing_found_to_restore">
+        <source>Nothing found to restore</source>
+        <target state="translated">No se encontró nada para restaurar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Passed">
+        <source>Passed!</source>
+        <target state="new">Passed!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_0_has_unresolved_dependencies">
+        <source>Project {0} has unresolved dependencies</source>
+        <target state="translated">El proyecto {0} tiene dependencias sin resolver</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
+        <source>Project {0} loaded by C# Dev Kit</source>
+        <target state="translated">Project {0} cargado por el Kit de desarrollo de C#</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
+        <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
+        <target state="translated">No se pudieron cargar los proyectos porque no se encontraron las herramientas de compilación .NET Framework. Intente instalar Visual Studio o el paquete Visual Studio Build Tools, o compruebe los registros para obtener más detalles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
+        <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
+        <target state="translated">No se pudieron cargar los proyectos porque no se encontró Mono. Asegúrese de que Mono y MSBuild están instalados y compruebe los registros para obtener más detalles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore">
+        <source>Restore</source>
+        <target state="translated">Restaurar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_complete">
+        <source>Restore complete</source>
+        <target state="new">Restore complete</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_started">
+        <source>Restore started</source>
+        <target state="new">Restore started</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restoring_0">
+        <source>Restoring {0}</source>
+        <target state="new">Restoring {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_dotnet_restore_on_0">
+        <source>Running dotnet restore on {0}</source>
+        <target state="new">Running dotnet restore on {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_tests">
+        <source>Running tests...</source>
+        <target state="new">Running tests...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runsettings_file_does_not_exist_at_0">
+        <source>.runsettings file does not exist at {0}</source>
+        <target state="translated">El archivo .runsettings no existe en {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_csharp_logs">
+        <source>Show C# logs</source>
+        <target state="translated">Mostrar registros de C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">Seguimiento de la pila</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Starting_test_discovery">
+        <source>Starting test discovery</source>
+        <target state="new">Starting test discovery</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Starting_test_run">
+        <source>Starting test run</source>
+        <target state="translated">Iniciando serie de pruebas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Successfully_completed_load_of_0">
+        <source>Successfully completed load of {0}</source>
+        <target state="translated">Carga de {0} completada correctamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary">
+        <source>Summary</source>
+        <target state="translated">Resumen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Test_discovery_aborted">
+        <source>Test discovery aborted</source>
+        <target state="translated">Detección de pruebas anulada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Test_run_error">
+        <source>Test run error: {0}</source>
+        <target state="translated">Error de serie de pruebas: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
+        <source>There were problems loading project {0}. See log for details.</source>
+        <target state="translated">Hubo problemas al cargar el {0} del proyecto. Consulte el registro para obtener más detalles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_runsettings_file_at_0">
+        <source>Using .runsettings file at {0}</source>
+        <target state="translated">Uso del archivo .runsettings en {0}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,7 +135,7 @@ class C : IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[1]);
                 Verify(children,
@@ -189,7 +191,7 @@ struct S<T> : IEnumerable<T>
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[1]);
                 Verify(children,
@@ -240,7 +242,7 @@ class C : IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[1]);
                 Verify(children,
@@ -296,7 +298,7 @@ class C<T> : IEnumerable<T>
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[1]);
                 Verify(children,
@@ -445,7 +447,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._1, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
@@ -458,7 +460,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._2, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
@@ -471,7 +473,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._3, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
@@ -484,7 +486,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._4, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
@@ -564,7 +566,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._1, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 Verify(GetChildren(moreChildren[0]),
                     EvalResult("[0]", "0", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(o._1).Items[0]"));
@@ -576,7 +578,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._2, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 Verify(GetChildren(moreChildren[0]),
                     EvalResult("[0]", "2", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView<object>(o._2).Items[0]"));
@@ -588,7 +590,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o._3, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 Verify(GetChildren(moreChildren[0]),
                     EvalResult("[0]", "3", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(o._3).Items[0]"));
@@ -648,7 +650,7 @@ class C
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o.F, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[1]);
                 Verify(children,
@@ -721,7 +723,7 @@ class C : A<B>
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 var moreChildren = GetChildren(children[1]);
                 Verify(moreChildren,
@@ -926,7 +928,7 @@ class C
                     EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
-                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, raw, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, raw, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects));
 
                 // Regular view
 
@@ -940,12 +942,11 @@ class C
                     EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
-                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                    EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects));
             }
         }
 
-        [WorkItem(1006160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
         public void MultipleImplementations_DifferentImplementors()
         {
             var source =
@@ -1004,7 +1005,7 @@ class B3 : A<object>, IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1028,7 +1029,7 @@ class B3 : A<object>, IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1052,7 +1053,7 @@ class B3 : A<object>, IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1121,7 +1122,7 @@ class B : IEnumerable<string>, IEnumerable<int>
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "a, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1145,7 +1146,7 @@ class B : IEnumerable<string>, IEnumerable<int>
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "b, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1202,7 +1203,7 @@ public class C : IEnumerable
                 var runtime = new DkmClrRuntimeInstance(assemblies);
                 var type = assembly.GetType("C");
                 var value = CreateDkmClrValue(
-                    value: type.Instantiate(new object[] { new object[] { string.Empty } }),
+                    value: type.Instantiate([new object[] { string.Empty }]),
                     type: runtime.GetType((TypeImpl)type));
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
@@ -1386,7 +1387,7 @@ class C
                             "Expanding the Results View will enumerate the IEnumerable",
                             "",
                             "o._0, results",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                             DkmEvaluationResultCategory.Method));
                     moreChildren = GetChildren(moreChildren[0]);
                     Verify(moreChildren,
@@ -1404,7 +1405,7 @@ class C
                             "Expanding the Results View will enumerate the IEnumerable",
                             "",
                             "o._1, results",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                             DkmEvaluationResultCategory.Method));
                     moreChildren = GetChildren(moreChildren[0]);
                     Verify(moreChildren,
@@ -1422,7 +1423,7 @@ class C
                             "Expanding the Results View will enumerate the IEnumerable",
                             "",
                             "o._2, results",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                             DkmEvaluationResultCategory.Method));
                     moreChildren = GetChildren(moreChildren[0]);
                     Verify(moreChildren,
@@ -1440,7 +1441,7 @@ class C
                             "Expanding the Results View will enumerate the IEnumerable",
                             "",
                             "o._3, results",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                             DkmEvaluationResultCategory.Method));
                     moreChildren = GetChildren(moreChildren[0]);
                     Verify(moreChildren,
@@ -1457,8 +1458,7 @@ class C
         /// <summary>
         /// Do not instantiate proxy type for null IEnumerable.
         /// </summary>
-        [WorkItem(1009646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
         public void IEnumerableNull()
         {
             var source =
@@ -1527,7 +1527,7 @@ class C : IEnumerable
                             "Expanding the Results View will enumerate the IEnumerable",
                             "",
                             "o, results",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                             DkmEvaluationResultCategory.Method));
                     children = GetChildren(children[0]);
                     Verify(children[6],
@@ -1536,9 +1536,8 @@ class C : IEnumerable
             }
         }
 
-        [Fact]
-        [WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
-        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {
             var source =
@@ -1634,8 +1633,7 @@ class C
         /// is [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]).
         /// Note, the native EE has an empty expansion when .dmp debugging.
         /// </summary>
-        [WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
         public void GetProxyPropertyValueError()
         {
             var source =
@@ -1664,7 +1662,7 @@ class C : IEnumerable
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method));
                 children = GetChildren(children[0]);
                 Verify(children,
@@ -1677,8 +1675,7 @@ class C : IEnumerable
         /// IEnumerable&lt;T&gt; should be expanded directly
         /// without intermediate "Results View" row.
         /// </summary>
-        [WorkItem(1114276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
         public void SyntheticIEnumerable()
         {
             var source =
@@ -1780,8 +1777,7 @@ class C
             }
         }
 
-        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4098")]
         public void IEnumerableOfAnonymousType()
         {
             var code =
@@ -1808,7 +1804,7 @@ class C
                 var parameters = ctor.GetParameters();
                 var listType = typeof(List<>).MakeGenericType(anonymousType);
                 var source = listType.Instantiate();
-                listType.GetMethod("Add").Invoke(source, new[] { anonymousType.Instantiate(1, 1) });
+                listType.GetMethod("Add").Invoke(source, [anonymousType.Instantiate(1, 1)]);
                 var predicate = Delegate.CreateDelegate(parameters[1].ParameterType, instance, displayClass.GetMethod("<M>b__0_2", BindingFlags.Instance | BindingFlags.NonPublic));
                 var selector = Delegate.CreateDelegate(parameters[2].ParameterType, instance, displayClass.GetMethod("<M>b__0_3", BindingFlags.Instance | BindingFlags.NonPublic));
                 var value = CreateDkmClrValue(
@@ -1841,47 +1837,6 @@ class C
                         "<>f__AnonymousType0<int, int>",
                         null,
                         DkmEvaluationResultFlags.Expandable));
-            }
-        }
-
-        [Fact]
-        public void NoSideEffects()
-        {
-            var source =
-@"using System.Collections;
-class C : IEnumerable
-{
-    private readonly IEnumerable e;
-    internal C(IEnumerable e)
-    {
-        this.e = e;
-    }
-    public IEnumerator GetEnumerator()
-    {
-        return this.e.GetEnumerator();
-    }
-}";
-            var assembly = GetAssembly(source);
-            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
-            using (ReflectionUtilities.LoadAssemblies(assemblies))
-            {
-                var runtime = new DkmClrRuntimeInstance(assemblies);
-                var type = assembly.GetType("C");
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(new[] { 1, 2 }),
-                    type: runtime.GetType((TypeImpl)type));
-                var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.NoSideEffects);
-                var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
-                Verify(evalResult,
-                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
-                var children = GetChildren(evalResult, inspectionContext: inspectionContext);
-                Verify(children,
-                    EvalResult(
-                        "e",
-                        "{int[2]}",
-                        "System.Collections.IEnumerable {int[]}",
-                        "o.e",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 

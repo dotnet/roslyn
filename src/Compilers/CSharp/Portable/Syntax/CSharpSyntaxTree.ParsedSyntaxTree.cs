@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,22 +23,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly string _path;
             private readonly CSharpSyntaxNode _root;
             private readonly bool _hasCompilationUnitRoot;
-            private readonly Encoding _encodingOpt;
+            private readonly Encoding? _encodingOpt;
             private readonly SourceHashAlgorithm _checksumAlgorithm;
             private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
-            private SourceText _lazyText;
+            private SourceText? _lazyText;
 
             internal ParsedSyntaxTree(
-                SourceText textOpt,
-                Encoding encodingOpt,
+                SourceText? textOpt,
+                Encoding? encodingOpt,
                 SourceHashAlgorithm checksumAlgorithm,
-                string path,
+                string? path,
                 CSharpParseOptions options,
                 CSharpSyntaxNode root,
                 Syntax.InternalSyntax.DirectiveStack directives,
-                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
-                bool? isGeneratedCode,
+                ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
                 bool cloneRoot)
+                : base(directives)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
@@ -51,13 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
                 _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
-                if (isGeneratedCode is bool b)
-                {
-                    _isGenerationConfigured = true;
-                    _lazyIsGeneratedCode = b.ToThreeState();
-                }
-
-                this.SetDirectiveStack(directives);
             }
 
             public override string FilePath
@@ -75,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyText;
             }
 
-            public override bool TryGetText(out SourceText text)
+            public override bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
                 text = _lazyText;
                 return text != null;
             }
 
-            public override Encoding Encoding
+            public override Encoding? Encoding
             {
                 get { return _encodingOpt; }
             }
@@ -118,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _diagnosticOptions;
 
             public override SyntaxReference GetReference(SyntaxNode node)
@@ -133,17 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new ParsedSyntaxTree(
-                    null,
+                    textOpt: null,
                     _encodingOpt,
                     _checksumAlgorithm,
                     _path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
-                    _directives,
+                    ReferenceEquals(_root, root) ? _lazyDirectives : default,
                     _diagnosticOptions,
-                    isGeneratedCode: _isGenerationConfigured
-                        ? (bool?)_lazyIsGeneratedCode.Value()
-                        : null,
                     cloneRoot: true);
             }
 
@@ -161,14 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     path,
                     _options,
                     _root,
-                    _directives,
+                    _lazyDirectives,
                     _diagnosticOptions,
-                    isGeneratedCode: _isGenerationConfigured
-                        ? (bool?)_lazyIsGeneratedCode.Value()
-                        : null,
                     cloneRoot: true);
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
             {
                 if (options is null)
@@ -188,11 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _path,
                     _options,
                     _root,
-                    _directives,
+                    _lazyDirectives,
                     options,
-                    isGeneratedCode: _isGenerationConfigured
-                        ? (bool?)_lazyIsGeneratedCode.Value()
-                        : null,
                     cloneRoot: true);
             }
         }

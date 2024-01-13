@@ -3,23 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class MidAssignmentSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New MidAssignmentSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(MidAssignmentSignatureHelpProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForMidAssignmentFirstArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -39,7 +34,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForMidAssignmentSecondArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -59,7 +54,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForMidAssignmentThirdArgument() As Task
             Dim markup = <a><![CDATA[
 Class C

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,15 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
+    internal static class AsyncLazy
+    {
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
+            => new(asynchronousComputeFunction);
+
+        public static AsyncLazy<T> Create<T>(T value)
+            => new(value);
+    }
+
     /// <summary>
     /// Represents a value that can be retrieved synchronously or asynchronously by many clients.
     /// The value will be computed on-demand the moment the first client asks for it. While being
@@ -24,7 +32,7 @@ namespace Roslyn.Utilities
     /// cached for future requests or not. Choosing to not cache means the computation functions are kept
     /// alive, whereas caching means the value (but not functions) are kept alive once complete.
     /// </summary>
-    internal sealed class AsyncLazy<T> : ValueSource<T>
+    internal sealed class AsyncLazy<T>
     {
         /// <summary>
         /// The underlying function that starts an asynchronous computation of the resulting value.
@@ -41,11 +49,6 @@ namespace Roslyn.Utilities
         private Func<CancellationToken, T>? _synchronousComputeFunction;
 
         /// <summary>
-        /// Whether or not we should keep the value around once we've computed it.
-        /// </summary>
-        private readonly bool _cacheResult;
-
-        /// <summary>
         /// The Task that holds the cached result.
         /// </summary>
         private Task<T>? _cachedResult;
@@ -56,7 +59,7 @@ namespace Roslyn.Utilities
         /// by using a single lock for all AsyncLazy instances.  Only trivial and non-reentrant work
         /// should be done while holding the lock.
         /// </summary>
-        private static readonly NonReentrantLock s_gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private static readonly NonReentrantLock s_gate = new(useThisInstanceForSynchronization: true);
 
         /// <summary>
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
@@ -81,12 +84,20 @@ namespace Roslyn.Utilities
         /// </summary>
         public AsyncLazy(T value)
         {
-            _cacheResult = true;
             _cachedResult = Task.FromResult(value);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("'cacheResult' is no longer supported.  Use constructor without it.", error: false)]
         public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
-            : this(asynchronousComputeFunction, synchronousComputeFunction: null, cacheResult: cacheResult)
+            : this(asynchronousComputeFunction)
+        {
+        }
+#pragma warning restore IDE0060 // Remove unused parameter
+
+        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
+            : this(asynchronousComputeFunction, synchronousComputeFunction: null)
         {
         }
 
@@ -100,14 +111,11 @@ namespace Roslyn.Utilities
         /// is allowed to block. This function should not be implemented by a simple Wait on the
         /// asynchronous value. If that's all you are doing, just don't pass a synchronous function
         /// in the first place.</param>
-        /// <param name="cacheResult">Whether the result should be cached once the computation is
-        /// complete.</param>
-        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T>? synchronousComputeFunction, bool cacheResult)
+        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T>? synchronousComputeFunction)
         {
             Contract.ThrowIfNull(asynchronousComputeFunction);
             _asynchronousComputeFunction = asynchronousComputeFunction;
             _synchronousComputeFunction = synchronousComputeFunction;
-            _cacheResult = cacheResult;
         }
 
         #region Lock Wrapper for Invariant Checking
@@ -122,16 +130,11 @@ namespace Roslyn.Utilities
             return new WaitThatValidatesInvariants(this);
         }
 
-        private struct WaitThatValidatesInvariants : IDisposable
+        private readonly struct WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy) : IDisposable
         {
-            private readonly AsyncLazy<T> _asyncLazy;
-
-            public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-                => _asyncLazy = asyncLazy;
-
             public void Dispose()
             {
-                _asyncLazy.AssertInvariants_NoLock();
+                asyncLazy.AssertInvariants_NoLock();
                 s_gate.Release();
             }
         }
@@ -163,7 +166,7 @@ namespace Roslyn.Utilities
 
         #endregion
 
-        public override bool TryGetValue([MaybeNullWhen(false)] out T result)
+        public bool TryGetValue([MaybeNullWhen(false)] out T result)
         {
             // No need to lock here since this is only a fast check to 
             // see if the result is already computed.
@@ -177,7 +180,7 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public override T GetValue(CancellationToken cancellationToken)
+        public T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -286,23 +289,25 @@ namespace Roslyn.Utilities
                 // processing a value somebody never wanted
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return result;
+                // Because we called CompleteWithTask with an actual result, _cachedResult must be set. However, it's possible that result is a different result than
+                // what is in our local variable here; it's possible that an asynchronous computation was running and cancelled, but eventually completed (ignoring cancellation)
+                // and then set the cached value. Because that could be a different instance than what we have locally, we can't use the local result if the other value
+                // got cached first. Always returning the cached value ensures we always return a single value from AsyncLazy once we got one.
+                Contract.ThrowIfNull(_cachedResult, $"We called {nameof(CompleteWithTask)} with a result, there should be a cached result.");
+                return _cachedResult.Result;
             }
         }
 
         private Request CreateNewRequest_NoLock()
         {
-            if (_requests == null)
-            {
-                _requests = new HashSet<Request>();
-            }
+            _requests ??= new HashSet<Request>();
 
             var request = new Request();
             _requests.Add(request);
             return request;
         }
 
-        public override Task<T> GetValueAsync(CancellationToken cancellationToken)
+        public Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
             // Optimization: if we're already cancelled, do not pass go
             if (cancellationToken.IsCancellationRequested)
@@ -362,68 +367,55 @@ namespace Roslyn.Utilities
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);
         }
 
-        private struct AsynchronousComputationToStart
+        private readonly struct AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
         {
-            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction;
-            public readonly CancellationTokenSource CancellationTokenSource;
-
-            public AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
-            {
-                AsynchronousComputeFunction = asynchronousComputeFunction;
-                CancellationTokenSource = cancellationTokenSource;
-            }
+            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction = asynchronousComputeFunction;
+            public readonly CancellationTokenSource CancellationTokenSource = cancellationTokenSource;
         }
 
         private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request? requestToCompleteSynchronously, CancellationToken callerCancellationToken)
         {
             var cancellationToken = computationToStart.CancellationTokenSource.Token;
 
+            // DO NOT ACCESS ANY FIELDS OR STATE BEYOND THIS POINT. Since this function
+            // runs unsynchronized, it's possible that during this function this request
+            // might be cancelled, and then a whole additional request might start and
+            // complete inline, and cache the result. By grabbing state before we check
+            // the cancellation token, we can be assured that we are only operating on
+            // a state that was complete.
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // DO NOT ACCESS ANY FIELDS OR STATE BEYOND THIS POINT. Since this function
-                // runs unsynchronized, it's possible that during this function this request
-                // might be cancelled, and then a whole additional request might start and
-                // complete inline, and cache the result. By grabbing state before we check
-                // the cancellation token, we can be assured that we are only operating on
-                // a state that was complete.
-                try
+                var task = computationToStart.AsynchronousComputeFunction(cancellationToken);
+
+                // As an optimization, if the task is already completed, mark the 
+                // request as being completed as well.
+                //
+                // Note: we want to do this before we do the .ContinueWith below. That way, 
+                // when the async call to CompleteWithTask runs, it sees that we've already
+                // completed and can bail immediately. 
+                if (requestToCompleteSynchronously != null && task.IsCompleted)
                 {
-                    var task = computationToStart.AsynchronousComputeFunction(cancellationToken);
-
-                    // As an optimization, if the task is already completed, mark the 
-                    // request as being completed as well.
-                    //
-                    // Note: we want to do this before we do the .ContinueWith below. That way, 
-                    // when the async call to CompleteWithTask runs, it sees that we've already
-                    // completed and can bail immediately. 
-                    if (requestToCompleteSynchronously != null && task.IsCompleted)
+                    using (TakeLock(CancellationToken.None))
                     {
-                        using (TakeLock(CancellationToken.None))
-                        {
-                            task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
-                        }
-
-                        requestToCompleteSynchronously.CompleteFromTask(task);
+                        task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
                     }
 
-                    // We avoid creating a full closure just to pass the token along
-                    // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
-                    // the continuation if asynchronousComputeFunction completes synchronously
-                    task.ContinueWith(
-                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s!).Token),
-                        computationToStart.CancellationTokenSource,
-                        cancellationToken,
-                        TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
+                    requestToCompleteSynchronously.CompleteFromTask(task);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
+
+                // We avoid creating a full closure just to pass the token along
+                // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
+                // the continuation if asynchronousComputeFunction completes synchronously
+                task.ContinueWith(
+                    (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s!).Token),
+                    computationToStart.CancellationTokenSource,
+                    cancellationToken,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
             }
-            catch (OperationCanceledException oce) when (CrashIfCanceledWithDifferentToken(oce, cancellationToken))
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
                 // The underlying computation cancelled with the correct token, but we must ourselves ensure that the caller
                 // on our stack gets an OperationCanceledException thrown with the right token
@@ -432,18 +424,12 @@ namespace Roslyn.Utilities
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
                 // because that token from the requester was cancelled.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
-        }
-
-        private static bool CrashIfCanceledWithDifferentToken(OperationCanceledException exception, CancellationToken cancellationToken)
-        {
-            if (exception.CancellationToken != cancellationToken)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                FatalError.Report(exception);
+                throw ExceptionUtilities.Unreachable();
             }
-
-            return true;
         }
 
         private void CompleteWithTask(Task<T> task, CancellationToken cancellationToken)
@@ -481,22 +467,18 @@ namespace Roslyn.Utilities
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
         {
             if (_cachedResult != null)
-            {
                 return _cachedResult;
-            }
-            else
+
+            if (task.Status == TaskStatus.RanToCompletion)
             {
-                if (_cacheResult && task.Status == TaskStatus.RanToCompletion)
-                {
-                    // Hold onto the completed task. We can get rid of the computation functions for good
-                    _cachedResult = task;
+                // Hold onto the completed task. We can get rid of the computation functions for good
+                _cachedResult = task;
 
-                    _asynchronousComputeFunction = null;
-                    _synchronousComputeFunction = null;
-                }
-
-                return task;
+                _asynchronousComputeFunction = null;
+                _synchronousComputeFunction = null;
             }
+
+            return task;
         }
 
         private void OnAsynchronousRequestCancelled(object? state)
@@ -574,7 +556,13 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    this.TrySetException(task.Exception!);
+                    // TrySetException wraps its argument in an AggregateException, so we pass the inner exceptions from
+                    // the antecedent to avoid wrapping in two layers of AggregateException.
+                    RoslynDebug.AssertNotNull(task.Exception);
+                    if (task.Exception.InnerExceptions.Count > 0)
+                        this.TrySetException(task.Exception.InnerExceptions);
+                    else
+                        this.TrySetException(task.Exception);
                 }
                 else
                 {

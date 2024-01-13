@@ -15,16 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Const s_titleSuffix As String = "_Title"
         Private Const s_descriptionSuffix As String = "_Description"
-        Private Shared ReadOnly s_helpLinksMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateHelpLinks)
         Private Shared ReadOnly s_categoriesMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateCategoriesMap)
-
-        Private Shared Function CreateHelpLinks() As ImmutableDictionary(Of ERRID, String)
-            Dim map = New Dictionary(Of ERRID, String) From
-                {   '  { ERROR_CODE,    HELP_LINK }
-                }
-
-            Return map.ToImmutableDictionary
-        End Function
 
         Private Shared Function CreateCategoriesMap() As ImmutableDictionary(Of ERRID, String)
             Dim map = New Dictionary(Of ERRID, String) From
@@ -34,9 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return map.ToImmutableDictionary
         End Function
 
-        Public Shared ReadOnly EmptyErrorInfo As DiagnosticInfo = ErrorInfo(0)
-
         Public Shared ReadOnly VoidDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.Void)
+        Public Shared ReadOnly EmptyDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.ERR_None)
 
         Public Shared ReadOnly GetErrorInfo_ERR_WithEventsRequiresClass As Func(Of DiagnosticInfo) =
             Function() ErrorInfo(ERRID.ERR_WithEventsRequiresClass)
@@ -127,12 +117,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function GetHelpLink(id As ERRID) As String
-            Dim helpLink As String = Nothing
-            If s_helpLinksMap.Value.TryGetValue(id, helpLink) Then
-                Return helpLink
-            End If
-
-            Return String.Empty
+            Dim idWithLanguagePrefix As String = MessageProvider.Instance.GetIdForErrorCode(CInt(id))
+            Return $"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k({idWithLanguagePrefix})"
         End Function
 
         Public Shared Function GetCategory(id As ERRID) As String
@@ -144,7 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Diagnostic.CompilerDiagnosticCategory
         End Function
     End Class
-
 
     ''' <summary>
     ''' Concatenates messages for a set of DiagnosticInfo.

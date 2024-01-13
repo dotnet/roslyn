@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool? CanReplaceWithDefaultLiteralFast(
             DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (defaultExpression.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValueClause))
+            if (defaultExpression?.Parent is EqualsValueClauseSyntax equalsValueClause)
             {
                 var typeSyntax = GetTypeSyntax(equalsValueClause);
 
@@ -65,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GetTypeSyntax(EqualsValueClauseSyntax equalsValueClause)
         {
             if (equalsValueClause.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                equalsValueClause.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax declaration))
+                equalsValueClause.Parent?.Parent is VariableDeclarationSyntax declaration)
             {
                 return declaration.Type;
             }
-            else if (equalsValueClause.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
+            else if (equalsValueClause?.Parent is ParameterSyntax parameter)
             {
                 return parameter.Type;
             }

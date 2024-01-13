@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Once the cursor hits the end of file, it's done.  Note: the cursor will skip any other
         /// zero length nodes in the tree.
         /// </summary>
-        private struct Cursor
+        private readonly struct Cursor
         {
             public readonly SyntaxNodeOrToken CurrentNodeOrToken;
             private readonly int _indexInParent;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public Cursor MoveToFirstChild()

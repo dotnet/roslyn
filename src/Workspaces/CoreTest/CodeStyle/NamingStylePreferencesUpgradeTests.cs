@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -9,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 {
+    [Trait(Traits.Feature, Traits.Features.NamingStyle)]
     public class NamingStylePreferencesUpgradeTests
     {
         private static string ReserializePreferences(string serializedPreferences)
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         private static void AssertTrimmedEqual(string expected, string actual)
             => Assert.Equal(expected.Trim(), actual.Trim());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestPreserveDefaultPreferences()
         {
             AssertTrimmedEqual(
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestCannotUpgrade3To5()
         {
             var serializedPreferences = @"
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestUpgrade4To5()
         {
             var serializedPreferences = @"
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestPreserveLatestVersion5()
         {
             var serializedPreferences = @"
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public void TestCannotDowngradeHigherThanLatestVersion5()
         {
             var serializedPreferences = @"
@@ -172,6 +177,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             AssertTrimmedEqual(
                 NamingStylePreferences.DefaultNamingPreferencesString,
                 ReserializePreferences(serializedPreferences));
+        }
+
+        /// <summary>
+        /// Having duplicates in enums like this means that calling Enum.ToString() will potentially be unstable.
+        /// See https://github.com/dotnet/roslyn/issues/44714 for an example where were previously bitten by this;
+        /// we should avoid doing this in the future. If this test fails, update <see cref="SymbolSpecification.ModifierKind"/>
+        /// to ensure the existing naming styles continue to serialize as they originally did.
+        /// </summary>
+        [Theory]
+        [InlineData(typeof(SymbolKind))]
+        [InlineData(typeof(TypeKind), nameof(TypeKind.Struct), nameof(TypeKind.Structure))]
+        [InlineData(typeof(MethodKind), nameof(MethodKind.AnonymousFunction), nameof(MethodKind.LambdaMethod), nameof(MethodKind.SharedConstructor), nameof(MethodKind.StaticConstructor))]
+        public void NoDuplicateEntriesInKindEnumerations(Type type, params string[] expectedDuplicates)
+        {
+            Assert.True(type.IsEnum);
+
+            var enumNamesAndValues = type.GetEnumNames().Zip(type.GetEnumValues().Cast<object>(), (name, value) => (name, value));
+            var duplicates = enumNamesAndValues.GroupBy(e => e.value)
+                                               .Where(group => group.Count() > 1)
+                                               .SelectMany(group => group)
+                                               .Select(e => e.name)
+                                               .OrderBy(name => name);
+
+            Assert.Equal(expectedDuplicates, duplicates);
         }
     }
 }

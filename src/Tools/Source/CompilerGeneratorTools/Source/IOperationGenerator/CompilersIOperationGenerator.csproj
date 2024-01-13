@@ -5,9 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.IOperationGenerator</RootNamespace>
     <AssemblyName>IOperationGenerator</AssemblyName>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 </Project>

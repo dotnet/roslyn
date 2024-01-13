@@ -2,89 +2,134 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
-            Workspace workspace, TestParameters parameters);
+            EditorTestWorkspace workspace, TestParameters parameters);
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters = null)
         {
+            parameters ??= TestParameters.Default;
+
+            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
                 : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
-            return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
+
+            var fixAllScope = GetFixAllScope(annotation);
+
+            if (fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
+                document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
+            {
+                var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
+                    document, span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);
+                if (documentsAndSpansToFix.IsEmpty)
+                {
+                    return (ImmutableArray<CodeAction>.Empty, null);
+                }
+            }
+
+            var actionToInvoke = actions.IsDefaultOrEmpty ? null : actions[parameters.index];
+            if (actionToInvoke == null || fixAllScope == null)
+                return (actions, actionToInvoke);
+
+            var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
+                refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            if (fixAllCodeAction == null)
+                return (ImmutableArray<CodeAction>.Empty, null);
+
+            return (ImmutableArray.Create(fixAllCodeAction), fixAllCodeAction);
         }
 
-        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        private static async Task<CodeAction> GetFixAllFixAsync(
+            CodeAction originalCodeAction,
+            CodeRefactoringProvider provider,
+            CodeActionOptionsProvider optionsProvider,
+            Document document,
+            TextSpan selectionSpan,
+            FixAllScope scope)
+        {
+            var fixAllProvider = provider.GetFixAllProvider();
+            if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
+                return null;
+
+            var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
+            var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
+            return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+        }
+
+        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
-        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            TestWorkspace workspace, TestParameters parameters)
+        internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
+            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
+            return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
+            Document document,
+            TextSpan selectedOrAnnotatedSpan,
+            EditorTestWorkspace workspace,
+            TestParameters parameters)
         {
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
-            return SpecializedCollections.SingletonEnumerable(
-                await GetCodeRefactoringAsync(provider, workspace));
-        }
 
-        private async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            CodeRefactoringProvider provider,
-            TestWorkspace workspace)
-        {
-            var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
-            Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
-            var span = documentsWithSelections.Single().SelectedSpans.Single();
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
-            var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), isBlocking: false, CancellationToken.None);
-            await provider.ComputeRefactoringsAsync(context);
 
-            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
+            var codeActionOptionsProvider = parameters.globalOptions?.IsEmpty() == false
+                ? CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions)
+                : CodeActionOptions.DefaultProvider;
+
+            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
+            await provider.ComputeRefactoringsAsync(context);
+            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
             actions.Free();
             return result;
         }
 
         protected async Task TestActionOnLinkedFiles(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedText,
             CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            applyChangesOperation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
+            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
@@ -95,13 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         private static async Task VerifyPreviewContents(
-            TestWorkspace workspace, string expectedPreviewContents,
+            EditorTestWorkspace workspace, string expectedPreviewContents,
             ImmutableArray<CodeActionOperation> operations)
         {
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
+                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var content = (await previews.GetPreviewsAsync())[0];
                 var diffView = content as DifferenceViewerPreview;
                 Assert.NotNull(diffView.Viewer);
                 var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
@@ -111,36 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected static Document GetDocument(TestWorkspace workspace)
+        protected static Document GetDocument(EditorTestWorkspace workspace)
             => workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-        private class TestPickMembersService : IPickMembersService
-        {
-            private readonly ImmutableArray<string> _memberNames;
-            private readonly Action<ImmutableArray<PickMembersOption>> _optionsCallback;
-
-            public TestPickMembersService(
-                ImmutableArray<string> memberNames,
-                Action<ImmutableArray<PickMembersOption>> optionsCallback)
-            {
-                _memberNames = memberNames;
-                _optionsCallback = optionsCallback;
-            }
-
-            public PickMembersResult PickMembers(
-                string title, ImmutableArray<ISymbol> members,
-                ImmutableArray<PickMembersOption> options)
-            {
-                _optionsCallback?.Invoke(options);
-                return new PickMembersResult(
-                    _memberNames.IsDefault
-                        ? members
-                        : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                    options);
-            }
-        }
-
-        internal void EnableOptions(
+        internal static void EnableOptions(
             ImmutableArray<PickMembersOption> options,
             params string[] ids)
         {
@@ -150,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
         {
             var option = options.FirstOrDefault(o => o.Id == id);
             if (option != null)
@@ -165,13 +185,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string[] chosenSymbols,
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
-            TestParameters parameters = default)
+            TestParameters parameters = null)
         {
+            var ps = parameters ?? TestParameters.Default;
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index,
-                parameters.WithFixProviderData(pickMembersService));
+                ps.WithFixProviderData(pickMembersService));
         }
     }
 }

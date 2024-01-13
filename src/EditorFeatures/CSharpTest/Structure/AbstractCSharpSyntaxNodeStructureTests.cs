@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+public abstract class AbstractCSharpSyntaxNodeStructureTests<TSyntaxNode> :
+    AbstractSyntaxNodeStructureProviderTests<TSyntaxNode>
+    where TSyntaxNode : SyntaxNode
 {
-    public abstract class AbstractCSharpSyntaxNodeStructureTests<TSyntaxNode> :
-        AbstractSyntaxNodeStructureProviderTests<TSyntaxNode>
-        where TSyntaxNode : SyntaxNode
-    {
-        protected sealed override string LanguageName => LanguageNames.CSharp;
-    }
+    protected sealed override string LanguageName => LanguageNames.CSharp;
 }

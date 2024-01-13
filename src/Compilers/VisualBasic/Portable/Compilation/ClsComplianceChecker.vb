@@ -6,6 +6,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
         Private ReadOnly _filterSpanWithinTree As TextSpan?
 
-        Private ReadOnly _diagnostics As ConcurrentQueue(Of Diagnostic)
+        Private ReadOnly _diagnostics As BindingDiagnosticBag
 
         Private ReadOnly _cancellationToken As CancellationToken
 
@@ -36,7 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <seealso cref="MethodCompiler._compilerTasks"/>
         Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
 
-        Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
+        Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
+            Debug.Assert(diagnostics.DependenciesBag Is Nothing OrElse TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
+
             Me._compilation = compilation
             Me._filterTree = filterTree
             Me._filterSpanWithinTree = filterSpanWithinTree
@@ -66,15 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">To stop traversing the symbol table early.</param>
         ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
-            Dim queue = New ConcurrentQueue(Of Diagnostic)()
+        Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
+            Dim queue = If(diagnostics.AccumulatesDependencies, BindingDiagnosticBag.GetConcurrentInstance(), BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False))
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
             checker.WaitForWorkers()
-
-            For Each diag In queue
-                diagnostics.Add(diag)
-            Next
+            diagnostics.AddRangeAndFree(queue)
         End Sub
 
         Private Sub WaitForWorkers()
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     VisitModule(m)
-                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     Visit(m)
-                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),
@@ -193,27 +193,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Function HasAcceptableAttributeConstructor(attributeType As NamedTypeSymbol) As Boolean
-            For Each constructor In attributeType.InstanceConstructors
-                If IsTrue(GetDeclaredOrInheritedCompliance(constructor)) AndAlso IsAccessibleIfContainerIsAccessible(constructor) Then
-                    Debug.Assert(IsAccessibleOutsideAssembly(constructor), "Should be implied by IsAccessibleIfContainerIsAccessible")
-                    Dim hasUnacceptableParameterType As Boolean = False
-                    For Each paramType In GetParameterTypes(constructor)
-                        If paramType.TypeKind = TypeKind.Array OrElse TypedConstant.GetTypedConstantKind(paramType, Me._compilation) = TypedConstantKind.Error Then
-                            hasUnacceptableParameterType = True
-                            Exit For
-                        End If
-                    Next
-
-                    If Not hasUnacceptableParameterType Then
-                        Return True
-                    End If
-                End If
-            Next
-
-            Return False
-        End Function
-
         Public Overrides Sub VisitMethod(symbol As MethodSymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
@@ -240,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case MethodKind.PropertyGet, MethodKind.PropertySet
                         ' As in dev11, this warning is not produced for event accessors.
                         For Each attribute In symbol.GetAttributes()
-                            If attribute.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                            If attribute.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) Then
                                 Dim attributeLocation As Location = Nothing
                                 If TryGetAttributeWarningLocation(attribute, attributeLocation) Then
                                     Dim attributeUsage As AttributeUsageInfo = attribute.AttributeClass.GetAttributeUsageInfo()
@@ -781,15 +760,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isAttributeInherited = False
             For Each attributeData In symbol.GetAttributes()
                 ' Check signature before HasErrors to avoid realizing symbols for other attributes.
-                If attributeData.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                If attributeData.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) Then
                     Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
-                        Dim info = attributeClass.GetUseSiteErrorInfo()
-                        If info IsNot Nothing Then
-                            Dim location = If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0))
-                            _diagnostics.Enqueue(New VBDiagnostic(info, location))
-                            Continue For
-                        End If
+                        _diagnostics.ReportUseSite(attributeClass, If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0)))
                     End If
 
                     If Not attributeData.HasErrors Then
@@ -864,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddDiagnostic(symbol As Symbol, code As ERRID, location As Location, ParamArray args As Object())
             Dim info = New BadSymbolDiagnostic(symbol, code, args)
             Dim diag = New VBDiagnostic(info, location)
-            Me._diagnostics.Enqueue(diag)
+            Me._diagnostics.Add(diag)
         End Sub
 
         Private Shared Function IsImplicitClass(symbol As Symbol) As Boolean
@@ -876,17 +850,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Compliance.DeclaredTrue, Compliance.InheritedTrue
                     Return True
                 Case Compliance.DeclaredFalse, Compliance.InheritedFalse, Compliance.ImpliedFalse
-                    Return False
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(compliance)
-            End Select
-        End Function
-
-        Private Shared Function IsDeclared(compliance As Compliance) As Boolean
-            Select Case compliance
-                Case Compliance.DeclaredTrue, Compliance.DeclaredFalse
-                    Return True
-                Case Compliance.InheritedTrue, Compliance.InheritedFalse, Compliance.ImpliedFalse
                     Return False
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(compliance)

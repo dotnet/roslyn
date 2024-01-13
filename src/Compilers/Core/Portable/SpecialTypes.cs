@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string?[] s_emittedNames = new string?[]
+        private static readonly string?[] s_emittedNames = new string?[(int)SpecialType.Count + 1]
         {
             // The following things should be in sync:
             // 1) SpecialType enum
@@ -70,9 +68,11 @@ namespace Microsoft.CodeAnalysis
             "System.IAsyncResult",
             "System.AsyncCallback",
             "System.Runtime.CompilerServices.RuntimeFeature",
+            "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
+            "System.Runtime.CompilerServices.InlineArrayAttribute",
         };
 
-        private readonly static Dictionary<string, SpecialType> s_nameToTypeIdMap;
+        private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;
 
         private static readonly Microsoft.Cci.PrimitiveTypeCode[] s_typeIdToTypeCodeMap;
         private static readonly SpecialType[] s_typeCodeToTypeIdMap;

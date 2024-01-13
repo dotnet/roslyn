@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -10,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -33,64 +34,68 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             // Don't bother if there isn't a selection
             var (document, textSpan, cancellationToken) = context;
             if (textSpan.IsEmpty)
-            {
                 return;
-            }
 
-            var workspace = document.Project.Solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
+            var solution = document.Project.Solution;
+            if (solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
-            }
 
-            var activeInlineRenameSession = workspace.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
+            var activeInlineRenameSession = solution.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
             if (activeInlineRenameSession)
-            {
                 return;
-            }
 
             if (cancellationToken.IsCancellationRequested)
-            {
                 return;
-            }
 
-            var actions = await GetCodeActionsAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
+            var actions = await GetCodeActionsAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
 
-        private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+        private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
+            ExtractMethodGenerationOptions extractOptions,
             CancellationToken cancellationToken)
         {
-            var actions = ArrayBuilder<CodeAction>.GetInstance();
-            var methodAction = await ExtractMethodAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            var methodAction = await ExtractMethodAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(methodAction);
 
-            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(localFunctionAction);
 
-            return actions.ToImmutableAndFree();
+            return actions.ToImmutable();
         }
 
-        private async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(
+            Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
                 localFunction: false,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                extractOptions,
+                cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfNull(result);
 
-            if (!result.Succeeded && !result.SucceededWithSuggestion)
+            if (!result.Succeeded)
                 return null;
 
-            return new MyCodeAction(
+            return CodeAction.Create(
                 FeaturesResources.Extract_method,
-                c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
+                async cancellationToken =>
+                {
+                    var (document, invocationNameToken) = await result.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
+                    return await AddRenameAnnotationAsync(document, invocationNameToken, cancellationToken).ConfigureAwait(false);
+                },
+                nameof(FeaturesResources.Extract_method));
         }
 
-        private async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(
+            Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -103,35 +108,36 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 document,
                 textSpan,
                 localFunction: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                extractOptions,
+                cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(localFunctionResult);
 
-            if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
-            {
-                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(localFunctionResult.Document, localFunctionResult.InvocationNameToken, c));
-                return codeAction;
-            }
+            if (!localFunctionResult.Succeeded)
+                return null;
 
-            return null;
+            var codeAction = CodeAction.Create(
+                FeaturesResources.Extract_local_function,
+                async cancellationToken =>
+                {
+                    var (document, invocationNameToken) = await localFunctionResult.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
+                    return await AddRenameAnnotationAsync(document, invocationNameToken, cancellationToken).ConfigureAwait(false);
+                },
+                nameof(FeaturesResources.Extract_local_function));
+            return codeAction;
         }
 
-        private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        private static async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken? invocationNameToken, CancellationToken cancellationToken)
         {
+            if (invocationNameToken == null)
+                return document;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var finalRoot = root.ReplaceToken(
-                invocationNameToken,
-                invocationNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()));
+                invocationNameToken.Value,
+                invocationNameToken.Value.WithAdditionalAnnotations(RenameAnnotation.Create()));
 
             return document.WithSyntaxRoot(finalRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

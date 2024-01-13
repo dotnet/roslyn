@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             TypedReference result = new TypedReference ();
             unsafe
             {
-                FCallGetNextArg (&result);
+                FCallGetNextArg (&result); // 1
             }
             return result;
         }
@@ -150,7 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }";
             var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (100,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //                 FCallGetNextArg (&result); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&result").WithArguments("System.TypedReference").WithLocation(100, 34)
+                );
         }
 
         [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
@@ -214,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class Object { }
 }";
-            var compilation = CreateEmptyCompilation(source);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
@@ -225,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
         [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [Fact]
+        [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
         public void NoDecimalConversion()
         {
             var source1 =
@@ -237,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -247,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         return (int)d;
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
 
@@ -271,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -288,7 +295,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -308,7 +315,7 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -325,7 +332,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -346,7 +353,7 @@ public class C1
     public struct Decimal { }
     public struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -364,7 +371,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
     //         rrr = refresult;
@@ -388,7 +395,15 @@ public class C1
     public struct Int32 { }
     public struct Boolean { }
     public struct Decimal { }
-    public class Attribute{ }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class ObsoleteAttribute: Attribute
     {
         public ObsoleteAttribute(string message, bool error){}
@@ -459,7 +474,7 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -472,7 +487,7 @@ namespace System.Collections
         }
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
                 // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
@@ -521,7 +536,7 @@ namespace System.Collections
         public char CharAt(int i) { return default(char); }
     }
 
-    internal class program
+    internal class @program
     {
         string M(string s)
         {
@@ -585,7 +600,7 @@ namespace System.Collections
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -596,9 +611,9 @@ namespace System.Collections
 }";
             var comp = CreateEmptyCompilation(
                     text,
+                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
-
 
             //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
             CompileAndVerify(comp, verify: Verification.Skipped).
@@ -711,7 +726,7 @@ namespace System
     }
 }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -734,13 +749,19 @@ namespace System
 ";
             var comp = CreateEmptyCompilation(
                     text,
+                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
-
 
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
+
+            // PEVerify:
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
+            // Type load failed.
+            // ILVerify: Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("program.Main()",
 @"
@@ -848,7 +869,7 @@ namespace System
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -856,7 +877,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 
@@ -868,6 +889,8 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
+            // PEVerify: Type load failed.
+            // ILVerify: Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
@@ -967,6 +990,15 @@ namespace System
     public struct Char { }
     public struct Boolean { }
     public class Exception { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 
     public class String 
     { 
@@ -983,7 +1015,7 @@ namespace System
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {
@@ -1075,6 +1107,15 @@ namespace System
     public struct Char { }
     public struct Boolean { }
     public class Exception { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 
     public class String 
     { 
@@ -1098,7 +1139,7 @@ namespace System.Runtime.CompilerServices
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {

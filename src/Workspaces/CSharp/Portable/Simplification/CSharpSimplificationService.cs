@@ -10,9 +10,11 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -30,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
@@ -42,20 +45,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
+        public override SimplifierOptions DefaultOptions
+            => CSharpSimplifierOptions.Default;
+
+        public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
+            => new CSharpSimplifierOptions(options, (CSharpSimplifierOptions?)fallbackOptions);
+
+        public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
             {
-                if (node is AttributeSyntax ||
-                    node is AttributeArgumentSyntax ||
-                    node is ConstructorInitializerSyntax ||
-                    node is ExpressionSyntax ||
-                    node is FieldDeclarationSyntax ||
-                    node is StatementSyntax ||
-                    node is CrefSyntax ||
-                    node is XmlNameAttributeSyntax ||
-                    node is TypeConstraintSyntax ||
-                    node is BaseTypeSyntax)
+                if (node is AttributeSyntax or
+                    AttributeArgumentSyntax or
+                    ConstructorInitializerSyntax or
+                    ExpressionSyntax or
+                    FieldDeclarationSyntax or
+                    StatementSyntax or
+                    CrefSyntax or
+                    XmlNameAttributeSyntax or
+                    TypeConstraintSyntax or
+                    BaseTypeSyntax)
                 {
                     var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
                     return rewriter.Visit(node);
@@ -67,8 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken)
+        public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool>? expandInsideNode, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(token.Parent);
+
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken))
             {
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
@@ -102,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             var parent = parentOfToken.Parent;
-            if (parentOfToken is SimpleNameSyntax && parent.Kind() == SyntaxKind.XmlNameAttribute)
+            if (parentOfToken is SimpleNameSyntax && parent.IsKind(SyntaxKind.XmlNameAttribute))
             {
                 // do not try to escape XML name attributes
                 return syntaxToken;
             }
 
             // do not escape global in a namespace qualified name
-            if (parent.Kind() == SyntaxKind.AliasQualifiedName &&
+            if (parent.IsKind(SyntaxKind.AliasQualifiedName) &&
                 syntaxToken.ValueText == "global")
             {
                 return syntaxToken;
@@ -168,21 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         protected override ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
             => NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
 
-        protected override bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node)
+        protected override bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node)
             => false;
 
         private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
-            var root = model.SyntaxTree.GetRoot();
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-
                     if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);

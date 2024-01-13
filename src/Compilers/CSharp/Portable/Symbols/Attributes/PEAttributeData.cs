@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Threading;
 
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal protected override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get
             {
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get
             {
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypedConstant[]? lazyConstructorArguments = null;
                 KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;
 
-                if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
+                if (!_decoder.GetCustomAttribute(_handle, AttributeConstructor, out lazyConstructorArguments, out lazyNamedArguments))
                 {
                     _lazyHasErrors = ThreeState.True;
                 }
@@ -135,19 +134,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Matches an attribute by metadata namespace, metadata type name and metadata signature. Does not load the
         /// type symbol for the attribute.
         /// </summary>
-        /// <param name="targetSymbol">Target symbol.</param>
         /// <param name="description">Attribute to match.</param>
         /// <returns>
         /// An index of the target constructor signature in
         /// signatures array, -1 if
         /// this is not the target attribute.
         /// </returns>
-        internal override int GetTargetAttributeSignatureIndex(Symbol targetSymbol, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(AttributeDescription description)
         {
             // Matching an attribute by name should not load the attribute class.
             return _decoder.GetTargetAttributeSignatureIndex(_handle, description);
         }
 
+        internal override Location GetAttributeArgumentLocation(int parameterIndex)
+        {
+            return new MetadataLocation(_decoder.ModuleSymbol);
+        }
+
+        [MemberNotNullWhen(false, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
@@ -166,5 +170,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyHasErrors.Value();
             }
         }
+
+        internal override DiagnosticInfo? ErrorInfo
+        {
+            get
+            {
+                if (HasErrors)
+                {
+                    switch (AttributeConstructor)
+                    {
+                        case { HasUseSiteError: true } attributeConstructor:
+                            return attributeConstructor.GetUseSiteInfo().DiagnosticInfo;
+
+                        case { }:
+                            return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+
+                        default:
+                            switch (AttributeClass)
+                            {
+                                case { HasUseSiteError: true } attributeClass:
+                                    return attributeClass.GetUseSiteInfo().DiagnosticInfo;
+
+                                case { } attributeClass:
+                                    return new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, attributeClass, WellKnownMemberNames.InstanceConstructorName);
+
+                                default:
+                                    return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+                            }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        internal override bool IsConditionallyOmitted => false;
     }
 }

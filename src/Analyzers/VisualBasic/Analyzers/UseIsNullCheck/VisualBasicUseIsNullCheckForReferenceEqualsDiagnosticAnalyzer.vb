@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseIsNullCheck
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -16,7 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             MyBase.New(VisualBasicAnalyzersResources.Use_Is_Nothing_check)
         End Sub
 
-        Protected Overrides Function IsLanguageVersionSupported(options As ParseOptions) As Boolean
+        Protected Overrides Function IsLanguageVersionSupported(compilation As Compilation) As Boolean
+            Return True
+        End Function
+
+        Protected Overrides Function IsUnconstrainedGenericSupported(compilation As Compilation) As Boolean
             Return True
         End Function
 

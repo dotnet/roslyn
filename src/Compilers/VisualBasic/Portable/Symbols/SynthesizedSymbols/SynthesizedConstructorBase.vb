@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             MyBase.New(container)
 

@@ -4,10 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,14 +22,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// </summary>
     internal sealed class RenamedSpansTracker
     {
-        private readonly Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap;
-        private readonly Dictionary<DocumentId, List<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
-
-        public RenamedSpansTracker()
-        {
-            _documentToComplexifiedSpansMap = new Dictionary<DocumentId, List<ComplexifiedSpan>>();
-            _documentToModifiedSpansMap = new Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>>();
-        }
+        private readonly Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap = new();
+        private readonly Dictionary<DocumentId, List<MutableComplexifiedSpan>> _documentToComplexifiedSpansMap = new();
 
         internal bool IsDocumentChanged(DocumentId documentId)
             => _documentToModifiedSpansMap.ContainsKey(documentId) || _documentToComplexifiedSpansMap.ContainsKey(documentId);
@@ -46,37 +43,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out var spans))
             {
-                spans = new List<ComplexifiedSpan>();
+                spans = new List<MutableComplexifiedSpan>();
                 _documentToComplexifiedSpansMap[documentId] = spans;
             }
 
-            spans.Add(new ComplexifiedSpan() { OriginalSpan = oldSpan, NewSpan = newSpan, ModifiedSubSpans = modifiedSubSpans });
-        }
-
-        internal TextSpan GetAdjustedComplexifiedSpan(TextSpan originalComplexifiedSpan, DocumentId documentId)
-        {
-            if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
-            {
-                throw new ArgumentException("documentId");
-            }
-
-            foreach (var complexifiedSpan in complexifiedSpans)
-            {
-                if (complexifiedSpan.OriginalSpan == originalComplexifiedSpan)
-                {
-                    return complexifiedSpan.NewSpan;
-                }
-            }
-
-            throw new ArgumentException("originalComplexifiedSpan");
+            spans.Add(new MutableComplexifiedSpan(originalSpan: oldSpan, newSpan: newSpan, modifiedSubSpans: modifiedSubSpans));
         }
 
         // Given a position in the old solution, we get back the new adjusted position 
         internal int GetAdjustedPosition(int startingPosition, DocumentId documentId)
         {
-            var documentReplacementSpans = _documentToModifiedSpansMap.ContainsKey(documentId)
-                ? _documentToModifiedSpansMap[documentId].Where(pair => pair.oldSpan.Start < startingPosition) :
-                SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
+            var documentReplacementSpans = _documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans)
+                ? modifiedSpans.Where(pair => pair.oldSpan.Start < startingPosition)
+                : SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
 
             var adjustedStartingPosition = startingPosition;
             foreach (var (oldSpan, newSpan) in documentReplacementSpans)
@@ -84,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 adjustedStartingPosition += newSpan.Length - oldSpan.Length;
             }
 
-            var documentComplexifiedSpans = _documentToComplexifiedSpansMap.ContainsKey(documentId)
-            ? _documentToComplexifiedSpansMap[documentId].Where(c => c.OriginalSpan.Start <= startingPosition) :
-            SpecializedCollections.EmptyEnumerable<ComplexifiedSpan>();
+            var documentComplexifiedSpans = _documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans)
+                ? complexifiedSpans.Where(c => c.OriginalSpan.Start <= startingPosition)
+                : SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
 
             var appliedTextSpans = new HashSet<TextSpan>();
             foreach (var c in documentComplexifiedSpans.Reverse())
@@ -139,11 +118,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         ///     "a", "NS3.a"
         /// 
         /// </summary>
-        private class ComplexifiedSpan
+        private class MutableComplexifiedSpan(
+            TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
         {
-            public TextSpan OriginalSpan;
-            public TextSpan NewSpan;
-            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
+            public TextSpan OriginalSpan = originalSpan;
+            public TextSpan NewSpan = newSpan;
+            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans = modifiedSubSpans;
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
@@ -155,13 +135,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        internal bool ContainsResolvedNonReferenceLocation(DocumentId documentId, TextSpan originalLocation)
-        {
-            return // (this.documentToModifiedSpansMap.Contains(documentId) && this.documentToModifiedSpansMap[documentId].Contains(t => t.oldSpan == originalLocation.SourceSpan)) ||
-                _documentToComplexifiedSpansMap.ContainsKey(documentId) &&
-                _documentToComplexifiedSpansMap[documentId].Contains(c => c.OriginalSpan.Contains(originalLocation));
-        }
-
         public IEnumerable<DocumentId> DocumentIds
         {
             get
@@ -170,18 +143,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CancellationToken cancellationToken)
+        internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var documentId in documentIds)
             {
                 if (this.IsDocumentChanged(documentId))
                 {
-                    var document = solution.GetDocument(documentId);
+                    var document = solution.GetRequiredDocument(documentId);
 
                     if (replacementTextValid)
                     {
-                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+                        document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Simplification may have removed escaping and formatted whitespace.  We need to update
@@ -196,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         complexifiedSpans.Clear();
                     }
 
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // First, get all the complexified statements
                     var nodeAnnotations = renameAnnotations.GetAnnotatedNodesAndTokens<RenameNodeSimplificationAnnotation>(root)
-                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameNodeSimplificationAnnotation>(x).First(), (SyntaxNode)x));
+                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameNodeSimplificationAnnotation>(x).First(), (SyntaxNode)x!));
 
                     var modifiedTokensInComplexifiedStatements = new HashSet<SyntaxToken>();
                     foreach (var annotationAndNode in nodeAnnotations)
@@ -246,69 +221,27 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return solution;
         }
 
-        internal Dictionary<TextSpan, TextSpan> GetModifiedSpanMap(DocumentId documentId)
+        public ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> GetDocumentToModifiedSpansMap()
         {
-            var result = new Dictionary<TextSpan, TextSpan>();
-            if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans))
-            {
-                foreach (var (oldSpan, newSpan) in modifiedSpans)
-                {
-                    result[oldSpan] = newSpan;
-                }
-            }
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>();
 
-            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
-            {
-                foreach (var complexifiedSpan in complexifiedSpans)
-                {
-                    foreach (var (oldSpan, newSpan) in complexifiedSpan.ModifiedSubSpans)
-                    {
-                        result[oldSpan] = newSpan;
-                    }
-                }
-            }
+            foreach (var (docId, spans) in _documentToModifiedSpansMap)
+                builder.Add(docId, spans.ToImmutableArray());
 
-            return result;
+            return builder.ToImmutable();
         }
 
-        internal IEnumerable<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
+        public ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> GetDocumentToComplexifiedSpansMap()
         {
-            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<ComplexifiedSpan>>();
+
+            foreach (var (docId, spans) in _documentToComplexifiedSpansMap)
             {
-                return complexifiedSpans.Select(c => (c.OriginalSpan, c.NewSpan));
+                builder.Add(docId, spans.SelectAsArray(
+                    s => new ComplexifiedSpan(s.OriginalSpan, s.NewSpan, s.ModifiedSubSpans.ToImmutableArray())));
             }
 
-            return SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly RenamedSpansTracker _renamedSpansTracker;
-
-            public TestAccessor(RenamedSpansTracker renamedSpansTracker)
-                => _renamedSpansTracker = renamedSpansTracker;
-
-            internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
-            {
-                if (_renamedSpansTracker._documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans) &&
-                    modifiedSpans.Contains(t => t.oldSpan == originalSpan))
-                {
-                    return modifiedSpans.First(t => t.oldSpan == originalSpan).newSpan;
-                }
-
-                if (_renamedSpansTracker._documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
-                {
-                    return complexifiedSpans.First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
-                }
-
-                // The RenamedSpansTracker doesn't currently track unresolved conflicts for
-                // unmodified locations.  If the document wasn't modified, we can just use the 
-                // original span as the new span.
-                return originalSpan;
-            }
+            return builder.ToImmutable();
         }
     }
 }

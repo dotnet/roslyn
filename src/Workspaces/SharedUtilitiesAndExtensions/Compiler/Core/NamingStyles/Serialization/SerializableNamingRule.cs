@@ -2,17 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal sealed class SerializableNamingRule : IEquatable<SerializableNamingRule>
+    [DataContract]
+    internal sealed record class SerializableNamingRule
     {
-        public Guid SymbolSpecificationID;
-        public Guid NamingStyleID;
-        public ReportDiagnostic EnforcementLevel;
+        [DataMember(Order = 0)]
+        public Guid SymbolSpecificationID { get; init; }
+
+        [DataMember(Order = 1)]
+        public Guid NamingStyleID { get; init; }
+
+        [DataMember(Order = 2)]
+        public ReportDiagnostic EnforcementLevel { get; init; }
 
         public NamingRule GetRule(NamingStylePreferences info)
         {
@@ -42,24 +51,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             };
         }
 
-        public override bool Equals(object obj)
+        public void WriteTo(ObjectWriter writer)
         {
-            return Equals(obj as SerializableNamingRule);
+            writer.WriteGuid(SymbolSpecificationID);
+            writer.WriteGuid(NamingStyleID);
+            writer.WriteInt32((int)(EnforcementLevel.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
         }
 
-        public bool Equals(SerializableNamingRule other)
+        public static SerializableNamingRule ReadFrom(ObjectReader reader)
         {
-            return other != null
-                && SymbolSpecificationID.Equals(other.SymbolSpecificationID)
-                && NamingStyleID.Equals(other.NamingStyleID)
-                && EnforcementLevel == other.EnforcementLevel;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(SymbolSpecificationID.GetHashCode(),
-                Hash.Combine(NamingStyleID.GetHashCode(),
-                    (int)EnforcementLevel));
+            return new SerializableNamingRule
+            {
+                SymbolSpecificationID = reader.ReadGuid(),
+                NamingStyleID = reader.ReadGuid(),
+                EnforcementLevel = ((DiagnosticSeverity)reader.ReadInt32()).ToReportDiagnostic(),
+            };
         }
     }
 }

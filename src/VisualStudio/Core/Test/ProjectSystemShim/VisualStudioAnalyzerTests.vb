@@ -2,24 +2,41 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class VisualStudioAnalyzerTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
+        <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using workspace = New TestWorkspace()
-                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", Nothing, Nothing, workspace, Nothing)
+            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
+                                    Function()
+                                        Return Nothing
+                                    End Function)
+
+                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
+
+                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 
@@ -28,27 +45,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
-                                    Function()
-                                        Return Nothing
-                                    End Function)
+            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
+                                        Function()
+                                            Return Nothing
+                                        End Function)
 
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, New MockDiagnosticUpdateSourceRegistrationService())
+                Dim file = Path.GetTempFileName()
 
-            Dim file = Path.GetTempFileName()
-            Dim eventHandler = New EventHandlers(file)
+                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
-            AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
+                Dim eventHandler = New EventHandlers(file)
+                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-            Using workspace = New TestWorkspace()
-                Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), workspace, LanguageNames.VisualBasic)
+                Using analyzer = New ProjectAnalyzerReference(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference = analyzer.GetReference()
                     reference.GetAnalyzers(LanguageNames.VisualBasic)
 
                     RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandlers.DiagnosticRemovedTest
                 End Using
 
                 IO.File.Delete(file)
@@ -62,15 +80,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Me.File = file
             End Sub
 
-            Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Assert.Equal(1, e.Diagnostics.Length)
-                Dim diagnostic As DiagnosticData = e.Diagnostics.First()
+            Public Sub DiagnosticAddedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
+                Assert.Equal(1, diagnostics.Length)
+                Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
-            Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Assert.Equal(0, e.Diagnostics.Length)
+            Public Shared Sub DiagnosticRemovedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
+                Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class
 

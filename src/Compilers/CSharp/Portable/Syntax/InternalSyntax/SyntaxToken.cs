@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -56,28 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
         }
 
-        internal SyntaxToken(ObjectReader reader)
-            : base(reader)
-        {
-            var text = this.Text;
-            if (text != null)
-            {
-                FullWidth = text.Length;
-            }
-
-            this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
-        }
-
-        internal override bool ShouldReuseInSerialization => base.ShouldReuseInSerialization &&
-                                                             FullWidth < Lexer.MaxCachedTokenSize;
-
         //====================
 
         public override bool IsToken => true;
 
         internal override GreenNode GetSlot(int index)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal static SyntaxToken Create(SyntaxKind kind)
@@ -147,8 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         static SyntaxToken()
         {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxToken), r => new SyntaxToken(r));
-
             for (var kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
             {
                 s_tokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
@@ -283,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (this.Kind)
                 {
                     case SyntaxKind.TrueKeyword:
-                        return true;
+                        return Boxes.BoxedTrue;
                     case SyntaxKind.FalseKeyword:
-                        return false;
+                        return Boxes.BoxedFalse;
                     case SyntaxKind.NullKeyword:
                         return null;
                     default:
@@ -471,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

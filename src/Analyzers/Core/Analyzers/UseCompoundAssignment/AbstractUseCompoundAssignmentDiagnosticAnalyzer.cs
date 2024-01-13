@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
@@ -28,26 +28,42 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         /// </summary>
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
 
-        /// <summary>
-        /// Maps from an assignment form (like AddAssignmentExpression) to the corresponding
-        /// operator type (like PlusEqualsToken).
-        /// </summary>
-        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
+        private readonly DiagnosticDescriptor _incrementDescriptor;
+
+        private readonly DiagnosticDescriptor _decrementDescriptor;
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
-            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _);
+
+            var useIncrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_increment_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _incrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
+                useIncrementMessage, useIncrementMessage);
+
+            var useDecrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_decrement_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _decrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
+                useDecrementMessage, useDecrementMessage);
         }
 
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
+        protected abstract int TryGetIncrementOrDecrement(TSyntaxKind opKind, object constantValue);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -61,8 +77,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = assignment.SyntaxTree;
-            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, assignment.Language);
-            if (!option.Value)
+            var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -75,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
-            if (!(assignmentRight is TBinaryExpressionSyntax binaryExpression))
+            if (assignmentRight is not TBinaryExpressionSyntax binaryExpression)
             {
                 return;
             }
@@ -102,8 +118,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             // Don't offer if this is `x = x + 1` inside an obj initializer like:
-            // `new Point { x = x + 1 }`
-            if (_syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(assignmentLeft))
+            // `new Point { x = x + 1 }` or
+            // `new () { x = x + 1 }` or
+            // `p with { x = x + 1 }`
+            if (_syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(assignmentLeft))
             {
                 return;
             }
@@ -124,10 +142,54 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
+            var constant = semanticModel.GetConstantValue(binaryRight, cancellationToken).Value;
+            if (constant != null)
+            {
+                var incrementOrDecrement = TryGetIncrementOrDecrement(binaryKind, constant);
+                if (incrementOrDecrement == 1)
+                {
+                    var operation = (IBinaryOperation)semanticModel.GetRequiredOperation(binaryExpression, cancellationToken);
+
+                    // We can suggest using increment operator only if it is a built-in one (in such case `OperatorMethod` is null)
+                    // or if increment operator is defined in the containing type
+                    if (operation.OperatorMethod is null ||
+                        operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.IncrementOperatorName).Length > 0)
+                    {
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            _incrementDescriptor,
+                            assignmentToken.GetLocation(),
+                            option.Notification,
+                            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                            properties: ImmutableDictionary.Create<string, string?>()
+                                .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
+                        return;
+                    }
+                }
+                else if (incrementOrDecrement == -1)
+                {
+                    var operation = (IBinaryOperation)semanticModel.GetRequiredOperation(binaryExpression, cancellationToken);
+
+                    // We can suggest using decrement operator only if it is a built-in one (in such case `OperatorMethod` is null)
+                    // or if decrement operator is defined in the containing type
+                    if (operation.OperatorMethod is null ||
+                        operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.DecrementOperatorName).Length > 0)
+                    {
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            _decrementDescriptor,
+                            assignmentToken.GetLocation(),
+                            option.Notification,
+                            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                            properties: ImmutableDictionary.Create<string, string?>()
+                                .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
+                        return;
+                    }
+                }
+            }
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 assignmentToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                 properties: null));
         }

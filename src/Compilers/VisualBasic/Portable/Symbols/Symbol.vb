@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -58,6 +59,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable ReadOnly Property MetadataName As String Implements ISymbol.MetadataName, ISymbolInternal.MetadataName
             Get
                 Return Name
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the token for this symbol as it appears in metadata. Most of the time this Is 0,
+        ''' as it Is when the symbol Is Not loaded from metadata.
+        ''' </summary>
+        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken, ISymbolInternal.MetadataToken
+            Get
+                Return 0
+            End Get
+        End Property
+
+        Public ReadOnly Property MetadataVisibility As Microsoft.Cci.TypeMemberVisibility Implements ISymbolInternal.MetadataVisibility
+            Get
+                '
+                ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                '
+                ' Top-level:
+                '   private                       -> public
+                '   family                        -> public (compiles with a warning)
+                '   public
+                '   friend                        -> public
+                '
+                ' In a nested class:
+                '
+                '   private
+                '   family
+                '   public
+                '   friend                        -> public
+                '
+                Select Case DeclaredAccessibility
+                    Case Accessibility.Public
+                        Return Microsoft.Cci.TypeMemberVisibility.Public
+
+                    Case Accessibility.Private
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Private
+                        End If
+
+                    Case Accessibility.Friend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Assembly
+                        End If
+
+                    Case Accessibility.Protected
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Family
+                        End If
+
+                    Case Accessibility.ProtectedAndFriend
+                        Debug.Assert(ContainingType.TypeKind <> TypeKind.Submission)
+                        Return Microsoft.Cci.TypeMemberVisibility.FamilyAndAssembly
+
+                    Case Accessibility.ProtectedOrFriend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.FamilyOrAssembly
+                        End If
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility)
+                End Select
             End Get
         End Property
 
@@ -435,12 +505,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
                 Select Case ObsoleteKind
-                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
+                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
                         Return ThreeState.False
                     Case ObsoleteAttributeKind.Uninitialized
                         Return ThreeState.Unknown
                     Case Else
                         Return ThreeState.True
+                End Select
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if this symbol has been marked with the Experimental attribute. 
+        ''' This property returns Unknown if the Experimental attribute hasn't been cracked yet.
+        ''' </summary>
+        Friend ReadOnly Property ExperimentalState As ThreeState
+            Get
+                Select Case ObsoleteKind
+                    Case ObsoleteAttributeKind.Experimental
+                        Return ThreeState.True
+                    Case ObsoleteAttributeKind.Uninitialized
+                        Return ThreeState.Unknown
+                    Case Else
+                        Return ThreeState.False
                 End Select
             End Get
         End Property
@@ -453,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        ''' Returns data decoded from Obsolete/Experimental attribute or null if there is no Obsolete/Experimental attribute.
         ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         ''' </summary>
         Friend MustOverride ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
@@ -502,8 +589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property CanBeReferencedByName As Boolean
             Get
                 Select Case Me.Kind
-                    Case SymbolKind.Local,
-                         SymbolKind.Label,
+                    Case SymbolKind.Local
+                        Return If(Me.Name?.Length, 0) > 0
+
+                    Case SymbolKind.Label,
                          SymbolKind.Alias
                         ' Can't be imported, but might have syntax errors in which case we use an empty name:
                         Return Me.Name.Length > 0
@@ -682,24 +771,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns true and a <see cref="String"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        ''' the string might be null or an invalid guid representation. False, 
-        ''' if there is no <see cref="GuidAttribute"/> with string argument.
-        ''' </summary>
-        Friend Function GetGuidStringDefaultImplementation(<Out> ByRef guidString As String) As Boolean
-            For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                    If attrData.TryGetGuidAttributeValue(guidString) Then
-                        Return True
-                    End If
-                End If
-            Next
-
-            guidString = Nothing
-            Return False
-        End Function
-
-        ''' <summary>
         ''' Returns the Documentation Comment ID for the symbol, or Nothing if the symbol
         ''' doesn't support documentation comments.
         ''' </summary>
@@ -771,18 +842,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.[Equals](TryCast(other, Symbol), equalityComparer.CompareKind)
         End Function
 
-        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Private Overloads Function ISymbolInternal_Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
             Return Me.Equals(TryCast(other, Symbol), compareKind)
         End Function
 
         ' By default we don't consider the compareKind. This can be overridden.
-        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+        Public Overridable Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
             Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
         Public Overrides Function GetHashCode() As Integer
-            Return MyBase.GetHashCode()
+            Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
         End Function
 
         Public NotOverridable Overrides Function ToString() As String
@@ -809,7 +880,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return String.Format("{0} {1}", Me.Kind, Me.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Function
 
-
         ' ---- End of Public Definition ---
         ' Below here can be Friend members that are useful to the compiler, but we don't
         ' want to expose publicly. However, using a class derived from SymbolVisitor can be
@@ -824,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
-        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolInternal.IsDefinedInSourceTree
             Dim declaringReferences = Me.DeclaringSyntaxReferences
             If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
                 Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
@@ -859,12 +929,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Use-Site Diagnostic"
 
         ''' <summary>
-        ''' Returns error info for an error, if any, that should be reported at the use site of the symbol.
+        ''' Returns dependencies and an error info for an error, if any, that should be reported at the use site of the symbol.
         ''' </summary>
-        Friend Overridable Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overridable Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Return Nothing
         End Function
 
+        Friend ReadOnly Property PrimaryDependency As AssemblySymbol
+            Get
+                Dim dependency As AssemblySymbol = Me.ContainingAssembly
+                If dependency IsNot Nothing AndAlso dependency.CorLibrary = dependency Then
+                    Return Nothing
+                End If
+
+                Return dependency
+            End Get
+        End Property
 
         ''' <summary>
         ''' Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -892,119 +972,142 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Derive error info from a type symbol.
+        ''' Derive dependencies and error info from a type symbol.
         ''' </summary>
-        Friend Function DeriveUseSiteErrorInfoFromType(type As TypeSymbol) As DiagnosticInfo
-            Dim errorInfo As DiagnosticInfo = type.GetUseSiteErrorInfo()
+        Friend Function DeriveUseSiteInfoFromType(type As TypeSymbol) As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = type.GetUseSiteInfo()
 
-            If errorInfo IsNot Nothing Then
-                Select Case errorInfo.Code
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Select Case useSiteInfo.DiagnosticInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
-                        Select Case Me.Kind
-                            Case SymbolKind.Field
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-
-                            Case SymbolKind.Method
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-
-                            Case SymbolKind.Property
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-                        End Select
+                        GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
 
                     Case Else
                         ' Nothing to do, simply use the same error info.
                 End Select
             End If
 
-            Return errorInfo
+            Return useSiteInfo
         End Function
+
+        Private Sub GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol))
+            Select Case Me.Kind
+                Case SymbolKind.Field
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+
+                Case SymbolKind.Method
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+
+                Case SymbolKind.Property
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+            End Select
+        End Sub
 
         ''' <summary>
-        ''' Return error code that has highest priority while calculating use site error for this symbol. 
+        ''' Returns true if the error code is highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overridable ReadOnly Property HighestPriorityUseSiteError As Integer ' Supposed to be ERRID, but it causes inconsistent accessibility error.
-            Get
-                Return Integer.MaxValue
-            End Get
-        End Property
-
-        Friend Function MergeUseSiteErrorInfo(first As DiagnosticInfo, second As DiagnosticInfo) As DiagnosticInfo
-            If first Is Nothing Then
-                Return second
-            End If
-
-            If second Is Nothing OrElse second.Code <> HighestPriorityUseSiteError Then
-                Return first
-            End If
-
-            Return second
+        Protected Overridable Function IsHighestPriorityUseSiteError(code As Integer) As Boolean ' Supposed to be ERRID, but it causes inconsistent accessibility error.
+            Return False
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromParameter(param As ParameterSymbol, highestPriorityUseSiteError As Integer) As DiagnosticInfo
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(param.Type)
-
-            If errorInfo IsNot Nothing AndAlso errorInfo.Code = highestPriorityUseSiteError Then
-                Return errorInfo
+        Friend Function MergeUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), other As UseSiteInfo(Of AssemblySymbol)) As Boolean
+            If other.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(other.DiagnosticInfo.Code) Then
+                result = other
+                Return True
             End If
 
-            Dim refModifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.RefCustomModifiers)
+            If result.DiagnosticInfo Is Nothing Then
+                If other.DiagnosticInfo IsNot Nothing Then
+                    result = other
+                Else
+                    Dim primaryDependency = result.PrimaryDependency
+                    Dim secondaryDependency = result.SecondaryDependencies
 
-            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                Return refModifiersErrorInfo
+                    other.MergeDependencies(primaryDependency, secondaryDependency)
+                    result = New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
+                End If
+
+                Return False
+            Else
+                Return IsHighestPriorityUseSiteError(result.DiagnosticInfo.Code)
             End If
-
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
-
-            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                Return modifiersErrorInfo
-            End If
-
-            Return If(errorInfo, If(refModifiersErrorInfo, modifiersErrorInfo))
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As DiagnosticInfo
-            Dim paramsErrorInfo As DiagnosticInfo = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
+        Friend Function DeriveUseSiteInfoFromParameter(param As ParameterSymbol) As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(param.Type)
+
+            If useSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(useSiteInfo.DiagnosticInfo.Code) Then
+                Return useSiteInfo
+            End If
+
+            Dim refModifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.RefCustomModifiers)
+
+            If refModifiersUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(refModifiersUseSiteInfo.DiagnosticInfo.Code) Then
+                Return refModifiersUseSiteInfo
+            End If
+
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.CustomModifiers)
+
+            If modifiersUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(modifiersUseSiteInfo.DiagnosticInfo.Code) Then
+                Return modifiersUseSiteInfo
+            End If
+
+            Dim errorInfo = If(useSiteInfo.DiagnosticInfo, If(refModifiersUseSiteInfo.DiagnosticInfo, modifiersUseSiteInfo.DiagnosticInfo))
+
+            If errorInfo IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+            End If
+
+            Dim primaryDependency = useSiteInfo.PrimaryDependency
+            Dim secondaryDependency = useSiteInfo.SecondaryDependencies
+
+            refModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            modifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+
+            Return New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
+        End Function
+
+        Friend Function DeriveUseSiteInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As UseSiteInfo(Of AssemblySymbol)
+            Dim paramsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
 
             For Each param As ParameterSymbol In parameters
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromParameter(param, highestPriorityUseSiteError)
-
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = highestPriorityUseSiteError Then
-                        Return errorInfo
-                    End If
-
-                    If paramsErrorInfo Is Nothing Then
-                        paramsErrorInfo = errorInfo
-                    End If
+                If MergeUseSiteInfo(paramsUseSiteInfo, DeriveUseSiteInfoFromParameter(param)) Then
+                    Exit For
                 End If
             Next
 
-            Return paramsErrorInfo
+            Return paramsUseSiteInfo
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromCustomModifiers(
-            customModifiers As ImmutableArray(Of CustomModifier)
-        ) As DiagnosticInfo
-            Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
+        Friend Function DeriveUseSiteInfoFromCustomModifiers(
+            customModifiers As ImmutableArray(Of CustomModifier),
+            Optional allowIsExternalInit As Boolean = False
+        ) As UseSiteInfo(Of AssemblySymbol)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
 
             For Each modifier As CustomModifier In customModifiers
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
 
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = highestPriorityUseSiteError Then
-                        Return errorInfo
-                    End If
+                If Not modifier.IsOptional AndAlso
+                   (Not allowIsExternalInit OrElse Not DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol.IsWellKnownTypeIsExternalInit()) Then
 
-                    If modifiersErrorInfo Is Nothing Then
-                        modifiersErrorInfo = errorInfo
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+                    GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
+
+                    If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
+                        Exit For
                     End If
+                End If
+
+                useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
+
+                If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
+                    Exit For
                 End If
             Next
 
-            Return modifiersErrorInfo
+            Return modifiersUseSiteInfo
         End Function
 
         Friend Overloads Shared Function GetUnificationUseSiteDiagnosticRecursive(Of T As TypeSymbol)(types As ImmutableArray(Of T), owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
@@ -1061,6 +1164,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Sub Accept(visitor As SymbolVisitor) Implements ISymbol.Accept
 
         Public MustOverride Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult Implements ISymbol.Accept
+
+        Public MustOverride Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements ISymbol.Accept
 
         Public MustOverride Sub Accept(visitor As VisualBasicSymbolVisitor)
 
@@ -1232,7 +1337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Display.ToMinimalDisplayParts(Me, semanticModel, position, format)
         End Function
 
-        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern
+        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern, ISymbolInternal.IsExtern
             Get
                 Return False
             End Get

@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Class NamespaceData
             Public Property Name As String
-            Public Property Position As Object = Nothing
+            Public Property Position As Object
         End Class
 
     End Class

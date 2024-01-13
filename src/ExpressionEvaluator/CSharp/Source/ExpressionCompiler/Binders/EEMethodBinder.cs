@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal EEMethodBinder(EEMethodSymbol method, MethodSymbol containingMethod, Binder next) : base(next, next.Flags | BinderFlags.InEEMethodBinder)
         {
+            Debug.Assert(method.DeclaringCompilation is not null);
+
             // There are a lot of method symbols floating around and we're doing some subtle things with them.
             //   1) method is the EEMethodSymbol that we're going to synthesize and hand to the debugger to evaluate.
             //   2) containingMethod is the method that we are conceptually in, e.g. the method containing the
@@ -40,12 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var substitutedSourceMethod = method.SubstitutedSourceMethod;
             _parameterOffset = substitutedSourceMethod.IsStatic ? 0 : 1;
             _targetParameters = method.Parameters;
-            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation));
+
+            // Note that we never expect this InMethodBinder to find candidate symbols which may be file-local, and therefore pass 'associatedFileIdentifier: null' to the BuckStopsHereBinder.
+            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedFileIdentifier: null).WithAdditionalFlags(BinderFlags.InEEMethodBinder));
         }
 
-        internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            _sourceBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
+            _sourceBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteInfo);
 
             var symbols = result.Symbols;
             for (int i = 0; i < symbols.Count; i++)
@@ -54,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // should be found by WithMethodTypeParametersBinder instead.
                 var parameter = (ParameterSymbol)symbols[i];
                 Debug.Assert(parameter.ContainingSymbol == _sourceBinder.ContainingMemberOrLambda);
-                Debug.Assert(GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.None);
+                Debug.Assert(GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.None);
                 symbols[i] = _targetParameters[parameter.Ordinal + _parameterOffset];
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             throw new NotImplementedException();
         }

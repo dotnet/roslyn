@@ -6,10 +6,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundQueryClause
+    Partial Friend Class BoundQueryClause
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return UnderlyingExpression.ExpressionSymbol

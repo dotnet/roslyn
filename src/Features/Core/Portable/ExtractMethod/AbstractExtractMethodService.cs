@@ -4,44 +4,45 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract class AbstractExtractMethodService<TValidator, TExtractor, TResult> : IExtractMethodService
-        where TValidator : SelectionValidator
-        where TExtractor : MethodExtractor
-        where TResult : SelectionResult
+    internal abstract class AbstractExtractMethodService<
+        TValidator,
+        TExtractor,
+        TSelectionResult,
+        TStatementSyntax,
+        TExpressionSyntax> : IExtractMethodService
+        where TValidator : SelectionValidator<TSelectionResult, TStatementSyntax>
+        where TExtractor : MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
+        where TSelectionResult : SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
-        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options);
-        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, bool localFunction);
+        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction);
+        protected abstract TExtractor CreateMethodExtractor(TSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(
             Document document,
             TextSpan textSpan,
             bool localFunction,
-            OptionSet options,
+            ExtractMethodGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var validator = CreateSelectionValidator(semanticDocument, textSpan, options);
+            var validator = CreateSelectionValidator(semanticDocument, textSpan, options.ExtractOptions, localFunction);
 
-            var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
-            if (!selectionResult.ContainsValidContext)
-            {
-                return new FailedExtractMethodResult(selectionResult.Status);
-            }
+            var (selectionResult, status) = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
+            if (selectionResult is null)
+                return ExtractMethodResult.Fail(status);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // extract method
-            var extractor = CreateMethodExtractor((TResult)selectionResult, localFunction);
-
-            return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
+            var extractor = CreateMethodExtractor(selectionResult, options, localFunction);
+            return extractor.ExtractMethod(status, cancellationToken);
         }
     }
 }

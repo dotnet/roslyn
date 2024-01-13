@@ -6,14 +6,9 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQParameter
+    internal abstract class RQParameter(RQType type)
     {
-        public readonly RQType Type;
-        public RQParameter(RQType type)
-        {
-            System.Diagnostics.Debug.Assert(type != null);
-            Type = type;
-        }
+        public readonly RQType Type = type;
 
         public SimpleTreeNode ToSimpleTree()
             => new SimpleGroupNode(RQNameStrings.Param, CreateSimpleTreeForType());

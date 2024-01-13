@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CaseCorrection
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// The annotation normally used on nodes to request case correction.
         /// </summary>
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation Annotation = new();
 
         /// <summary>
         /// Case corrects all names found in the provided document.
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// </summary>
         public static async Task<Document> CaseCorrectAsync(Document document, TextSpan span, CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, ImmutableArray.Create(span), cancellationToken).ConfigureAwait(false);
         }
 
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// Case corrects all names found in the provided spans.
         /// </summary>
         public static Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
-            => document.Project.LanguageServices.GetRequiredService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
+            => document.GetRequiredLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
 
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
-        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default)
-            => workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
+        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, SolutionServices services, CancellationToken cancellationToken = default)
+            => services.GetRequiredLanguageService<ICaseCorrectionService>(root.Language).CaseCorrect(root, spans, cancellationToken);
     }
 }

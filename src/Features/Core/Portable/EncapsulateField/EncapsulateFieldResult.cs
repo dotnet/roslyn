@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,29 +11,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
-    internal class EncapsulateFieldResult
+    internal class EncapsulateFieldResult(string name, Glyph glyph, Func<CancellationToken, Task<Solution>> getSolutionAsync)
     {
-        private readonly AsyncLazy<AbstractEncapsulateFieldService.Result> _resultGetter;
+        public readonly string Name = name;
+        public readonly Glyph Glyph = glyph;
+        private readonly AsyncLazy<Solution> _lazySolution = AsyncLazy.Create(getSolutionAsync);
 
-        public EncapsulateFieldResult(Func<CancellationToken, Task<AbstractEncapsulateFieldService.Result>> resultGetter)
-            => _resultGetter = new AsyncLazy<AbstractEncapsulateFieldService.Result>(c => resultGetter(c), cacheResult: true);
-
-        public async Task<string> GetNameAsync(CancellationToken cancellationToken)
-        {
-            var result = await _resultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return result.Name;
-        }
-
-        public async Task<Glyph> GetGlyphAsync(CancellationToken cancellationToken)
-        {
-            var result = await _resultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return result.Glyph;
-        }
-
-        public async Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        {
-            var result = await _resultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return result.Solution;
-        }
+        public Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
+            => _lazySolution.GetValueAsync(cancellationToken);
     }
 }

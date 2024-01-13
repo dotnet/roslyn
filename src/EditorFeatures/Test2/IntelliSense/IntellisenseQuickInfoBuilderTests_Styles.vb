@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <InlineData({"em", "strong"}, ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Bold)>
         <InlineData({"b", "i"}, ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Bold)>
         <InlineData({"i", "strong", "c", "u"}, ClassifiedTextRunStyle.Bold Or ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Underline Or ClassifiedTextRunStyle.UseClassificationFont)>
-        Public Async Sub QuickInfoForStylizedText(styleTags As String(), style As ClassifiedTextRunStyle)
+        Public Async Function QuickInfoForStylizedText(styleTags As String(), style As ClassifiedTextRunStyle) As Task
             Dim openStyleTag = String.Join("", styleTags.Select(Function(tag) $"<{tag}>"))
             Dim closeStyleTag = String.Join("", styleTags.Reverse().Select(Function(tag) $"</{tag}>"))
             Dim workspace =
@@ -65,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "stylized text", style),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
     End Class
 End Namespace

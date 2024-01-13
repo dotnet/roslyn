@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,41 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    internal readonly struct FSharpInlineRenameLocation
-    {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
-
-        public FSharpInlineRenameLocation(Document document, TextSpan textSpan)
-        {
-            this.Document = document;
-            this.TextSpan = textSpan;
-        }
-    }
-
-    internal enum FSharpInlineRenameReplacementKind
-    {
-        NoConflict,
-        ResolvedReferenceConflict,
-        ResolvedNonReferenceConflict,
-        UnresolvedConflict,
-        Complexified,
-    }
-
-    internal readonly struct FSharpInlineRenameReplacement
-    {
-        public FSharpInlineRenameReplacementKind Kind { get; }
-        public TextSpan OriginalSpan { get; }
-        public TextSpan NewSpan { get; }
-
-        public FSharpInlineRenameReplacement(FSharpInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan)
-        {
-            this.Kind = kind;
-            this.OriginalSpan = originalSpan;
-            this.NewSpan = newSpan;
-        }
-    }
-
+    [Obsolete]
     internal interface IFSharpInlineRenameReplacementInfo
     {
         /// <summary>
@@ -69,6 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         IEnumerable<FSharpInlineRenameReplacement> GetReplacements(DocumentId documentId);
     }
 
+    [Obsolete]
     internal interface IFSharpInlineRenameLocationSet
     {
         /// <summary>
@@ -87,6 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         Task<IFSharpInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken);
     }
 
+    [Obsolete]
     internal interface IFSharpInlineRenameInfo
     {
         /// <summary>
@@ -173,6 +144,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.
     /// </summary>
+    [Obsolete]
     internal interface IFSharpEditorInlineRenameService
     {
         Task<IFSharpInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);

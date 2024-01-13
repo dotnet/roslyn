@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -49,12 +52,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public async Task<SyntaxNode> GetAttributeToRemoveAsync(CancellationToken cancellationToken)
                 {
                     var attributeNode = await _attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    return Fixer.IsSingleAttributeInAttributeList(attributeNode) ?
-                        attributeNode.Parent :
-                        attributeNode;
+                    return Fixer.IsSingleAttributeInAttributeList(attributeNode)
+                        ? attributeNode.Parent
+                        : attributeNode;
                 }
 
-                protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution> GetChangedSolutionAsync(
+                    IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var attributeNode = await GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                     var documentWithAttribute = _project.GetDocument(attributeNode.SyntaxTree);

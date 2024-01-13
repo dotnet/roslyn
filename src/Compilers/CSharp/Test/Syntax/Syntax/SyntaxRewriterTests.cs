@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -46,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestGreen(input, output, rewriter, isExpr: false);
         }
-
 
         #endregion Green Tree / SyntaxList
 
@@ -540,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var rewriter = new BadRewriter();
             var rewrittenRoot = rewriter.Visit(tree.GetCompilationUnitRoot());
             Assert.NotNull(rewrittenRoot.SyntaxTree);
-            Assert.True(((SyntaxTree)rewrittenRoot.SyntaxTree).HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
+            Assert.True(rewrittenRoot.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
         }
 

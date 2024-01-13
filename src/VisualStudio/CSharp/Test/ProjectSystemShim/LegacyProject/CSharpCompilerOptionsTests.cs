@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,11 +22,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class CSharpCompilerOptionsTests
     {
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToDiagnoseIfProducingDocFile()
         {
             using var environment = new TestEnvironment();
@@ -38,9 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(DocumentationMode.Diagnose, options.DocumentationMode);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToParseIfNotProducingDocFile()
         {
             using var environment = new TestEnvironment();
@@ -55,7 +54,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void UseOPTID_COMPATIBILITY()
         {
             using var environment = new TestEnvironment();
@@ -86,11 +84,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         ////    }
         ////}
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
-        [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
-        [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
         public void ProjectSettingsOptionAddAndRemove()
         {
             using var environment = new TestEnvironment();
@@ -105,8 +101,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
 
-        [WpfFact]
-        [WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/33401")]
         public void ProjectOutputPathAndOutputExeNameChange()
         {
             using var environment = new TestEnvironment();
@@ -116,7 +111,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(initialPath, project.GetOutputFileName());
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_ProjectSystemProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Equal(initialPath, getCurrentCompilationOutputAssemblyPath());
 
@@ -149,7 +144,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_ProjectSystemProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Null(getCurrentCompilationOutputAssemblyPath());
 
@@ -174,18 +169,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfTheory]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
@@ -220,12 +211,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfFact]
         public void SetProperty_MaxSupportedLangVersion_NotSet()
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);

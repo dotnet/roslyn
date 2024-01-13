@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal sealed class NintKeywordRecommender : AbstractNativeIntegerKeywordRecommender
     {
-        protected override RecommendedKeyword Keyword => new RecommendedKeyword("nint");
+        protected override RecommendedKeyword Keyword => new("nint");
     }
 }

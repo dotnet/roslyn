@@ -2,25 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+#nullable disable
+
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Creation()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_TopLevel()
         {
             using var session = CreateSession("$$");
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_TopLevel2()
         {
             using var session = CreateSession("using System;$$");
@@ -38,142 +42,164 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String()
         {
-            var code = @"class C
-{
-    string s = ""$$
-}";
+            var code = """
+                class C
+                {
+                    string s = "$$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String2()
         {
-            var code = @"class C
-{
-    string s = @""
-$$
-}";
+            var code = """
+                class C
+                {
+                    string s = @"
+                $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment()
         {
-            var code = @"class C
-{
-    //$$
-}";
+            var code = """
+                class C
+                {
+                    //$$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment2()
         {
-            var code = @"class C
-{
-    /* $$
-}";
+            var code = """
+                class C
+                {
+                    /* $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment3()
         {
-            var code = @"class C
-{
-    /// $$
-}";
+            var code = """
+                class C
+                {
+                    /// $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment4()
         {
-            var code = @"class C
-{
-    /** $$
-}";
+            var code = """
+                class C
+                {
+                    /** $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_Comment()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        /* */$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        /* */$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_DocComment()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        /** */$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        /** */$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String1()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = """"$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = ""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String2()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = @""""$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = @""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -181,11 +207,13 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_Delete()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -194,11 +222,13 @@ class C { }";
             CheckBackspace(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_Tab()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -207,11 +237,13 @@ class C { }";
             CheckTab(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_CloseBracket()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -220,13 +252,15 @@ class C { }";
             CheckOverType(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Array_Multiple_Invalid()
         {
-            var code = @"class C 
-{
-    int [$$]
-}";
+            var code = """
+                class C 
+                {
+                    int [$$]
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -234,24 +268,65 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Array_Nested()
         {
-            var code = @"class C
-{
-    int [] i = new int [arr$$]
-}";
+            var code = """
+                class C
+                {
+                    int [] i = new int [arr$$]
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        [WpfFact]
+        public void ListPattern()
+        {
+            var code = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is$$
+                    }
+                }
+                """;
+            var expectedBeforeReturn = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is []
+                    }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is
+                        [
+
+                        ]
+                    }
+                }
+                """;
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter);
+                EditorTestWorkspace.CreateCSharp(code),
+                Bracket.OpenCharacter, Bracket.CloseCharacter);
         }
     }
 }

@@ -7,6 +7,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
@@ -63,6 +64,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 If _referencingViews = 1 Then
                     AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
                     AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
+
+                    Dim projectionBuffer = TryCast(_buffer, IProjectionBuffer)
+                    If projectionBuffer IsNot Nothing Then
+                        AddHandler projectionBuffer.SourceSpansChanged, AddressOf OnSourceSpansChanged
+                    End If
                 End If
             End SyncLock
         End Sub
@@ -79,6 +85,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     If _referencingViews = 0 Then
                         RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
                         RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
+
+                        Dim projectionBuffer = TryCast(_buffer, IProjectionBuffer)
+                        If projectionBuffer IsNot Nothing Then
+                            RemoveHandler projectionBuffer.SourceSpansChanged, AddressOf OnSourceSpansChanged
+                        End If
                     End If
                 End If
             End SyncLock
@@ -171,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
         End Sub
 
-        Private Function TryComputeExpandedSpanToFormat(dirtySpan As SnapshotSpan, ByRef formattingInfo As FormattingInfo, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryComputeExpandedSpanToFormat(dirtySpan As SnapshotSpan, ByRef formattingInfo As FormattingInfo, cancellationToken As CancellationToken) As Boolean
             Dim document = dirtySpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document Is Nothing Then
                 Return False
@@ -220,9 +231,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return True
         End Function
 
-        Public Function IsMovementBetweenStatements(oldPoint As SnapshotPoint, newPoint As SnapshotPoint, cancellationToken As CancellationToken) As Boolean
+        Public Shared Function IsMovementBetweenStatements(oldPoint As SnapshotPoint, newPoint As SnapshotPoint, cancellationToken As CancellationToken) As Boolean
             ' If they are the same line, then definitely no
-            If oldPoint.GetContainingLine().LineNumber = newPoint.GetContainingLine().LineNumber Then
+            If oldPoint.GetContainingLineNumber() = newPoint.GetContainingLineNumber() Then
                 Return False
             End If
 
@@ -292,7 +303,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
         End Sub
 
-        Private Async Function ForceComputeInternalsVisibleToAsync(document As Document, cancellationToken As CancellationToken) As Task
+        Private Sub OnSourceSpansChanged(sender As Object, e As ProjectionSourceSpansChangedEventArgs)
+            ' DirtyState information should be purged when source spans change, as the new buffer content
+            ' may be unrelated to prior content. Aspx and legacy razor may generate significant differences
+            ' during generations (eg, converting a <%= to a <%# in aspx), causing unnecessary (and troublesome) large
+            ' dirty state ranges.
+            _dirtyState = Nothing
+        End Sub
+
+        Private Shared Async Function ForceComputeInternalsVisibleToAsync(document As Document, cancellationToken As CancellationToken) As Task
             Dim project = document.Project
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
 

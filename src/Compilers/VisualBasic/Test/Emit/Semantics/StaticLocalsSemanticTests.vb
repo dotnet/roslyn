@@ -307,7 +307,6 @@ End Class
 3]]>)
         End Sub
 
-
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClash_Property_NoEscapingRequired()
@@ -542,7 +541,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_WithDim()
-            'Declare static local in conjunction with an Dim keyword 
+            'Declare static local in conjunction with a Dim keyword 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
@@ -716,11 +715,6 @@ Exception Thrown
 No Exception Thrown
 2
 No Exception Thrown]]>)
-
-
-
-
-
 
             'SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
 
@@ -1082,9 +1076,7 @@ End Class
 12]]>)
         End Sub
 
-
-
-        Public Sub Semantic_InheritenceConstructor()
+        Public Sub Semantic_InheritanceConstructor()
             'The Use of Static Locals in both a base and derived class constructor - instance method
 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(

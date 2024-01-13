@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -378,8 +380,7 @@ class C
             }
         }
 
-        [WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13625")]
         public void Names_LongTuple()
         {
             var source =
@@ -727,8 +728,8 @@ class B
 
         // Different number of tuple elements
         // in value and declared type.
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         [Fact(Skip = "13420")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount()
         {
             var source =
@@ -791,8 +792,8 @@ class C
             }
         }
 
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         [Fact(Skip = "13420")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount_LongTuple()
         {
             var source =
@@ -1041,15 +1042,14 @@ class async
             }
         }
 
-        [WorkItem(13715, "https://github.com/dotnet/roslyn/issues/13715")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13715")]
         public void OtherPayload()
         {
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(GenerateTupleAssembly())));
             using (runtime.Load())
             {
                 var type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(int));
-                var value = type.Instantiate(new object[] { 1, 2, });
+                var value = type.Instantiate([1, 2,]);
 
                 // Empty custom type info id.
                 var typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, new ReadOnlyCollection<byte>(new byte[0]));

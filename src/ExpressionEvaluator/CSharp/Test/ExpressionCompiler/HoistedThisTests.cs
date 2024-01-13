@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class HoistedThisTests : ExpressionCompilerTestBase
     {
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceIterator_NoCapturing()
         {
             var source = @"
@@ -46,8 +47,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceAsync_NoCapturing()
         {
             var source = @"
@@ -78,8 +78,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceLambda_NoCapturing()
         {
             var source = @"
@@ -205,8 +204,7 @@ class C
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceLambda_CapturedThis_NoDisplayClass()
         {
             var source = @"
@@ -511,8 +509,7 @@ class C : I<int>
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
         public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
         {
             var ilSource = @"
@@ -746,8 +743,7 @@ static class C
             VerifyNoThis(source, "C.<>c__DisplayClass0_0.<F>b__0");
         }
 
-        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         public void OldStyleNonCapturingLambda()
         {
             var ilSource = @"
@@ -783,8 +779,7 @@ static class C
             VerifyNoThis(context);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void LambdaLocations_Instance()
         {
             var source = @"
@@ -861,8 +856,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -924,8 +919,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -1035,8 +1030,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInIterator()
         {
             var source =
@@ -1068,8 +1062,7 @@ class C
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInAsync()
         {
             var source = @"
@@ -1107,8 +1100,7 @@ class C
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInLambda()
         {
             var source =
@@ -1441,11 +1433,11 @@ public class C
             var originalType = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var iteratorMethod = originalType.GetMembers("M").OfType<MethodSymbol>().Single(isDesiredOverload);
 
-            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNames.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
+            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNameParser.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);
-            Assert.Equal(iteratorMethod, guessedIterator.OriginalDefinition);
+            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(new EECompilationContextMethod(comp2, moveNextMethod), sourceMethodMustBeInstance: true);
+            Assert.Equal(iteratorMethod, ((EECompilationContextMethod)guessedIterator.OriginalDefinition).UnderlyingMethod.OriginalDefinition);
         }
     }
 }

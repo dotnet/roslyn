@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
         }
-
 
         [Conditional("DEBUG")]
         internal static void AssertIsLabeledStatementWithLabel(this BoundStatement node, LabelSymbol label)
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
                     }
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);

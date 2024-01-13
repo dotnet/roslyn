@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,6 +28,9 @@ namespace Microsoft.CodeAnalysis
                 VerifySealed(expected: false);
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
+
+                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                    return;
 
                 _obsoleteAttributeData = value;
                 SetDataStored();

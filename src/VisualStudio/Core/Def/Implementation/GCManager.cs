@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -90,10 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 s_delay = currentDelay;
             }
 
-            if (currentDelay != null)
-            {
-                currentDelay.Reset();
-            }
+            currentDelay?.Reset();
         }
 
         private static void RestoreGCLatencyMode(GCLatencyMode originalMode)

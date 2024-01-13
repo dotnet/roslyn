@@ -5,19 +5,18 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), Shared]
     internal partial class CSharpUseConditionalExpressionForReturnCodeFixProvider
         : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
@@ -27,9 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        protected override bool IsRef(IReturnOperation returnOperation)
-            => returnOperation.Syntax is ReturnStatementSyntax statement &&
-               statement.Expression is RefExpressionSyntax;
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
 
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
@@ -47,9 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             return statement;
         }
 
-#if CODE_STYLE
-        protected override ISyntaxFormattingService GetSyntaxFormattingService()
-            => CSharpSyntaxFormattingService.Instance;
-#endif
+        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+            => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
+
+        protected override ISyntaxFormatting GetSyntaxFormatting()
+            => CSharpSyntaxFormatting.Instance;
     }
 }

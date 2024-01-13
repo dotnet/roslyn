@@ -2,13 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.ObjectModel
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -34,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub LoadMyTemplate()
 
-
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
 Module M1
@@ -53,14 +48,13 @@ End Class
 
             Assert.NotNull(MyTemplate)
 
-            Dim text = MyTemplate.GetText.ToString
-            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
-
+            Dim sourceText = MyTemplate.GetText()
+            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", sourceText.ToString(), StringComparison.Ordinal)
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm)
         End Sub
 
         <Fact()>
         Public Sub LoadMyTemplateNoRuntime()
-
 
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
@@ -85,7 +79,6 @@ End Class
         <Fact()>
         Public Sub LoadMyTemplateRuntimeNotFile()
 
-
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
 Module M1
@@ -109,7 +102,6 @@ End Class
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MyConsoleApp()
 
-
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
 
@@ -126,8 +118,6 @@ End Module
 
     ]]></file>
                           </compilation>
-
-
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
@@ -205,8 +195,6 @@ End Class
     ]]></file>
                           </compilation>
 
-
-
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
             defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
 
@@ -236,8 +224,6 @@ End Module
     ]]></file>
                           </compilation>
 
-
-
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
@@ -245,7 +231,6 @@ End Module
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
-
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -294,8 +279,6 @@ End Namespace
     ]]></file>
                           </compilation>
 
-
-
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
@@ -303,7 +286,6 @@ End Namespace
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
-
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 

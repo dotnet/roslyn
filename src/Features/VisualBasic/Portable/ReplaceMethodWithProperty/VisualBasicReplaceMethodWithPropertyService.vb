@@ -2,15 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -34,12 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
-            documentOptions As DocumentOptionSet,
-            parseOptions As ParseOptions,
-            editor As SyntaxEditor,
-            semanticModel As SemanticModel,
-            getAndSetMethods As GetAndSetMethods,
-            propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
+                options As CodeGenerationOptions,
+                parseOptions As ParseOptions,
+                editor As SyntaxEditor,
+                semanticModel As SemanticModel,
+                getAndSetMethods As GetAndSetMethods,
+                propertyName As String, nameChanged As Boolean,
+                cancellationToken As CancellationToken) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
 
             Dim getMethodDeclaration = TryCast(getAndSetMethods.GetMethodDeclaration, MethodStatementSyntax)
             If getMethodDeclaration Is Nothing Then
@@ -48,10 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             Dim methodBlockOrStatement = GetParentIfBlock(getMethodDeclaration)
             editor.ReplaceNode(methodBlockOrStatement,
-                               ConvertMethodsToProperty(editor, semanticModel, getAndSetMethods, propertyName, nameChanged))
+                               ConvertMethodsToProperty(editor, getAndSetMethods, propertyName, nameChanged))
         End Sub
 
-        Private Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
+        Private Shared Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
             If declaration.IsParentKind(SyntaxKind.FunctionBlock) OrElse declaration.IsParentKind(SyntaxKind.SubBlock) Then
                 Return DirectCast(declaration.Parent, DeclarationStatementSyntax)
             End If
@@ -59,9 +61,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return declaration
         End Function
 
-        Private Function ConvertMethodsToProperty(
+        Private Shared Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
-            semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax
 
@@ -128,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
+        Private Shared Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
             Return If(nameChanged, SyntaxFactory.Identifier(propertyName), identifier)
         End Function
 

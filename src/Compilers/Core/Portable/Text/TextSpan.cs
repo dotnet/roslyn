@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -13,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// Immutable abstract representation of a span of text.  For example, in an error diagnostic that reports a
     /// location, it could come from a parsed string, text from a tool editor buffer, etc.
     /// </summary>
+    [DataContract]
     public readonly struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
         /// <summary>
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Start point of the span.
         /// </summary>
+        [DataMember(Order = 0)]
         public int Start { get; }
 
         /// <summary>
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Length of the span.
         /// </summary>
+        [DataMember(Order = 1)]
         public int Length { get; }
 
         /// <summary>
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (end < start)
             {
-                throw new ArgumentOutOfRangeException(nameof(end), CodeAnalysisResources.EndMustNotBeLessThanStart);
+                throw new ArgumentOutOfRangeException(nameof(end), string.Format(CodeAnalysisResources.EndMustNotBeLessThanStart, start, end));
             }
 
             return new TextSpan(start, end - start);
@@ -223,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public override bool Equals(object? obj)
-        {
-            return obj is TextSpan && Equals((TextSpan)obj);
-        }
+            => obj is TextSpan span && Equals(span);
 
         /// <summary>
         /// Produces a hash code for <see cref="TextSpan"/>.
@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Provides a string representation for <see cref="TextSpan"/>.
+        /// This representation uses "half-open interval" notation, indicating the endpoint character is not included.
+        /// Example: <c>[10..20)</c>, indicating the text starts at position 10 and ends at position 20 not included.
         /// </summary>
         public override string ToString()
         {

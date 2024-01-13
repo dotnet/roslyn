@@ -10,23 +10,26 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
-    internal sealed partial class ForceLowMemoryMode
+    internal sealed class ForceLowMemoryMode
     {
-        private readonly IOptionService _optionService;
-        private MemoryHogger _hogger;
+        public static readonly Option2<bool> Enabled = new("ForceLowMemoryMode_Enabled", defaultValue: false);
+        public static readonly Option2<int> SizeInMegabytes = new("ForceLowMemoryMode_Enabled", defaultValue: 500);
 
-        public ForceLowMemoryMode(IOptionService optionService)
+        private readonly IGlobalOptionService _globalOptions;
+        private MemoryHogger? _hogger;
+
+        public ForceLowMemoryMode(IGlobalOptionService globalOptions)
         {
-            _optionService = optionService;
+            _globalOptions = globalOptions;
 
-            optionService.OptionChanged += Options_OptionChanged;
+            globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
 
             RefreshFromSettings();
         }
 
         private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == nameof(ForceLowMemoryMode))
+            if (e.Option == Enabled || e.Option == SizeInMegabytes)
             {
                 RefreshFromSettings();
             }
@@ -34,7 +37,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private void RefreshFromSettings()
         {
-            var enabled = _optionService.GetOption(Enabled);
+            var enabled = _globalOptions.GetOption(Enabled);
 
             if (_hogger != null)
             {
@@ -45,7 +48,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             if (enabled)
             {
                 _hogger = new MemoryHogger();
-                var ignore = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
+                _ = _hogger.PopulateAndMonitorAsync(_globalOptions.GetOption(SizeInMegabytes));
             }
         }
 
@@ -83,14 +86,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 {
                     try
                     {
-                        for (int n = 0; n < size; n++)
+                        for (var n = 0; n < size; n++)
                         {
                             _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                             var block = new byte[BlockSize];
 
                             // initialize block bits (so the memory actually gets allocated.. silly runtime!)
-                            for (int i = 0; i < BlockSize; i++)
+                            for (var i = 0; i < BlockSize; i++)
                             {
                                 block[i] = 0xFF;
                             }
@@ -120,7 +123,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                                 var block = _blocks[b];
 
                                 byte tmp;
-                                for (int i = 0; i < block.Length; i++)
+                                for (var i = 0; i < block.Length; i++)
                                 {
                                     tmp = block[i];
                                 }
@@ -141,7 +144,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     _blocks.Clear();
 
                     // force garbage collection
-                    for (int i = 0; i < 5; i++)
+                    for (var i = 0; i < 5; i++)
                     {
                         GC.Collect(GC.MaxGeneration);
                         GC.WaitForPendingFinalizers();

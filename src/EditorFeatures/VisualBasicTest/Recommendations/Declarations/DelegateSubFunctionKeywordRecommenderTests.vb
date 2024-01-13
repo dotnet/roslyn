@@ -2,28 +2,28 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class DelegateSubFunctionKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SubAndFunctionAfterDelegateTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        Inherits RecommenderTests
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        <Fact>
+        Public Sub SubAndFunctionAfterDelegateTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
+        End Sub
+
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Delegate _
 |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        <Fact>
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Delegate _ ' Test
 |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        End Sub
     End Class
 End Namespace

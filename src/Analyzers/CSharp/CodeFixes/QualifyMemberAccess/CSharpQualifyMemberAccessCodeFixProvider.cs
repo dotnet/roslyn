@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         {
         }
 
-        protected override SimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override SimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             switch (node)

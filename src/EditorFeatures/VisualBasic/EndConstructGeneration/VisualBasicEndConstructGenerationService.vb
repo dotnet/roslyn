@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                         If element IsNot Nothing Then
                             If element.StartTag IsNot Nothing AndAlso element.StartTag.Span.End = state.CaretPosition AndAlso
                                element.EndTag IsNot Nothing AndAlso element.EndTag.SpanStart = state.CaretPosition Then
-                                InsertBlankLineBetweenXmlTags(state, textView, subjectBuffer, element)
+                                InsertBlankLineBetweenXmlTags(state, textView, subjectBuffer)
                                 transaction.Complete()
                                 Return True
                             End If
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Return True
         End Function
 
-        Private Sub InsertBlankLineBetweenXmlTags(state As EndConstructState, textView As ITextView, subjectBuffer As ITextBuffer, nodeToReplace As XmlElementSyntax)
+        Private Sub InsertBlankLineBetweenXmlTags(state As EndConstructState, textView As ITextView, subjectBuffer As ITextBuffer)
             ' Add an extra newline first
             Using edit = subjectBuffer.CreateEdit()
                 Dim aligningWhitespace = subjectBuffer.CurrentSnapshot.GetAligningWhitespace(state.TokenToLeft.Parent.Span.Start)
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             _editorOperationsFactoryService.GetEditorOperations(textView).InsertNewLine()
         End Sub
 
-        Private Shared Function GetNodeFromToken(Of T As SyntaxNode)(syntaxTree As SyntaxTree, token As SyntaxToken, expectedKind As SyntaxKind) As T
+        Private Shared Function GetNodeFromToken(Of T As SyntaxNode)(token As SyntaxToken, expectedKind As SyntaxKind) As T
             If token.Kind <> expectedKind Then
                 Return Nothing
             End If
@@ -321,25 +321,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Return TryCast(token.Parent, T)
         End Function
 
-        Private Function InsertEndTextAndUpdateCaretPosition(
+        Private Shared Function InsertEndTextAndUpdateCaretPosition(
             view As ITextView,
             subjectBuffer As ITextBuffer,
             insertPosition As Integer,
             caretPosition As Integer,
-            endText As String,
-            cancellationToken As CancellationToken
+            endText As String
         ) As Boolean
 
-            Dim document = view.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document Is Nothing Then
                 Return False
             End If
 
-            document.Project.Solution.Workspace.ApplyTextChanges(
-                document.Id, SpecializedCollections.SingletonEnumerable(
-                    New TextChange(New TextSpan(insertPosition, 0), endText)), cancellationToken)
+            subjectBuffer.ApplyChange(New TextChange(New TextSpan(insertPosition, 0), endText))
 
-            Dim caretPosAfterEdit = New SnapshotPoint(view.TextSnapshot, caretPosition)
+            Dim caretPosAfterEdit = New SnapshotPoint(subjectBuffer.CurrentSnapshot, caretPosition)
 
             view.TryMoveCaretToAndEnsureVisible(caretPosAfterEdit)
 
@@ -353,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     Return False
                 End If
 
-                Dim xmlCData = GetNodeFromToken(Of XmlCDataSectionSyntax)(state.SyntaxTree, state.TokenToLeft, expectedKind:=SyntaxKind.BeginCDataToken)
+                Dim xmlCData = GetNodeFromToken(Of XmlCDataSectionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.BeginCDataToken)
                 If xmlCData Is Nothing Then
                     Return False
                 End If
@@ -364,12 +361,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsExpectedXmlEndCDataError(errors(0).Id) Then
                     Return False
                 End If
 
                 Dim endText = "]]>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
+                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
             End Using
         End Function
 
@@ -380,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     Return False
                 End If
 
-                Dim xmlComment = GetNodeFromToken(Of XmlCommentSyntax)(state.SyntaxTree, state.TokenToLeft, expectedKind:=SyntaxKind.LessThanExclamationMinusMinusToken)
+                Dim xmlComment = GetNodeFromToken(Of XmlCommentSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanExclamationMinusMinusToken)
                 If xmlComment Is Nothing Then
                     Return False
                 End If
@@ -391,12 +389,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsExpectedXmlEndCommentError(errors(0).Id) Then
                     Return False
                 End If
 
                 Dim endText = "-->"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
+                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
             End Using
         End Function
 
@@ -407,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     Return False
                 End If
 
-                Dim xmlStartElement = GetNodeFromToken(Of XmlElementStartTagSyntax)(state.SyntaxTree, state.TokenToLeft, expectedKind:=SyntaxKind.GreaterThanToken)
+                Dim xmlStartElement = GetNodeFromToken(Of XmlElementStartTagSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.GreaterThanToken)
                 If xmlStartElement Is Nothing Then
                     Return False
                 End If
@@ -418,12 +417,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsMissingXmlEndTagError(errors(0).Id) Then
                     Return False
                 End If
 
                 Dim endTagText = "</" & xmlStartElement.Name.ToString & ">"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endTagText, cancellationToken)
+                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endTagText)
             End Using
         End Function
 
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     Return False
                 End If
 
-                Dim xmlEmbeddedExpression = GetNodeFromToken(Of XmlEmbeddedExpressionSyntax)(state.SyntaxTree, state.TokenToLeft, expectedKind:=SyntaxKind.LessThanPercentEqualsToken)
+                Dim xmlEmbeddedExpression = GetNodeFromToken(Of XmlEmbeddedExpressionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanPercentEqualsToken)
                 If xmlEmbeddedExpression Is Nothing Then
                     Return False
                 End If
@@ -447,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 End If
 
                 Dim endText = "  %>" ' NOTE: two spaces are inserted. The caret will be moved between them
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText, cancellationToken)
+                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText)
             End Using
         End Function
 
@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     Return False
                 End If
 
-                Dim xmlProcessingInstruction = GetNodeFromToken(Of XmlProcessingInstructionSyntax)(state.SyntaxTree, state.TokenToLeft, expectedKind:=SyntaxKind.LessThanQuestionToken)
+                Dim xmlProcessingInstruction = GetNodeFromToken(Of XmlProcessingInstructionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanQuestionToken)
                 If xmlProcessingInstruction Is Nothing Then
                     Return False
                 End If
@@ -469,13 +469,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 2 Then
                     Return False
                 End If
+
                 If Not (errors.Any(Function(e) IsExpectedXmlNameError(e.Id)) AndAlso
                         errors.Any(Function(e) IsExpectedXmlEndPIError(e.Id))) Then
                     Return False
                 End If
 
                 Dim endText = "?>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
+                Return InsertEndTextAndUpdateCaretPosition(textView, subjectBuffer, state.CaretPosition, state.TokenToLeft.Span.End, endText)
             End Using
         End Function
 

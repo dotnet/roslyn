@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -640,7 +642,8 @@ D Raise
 }
 ";
 
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName(), parseOptions: parseOptions);
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
@@ -658,7 +661,7 @@ class C
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 }, parseOptions: parseOptions);
             compilation2.VerifyDiagnostics(
                 // (7,21): warning CS0067: The event 'C.e' is never used
                 //     public event E1 e;

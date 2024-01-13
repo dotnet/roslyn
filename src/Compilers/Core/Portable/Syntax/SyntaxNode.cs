@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
+    /// cref="T:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode"/>.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -73,8 +72,7 @@ namespace Microsoft.CodeAnalysis
         internal int EndPosition => Position + Green.FullWidth;
 
         /// <summary>
-        /// Returns SyntaxTree that owns the node or null if node does not belong to a
-        /// SyntaxTree
+        /// Returns <see cref="SyntaxTree"/> that owns the node.
         /// </summary>
         public SyntaxTree SyntaxTree => this.SyntaxTreeCore;
 
@@ -313,7 +311,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
+        /// Gets the full text of this node as a new <see cref="SourceText"/> instance.
         /// </summary>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.
@@ -327,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(this.Green.FullWidth);
             this.WriteTo(new StringWriter(builder));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
@@ -335,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determine whether this node is structurally equivalent to another.
         /// </summary>
-        public bool IsEquivalentTo(SyntaxNode other)
+        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode? other)
         {
             if (this == other)
             {
@@ -349,6 +347,23 @@ namespace Microsoft.CodeAnalysis
 
             return this.Green.IsEquivalentTo(other.Green);
         }
+
+        /// <summary>
+        /// Returns true if these two nodes are considered "incrementally identical".  An incrementally identical node
+        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
+        /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
+        /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
+        /// they could have different parents, and may occur at different positions in their respective trees.  If two nodes are
+        /// incrementally identical, all children of each node will be incrementally identical as well.
+        /// </summary>
+        /// <remarks>
+        /// Incrementally identical nodes can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees from shared nodes for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical nodes could have different parents and may occur at different positions in their respective trees.
+        /// </remarks>
+        public bool IsIncrementallyIdenticalTo([NotNullWhen(true)] SyntaxNode? other)
+            => this.Green != null && this.Green == other?.Green;
 
         /// <summary>
         /// Determines whether the node represents a language construct that was actually parsed
@@ -412,17 +427,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether this node has any descendant preprocessor directives.
-        /// </summary>
-        public bool ContainsDirectives
-        {
-            get
-            {
-                return this.Green.ContainsDirectives;
-            }
-        }
-
-        /// <summary>
         /// Determines whether this node or any of its descendant nodes, tokens or trivia have any diagnostics on them. 
         /// </summary>
         public bool ContainsDiagnostics
@@ -430,6 +434,87 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return this.Green.ContainsDiagnostics;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether this node has any descendant preprocessor directives.
+        /// </summary>
+        public bool ContainsDirectives => this.Green.ContainsDirectives;
+
+        /// <summary>
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
+        /// </summary>
+        public bool ContainsDirective(int rawKind)
+        {
+            // Easy bail out without doing any work.
+            if (!this.ContainsDirectives)
+                return false;
+
+            var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
+            stack.Push(this.Green);
+
+            try
+            {
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+
+                    // Don't bother looking further down this portion of the tree if it clearly doesn't contain directives.
+                    if (current is not { ContainsDirectives: true })
+                        continue;
+
+                    if (current.IsToken)
+                    {
+                        // no need to look within if this token doesn't even have leading trivia.
+                        if (current.HasLeadingTrivia)
+                        {
+                            if (triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind))
+                                return true;
+                        }
+                        else
+                        {
+                            Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
+                        }
+
+                        Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
+                    }
+                    else
+                    {
+                        // nodes and lists.  Push children backwards so we walk the tree in lexical order.
+                        for (int i = current.SlotCount - 1; i >= 0; i--)
+                            stack.Push(current.GetSlot(i));
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                stack.Free();
+            }
+
+            static bool triviaContainsMatch(GreenNode? triviaNode, int rawKind)
+            {
+                if (triviaNode is not null)
+                {
+                    // Will either have one or many trivia nodes.
+                    if (triviaNode.IsList)
+                    {
+                        for (int i = 0, n = triviaNode.SlotCount; i < n; i++)
+                        {
+                            var child = triviaNode.GetSlot(i);
+                            if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
+                                return true;
+                        }
+                    }
+                    else if (triviaNode.IsDirective && triviaNode.RawKind == rawKind)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -528,6 +613,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
             int offset = 0;
             var green = this.Green;
             while (index > 0)
@@ -546,6 +636,36 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.Position + offset;
+        }
+
+        // Similar to GetChildPosition() but calculating based on the positions of
+        // following siblings rather than previous siblings.
+        internal int GetChildPositionFromEnd(int index)
+        {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
+            var green = this.Green;
+            int offset = green.GetSlot(index)?.FullWidth ?? 0;
+            int slotCount = green.SlotCount;
+            while (index < slotCount - 1)
+            {
+                index++;
+                var nextSibling = this.GetCachedSlot(index);
+                if (nextSibling != null)
+                {
+                    return nextSibling.Position - offset;
+                }
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
+                {
+                    offset += greenChild.FullWidth;
+                }
+            }
+
+            return this.EndPosition - offset;
         }
 
         public Location GetLocation()
@@ -833,9 +953,9 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="getInnermostNodeForTie"/> is true, then it returns lowest descending node encompassing the given <paramref name="span"/>.
         /// Otherwise, it returns the outermost node encompassing the given <paramref name="span"/>.
         /// </summary>
-        /// <remarks>
+        /// <devdoc>
         /// TODO: This should probably be reimplemented with <see cref="ChildThatContainsPosition"/>
-        /// </remarks>
+        /// </devdoc>
         /// <exception cref="ArgumentOutOfRangeException">This exception is thrown if <see cref="FullSpan"/> doesn't contain the given span.</exception>
         public SyntaxNode FindNode(TextSpan span, bool findInsideTrivia = false, bool getInnermostNodeForTie = false)
         {
@@ -1100,7 +1220,7 @@ recurse:
         /// <summary>
         /// Determines whether this node has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return this.Green.HasAnnotation(annotation);
         }
@@ -1236,6 +1356,7 @@ recurse:
         /// modification, even if the type of a node changes.
         /// </para>
         /// </remarks>
+        [return: NotNullIfNotNull(nameof(node))]
         public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
         {
             if (node == null)
@@ -1271,20 +1392,22 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: true)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
+            => throw new SerializationDeprecationException();
+
+        /// <summary>
+        /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
+        /// </summary>
+        private protected sealed class SerializationDeprecationException : Exception
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            public const string Text = "Syntax serialization support is no longer supported";
 
-            if (!stream.CanWrite)
+            public SerializationDeprecationException()
+                : base(Text)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
-            }
 
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
-            writer.WriteValue(Green);
+            }
         }
 
         #region Core Methods
@@ -1469,7 +1592,7 @@ recurse:
         /// <summary>
         /// Creates a new tree of nodes with the specified node removed.
         /// </summary>
-        protected internal abstract SyntaxNode RemoveNodesCore(
+        protected internal abstract SyntaxNode? RemoveNodesCore(
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 

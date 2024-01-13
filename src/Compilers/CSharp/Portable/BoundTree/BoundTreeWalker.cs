@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -136,6 +134,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rightOperands.Free();
             return null;
+        }
+
+        public sealed override BoundNode? VisitCall(BoundCall node)
+        {
+            if (node.ReceiverOpt is BoundCall receiver1)
+            {
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+
+                node = receiver1;
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                VisitReceiver(node);
+
+                do
+                {
+                    VisitArguments(node);
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                VisitReceiver(node);
+                VisitArguments(node);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Called only for the first (in evaluation order) <see cref="BoundCall"/> in the chain.
+        /// </summary>
+        protected virtual void VisitReceiver(BoundCall node)
+        {
+            this.Visit(node.ReceiverOpt);
+        }
+
+        protected virtual void VisitArguments(BoundCall node)
+        {
+            this.VisitList(node.Arguments);
         }
     }
 }

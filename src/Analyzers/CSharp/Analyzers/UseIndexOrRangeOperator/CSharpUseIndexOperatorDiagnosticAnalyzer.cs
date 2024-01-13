@@ -4,44 +4,49 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using static Helpers;
 
     /// <summary>
-    /// Analyzer that looks for code like: 
-    /// 
-    /// 1) `s[s.Length - n]` and offers to change that to `s[^n]`. and.
-    /// 2) `s.Get(s.Length - n)` and offers to change that to `s.Get(^n)`
+    /// <para>Analyzer that looks for code like:</para>
     ///
-    /// In order to do convert between indexers, the type must look 'indexable'.  Meaning, it must
-    /// have an int-returning property called 'Length' or 'Count', and it must have both an
-    /// int-indexer, and a System.Index-indexer.  In order to convert between methods, the type
-    /// must have identical overloads except that one takes an int, and the other a System.Index.
+    /// <list type="number">
+    /// <item><description><c>s[s.Length - n]</c> and offers to change that to <c>s[^n]</c></description></item>
+    /// <item><description></description><c>s.Get(s.Length - n)</c> and offers to change that to <c>s.Get(^n)</c></item>
+    /// </list>
     ///
-    /// It is assumed that if the type follows this shape that it is well behaved and that this
+    /// <para>In order to do convert between indexers, the type must look 'indexable'.  Meaning, it must
+    /// have an <see cref="int"/>-returning property called <c>Length</c> or <c>Count</c>, and it must have both an
+    /// <see cref="int"/>-indexer, and a <see cref="T:System.Index"/>-indexer.  In order to convert between methods, the type
+    /// must have identical overloads except that one takes an <see cref="int"/>, and the other a <see cref="T:System.Index"/>.</para>
+    ///
+    /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.
-    /// 
-    /// Note that this feature only works if the code literally has `expr1.Length - expr2`.  If
-    /// code has this, and is calling into a method that takes either an int or a System.Index,
-    /// it feels very safe to assume this is well behaved and switching to `^expr2` is going to
-    /// preserve semantics.
+    /// could always limit the feature to only work on an allow list of known safe types.</para>
+    ///
+    /// <para>Note that this feature only works if the code literally has <c>expr1.Length - expr2</c>. If
+    /// code has this, and is calling into a method that takes either an <see cref="int"/> or a <see cref="T:System.Index"/>,
+    /// it feels very safe to assume this is well behaved and switching to <c>^expr2</c> is going to
+    /// preserve semantics.</para>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
+    internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseIndexOperator,
                    CSharpCodeStyleOptions.PreferIndexOperator,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Indexing_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -51,19 +56,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(startContext =>
+            context.RegisterCompilationStartAction(context =>
             {
+                var compilation = (CSharpCompilation)context.Compilation;
+
+                // Only supported on C# 8 and above.
+                if (compilation.LanguageVersion < LanguageVersion.CSharp8)
+                    return;
+
                 // We're going to be checking every property-reference and invocation in the
                 // compilation. Cache information we compute in this object so we don't have to
                 // continually recompute it.
-                var compilation = startContext.Compilation;
-                var infoCache = new InfoCache(compilation);
-
-                // The System.Index type is always required to offer this fix.
-                if (infoCache.IndexType == null)
-                {
+                if (!InfoCache.TryCreate(compilation, out var infoCache))
                     return;
-                }
 
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
@@ -97,16 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var invocationOperation = (IInvocationOperation)context.Operation;
 
             if (invocationOperation.Arguments.Length != 1)
-            {
                 return;
-            }
 
             AnalyzeInvokedMember(
                 context, infoCache,
                 invocationOperation.Instance,
                 invocationOperation.TargetMethod,
                 invocationOperation.Arguments[0].Value,
-                lengthLikePropertyOpt: null,
+                lengthLikeProperty: null,
                 cancellationToken);
         }
 
@@ -118,21 +121,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             // Only analyze indexer calls.
             if (!propertyReference.Property.IsIndexer)
-            {
                 return;
-            }
 
             if (propertyReference.Arguments.Length != 1)
-            {
                 return;
-            }
 
             AnalyzeInvokedMember(
                 context, infoCache,
                 propertyReference.Instance,
                 propertyReference.Property.GetMethod,
                 propertyReference.Arguments[0].Value,
-                lengthLikePropertyOpt: null,
+                lengthLikeProperty: null,
                 cancellationToken);
         }
 
@@ -144,23 +143,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             // Has to be a single-dimensional element access.
             if (arrayElementReference.Indices.Length != 1)
-            {
                 return;
-            }
 
             AnalyzeInvokedMember(
                 context, infoCache,
                 arrayElementReference.ArrayReference,
-                targetMethodOpt: null,
+                targetMethod: null,
                 arrayElementReference.Indices[0],
-                lengthLikePropertyOpt: arrayLengthProperty,
+                lengthLikeProperty: arrayLengthProperty,
                 cancellationToken);
         }
 
         private void AnalyzeInvokedMember(
-            OperationAnalysisContext context, InfoCache infoCache,
-            IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue,
-            IPropertySymbol lengthLikePropertyOpt, CancellationToken cancellationToken)
+            OperationAnalysisContext context,
+            InfoCache infoCache,
+            IOperation? instance,
+            IMethodSymbol? targetMethod,
+            IOperation argumentValue,
+            IPropertySymbol? lengthLikeProperty,
+            CancellationToken cancellationToken)
         {
             // look for `s[s.Length - value]` or `s.Get(s.Length- value)`.
 
@@ -172,25 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (!(subtraction.Syntax is BinaryExpressionSyntax binaryExpression))
-            {
+            if (subtraction.Syntax is not BinaryExpressionSyntax binaryExpression)
                 return;
-            }
-
-            // Only supported on C# 8 and above.
-            var syntaxTree = binaryExpression.SyntaxTree;
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, syntaxTree, cancellationToken);
-            if (!option.Value)
-            {
+            var option = context.GetCSharpAnalyzerOptions().PreferIndexOperator;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
-            }
 
             // Ok, looks promising.  We're indexing in with some subtraction expression. Examine the
             // type this indexer is in to see if there's another member that takes a System.Index
@@ -199,25 +188,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            lengthLikePropertyOpt ??= TryGetLengthLikeProperty(infoCache, targetMethodOpt);
-            if (lengthLikePropertyOpt == null ||
-                !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
+            lengthLikeProperty ??= TryGetLengthLikeProperty(infoCache, targetMethod);
+            if (lengthLikeProperty == null ||
+                !IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
             {
                 return;
             }
+
+            var semanticModel = instance.SemanticModel;
+            Contract.ThrowIfNull(semanticModel);
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, instance.Syntax, infoCache.ExpressionOfTType, cancellationToken))
+                return;
 
             // Everything looks good.  We can update this to use the System.Index member instead.
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
                     binaryExpression.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     ImmutableArray<Location>.Empty,
-                    ImmutableDictionary<string, string>.Empty));
+                    ImmutableDictionary<string, string?>.Empty));
         }
 
-        private IPropertySymbol TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol targetMethodOpt)
-            => targetMethodOpt != null && infoCache.TryGetMemberInfo(targetMethodOpt, out var memberInfo)
+        private static IPropertySymbol? TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol? targetMethod)
+            => targetMethod != null && infoCache.TryGetMemberInfo(targetMethod, out var memberInfo)
                 ? memberInfo.LengthLikeProperty
                 : null;
     }

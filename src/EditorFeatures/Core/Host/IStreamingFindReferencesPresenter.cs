@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
 {
@@ -28,17 +32,18 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// It can also show messages about no references being found at the end of the search.
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
-        FindUsagesContext StartSearch(string title, bool supportsReferences);
+        /// <returns>A cancellation token that will be triggered if the presenter thinks the search
+        /// should stop.  This can normally happen if the presenter view is closed, or recycled to
+        /// start a new search in it.  Callers should only use this if they intend to report results
+        /// asynchronously and thus relinquish their own control over cancellation from their own
+        /// surrounding context.  If the caller intends to populate the presenter synchronously,
+        /// then this cancellation token can be ignored.</returns>
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences);
 
         /// <summary>
         /// Call this method to display the Containing Type, Containing Member, or Kind columns
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="supportsReferences"></param>
-        /// <param name="includeContainingTypeAndMemberColumns"></param>
-        /// <param name="includeKindColumn"></param>
-        /// /// <returns></returns>
-        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -48,60 +53,87 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
     internal static class IStreamingFindUsagesPresenterExtensions
     {
-        /// <summary>
-        /// If there's only a single item, navigates to it.  Otherwise, presents all the
-        /// items to the user.
-        /// </summary>
-        public static async Task<bool> TryNavigateToOrPresentItemsAsync(
+        public static async Task<bool> TryPresentLocationOrNavigateIfOneAsync(
             this IStreamingFindUsagesPresenter presenter,
-            Workspace workspace, string title, ImmutableArray<DefinitionItem> items)
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            string title,
+            ImmutableArray<DefinitionItem> items,
+            CancellationToken cancellationToken)
         {
-            // Ignore any definitions that we can't navigate to.
-            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
+            var location = await presenter.GetStreamingLocationAsync(
+                threadingContext, workspace, title, items, cancellationToken).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+        }
 
-            // See if there's a third party external item we can navigate to.  If so, defer 
-            // to that item and finish.
-            var externalItems = definitions.WhereAsArray(d => d.IsExternal);
-            foreach (var item in externalItems)
+        /// <summary>
+        /// Returns a navigable location that will take the user to the location there's only destination, or which will
+        /// present all the locations if there are many.
+        /// </summary>
+        public static async Task<INavigableLocation?> GetStreamingLocationAsync(
+            this IStreamingFindUsagesPresenter presenter,
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            string title,
+            ImmutableArray<DefinitionItem> items,
+            CancellationToken cancellationToken)
+        {
+            if (items.IsDefaultOrEmpty)
+                return null;
+
+            using var _ = ArrayBuilder<(DefinitionItem item, INavigableLocation location)>.GetInstance(out var builder);
+            foreach (var item in items)
             {
-                if (item.TryNavigateTo(workspace, isPreview: true))
+                // Ignore any definitions that we can't navigate to.
+                var navigableItem = await item.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+                if (navigableItem != null)
                 {
-                    return true;
+                    // If there's a third party external item we can navigate to.  Defer to that item and finish.
+                    if (item.IsExternal)
+                        return navigableItem;
+
+                    builder.Add((item, navigableItem));
                 }
             }
 
-            var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
-            if (nonExternalItems.Length == 0)
+            if (builder.Count == 0)
+                return null;
+
+            if (builder is [{ item.SourceSpans.Length: <= 1, location: var location }])
             {
-                return false;
+                // There was only one location to navigate to.  Just directly go to that location. If we're directly
+                // going to a location we need to activate the preview so that focus follows to the new cursor position.
+                return location;
             }
 
-            if (nonExternalItems.Length == 1 &&
-                nonExternalItems[0].SourceSpans.Length <= 1)
-            {
-                // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
-            }
+            if (presenter == null)
+                return null;
 
-            if (presenter != null)
+            var navigableItems = builder.SelectAsArray(t => t.item);
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
-                // We have multiple definitions, or we have definitions with multiple locations.
-                // Present this to the user so they can decide where they want to go to.
-                var context = presenter.StartSearch(title, supportsReferences: false);
-                foreach (var definition in nonExternalItems)
+                // Can only navigate or present items on UI thread.
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // We have multiple definitions, or we have definitions with multiple locations. Present this to the
+                // user so they can decide where they want to go to.
+                //
+                // We ignore the cancellation token returned by StartSearch as we're in a context where
+                // we've computed all the results and we're synchronously populating the UI with it.
+                var (context, _) = presenter.StartSearch(title, supportsReferences: false);
+                try
                 {
-                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                    foreach (var item in navigableItems)
+                        await context.OnDefinitionFoundAsync(item, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
-            }
-
-            return true;
+                return true;
+            });
         }
     }
 }

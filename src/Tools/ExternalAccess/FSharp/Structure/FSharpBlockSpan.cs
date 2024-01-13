@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure
@@ -42,13 +44,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure
 
         public string Type { get; }
 
+#pragma warning disable RS0059 // Do not add multiple public overloads with optional parameters
         public FSharpBlockSpan(
+#pragma warning restore RS0059 // Do not add multiple public overloads with optional parameters
             string type, bool isCollapsible, TextSpan textSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
             : this(type, isCollapsible, textSpan, textSpan, bannerText, autoCollapse, isDefaultCollapsed)
         {
         }
 
+#pragma warning disable RS0059 // Do not add multiple public overloads with optional parameters
         public FSharpBlockSpan(
+#pragma warning restore RS0059 // Do not add multiple public overloads with optional parameters
             string type, bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
         {
             TextSpan = textSpan;

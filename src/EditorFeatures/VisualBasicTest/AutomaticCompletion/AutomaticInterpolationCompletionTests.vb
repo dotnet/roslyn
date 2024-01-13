@@ -6,20 +6,22 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
+    <Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
     Public Class AutomaticInterpolationCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestCreation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
@@ -30,7 +32,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
@@ -41,7 +43,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
@@ -52,7 +54,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestStartOfInterpolatedStringExpression()
             Dim code = <code>Class C
     Sub M()
@@ -66,7 +68,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestAfterInterpolatedStringExpressionText()
             Dim code = <code>Class C
     Sub M()
@@ -80,7 +82,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestAfterInterpolation()
             Dim code = <code>Class C
     Sub M()
@@ -94,14 +96,14 @@ End Class</code>
             End Using
         End Sub
 
-        Friend Overloads Function CreateSession(code As XElement) As Holder
+        Friend Overloads Shared Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
-            Return CreateSession(
-TestWorkspace.CreateVisualBasic(code),
-BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter)
+        Friend Overloads Shared Function CreateSession(code As String) As Holder
+            Return AbstractAutomaticBraceCompletionTests.CreateSession(
+                EditorTestWorkspace.CreateVisualBasic(code),
+                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter)
         End Function
     End Class
 End Namespace

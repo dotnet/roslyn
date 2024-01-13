@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,15 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static int? GetLastNonWhitespacePosition(this TextLine line)
         {
+            var text = line.Text!;
             var startPosition = line.Start;
-            var text = line.ToString();
 
-            for (var i = text.Length - 1; i >= 0; i--)
+            for (var i = line.End - 1; i >= startPosition; i--)
             {
                 if (!char.IsWhiteSpace(text[i]))
-                {
-                    return startPosition + i;
-                }
+                    return i;
             }
 
             return null;
@@ -46,7 +42,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// whitespace.
         /// </summary>
         public static int? GetFirstNonWhitespaceOffset(this TextLine line)
-            => line.ToString().GetFirstNonWhitespaceOffset();
+        {
+            var text = line.Text;
+            if (text != null)
+            {
+                for (var i = line.Start; i < line.End; i++)
+                {
+                    if (!char.IsWhiteSpace(text[i]))
+                        return i - line.Start;
+                }
+            }
+
+            return null;
+        }
 
         public static string GetLeadingWhitespace(this TextLine line)
             => line.ToString().GetLeadingWhitespace();

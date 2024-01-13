@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -250,7 +252,7 @@ class Derived<T, U> : Base<T, U, object, dynamic>
             ImmutableArray<byte> pdbBytes;
             CommonTestBase.EmitILToArray(intrinsicSource, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
-            var reflectionType = assembly.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType(new[] { typeof(object), typeof(object), typeof(object[]) });
+            var reflectionType = assembly.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType([typeof(object), typeof(object), typeof(object[])]);
             var value = CreateDkmClrValue(value: null, type: reflectionType, valueFlags: DkmClrValueFlags.Synthetic);
             var evalResult = FormatResult("typevars", "typevars", value, new DkmClrType((TypeImpl)reflectionType), MakeCustomTypeInfo(false, true, false, false, true));
             Verify(evalResult,
@@ -262,8 +264,8 @@ class Derived<T, U> : Base<T, U, object, dynamic>
                 EvalResult("V", "dynamic[]", "dynamic[]", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
-        [WorkItem(13554, "https://github.com/dotnet/roslyn/issues/13554")]
         [Fact(Skip = "13554")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13554")]
         public void DynamicBaseTypeArgument()
         {
             var source =

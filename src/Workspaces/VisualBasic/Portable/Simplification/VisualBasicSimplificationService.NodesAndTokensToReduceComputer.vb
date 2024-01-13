@@ -19,9 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _nodesAndTokensToReduce As List(Of NodeOrTokenToReduce)
             Private ReadOnly _isNodeOrTokenOutsideSimplifySpans As Func(Of SyntaxNodeOrToken, Boolean)
 
-            Private Shared ReadOnly s_containsAnnotations As Func(Of SyntaxNode, Boolean) = Function(n) n.ContainsAnnotations
-            Private Shared ReadOnly s_hasSimplifierAnnotation As Func(Of SyntaxNodeOrToken, Boolean) = Function(n) n.HasAnnotation(Simplifier.Annotation)
-
             Private _simplifyAllDescendants As Boolean
             Private _insideSpeculatedNode As Boolean
 
@@ -50,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If Me._isNodeOrTokenOutsideSimplifySpans(node) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes is within a simplification span, but this node Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to node to ensure it doesn't get simplified.
-                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to node to ensure it doesn't get simplified.
+                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return node
                     End If
@@ -71,8 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Not Me._insideSpeculatedNode AndAlso
                     IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
                     Me._simplifyAllDescendants Then
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node))
                     End If
+
                     node = MyBase.Visit(node)
                 End If
 
@@ -80,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return node
             End Function
 
-            Private Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
+            Private Shared Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
                     node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
             End Function
@@ -89,8 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If Me._isNodeOrTokenOutsideSimplifySpans(token) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes is within a simplification span, but this token Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to token to ensure it doesn't get simplified.
-                        Return token.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to token to ensure it doesn't get simplified.
+                        Return token.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return token
                     End If
@@ -123,43 +121,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, MethodBlockSyntax).Update(node.Kind, DirectCast(b, MethodStatementSyntax), s, e)
-                    End Function
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitOperatorBlock(node As OperatorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, OperatorBlockSyntax).Update(DirectCast(b, OperatorStatementSyntax), s, e)
-                    End Function
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitConstructorBlock(node As ConstructorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, ConstructorBlockSyntax).Update(DirectCast(b, SubNewStatementSyntax), s, e)
-                    End Function
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Public Overrides Function VisitAccessorBlock(node As AccessorBlockSyntax) As SyntaxNode
-                Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
+                Return VisitMethodBlockBaseSyntax(node,
                     Function(n, b, s, e)
                         Return DirectCast(n, AccessorBlockSyntax).Update(node.Kind, DirectCast(b, AccessorStatementSyntax), s, e)
-                    End Function
-                Return VisitMethodBlockBaseSyntax(node, updateFunc)
+                    End Function)
             End Function
 
             Private Function VisitMethodBlockBaseSyntax(node As MethodBlockBaseSyntax, updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax)) As MethodBlockBaseSyntax
                 If Me._isNodeOrTokenOutsideSimplifySpans(node) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes Is within a simplification span, but this node Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to node to ensure it doesn't get simplified.
-                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to node to ensure it doesn't get simplified.
+                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return node
                     End If

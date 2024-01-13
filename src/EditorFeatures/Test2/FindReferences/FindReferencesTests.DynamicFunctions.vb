@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionDynamicParameterCall(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionDynamicArgumentCall(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -55,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDoubleFunctionCallWithKnownTypeReturn(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -80,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDoubleFunctionCallWithDynamicTypeReturn(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -105,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionDynamicParameterOnDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -129,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionDynamicArgumentOnDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -154,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDoubleFunctionDynamicOnDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -179,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionOverloadOnKnownTypeDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -208,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionOverloadOnDynamicTypeDefinition(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -236,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionOverloadOnDynamicTypeCall(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -265,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFunctionOverloadOnStaticTypeCall(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -295,5 +297,4 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
     End Class
 End Namespace
-
 

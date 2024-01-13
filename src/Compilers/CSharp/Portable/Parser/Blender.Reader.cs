@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial struct Blender
     {
-        private struct Reader
+        internal struct Reader
         {
             private readonly Lexer _lexer;
             private Cursor _oldTreeCursor;
@@ -297,12 +299,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // any token that was fabricated by the parser
-            private static bool IsFabricatedToken(SyntaxKind kind)
+            internal static bool IsFabricatedToken(SyntaxKind kind)
             {
                 switch (kind)
                 {
                     case SyntaxKind.GreaterThanGreaterThanToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                         return true;
                     default:
                         return SyntaxFacts.IsContextualKeyword(kind);

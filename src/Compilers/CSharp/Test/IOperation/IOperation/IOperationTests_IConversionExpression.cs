@@ -2,18 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Test list drawn from Microsoft.CodeAnalysis.CSharp.ConversionKind
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConversionExpression : SemanticModelTestBase
     {
         #region Implicit Conversions
 
@@ -947,7 +950,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1526: A new expression requires (), [], or {} after type
+                // file.cs(8,41): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //         C1 /*<bind>*/c1 = new/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(8, 41)
             };
@@ -1064,7 +1067,7 @@ IVariableDeclaratorOperation (Symbol: C1 i1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I1'
+                // CS0144: Cannot create an instance of the abstract type or interface 'I1'
                 //         C1 /*<bind>*/i1 = new I1()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I1()").WithArguments("I1").WithLocation(12, 27)
             };
@@ -3371,6 +3374,36 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_InlineArray()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        System.ReadOnlySpan<char> /*<bind>*/span = arg/*</bind>*/;
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.ReadOnlySpan<System.Char> span) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'span = arg')
+  Initializer:
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= arg')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Char>, IsImplicit) (Syntax: 'arg')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand:
+          IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(comp, expectedOperationTree, expectedDiagnostics,
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
         #endregion
 
         #region Explicit Conversion
@@ -5173,9 +5206,75 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void TestNullableConversion()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+
+class Class
+{
+    private static T? GetValueOrDefault<T>() where T : unmanaged
+    {
+        return null;
+    }
+
+    public static void Method()
+    {
+        IConvertible? nullableInterface;
+
+        if (Environment.Is64BitProcess)
+        {
+            nullableInterface = GetValueOrDefault<long>();
+        }
+        else
+        {
+            nullableInterface = GetValueOrDefault<int>();
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+            var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Explicit_InlineArray()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        var a = /*<bind>*/(System.Span<char>)arg/*</bind>*/;
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Char>) (Syntax: '(System.Span<char>)arg')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
         #endregion
 
-        private class ExpectedSymbolVerifier
+        internal class ExpectedSymbolVerifier
         {
             public static SyntaxNode VariableDeclaratorSelector(SyntaxNode syntaxNode) =>
                 ((VariableDeclaratorSyntax)syntaxNode).Initializer.Value;
@@ -5222,7 +5321,7 @@ Block[B5] - Exit
             /// syntax node. A selector is used to walk the operation tree and syntax tree for the final
             /// nodes to compare type info for.
             ///
-            /// <see cref="SyntaxSelector"/> is used to to select the syntax node to test.
+            /// <see cref="SyntaxSelector"/> is used to select the syntax node to test.
             /// <see cref="OperationSelector"/> is used to select the IConversion node to test.
             /// <see cref="ConversionChildSelector"/> is used to select what child node of the IConversion to compare original types to.
             /// this is useful for multiple conversion scenarios where we end up with multiple IConversion nodes in the tree.

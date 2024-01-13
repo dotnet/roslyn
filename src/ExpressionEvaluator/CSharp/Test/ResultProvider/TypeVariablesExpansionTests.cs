@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -34,7 +36,7 @@ class B : A
             ImmutableArray<byte> pdbBytes;
             CSharpTestBase.EmitILToArray(source1, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly1 = ReflectionUtilities.Load(assemblyBytes);
-            var type1 = assembly1.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType(new[] { typeof(int), type0 });
+            var type1 = assembly1.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType([typeof(int), type0]);
             var value = CreateDkmClrValue(value: null, type: type1, valueFlags: DkmClrValueFlags.Synthetic);
             var evalResult = FormatResult("typevars", value);
             Verify(evalResult,

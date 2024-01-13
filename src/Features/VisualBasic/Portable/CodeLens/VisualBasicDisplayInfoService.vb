@@ -5,7 +5,7 @@ Imports System.Composition
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.CodeLens
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
@@ -117,12 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' Gets the DisplayName for the given node.
         ''' </summary>
         Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode) As String Implements ICodeLensDisplayInfoService.GetDisplayName
-            If VisualBasicSyntaxFacts.Instance.IsGlobalAttribute(node) Then
+            If VisualBasicSyntaxFacts.Instance.IsGlobalAssemblyAttribute(node) Then
                 Return node.ToString()
             End If
 
             Dim symbol As ISymbol = semanticModel.GetDeclaredSymbol(node)
-            Dim symbolName As String = Nothing
+            Dim symbolName As String
 
             Select Case node.Kind()
                 Case SyntaxKind.GetAccessorBlock,

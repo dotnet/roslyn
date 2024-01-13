@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
         Private Sub EmitStatement(statement As BoundStatement)
             Select Case statement.Kind
 
@@ -158,7 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkLabel(statement.ExitLabelOpt)
             End If
         End Sub
-
 
         'The interesting part in the following method is the support for exception filters. 
         '=== Example:
@@ -728,7 +727,6 @@ BinaryOperatorKindLogicalAnd:
                         Case BinaryOperatorKind.Equals,
                              BinaryOperatorKind.NotEquals
 BinaryOperatorKindEqualsNotEquals:
-
                             Dim reduced = TryReduce(binOp, sense)
                             If reduced IsNot Nothing Then
                                 condition = reduced
@@ -765,7 +763,6 @@ BinaryOperatorKindLessThan:
                     Else
                         GoTo OtherExpressions
                     End If
-
 
                 Case BoundKind.TypeOf
 
@@ -1087,11 +1084,10 @@ OtherExpressions:
         End Sub
 
         Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
-            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
+            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
             If genHashTableSwitch Then
-                Debug.Assert(_module.SupportsPrivateImplClass)
                 Dim privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics)
                 Dim stringHashMethodRef As Microsoft.Cci.IReference = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName)
                 Debug.Assert(stringHashMethodRef IsNot Nothing)
@@ -1105,7 +1101,7 @@ OtherExpressions:
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
                 _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
 
-                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics), TypeSymbol)
+                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
 
                 _builder.EmitLocalStore(keyHash)
@@ -1426,7 +1422,10 @@ OtherExpressions:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable)
 
             For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Dim stateMachineField = DirectCast(field, StateMachineFieldSymbol)
+                If stateMachineField.SlotIndex >= 0 Then
+                    DefineUserDefinedStateMachineHoistedLocal(stateMachineField)
+                End If
             Next
 
             EmitStatement(scope.Statement)

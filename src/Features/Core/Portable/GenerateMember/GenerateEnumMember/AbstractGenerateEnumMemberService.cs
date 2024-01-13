@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
         protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
 
-        public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
             {
@@ -34,11 +37,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                return GetActions(document, state);
+                return ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state, fallbackOptions));
             }
         }
-
-        private ImmutableArray<CodeAction> GetActions(Document document, State state)
-            => ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state));
     }
 }

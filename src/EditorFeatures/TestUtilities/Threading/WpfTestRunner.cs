@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -28,13 +29,9 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class WpfTestRunner : XunitTestRunner
     {
-        private static readonly ImmutableDictionary<string, TestInfo> _passedTests;
         private static string s_wpfFactRequirementReason;
 
         public WpfTestSharedData SharedData { get; }
-
-        static WpfTestRunner()
-            => _passedTests = TestInfo.GetPassedTestsInfo();
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,
@@ -70,16 +67,9 @@ namespace Roslyn.Test.Utilities
                         // Reset our flag ensuring that part of this test actually needs WpfFact
                         s_wpfFactRequirementReason = null;
 
-                        if (_passedTests.TryGetValue(Test.DisplayName, out var info))
-                        {
-                            return info.Time;
-                        }
-                        else
-                        {
-                            // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                            var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                            return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
-                        }
+                        // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
+                        var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+                        return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
                     }
                     finally
                     {
@@ -98,7 +88,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         internal static void RequireWpfFact(string reason)
         {
-            if (!(TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
+            if (TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is not DispatcherSynchronizationContext)
             {
                 throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }

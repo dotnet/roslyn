@@ -5,10 +5,11 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
@@ -21,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class InlineRenameTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function SimpleEditAndCommit() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function SimpleEditAndCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -53,14 +54,41 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameLambdaDiscard() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameLocalVariableInTopLevelStatement(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                object [|$$test|] = new object();
+                                var other = [|test|];
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "renamed")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameLambdaDiscard(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -75,17 +103,48 @@ class C
 }
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
-        Public Async Function RenameDeconstructionForeachCollection() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46208")>
+        Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class [|Test1$$|]
+{
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, True)
+
+                Dim session = StartSession(workspace)
+
+                Dim selectedSpan = workspace.DocumentWithCursor.CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+                ' User could use copy & paste to enter invalid character
+                textBuffer.Insert(selectedSpan, "<>")
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace)
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22495")>
+        Public Async Function RenameDeconstructionForeachCollection(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -103,16 +162,16 @@ class Deconstructable
 }
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameDeconstructMethodInDeconstructionForeach() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameDeconstructMethodInDeconstructionForeach(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -132,17 +191,17 @@ class Deconstructable
 }
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(540120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540120")>
-        Public Async Function SimpleEditAndVerifyTagsPropagatedAndCommit() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540120")>
+        Public Async Function SimpleEditAndVerifyTagsPropagatedAndCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -156,7 +215,7 @@ class Deconstructable
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -168,53 +227,58 @@ class Deconstructable
 
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        Private Async Function VerifyRenameOptionChangedSessionCommit(workspace As TestWorkspace,
+        Private Shared Async Function VerifyRenameOptionChangedSessionCommit(workspace As EditorTestWorkspace,
                                                            originalTextToRename As String,
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,
                                                            Optional renameInStrings As Boolean = False,
                                                            Optional renameInComments As Boolean = False,
-                                                           Optional renameFile As Boolean = False) As Task
-            Dim optionSet = workspace.Options
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
+                                                           Optional renameFile As Boolean = False,
+                                                           Optional fileToRename As DocumentId = Nothing) As Task
+
+            Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
             Dim session = StartSession(workspace)
 
             ' Type a bit in the file
-            Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor
+            Dim renameDocument = workspace.DocumentWithCursor
             renameDocument.GetTextBuffer().Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
 
             Dim replacementText = renameTextPrefix + originalTextToRename
             Await WaitForRename(workspace)
 
-            Await VerifyTagsAreCorrect(workspace, replacementText)
+            Await VerifyTagsAreCorrect(workspace)
 
             session.Commit()
 
-            Await VerifyTagsAreCorrect(workspace, replacementText)
+            Await VerifyTagsAreCorrect(workspace)
 
             If renameFile Then
-                VerifyFileName(workspace, replacementText)
+                If fileToRename Is Nothing Then
+                    VerifyFileName(workspace, replacementText)
+                Else
+                    VerifyFileName(workspace.CurrentSolution.GetDocument(fileToRename), replacementText)
+                End If
             End If
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
-        Public Async Function RenameOverloadsCSharp() As Task
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
+        Public Async Function RenameOverloadsCSharp(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -238,17 +302,17 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
-        Public Async Function RenameOverloadsVisualBasic() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
+        Public Async Function RenameOverloadsVisualBasic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -280,17 +344,17 @@ Public Class Program
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(960955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960955")>
-        Public Async Function RenameParameterShouldNotAffectCommentsInOtherDocuments() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960955")>
+        Public Async Function RenameParameterShouldNotAffectCommentsInOtherDocuments(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -305,7 +369,7 @@ End Class
 ' args
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "args", "bar", renameInComments:=True)
 
@@ -313,10 +377,10 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
-        Public Async Function RenameInLinkedFilesDoesNotCrash() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        Public Async Function RenameInLinkedFilesDoesNotCrash(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -325,7 +389,7 @@ End Class
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
 
@@ -336,10 +400,10 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
-        Public Async Function RenameInLinkedFilesHandlesBothProjects() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        Public Async Function RenameInLinkedFilesHandlesBothProjects(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -355,7 +419,7 @@ public partial class C { }
 // [|C|]
 ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
 
@@ -363,10 +427,10 @@ public partial class C { }
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
-        Public Async Function RenameInLinkedFilesWithPrivateAccessibility() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        Public Async Function RenameInLinkedFilesWithPrivateAccessibility(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -387,7 +451,7 @@ public partial class C { }
 // F
 ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
 
@@ -395,10 +459,10 @@ public partial class C { }
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
-        Public Async Function RenameInLinkedFilesWithPublicAccessibility() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
+        Public Async Function RenameInLinkedFilesWithPublicAccessibility(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -419,7 +483,7 @@ public partial class C { }
 // [|F|]
 ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
 
@@ -427,10 +491,10 @@ public partial class C { }
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
-        Public Async Function RenameTypeInLinkedFiles() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3623")>
+        Public Async Function RenameTypeInLinkedFiles(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
@@ -441,7 +505,7 @@ public class [|$$C|] { }
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
 
@@ -449,15 +513,19 @@ public class [|$$C|] { }
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
-        Public Async Function RenameInCommentsAndStringsCSharp() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem("https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        Public Async Function RenameInCommentsAndStringsCSharp(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
                                 <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.goo(System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -478,7 +546,7 @@ class Program
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
@@ -489,6 +557,9 @@ class Program
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                             <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|](System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -509,7 +580,7 @@ class Program
 }]]>
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
@@ -520,6 +591,9 @@ class Program
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                             <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|](System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -540,22 +614,26 @@ class Program
 }]]>
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
-        Public Async Function RenameInCommentsAndStringsVisualBasic() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem("https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        Public Async Function RenameInCommentsAndStringsVisualBasic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
                                 <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.goo(System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -574,7 +652,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
@@ -585,6 +663,9 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|](System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -603,7 +684,7 @@ End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
@@ -614,6 +695,9 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|](System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -632,16 +716,16 @@ End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub SimpleEditAndCancel()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub SimpleEditAndCancel(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -655,7 +739,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -676,10 +760,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CanRenameTypeNamedDynamic() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function CanRenameTypeNamedDynamic(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -693,7 +776,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -704,13 +787,13 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "goodynamic")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ReadOnlyRegionsCreated()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ReadOnlyRegionsCreated(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -720,7 +803,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
                 Dim buffer = workspace.Documents.Single().GetTextBuffer()
@@ -744,16 +827,16 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(543018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
-        Public Sub ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
+        Public Sub ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>$$C c; class C { }</Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
                 Dim buffer = workspace.Documents.Single().GetTextBuffer()
@@ -771,9 +854,9 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameWithInheritenceCascadingWithClass()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithInheritenceCascadingWithClass(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -798,16 +881,15 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="GooBar")
-
+                    </Workspace>, host:=host, renameTo:="GooBar")
 
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(530467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530467")>
-        Public Async Function VerifyNoRenameTrackingAfterInlineRenameTyping() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530467")>
+        Public Async Function VerifyNoRenameTrackingAfterInlineRenameTyping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -821,7 +903,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -833,18 +915,18 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyNoRenameTrackingAfterInlineRenameTyping2() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyNoRenameTrackingAfterInlineRenameTyping2(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -854,7 +936,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -867,19 +949,19 @@ End Class
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(579210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579210")>
-        Public Async Function VerifyNoRenameTrackingAfterInlineRenameCommit() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579210")>
+        Public Async Function VerifyNoRenameTrackingAfterInlineRenameCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -893,7 +975,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -905,19 +987,19 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(530765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530765")>
-        Public Async Function VerifyNoRenameTrackingAfterInlineRenameCancel() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530765")>
+        Public Async Function VerifyNoRenameTrackingAfterInlineRenameCancel(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -931,7 +1013,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -943,7 +1025,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Cancel()
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
@@ -952,9 +1034,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -968,7 +1050,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -980,10 +1062,10 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
 
@@ -992,9 +1074,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact, WorkItem(978099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/978099")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyPreviewChangesCalled() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/978099")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyPreviewChangesCalled(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1008,10 +1090,10 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 ' Preview should not return null
-                Dim previewService = DirectCast(workspace.Services.GetService(Of IPreviewDialogService)(), MockPreviewDialogService)
+                Dim previewService = DirectCast(workspace.Services.GetRequiredService(Of IPreviewDialogService)(), MockPreviewDialogService)
                 previewService.ReturnsNull = False
 
                 Dim session = StartSession(workspace)
@@ -1023,7 +1105,7 @@ End Class
 
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
                 Assert.Equal(String.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename), previewService.Title)
                 Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Goo", "BarGoo"), previewService.Description)
@@ -1032,9 +1114,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyPreviewChangesCancellation() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyPreviewChangesCancellation(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1048,40 +1130,32 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim previewService = DirectCast(workspace.Services.GetService(Of IPreviewDialogService)(), MockPreviewDialogService)
                 previewService.ReturnsNull = True
 
                 Dim session = StartSession(workspace)
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
+                session.ApplyReplacementText("BarGoo", propagateEditImmediately:=True)
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
 
-                ' Session should still be up; type some more
-                caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                textBuffer.Insert(caretPosition, "Cat")
+                ' Session should still be up
+                session.ApplyReplacementText("CatBarGoo", propagateEditImmediately:=True)
 
                 previewService.ReturnsNull = False
                 previewService.Called = False
                 session.Commit(previewChanges:=True)
-                Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
-
-                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_MethodWithReferences() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyLinkedFiles_MethodWithReferences(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
@@ -1104,7 +1178,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
                             <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1114,20 +1188,20 @@ End Class
 
                 textBuffer.Insert(caretPosition, "o")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Mo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 textBuffer.Insert(caretPosition + 1, "w")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Mow")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Mow")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_FieldWithReferences() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function VerifyLinkedFiles_FieldWithReferences(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
@@ -1149,7 +1223,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
                             <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1159,22 +1233,22 @@ End Class
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "ma")
+                Await VerifyTagsAreCorrect(workspace)
 
                 textBuffer.Insert(caretPosition + 1, "w")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "maw")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "maw")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        <WorkItem(554, "https://github.com/dotnet/roslyn/issues/554")>
-        Public Async Function CodeActionCannotCommitDuringInlineRename() As Task
+        <WorkItem("https://github.com/dotnet/roslyn/issues/554")>
+        Public Async Function CodeActionCannotCommitDuringInlineRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
@@ -1190,7 +1264,7 @@ class C
     int [|x|];
 }</Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1218,12 +1292,13 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                editHandler.Apply(
+                Await editHandler.ApplyAsync(
                     workspace,
+                    workspace.CurrentSolution,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
-                    New ProgressTracker(),
+                    CodeAnalysisProgress.None,
                     CancellationToken.None)
 
                 ' CodeAction should be rejected
@@ -1242,17 +1317,17 @@ class C
                     textBuffer.CurrentSnapshot.GetText())
 
                 ' Rename should still be active
-                Await VerifyTagsAreCorrect(workspace, "xyz")
+                Await VerifyTagsAreCorrect(workspace)
 
                 textBuffer.Insert(caretPosition + 2, "q")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "xyzq")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameMethodWithNameof_FromDefinition_NoOverloads() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameMethodWithNameof_FromDefinition_NoOverloads(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1266,7 +1341,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1275,16 +1350,16 @@ class C
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameMethodWithNameof_FromReference_NoOverloads() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameMethodWithNameof_FromReference_NoOverloads(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1298,7 +1373,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1307,16 +1382,16 @@ class C
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameMethodWithNameof_FromDefinition_WithOverloads() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameMethodWithNameof_FromDefinition_WithOverloads(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1332,7 +1407,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1341,16 +1416,16 @@ class C
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameMethodWithNameof_FromReference_WithOverloads() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameMethodWithNameof_FromReference_WithOverloads(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1366,7 +1441,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1375,16 +1450,16 @@ class C
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameMethodWithNameof_FromDefinition_WithOverloads_WithRenameOverloadsOption() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameMethodWithNameof_FromDefinition_WithOverloads_WithRenameOverloadsOption(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1400,103 +1475,17 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenDebuggingStarts() As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate starting a debugging session
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-            End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenExitingDebuggingBreakMode() As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate ending break mode in the debugger (by stepping or continuing)
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-            End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
-        Public Async Function InvalidInvocationExpression() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3316")>
+        Public Async Function InvalidInvocationExpression(host As RenameTestHost) As Task
             ' Everything on the last line of main is parsed as a single invocation expression
             ' with CType(...) as the receiver and everything else as arguments.
             ' Rename doesn't expect to see CType as the receiver of an invocation.
@@ -1513,7 +1502,7 @@ Module Module1
 End Module
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1524,14 +1513,14 @@ End Module
                 textBuffer.Insert(caretPosition, "q")
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "qp")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(2445, "https://github.com/dotnet/roslyn/issues/2445")>
-        Public Async Function InvalidExpansionTarget() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2445")>
+        Public Async Function InvalidExpansionTarget(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1541,7 +1530,7 @@ End Module
                                 void [|$$M|]() { }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1554,14 +1543,14 @@ End Module
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "x")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(9117, "https://github.com/dotnet/roslyn/issues/9117")>
-        Public Async Function VerifyVBRenameCrashDoesNotRepro() As Task
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9117")>
+        Public Async Function VerifyVBRenameCrashDoesNotRepro(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1585,7 +1574,7 @@ Public Class Class2
 End Class 
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1598,14 +1587,14 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "xield1")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(14554, "https://github.com/dotnet/roslyn/issues/14554")>
-        Public Sub VerifyVBRenameDoesNotCrashOnAsNewClause()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14554")>
+        Public Sub VerifyVBRenameDoesNotCrashOnAsNewClause(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                                 <Workspace>
                                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1630,7 +1619,7 @@ Class C
 End Class
                                         </Document>
                                     </Project>
-                                </Workspace>)
+                                </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1643,9 +1632,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyNoFileRenameAllowedForPartialType()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedForPartialType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1666,7 +1655,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1674,9 +1663,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyFileRenameAllowedForPartialTypeWithSingleLocation()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedForPartialTypeWithSingleLocation(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1689,7 +1678,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1697,9 +1686,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingName()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingName(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1716,7 +1705,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1724,9 +1713,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyNoFileRenameAllowedWithMultipleTypes()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedWithMultipleTypes(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1743,7 +1732,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1751,9 +1740,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyEnumKindSupportsFileRename()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyEnumKindSupportsFileRename(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1766,7 +1755,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1774,9 +1763,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyInterfaceKindSupportsFileRename()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyInterfaceKindSupportsFileRename(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1787,7 +1776,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1795,9 +1784,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyUnsupportedFileRename()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyUnsupportedFileRename(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1808,7 +1797,7 @@ End Class
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1816,9 +1805,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyFileRenameNotAllowedForLinkedFiles()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameNotAllowedForLinkedFiles(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -1827,7 +1816,7 @@ End Class
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 ' Disable document changes to make sure file rename is not supported. 
                 ' Linked workspace files will report that applying changes to document
@@ -1841,9 +1830,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1853,7 +1842,7 @@ class [|$$Test1|]
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1869,9 +1858,9 @@ class [|$$Test1|]
             End Using
         End Sub
 
-        <WpfFact, WorkItem(36063, "https://github.com/dotnet/roslyn/issues/36063")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function EditBackToOriginalNameThenCommit() As Task
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/36063")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function EditBackToOriginalNameThenCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1885,7 +1874,7 @@ class [|$$Test1|]
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim session = StartSession(workspace)
 
@@ -1899,8 +1888,500 @@ class [|$$Test1|]
                 Dim committed = session.GetTestAccessor().CommitWorker(previewChanges:=False)
                 Assert.False(committed)
 
-                Await VerifyTagsAreCorrect(workspace, "Test1")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/44576")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameFromOtherFile(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Test1
+                            {
+                                void Blah()
+                                {
+                                    [|$$Test2|] t2 = new [|Test2|]();
+                                }
+                            }
+                        </Document>
+                        <Document Name="Test2.cs">
+                            class Test2
+                            {
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host)
+
+                Dim docToRename = workspace.Documents.First(Function(doc) doc.Name = "Test2.cs")
+                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="Test2", renameTextPrefix:="Test2Changed", renameFile:=True, fileToRename:=docToRename.Id)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        Public Async Function RenameConstructorReferencedInGlobalSuppression(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|C|].#ctor")]
+
+class [|C|]
+{
+    public [|$$C|]()
+    {
+    }
+}]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "D")
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameRecordWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                record [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInterfaceWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                interface [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameRecordWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                record [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInterfaceWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                interface [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameRecordConstructorCalled(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                record [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g = new [|Goo|](1);
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassConstructorCalled(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g = new [|Goo|](1);
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructConstructorCalled(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g = new [|Goo|](1);
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameExtendedProperty(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        _ = this is { Other.[|Goo|]: not null, Other.Other.[|Goo|]: not null, [|Goo|]: null } ;
+                                    }
+
+                                    public C [|$$Goo|] { get; set; }
+                                    public C Other { get; set; }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInComment(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class [|$$MyClass|]
+                                {
+                                    /// <summary>
+                                    /// Initializes <see cref="MyClass"/>;
+                                    /// </summary>
+                                    MyClass() 
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                session.ApplyReplacementText("Example", True)
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66208")>
+        Public Async Function RenameWithGeneratedFile(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                partial class [|$$MyClass|]
+                                {
+                                    public void M1()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <DocumentFromSourceGenerator>
+                                partial class [|MyClass|]
+                                {
+                                    public void M2()
+                                    {
+                                    }
+                                }
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = cursorDocument.CursorPosition.Value
+                Dim textBuffer = cursorDocument.GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Example")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
     End Class
 End Namespace

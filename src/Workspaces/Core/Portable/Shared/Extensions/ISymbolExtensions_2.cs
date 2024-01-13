@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -16,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
-                    if (method.MethodKind == MethodKind.EventAdd ||
-                        method.MethodKind == MethodKind.EventRemove ||
-                        method.MethodKind == MethodKind.PropertySet)
+                    if (method.MethodKind is MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.PropertySet)
                     {
                         // the name is value in C#, and Value in VB
-                        return symbol.Name == "value" || symbol.Name == "Value";
+                        return symbol.Name is "value" or "Value";
                     }
                 }
             }

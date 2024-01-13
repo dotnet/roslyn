@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 {
@@ -21,25 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
     {
         public static bool IsBuiltInType(ITypeSymbol type)
             => type?.IsSpecialType() == true;
-
-        public static bool IsImplicitStylePreferred(
-            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext)
-        {
-            return IsImplicitStylePreferred(
-                GetCurrentTypeStylePreferences(optionSet),
-                isBuiltInTypeContext,
-                isTypeApparentContext);
-        }
-
-        private static bool IsImplicitStylePreferred(
-            UseVarPreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
-        {
-            return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes)
-                    : isTypeApparentContext
-                        ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)
-                        : stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-        }
 
         /// <summary>
         /// Analyzes if type information is obvious to the reader by simply looking at the assignment expression.
@@ -53,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             UseVarPreference stylePreferences,
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             CancellationToken cancellationToken)
         {
             // tuple literals
-            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tuple))
+            if (initializerExpression is TupleExpressionSyntax tuple)
             {
                 if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {
@@ -99,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // constructor invocations cases:
             //      = new type();
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression) &&
+            if (initializerExpression.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ArrayCreationExpression &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
@@ -107,9 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // explicit conversion cases: 
             //      (type)expr, expr is type, expr as type
-            if (initializerExpression.IsKind(SyntaxKind.CastExpression) ||
-                initializerExpression.IsKind(SyntaxKind.IsExpression) ||
-                initializerExpression.IsKind(SyntaxKind.AsExpression))
+            if (initializerExpression.Kind() is SyntaxKind.CastExpression or SyntaxKind.IsExpression or SyntaxKind.AsExpression)
             {
                 return true;
             }
@@ -124,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (!(semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is IMethodSymbol methodSymbol))
+            if (semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return false;
             }
@@ -139,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         }
 
         private static bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             SemanticModel semanticModel,
             ExpressionSyntax containingTypeName,
             CancellationToken cancellationToken)
@@ -151,8 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
+            // The containing type was determined from an expression of the form ContainingType.MemberName, and the
+            // caller verifies that MemberName resolves to a method symbol.
+            Contract.ThrowIfNull(containingType);
+
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
-                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel);
+                || IsPossibleConversionMethod(methodSymbol);
         }
 
         /// <summary>
@@ -160,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
         /// </summary>
         private static bool IsPossibleCreationMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             ITypeSymbol containingType)
         {
             if (!methodSymbol.IsStatic)
@@ -175,10 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
         /// e.g: Convert.ToString.
         /// </summary>
-        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
-            ITypeSymbol containingType,
-            SemanticModel semanticModel)
+        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol)
         {
             var returnType = methodSymbol.ReturnType;
             var returnTypeName = returnType.IsNullable()
@@ -195,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// otherwise, we match for type equivalence
         /// </remarks>
         private static bool IsContainerTypeEqualToReturnType(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             ITypeSymbol containingType)
         {
             var returnType = UnwrapTupleType(methodSymbol.ReturnType);
@@ -211,12 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
         }
 
-        private static ITypeSymbol UnwrapTupleType(ITypeSymbol symbol)
+        [return: NotNullIfNotNull(nameof(symbol))]
+        private static ITypeSymbol? UnwrapTupleType(ITypeSymbol? symbol)
         {
             if (symbol is null)
                 return null;
 
-            if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+            if (symbol is not INamedTypeSymbol namedTypeSymbol)
                 return symbol;
 
             return namedTypeSymbol.TupleUnderlyingType ?? symbol;
@@ -240,32 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
 
             return node;
-        }
-
-        private static UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
-        {
-            var stylePreferences = UseVarPreference.None;
-
-            var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-            var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-            var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
-
-            if (styleForIntrinsicTypes.Value)
-            {
-                stylePreferences |= UseVarPreference.ForBuiltInTypes;
-            }
-
-            if (styleForApparent.Value)
-            {
-                stylePreferences |= UseVarPreference.WhenTypeIsApparent;
-            }
-
-            if (styleForElsewhere.Value)
-            {
-                stylePreferences |= UseVarPreference.Elsewhere;
-            }
-
-            return stylePreferences;
         }
 
         public static bool IsPredefinedType(TypeSyntax type)

@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -19,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
+            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -34,21 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator Generator
             => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-        public Compilation Compile(string code)
+        public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib)
+                .AddReferences(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore, TestMetadata.Net451.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code));
         }
 
-        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
-            Assert.Equal(expectedText, normalized);
+            AssertEx.Equal(expectedText, normalized);
         }
 
-        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.ToFullString();
@@ -209,7 +214,7 @@ public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 @"[MyAttribute(new [] {1, 2, 3})]")),
-@"[global::MyAttribute(new[]{1, 2, 3})]");
+@"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
 @"using System; 
@@ -223,7 +228,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             Assert.True(attributes.Count == 1);
         }
 
-        private AttributeData GetAttributeData(string decl, string use)
+        private static AttributeData GetAttributeData(string decl, string use)
         {
             var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
             var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
@@ -378,7 +383,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ArrayCreationExpressionSyntax>(
                 Generator.ArrayCreationExpression(Generator.IdentifierName("x"), new SyntaxNode[] { Generator.IdentifierName("y"), Generator.IdentifierName("z") }),
-                "new x[]{y, z}");
+                """
+                new x[]
+                {
+                    y,
+                    z
+                }
+                """);
         }
 
         [Fact]
@@ -782,6 +793,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<FieldDeclarationSyntax>(
                 Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Static | DeclarationModifiers.ReadOnly),
                 "static readonly int fld;");
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Required),
+                "required int fld;");
         }
 
         [Fact]
@@ -826,6 +841,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { Generator.IdentifierName("y") }),
                 "partial void m()\r\n{\r\n    y;\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                   Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+                "partial void m();");
         }
 
         [Fact]
@@ -920,6 +939,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "bool operator >>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(OperatorKind.UnsignedRightShift, parameters, returnType),
+                "bool operator >>>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
                 "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
@@ -946,6 +969,25 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")]
+        public void TestConversionOperatorDeclaration()
+        {
+            var gcHandleType = _emptyCompilation.GetTypeByMetadataName(typeof(GCHandle).FullName);
+            var conversion = gcHandleType.GetMembers().OfType<IMethodSymbol>().Single(m =>
+                m.Name == WellKnownMemberNames.ExplicitConversionName && m.Parameters[0].Type.Equals(gcHandleType));
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.Declaration(conversion),
+                "public static explicit operator global::System.IntPtr(global::System.Runtime.InteropServices.GCHandle value)\r\n{\r\n}");
+
+            var doubleType = _emptyCompilation.GetSpecialType(SpecialType.System_Decimal);
+            conversion = doubleType.GetMembers().OfType<IMethodSymbol>().Single(m =>
+                m.Name == WellKnownMemberNames.ImplicitConversionName && m.Parameters[0].Type.Equals(_emptyCompilation.GetSpecialType(SpecialType.System_Byte)));
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.Declaration(conversion),
+                "public static implicit operator global::System.Decimal(global::System.Byte value)\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestConstructorDeclaration()
         {
@@ -969,7 +1011,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.ConstructorDeclaration("c",
                     parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) },
                     baseConstructorArguments: new[] { Generator.IdentifierName("p") }),
-                "c(t p): base(p)\r\n{\r\n}");
+                "c(t p) : base(p)\r\n{\r\n}");
         }
 
         [Fact]
@@ -977,15 +1019,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.ReadOnly),
-                "abstract x p\r\n{\r\n    get;\r\n}");
+                "abstract x p { get; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
-                "abstract x p\r\n{\r\n    set;\r\n}");
+                "abstract x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
-                "x p\r\n{\r\n    get;\r\n}");
+                "x p { get; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: Array.Empty<SyntaxNode>()),
@@ -993,7 +1035,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
-                "x p\r\n{\r\n    set;\r\n}");
+                "x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
@@ -1001,7 +1043,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
-                "abstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
+                "abstract x p { get; set; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Required),
+                "required x p { get; set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { Generator.IdentifierName("y") }),
@@ -1025,15 +1071,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.ReadOnly),
-                "abstract x this[y z]\r\n{\r\n    get;\r\n}");
+                "abstract x this[y z] { get; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
-                "abstract x this[y z]\r\n{\r\n    set;\r\n}");
+                "abstract x this[y z] { set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
-                "abstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
+                "abstract x this[y z] { get; set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
@@ -1089,11 +1135,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
-                "abstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "abstract event t ep { add; remove; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Abstract),
-                "public abstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "public abstract event t ep { add; remove; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")),
@@ -1137,6 +1183,287 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.AsPublicInterfaceImplementation(pim, Generator.IdentifierName("i2"), "m2"),
                 "public t m2()\r\n{\r\n}");
+
+            #region ExpressionBodyTests
+            VerifySyntax<MethodDeclarationSyntax>(
+                   Generator.AsPublicInterfaceImplementation(
+                   SyntaxFactory.MethodDeclaration(
+                       SyntaxFactory.PredefinedType(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.ObjectKeyword,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))),
+                       SyntaxFactory.Identifier("DoSomething"))
+                   .WithExplicitInterfaceSpecifier(
+                        SyntaxFactory.ExplicitInterfaceSpecifier(
+                           SyntaxFactory.IdentifierName("IGeneral")))
+                   .WithParameterList(
+                       SyntaxFactory.ParameterList()
+                        .WithCloseParenToken(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.CloseParenToken,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))))
+                   .WithExpressionBody(
+                       SyntaxFactory.ArrowExpressionClause(
+                           SyntaxFactory.ImplicitObjectCreationExpression())
+                       .WithArrowToken(
+                           SyntaxFactory.Token(
+                               SyntaxFactory.TriviaList(),
+                               SyntaxKind.EqualsGreaterThanToken,
+                               SyntaxFactory.TriviaList(
+                                   SyntaxFactory.Space))))
+                   .WithSemicolonToken(
+                       SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                   Generator.IdentifierName("i")),
+                   "public object DoSomething() => new();");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.OperatorDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Token(SyntaxKind.PlusToken))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        [
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)]))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("IGeneral"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("C"))))))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SeparatedList<ParameterSyntax>(
+                            new SyntaxNodeOrToken[]{
+                                SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier("x"))
+                                .WithType(
+                                    SyntaxFactory.IdentifierName("C")),
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier("y"))
+                                .WithType(
+                                    SyntaxFactory.IdentifierName("C"))})))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public static int operator +(C x, C y) => 0;");
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.ConversionOperatorDeclaration(
+                    SyntaxFactory.Token(
+                        SyntaxFactory.TriviaList(),
+                        SyntaxKind.ImplicitKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space)),
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.StringKeyword)))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.StaticKeyword,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("IGeneral"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("C"))))))
+                .WithOperatorKeyword(
+                    SyntaxFactory.Token(
+                        SyntaxFactory.TriviaList(),
+                        SyntaxKind.OperatorKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space)))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("x"))
+                            .WithType(
+                                SyntaxFactory.IdentifierName(
+                                    SyntaxFactory.Identifier(
+                                        SyntaxFactory.TriviaList(),
+                                        "C",
+                                        SyntaxFactory.TriviaList(
+                                            SyntaxFactory.Space))))))
+                    .WithCloseParenToken(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.CloseParenToken,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NullLiteralExpression))
+                    .WithArrowToken(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.EqualsGreaterThanToken,
+                            SyntaxFactory.TriviaList(
+                                SyntaxFactory.Space))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                    Generator.IdentifierName("i")),
+                    "public static implicit operator string (C x) => null;");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Identifier("Num"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int Num => 0;");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                    SyntaxFactory.Identifier("Num"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                            SyntaxFactory.AccessorDeclaration(
+                                SyntaxKind.GetAccessorDeclaration)
+                            .WithExpressionBody(
+                                SyntaxFactory.ArrowExpressionClause(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int Num { get => 0; }");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.IndexerDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithParameterList(
+                    SyntaxFactory.BracketedParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("index"))
+                            .WithType(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                .WithExpressionBody(
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(0))))
+                .WithSemicolonToken(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int this[int index] => 0;");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.IndexerDeclaration(
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithParameterList(
+                    SyntaxFactory.BracketedParameterList(
+                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("index"))
+                            .WithType(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                            SyntaxFactory.AccessorDeclaration(
+                                SyntaxKind.GetAccessorDeclaration)
+                            .WithExpressionBody(
+                                SyntaxFactory.ArrowExpressionClause(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public int this[int index] { get => 0; }");
+
+            VerifySyntax<EventDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                SyntaxFactory.EventDeclaration(
+                    SyntaxFactory.IdentifierName("EventHandler"),
+                    SyntaxFactory.Identifier("Event"))
+                .WithExplicitInterfaceSpecifier(
+                    SyntaxFactory.ExplicitInterfaceSpecifier(
+                        SyntaxFactory.IdentifierName("IGeneral")))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.List<AccessorDeclarationSyntax>(
+                            new AccessorDeclarationSyntax[] {
+                                SyntaxFactory.AccessorDeclaration(
+                                    SyntaxKind.AddAccessorDeclaration)
+                                .WithExpressionBody(
+                                    SyntaxFactory.ArrowExpressionClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NullLiteralExpression)))
+                                .WithSemicolonToken(
+                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                SyntaxFactory.AccessorDeclaration(
+                                    SyntaxKind.RemoveAccessorDeclaration)
+                                .WithExpressionBody(
+                                    SyntaxFactory.ArrowExpressionClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NullLiteralExpression)))
+                                .WithSemicolonToken(
+                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))})))
+                .NormalizeWhitespace(),
+                Generator.IdentifierName("i")),
+                "public event EventHandler Event { add => null; remove => null; }");
+            #endregion
         }
 
         [Fact]
@@ -1180,8 +1507,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
-        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3928")]
         public void TestAsPrivateInterfaceImplementationRemovesConstraints()
         {
             var code = @"
@@ -1306,19 +1632,19 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t p { get; set; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.ReadOnly) }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t p { get; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t this[x y] { get; set; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.ReadOnly) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t this[x y] { get; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
@@ -1330,7 +1656,21 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.FieldDeclaration("f", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t f\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t f { get; set; }\r\n}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66377")]
+        public void TestInterfaceVariance()
+        {
+            var compilation = Compile("""
+                interface I<in X, out Y> { }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("I").Single();
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                "internal interface I<in X, out Y>\r\n{\r\n}");
         }
 
         [Fact]
@@ -1351,6 +1691,10 @@ public interface IFace
             VerifySyntax<EnumDeclarationSyntax>(
                 Generator.EnumDeclaration("e", members: new[] { Generator.EnumMember("a", Generator.LiteralExpression(0)), Generator.EnumMember("b"), Generator.EnumMember("c", Generator.LiteralExpression(5)) }),
                 "enum e\r\n{\r\n    a = 0,\r\n    b,\r\n    c = 5\r\n}");
+
+            VerifySyntax<EnumDeclarationSyntax>(
+                Generator.EnumDeclaration("e", members: new[] { Generator.FieldDeclaration("a", Generator.IdentifierName("e"), initializer: Generator.LiteralExpression(1)) }),
+                "enum e\r\n{\r\n    a = 1\r\n}");
         }
 
         [Fact]
@@ -1525,19 +1869,19 @@ public interface IFace
                 Generator.AddAttributes(
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
+                "[a]\r\nabstract x p { get; set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.AddAttributes(
                     Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
+                "[a]\r\nabstract x this[y z] { get; set; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.AddAttributes(
                     Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "[a]\r\nabstract event t ep { add; remove; }");
 
             VerifySyntax<EventFieldDeclarationSyntax>(
                 Generator.AddAttributes(
@@ -1580,10 +1924,35 @@ public interface IFace
                     Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
                     Generator.Attribute("a")),
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<CompilationUnitSyntax>(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+                "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<StatementSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.BreakStatement(),
+                    Generator.Attribute("a")),
+                "[a]\r\nbreak;");
+
+            VerifySyntax<TypeParameterSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.TypeParameter("T"),
+                    Generator.Attribute("a")),
+                "[a]\r\nT");
+
+            VerifySyntax<LambdaExpressionSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.ParenthesizedLambdaExpression(),
+                    Generator.Attribute("a")),
+                "[a]\r\n() =>");
         }
 
-        [Fact]
-        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));
@@ -1791,16 +2160,442 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public void TestUnsafeFieldDeclarationFromSymbol()
         {
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
-@"public unsafe void *ToPointer()
+@"public unsafe void* ToPointer()
 {
 }");
+        }
+
+        [Fact]
+        public void TestEnumDeclarationFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+@"public enum DateTimeKind
+{
+    Unspecified = 0,
+    Utc = 1,
+    Local = 2
+}");
+        }
+
+        [Fact]
+        public void TestEnumWithUnderlyingTypeFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+@"public enum SecurityRuleSet : byte
+{
+    None = 0,
+    Level1 = 1,
+    Level2 = 2
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")]
+        public void TestDelegateDeclarationFromSymbol()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public delegate void D();
+                """));
+
+            var type = compilation.GetTypeByMetadataName("D");
+
+            VerifySyntax<DelegateDeclarationSyntax>(Generator.Declaration(type), """
+                public delegate void D();
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestMethodDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    void M(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method), """
+                private void M(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
+        public void TestMethodDeclarationFromSymbol2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    void M(params int[] arr) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method), """
+                private void M(params global::System.Int32[] arr)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
+        public void TestMethodDeclarationFromSymbol3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                static class C
+                {
+                    static void M(this int i) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method), """
+                private static void M(this global::System.Int32 i)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
+        public void TestMethodDeclarationFromSymbol4()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                static class C
+                {
+                    static void M(this ref int i) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method), """
+                private static void M(this ref global::System.Int32 i)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65638")]
+        public void TestConstructorDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public C(int i = int.MaxValue) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Single();
+
+            VerifySyntax<ConstructorDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                public C(global::System.Int32 i = global::System.Int32.MaxValue)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { get; protected set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { get; protected set; }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { protected get; set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { protected get; set; }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a);
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : default { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : default
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : class;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : struct;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint4()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public class X
+                {
+                }
+
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : X;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66375")]
+        public void TestExplicitInterface1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public interface IGoo
+                {
+                    void BarMethod();
+                    int BarProp { get; }
+                    int this[int x] { get; }
+                    event System.Action E;
+                }
+
+                public class Goo : IGoo
+                {
+                    void IGoo.BarMethod() { }
+                    int IGoo.BarProp => 0;
+                    int IGoo.this[int x] => 0;
+                    event System.Action IGoo.E { add { } remove { } }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("Goo");
+            var method = type.GetMembers().Single(m => m is IMethodSymbol { MethodKind: MethodKind.ExplicitInterfaceImplementation });
+            var property = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: false });
+            var indexer = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: true });
+            var ev = type.GetMembers().Single(m => m is IEventSymbol);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                void global::IGoo.BarMethod()
+                {
+                }
+                """);
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "global::System.Int32 global::IGoo.BarProp { get; }");
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.Declaration(indexer),
+                """
+                global::System.Int32 global::IGoo.this[global::System.Int32 x]
+                {
+                    get
+                    {
+                    }
+                }
+                """);
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(ev),
+                """
+                event global::System.Action IGoo.E;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66380")]
+        public void TestConstantFieldDeclarations()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const int F;
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Int32 F;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")]
+        public void TestConstantDecimalFieldDeclarationFromMetadata()
+        {
+            var compilation = _emptyCompilation.
+                WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const decimal F = 8675309000000M;
+                }
+                """));
+            var reference = compilation.EmitToPortableExecutableReference();
+
+            compilation = _emptyCompilation.AddReferences(reference);
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Decimal F = 8675309000000M;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")]
+        public void TestConstantFieldDeclarationSpecialTypes()
+        {
+            var field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(nameof(UInt32.MaxValue)).Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.UInt32 MaxValue = 4294967295U;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")]
+        public void TestDestructor1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    ~C()
+                    {
+                    }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.DestructorName).Single();
+
+            VerifySyntax<DestructorDeclarationSyntax>(
+                Generator.Declaration(method), """
+                ~C()
+                {
+                }
+                """);
         }
 
         #endregion
@@ -1839,9 +2634,9 @@ public class C { } // end").Members[0];
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")));
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")));
 
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", new string[] { });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", new[] { "y" });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", new[] { "x" });
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", []);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", ["y"]);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", ["x"]);
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
@@ -1977,8 +2772,8 @@ public class C
             TestRemoveAllMembers(Generator.NamespaceDeclaration("n", new[] { Generator.NamespaceDeclaration("n") }));
             TestRemoveAllMembers(Generator.CompilationUnit(declarations: new[] { Generator.NamespaceDeclaration("n") }));
 
-            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
-            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
+            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
+            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
@@ -2117,6 +2912,7 @@ public class C
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.Attribute("a"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.TypeParameter("tp"), Accessibility.Private)));
+            Assert.Equal(Accessibility.Private, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration), Accessibility.Private)));
         }
 
         [Fact]
@@ -2223,8 +3019,102 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
+        }
+
+        [Fact]
+        public void TestAddPublicToStaticConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", modifiers: DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
+{
+}");
+
+            var publicCtor = Generator.WithAccessibility(ctor, Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"public C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddStaticToPublicConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", accessibility: Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"public C()
+{
+}");
+
+            var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"static C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddAbstractToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddPublicToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToAbstractClass()
+        {
+            var abstractClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("abstract class C { }");
+            var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToPublicClass()
+        {
+            var publicClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public class C { }");
+            var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddRequiredModifierToVirtualProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public virtual int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
+        public void TestAddVirtualModifierToRequiredProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66295")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public void TestCompoundAccessibilityModifierKeywordsOrder(string modifier)
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration($$"""{{modifier}} int P { get; }""");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, $$"""{{modifier}} required int P { get; }""");
         }
 
         [Fact]
@@ -2308,7 +3198,9 @@ public class C
 
             Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.DelegateDeclaration("d"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
 
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.StructDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.InterfaceDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
         }
 
@@ -2328,7 +3220,22 @@ public class C
             Assert.Equal("x", Generator.GetExpression(Generator.ValueReturningLambdaExpression("p", Generator.IdentifierName("x"))).ToString());
             Assert.Equal("x", Generator.GetExpression(Generator.VoidReturningLambdaExpression("p", Generator.IdentifierName("x"))).ToString());
 
+            // identifier
             Assert.Null(Generator.GetExpression(Generator.IdentifierName("e")));
+
+            // expression bodied methods
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("x", Generator.GetExpression(method).ToString());
+
+            // expression bodied local functions
+            var local = SyntaxFactory.LocalFunctionStatement(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), "p");
+            local = local.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            local = local.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("x", Generator.GetExpression(local).ToString());
         }
 
         [Fact]
@@ -2349,7 +3256,22 @@ public class C
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(Generator.ValueReturningLambdaExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y"))).ToString());
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(Generator.VoidReturningLambdaExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y"))).ToString());
 
+            // identifier
             Assert.Null(Generator.GetExpression(Generator.WithExpression(Generator.IdentifierName("e"), Generator.IdentifierName("x"))));
+
+            // expression bodied methods
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(method, Generator.IdentifierName("y"))).ToString());
+
+            // expression bodied local functions
+            var local = SyntaxFactory.LocalFunctionStatement(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), "p");
+            local = local.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            local = local.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(local, Generator.IdentifierName("y"))).ToString());
         }
 
         [Fact]
@@ -2408,14 +3330,13 @@ public class C
         {
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.PropertyDeclaration("p", Generator.IdentifierName("x"))),
-                "x p\r\n{\r\n}");
+                "x p { }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
                     Generator.GetAccessorDeclaration(Accessibility.NotApplicable, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    get\r\n    {\r\n        return;\r\n    }\r\n}");
-
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
@@ -2431,7 +3352,7 @@ public class C
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x"))),
-                "x this[t p]\r\n{\r\n}");
+                "x this[t p] { }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
@@ -2959,6 +3880,173 @@ public class C
 }");
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public void TestInsertMembersOnRecord_SemiColon(string typeKind)
+        {
+            var comp = Compile(
+$@"public {typeKind} C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public {typeKind} C
+{{
+    T A;
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnClass_SemiColon()
+        {
+            var comp = Compile(
+$@"public class C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public class C
+{{
+    T A;
+}}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecordStruct_SemiColon()
+        {
+            var src =
+@"public record struct C;
+";
+            var comp = CSharpCompilation.Create("test")
+                .AddReferences(TestMetadata.Net451.mscorlib)
+                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(src, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record struct C
+{
+    T A;
+}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnStruct_SemiColon()
+        {
+            var comp = Compile(
+$@"public struct C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public struct C
+{{
+    T A;
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon_01()
+        {
+            var comp = Compile(
+$@"public interface C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon_02()
+        {
+            var comp = Compile(
+$@"public interface C();
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C()
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnEnum_SemiColon()
+        {
+            var comp = Compile(
+$@"public enum C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<EnumDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.EnumMember("A")),
+$@"public enum C
+{{
+    A
+}}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_Braces()
+        {
+            var comp = Compile(
+@"public record C { }
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_BracesAndSemiColon()
+        {
+            var comp = Compile(
+@"public record C { };
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
         [Fact]
         public void TestMultiAttributeDeclarations()
         {
@@ -3102,6 +4190,35 @@ public class C
 public class C
 {
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66376")]
+        public void TestRefReturnType()
+        {
+            var comp = Compile(
+@"public class C<T>
+{
+    public ref T GetPinnableReference() { throw null; }
+    public ref readonly T this[int index] { get { throw null; } }
+    public ref int P => throw null;
+}");
+            var symbolC = comp.GlobalNamespace.GetMembers("C").First();
+
+            var method = symbolC.GetMembers().OfType<IMethodSymbol>().Single(m => m.MethodKind == MethodKind.Ordinary);
+            var indexer = symbolC.GetMembers().OfType<IPropertySymbol>().Single(m => m.IsIndexer);
+            var property = symbolC.GetMembers().OfType<IPropertySymbol>().Single(m => !m.IsIndexer);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.MethodDeclaration(method),
+                "public ref T GetPinnableReference()\r\n{\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(indexer),
+                "public ref readonly T this[global::System.Int32 index]\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration(property),
+                "public ref global::System.Int32 P { get; }");
         }
 
         [Fact]
@@ -3374,8 +4491,7 @@ public void M()
 }");
         }
 
-        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/293")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {
@@ -3395,15 +4511,144 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordClass1()
+        {
+            var comp = Compile(
+@"public record class R;");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record R : global::System.Object, global::System.IEquatable<global::R>;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordClass2()
+        {
+            var comp = Compile(
+@"public record class R(int i) { public int I => i; }");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record R : global::System.Object, global::System.IEquatable<global::R>
+                {
+                    public R(global::System.Int32 i)
+                    {
+                    }
+
+                    public global::System.Int32 i { get; init; }
+                    public global::System.Int32 I { get; }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordStruct1()
+        {
+            var comp = Compile(
+@"public record struct R;");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public record struct R : global::System.IEquatable<global::R>;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateRecordStruct2()
+        {
+            var comp = Compile(
+@"public readonly record struct R(int i) { public int I => i; }");
+
+            var symbolR = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("R").First();
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.Declaration(symbolR),
+                """
+                public readonly record struct R : global::System.IEquatable<global::R>
+                {
+                    public R(global::System.Int32 i)
+                    {
+                    }
+
+                    public global::System.Int32 i { get; init; }
+                    public global::System.Int32 I { get; }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateUnmanagedConstraint1()
+        {
+            var comp = Compile(
+                """public class C<T> where T : unmanaged { }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First();
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public class C<T> : global::System.Object where T : unmanaged
+                {
+                    public C()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateUnmanagedConstraint2()
+        {
+            var comp = Compile(
+                """public class C { void M<T>() where T : unmanaged { } }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("M").First();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                private void M<T>()
+                    where T : unmanaged
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateInitProperty1()
+        {
+            var comp = Compile(
+                """public class C { public int X { get; init; } }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("X").First();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public global::System.Int32 X { get; init; }
+                """);
         }
 
         #endregion
 
         #region DeclarationModifiers
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestNamespaceModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.None,
@@ -3413,7 +4658,15 @@ public class C : IDisposable
 }|]");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFileScopedNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1;|]");
+        }
+
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestClassModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Static,
@@ -3423,8 +4676,8 @@ public class C : IDisposable
 }|]");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
-        public void TestMethodModifiers1()
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestMethodModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
                 @"
@@ -3434,7 +4687,31 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66170")]
+        public void TestMethodModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly,
+                @"
+struct S
+{
+    [|public readonly void M() { }|]
+}");
+        }
+
+        [Fact]
+        public void TestAsyncMethodModifier()
+        {
+            TestModifiersAsync(DeclarationModifiers.Async,
+                @"
+using System.Threading.Tasks;
+class C
+{
+    [|public async Task DoAsync() { await Task.CompletedTask; }|]
+}
+");
+        }
+
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestPropertyModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
@@ -3445,7 +4722,18 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact]
+        public void TestPropertyModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
+                @"
+class C
+{
+    [|public required int X => 0;|]
+}");
+        }
+
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFieldModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Static,
@@ -3456,7 +4744,18 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact]
+        public void TestFieldModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.Required,
+                @"
+class C
+{
+    public required int [|X|];
+}");
+        }
+
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestEvent1()
         {
             TestModifiersAsync(DeclarationModifiers.Virtual,
@@ -3467,7 +4766,109 @@ class C
 }");
         }
 
-        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
+        public void TestStructModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+                @"
+public readonly struct [|S|]
+{
+}");
+        }
+
+        [Fact]
+        public void TestStructModifiers2()
+        {
+            var compilation = Compile("""
+                public ref struct S
+                {
+                    public int Value;
+                    public ref int RefValue;
+                    public readonly ref int RORefValue;
+
+                    public void M(scoped ref int value) { }
+                    public void M(scoped ref readonly double value) { } 
+                    public void M(in int x, scoped in int y) { }
+                    public void M(S x, scoped S y) { }
+                    public void M(out int value) { }
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("S").Single();
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public struct S
+                {
+                    public global::System.Int32 Value;
+                    public ref global::System.Int32 RefValue;
+                    public readonly ref global::System.Int32 RORefValue;
+                    public void M(scoped ref global::System.Int32 value)
+                    {
+                    }
+
+                    public void M(scoped ref readonly global::System.Double value)
+                    {
+                    }
+
+                    public void M(in global::System.Int32 x, scoped in global::System.Int32 y)
+                    {
+                    }
+
+                    public void M(global::S x, scoped global::S y)
+                    {
+                    }
+
+                    public void M(out global::System.Int32 value)
+                    {
+                    }
+
+                    public S()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67341")]
+        public void TestUnboundGenerics()
+        {
+            var compilation = Compile("""
+                using System;
+
+                [AttributeUsage(AttributeTargets.All)]
+                public class TypeAttribute : Attribute
+                {
+                    public TypeAttribute(params Type[] types)
+                    {
+                    }
+                }
+
+                [TypeAttribute(typeof((int, string)), typeof((int x, string y)), typeof(ValueTuple<,>), typeof(ValueTuple<int, string>))]
+                public class C
+                {
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("C").Single();
+            var attribute = symbol.GetAttributes().Single();
+
+            VerifySyntax<AttributeListSyntax>(
+                Generator.Attribute(attribute),
+                """
+                [global::TypeAttribute(new[] { typeof((global::System.Int32, global::System.String)), typeof((global::System.Int32 x, global::System.String y)), typeof(global::System.ValueTuple<, >), typeof((global::System.Int32, global::System.String)) })]
+                """);
+
+            var type = (ITypeSymbol)attribute.ConstructorArguments[0].Values[2].Value;
+
+            VerifySyntax<TypeSyntax>(
+                Generator.TypeExpression(type),
+                """
+                global::System.ValueTuple<, >
+                """);
+        }
+
+        private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
 

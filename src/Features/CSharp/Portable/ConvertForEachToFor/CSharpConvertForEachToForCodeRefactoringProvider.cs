@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -16,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToForCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), Shared]
     internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
         AbstractConvertForEachToForCodeRefactoringProvider<StatementSyntax, ForEachStatementSyntax>
     {
@@ -62,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var collectionVariable = GetCollectionVariableName(
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
-            var typeSymbol = foreachInfo.RequireExplicitCastInterface
-                ? foreachInfo.ExplicitCastInterface
-                : model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
+            var typeSymbol = foreachInfo.ExplicitCastInterface ??
+                model.GetTypeInfo(foreachCollectionExpression, cancellationToken).Type ??
+                model.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var collectionStatementType = typeSymbol.GenerateTypeSyntax();
 
@@ -74,8 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             var indexVariable = CreateUniqueName(foreachInfo.SemanticFacts, model, foreachStatement.Statement, "i", cancellationToken);
 
+            // do not cast when the element is identity - fixes 'var x in T![]' under nullable context
+            var foreachStatementInfo = model.GetForEachStatementInfo(foreachStatement);
+            var donotCastElement = foreachStatementInfo.ElementConversion.IsIdentity;
+
             // put variable statement in body
-            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable);
+            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable, donotCastElement);
 
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
@@ -109,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
         }
 
         private StatementSyntax GetForLoopBody(
-            SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable)
+            SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable, bool donotCastElement)
         {
             var foreachStatement = foreachInfo.ForEachStatement;
             if (foreachStatement.Statement is EmptyStatementSyntax)
@@ -120,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             // create variable statement
             var variableStatement = AddItemVariableDeclaration(
                 generator, foreachInfo.ForEachElementType.GenerateTypeSyntax(),
-                foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
+                foreachStatement.Identifier, donotCastElement ? null : foreachInfo.ForEachElementType,
+                collectionVariableName, indexVariable);
 
             var bodyBlock = foreachStatement.Statement is BlockSyntax block ? block : SyntaxFactory.Block(foreachStatement.Statement);
             if (bodyBlock.Statements.Count == 0)
@@ -128,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 // If the block was empty, still put the new variable inside of it. This handles the case where the user
                 // writes the foreach and immediately decides to change it to a for-loop.  Now they'll still have their
                 // variable to use in the body instead of having to write it again.
-                return bodyBlock.AddStatements((StatementSyntax)variableStatement);
+                return bodyBlock.AddStatements(variableStatement);
             }
             else
             {

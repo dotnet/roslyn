@@ -4,7 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -18,8 +22,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <param name="document">The document to generate source into</param>
         /// <param name="symbolCompilation">The <see cref="Compilation"/> in which <paramref name="symbol"/> is resolved.</param>
         /// <param name="symbol">The symbol to generate source for</param>
+        /// <param name="options">Options to use to generate and format the code.</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken = default);
+        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CleanCodeGenerationOptions options, CancellationToken cancellationToken);
     }
 }

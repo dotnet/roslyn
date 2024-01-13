@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -61,6 +59,10 @@ namespace Microsoft.CodeAnalysis
         {
             return nodeOrToken.RawKind == (int)kind;
         }
+
+        /// <inheritdoc cref="SyntaxNode.ContainsDirective"/>
+        public static bool ContainsDirective(this SyntaxNode node, SyntaxKind kind)
+            => node.ContainsDirective((int)kind);
 
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         /// </summary>
-        public static SyntaxKind Kind([NotNull] this SyntaxNode node)
+        public static SyntaxKind Kind(this SyntaxNode node)
         {
             var rawKind = node.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsVerbatimStringLiteral(this SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
+            return token.Kind() is (SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
         }
 
         public static bool IsVerbatimIdentifier(this SyntaxToken token)
@@ -375,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the first directive of the tree rooted by this node.
         /// </summary>
-        public static DirectiveTriviaSyntax GetFirstDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
+        public static DirectiveTriviaSyntax? GetFirstDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             return ((CSharpSyntaxNode)node).GetFirstDirective(predicate);
         }
@@ -383,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the last directive of the tree rooted by this node.
         /// </summary>
-        public static DirectiveTriviaSyntax GetLastDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
+        public static DirectiveTriviaSyntax? GetLastDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             return ((CSharpSyntaxNode)node).GetLastDirective(predicate);
         }
@@ -506,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public static SymbolInfo GetCollectionInitializerSymbolInfo(this SemanticModel? semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -525,6 +527,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
         /// </summary>
         public static SymbolInfo GetSymbolInfo(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSymbolInfo(constructorInitializer, cancellationToken);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
+        /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
+        /// </summary>
+        public static SymbolInfo GetSymbolInfo(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -631,6 +649,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel? semanticModel, int position, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSpeculativeSymbolInfo(position, constructorInitializer);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
+        /// Bind the constructor initializer in the context of the specified location and get semantic information
+        /// about symbols. This method is used to get semantic information about a constructor
+        /// initializer that did not actually appear in the source code.
+        ///
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// <see cref="PrimaryConstructorBaseTypeSyntax"/>.
+        /// </summary>
+        public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel? semanticModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -751,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
+                return (Conversion)((ConversionOperation)conversionExpression).ConversionConvertible;
             }
             else
             {
@@ -777,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -803,13 +842,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
             }
             else
             {
                 throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
                                                           nameof(compoundAssignment)),
                                             nameof(compoundAssignment));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// </summary>
+        /// <remarks>
+        /// This spread operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetElementConversion(this ISpreadOperation spread)
+        {
+            if (spread == null)
+            {
+                throw new ArgumentNullException(nameof(spread));
+            }
+
+            if (spread.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((SpreadOperation)spread).ElementConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ISpreadOperationIsNotCSharpSpread, nameof(spread)), nameof(spread));
             }
         }
 
@@ -998,7 +1060,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(constructorInitializer);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {
@@ -1179,6 +1259,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
+        /// this source code. This can be used to get detailed semantic information about sub-parts
+        /// of a constructor initializer that did not appear in source code.
+        ///
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// </summary>
+        public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.TryGetSpeculativeSemanticModel(position, constructorInitializer, out speculativeModel);
+            }
+            else
+            {
+                speculativeModel = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Get a SemanticModel object that is associated with an attribute that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of an attribute that did not appear in source code.
@@ -1204,6 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static Conversion ClassifyConversion(this SemanticModel? semanticModel, ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
@@ -1243,10 +1346,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
+        /// </summary>
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1453,19 +1577,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(forEachStatement);
         }
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(catchDeclaration);
         }
 
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
@@ -1487,6 +1615,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Get the query range variable declared in a query continuation clause.
         /// </summary>
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+#pragma warning disable RS0026
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);

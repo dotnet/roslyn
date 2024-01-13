@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MethodBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -21,7 +21,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterConstructorDeclaration()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -36,7 +36,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
             VerifyStatementEndConstructApplied(
                 before:="<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
@@ -64,7 +64,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -79,7 +79,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -94,7 +94,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoNotApplyForInterfaceFunction()
             VerifyStatementEndConstructNotApplied(
                 text:="Interface IGoo
@@ -103,7 +103,7 @@ End Interface",
                  caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifySubInAModule()
             VerifyStatementEndConstructApplied(
                 before:="Module C
@@ -118,7 +118,7 @@ End Module",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifySubWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Module C
@@ -133,7 +133,7 @@ End Module",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyFuncWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Module C
@@ -150,7 +150,7 @@ End Module",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyFuncNamedWithKeyWord()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -165,7 +165,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifySharedOperator()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -180,7 +180,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -190,7 +190,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidLocation01()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -201,8 +201,8 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WorkItem(528961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
+        <WpfFact>
         Public Sub TestVerifyInvalidLocation02()
             VerifyStatementEndConstructApplied(
                 before:="Sub S",
@@ -212,7 +212,6 @@ End Class",
 End Sub",
                 afterCaret:={1, -1})
         End Sub
-
 
     End Class
 End Namespace

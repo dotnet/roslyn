@@ -2,20 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestGetDocumentSymbolsAsync()
+        public DocumentSymbolsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|class:class {|classSelection:A|}
@@ -24,19 +31,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }|}
 }|}";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var clientCapabilities = new LSP.ClientCapabilities()
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities()
+                {
+                    DocumentSymbol = new LSP.DocumentSymbolSetting()
+                    {
+                        HierarchicalDocumentSymbolSupport = true
+                    }
+                }
+            };
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expected = new LSP.DocumentSymbol[]
             {
-                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", locations["class"].Single(), locations["classSelection"].Single())
+                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single())
             };
-            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", locations["method"].Single(), locations["methodSelection"].Single(), expected.First());
+            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), expected.First());
 
-            var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
+            var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetDocumentSymbolsAsync__WithoutHierarchicalSupport()
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync_WithoutHierarchicalSupport(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|class:A|}
@@ -45,21 +62,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single()),
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), "A")
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", testLspServer.GetLocations("method").Single(), Glyph.MethodPrivate, "A")
             };
 
-            var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, false);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
-        [Fact(Skip = "GetDocumentSymbolsAsync does not yet support locals.")]
+        [Theory(Skip = "GetDocumentSymbolsAsync does not yet support locals."), CombinatorialData]
         // TODO - Remove skip & modify once GetDocumentSymbolsAsync is updated to support more than 2 levels.
         // https://github.com/dotnet/roslyn/projects/45#card-20033869
-        public async Task TestGetDocumentSymbolsAsync__WithLocals()
+        public async Task TestGetDocumentSymbolsAsync__WithLocals(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -69,40 +86,69 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         int i = 1;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var _);
-            var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, false).ConfigureAwait(false);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
             Assert.Equal(3, results.Length);
         }
 
-        [Fact]
-        public async Task TestGetDocumentSymbolsAsync__NoSymbols()
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync_EmptyName(bool mutatingLspWorkspace)
         {
-            using var workspace = CreateTestWorkspace(string.Empty, out var _);
+            var markup =
+@"namepsace NamespaceA
+{
+    public class
+";
 
-            var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
-            Assert.Empty(results);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+            Assert.Equal(".", results.First().Name);
         }
 
-        private static async Task<object[]> RunGetDocumentSymbolsAsync(Solution solution, bool hierarchicalSupport)
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync_EmptyNameWithHierarchicalSupport(bool mutatingLspWorkspace)
         {
-            var document = solution.Projects.First().Documents.First();
-            var request = new LSP.DocumentSymbolParams
-            {
-                TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
-            };
-
+            var markup =
+@"namepsace NamespaceA
+{
+    public class
+";
             var clientCapabilities = new LSP.ClientCapabilities()
             {
                 TextDocument = new LSP.TextDocumentClientCapabilities()
                 {
                     DocumentSymbol = new LSP.DocumentSymbolSetting()
                     {
-                        HierarchicalDocumentSymbolSupport = hierarchicalSupport
+                        HierarchicalDocumentSymbolSupport = true
                     }
                 }
             };
 
-            return await GetLanguageServer(solution).GetDocumentSymbolsAsync(solution, request, clientCapabilities, CancellationToken.None);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+            Assert.Equal(".", results.First().Name);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync__NoSymbols(bool mutatingLspWorkspace)
+        {
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
+            Assert.Empty(results);
+        }
+
+        private static async Task<TReturn> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)
+        {
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var request = new LSP.DocumentSymbolParams
+            {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI())
+            };
+
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, TReturn>(LSP.Methods.TextDocumentDocumentSymbolName,
+                request, CancellationToken.None);
         }
 
         private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)

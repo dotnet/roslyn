@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -82,8 +84,8 @@ End Class";
                 await TestAddConstructorAsync(input, expected);
             }
 
-            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             public async Task AddConstructorWithXmlComment()
             {
                 var input = @"
@@ -115,7 +117,7 @@ End Class";
     Public Sub New()
 End Class";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -160,7 +162,7 @@ End Class";
                     thisArguments: ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExpression("42")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
             public async Task AddClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -195,7 +197,7 @@ End Namespace";
                     name: "Class");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddNotInheritableClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -207,7 +209,7 @@ End Namespace";
                     modifiers: new DeclarationModifiers(isSealed: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddMustInheritClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -234,7 +236,7 @@ End Namespace";
                     typeKind: TypeKind.Struct);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedStructure()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -262,7 +264,7 @@ End Namespace";
                     typeKind: TypeKind.Interface);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544528")]
             public async Task AddEnum()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -276,7 +278,7 @@ End Namespace";
                     members: Members(CreateEnumField("F1", null)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
             public async Task AddEnumWithValues()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -317,7 +319,7 @@ End Enum";
                     name: "F3", hasConstantValue: true, constantValue: 3);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544529")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544529")]
             public async Task AddDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -329,7 +331,7 @@ End Class";
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
             public async Task AddSealedDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -353,7 +355,41 @@ Class C
     Public Event E As Action
 End Class";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -382,14 +418,14 @@ End Class";
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                             explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
-                };
+                }
 
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                         getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
                         type: typeof(System.ComponentModel.PropertyChangedEventHandler),
-                        codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                        context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -411,7 +447,7 @@ Class C
 End Class";
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -444,7 +480,7 @@ End Class";
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
                     raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -457,6 +493,24 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -473,7 +527,7 @@ End Class";
                     returnType: typeof(void));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
             public async Task AddSharedMethodToStructure()
             {
                 var input = "Structure [|S|]\n End Structure";
@@ -523,7 +577,7 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -613,7 +667,7 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[] { CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False },
+                    [CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False],
                     parameters: Parameters(Parameter("C", "other")),
                     returnType: typeof(bool),
                     statements: "Return False");
@@ -642,12 +696,11 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.UnaryPlus,
                         CodeGenerationOperatorKind.UnaryNegation,
                         CodeGenerationOperatorKind.LogicalNot
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "other")),
                     returnType: typeof(object),
                     statements: "Return Nothing");
@@ -720,8 +773,7 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.Addition,
                         CodeGenerationOperatorKind.Subtraction,
                         CodeGenerationOperatorKind.Multiplication,
@@ -736,7 +788,7 @@ End Class
                         CodeGenerationOperatorKind.ExclusiveOr,
                         CodeGenerationOperatorKind.LeftShift,
                         CodeGenerationOperatorKind.RightShift
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                     returnType: typeof(object),
                     statements: "Return Nothing");
@@ -777,15 +829,14 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.Equality,
                         CodeGenerationOperatorKind.Inequality,
                         CodeGenerationOperatorKind.GreaterThan,
                         CodeGenerationOperatorKind.LessThan,
                         CodeGenerationOperatorKind.GreaterThanOrEqual,
                         CodeGenerationOperatorKind.LessThanOrEqual
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                     returnType: typeof(bool),
                     statements: "Return True");
@@ -883,8 +934,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5F)));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyBlock()
             {
                 var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
@@ -901,8 +952,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyStatement()
             {
                 var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -919,8 +970,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyGetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -929,8 +980,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertySetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
@@ -964,6 +1015,28 @@ End Class";
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddPropertyWithoutAccessorBodies()
             {
                 var input = "Class [|C|]\n End Class";
@@ -974,7 +1047,7 @@ End Class";
                     type: typeof(int),
                     getStatements: "Return 0",
                     setStatements: "Me.P = Value",
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1601,11 +1674,11 @@ End Namespace";
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.VisualBasic,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
-            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             public async Task TestConstraints()
             {
                 var generationSource = @"
@@ -1625,7 +1698,7 @@ End Namespace
     End Class
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                    context: new CodeGenerationContext(generateMethodBodies: false),
                     onlyGenerateMembers: true);
             }
         }

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -28,8 +28,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly bool Explicitly;
             protected readonly bool Abstractly;
             private readonly bool _onlyRemaining;
-            protected readonly ISymbol ThroughMember;
+            protected readonly ISymbol? ThroughMember;
             protected readonly Document Document;
+            protected readonly ImplementTypeGenerationOptions Options;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
             private readonly string _equivalenceKey;
@@ -37,61 +38,68 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
                 bool onlyRemaining,
-                ISymbol throughMember)
+                ISymbol? throughMember)
             {
                 Service = service;
                 Document = document;
                 State = state;
+                Options = options;
                 Abstractly = abstractly;
                 _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
                 ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName);
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state,
                 ISymbol throughMember)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public override string Title
@@ -129,36 +137,23 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool explicitly,
                 bool abstractly,
                 bool onlyRemaining,
-                ISymbol throughMember,
+                ISymbol? throughMember,
                 string codeActionTypeName)
             {
                 var interfaceType = state.InterfaceTypes.First();
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
-            }
-
-            private static string GetCodeActionEquivalenceKey(
-                string interfaceTypeAssemblyName,
-                string interfaceTypeFullyQualifiedName,
-                bool explicitly,
-                bool abstractly,
-                bool onlyRemaining,
-                ISymbol throughMember,
-                string codeActionTypeName)
-            {
-                if (throughMember != null)
-                {
-                    return null;
-                }
-
+                // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+                // in the same manner.  Note: 'implement through member' means implementing the same interface through
+                // an applicable member with the same name in the destination.
                 return explicitly.ToString() + ";" +
-                    abstractly.ToString() + ";" +
-                    onlyRemaining.ToString() + ":" +
-                    interfaceTypeAssemblyName + ";" +
-                    interfaceTypeFullyQualifiedName + ";" +
-                    codeActionTypeName;
+                   abstractly.ToString() + ";" +
+                   onlyRemaining.ToString() + ":" +
+                   typeName + ";" +
+                   assemblyName + ";" +
+                   codeActionTypeName + ";" +
+                   throughMember?.Name;
             }
 
             public override string EquivalenceKey => _equivalenceKey;
@@ -196,38 +191,38 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImmutableArray<ISymbol> extraMembers,
                 CancellationToken cancellationToken)
             {
-                var result = document;
-                var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
+                var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, propertyGenerationBehavior, cancellationToken);
+                    compilation, tree.Options, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
                 // matters, so we don't want to much with them.
-                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
                 var groupMembers = !isComImport &&
-                    insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                    Options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 return await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType,
+                    new CodeGenerationSolutionContext(
+                        document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: classOrStructDecl.GetLocation(),
+                            autoInsertionLocation: groupMembers,
+                            sortMembers: groupMembers),
+                        Options.FallbackOptions),
+                    classOrStructType,
                     memberDefinitions.Concat(extraMembers),
-                    new CodeGenerationOptions(
-                        contextLocation: classOrStructDecl.GetLocation(),
-                        autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<ISymbol> GenerateMembers(
                 Compilation compilation,
+                ParseOptions options,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
                 // you have "interface IGoo { string Bar { get; } }" and "interface IQuux { int Bar
@@ -243,39 +238,41 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // That's because later members won't conflict with it even if they have the same
                 // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
-                var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var implementedVisibleMembers);
+                using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var implementedMembers);
 
                 foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
-                        var member = GenerateMember(
-                            compilation, unimplementedInterfaceMember, implementedVisibleMembers,
-                            propertyGenerationBehavior, cancellationToken);
-                        if (member != null)
+                        var members = GenerateMembers(
+                            compilation, options,
+                            unimplementedInterfaceMember, implementedVisibleMembers,
+                            propertyGenerationBehavior);
+                        foreach (var member in members)
                         {
+                            if (member is null)
+                                continue;
+
                             implementedMembers.Add(member);
 
                             if (!(member.ExplicitInterfaceImplementations().Any() && Service.HasHiddenExplicitImplementation))
-                            {
                                 implementedVisibleMembers.Add(member);
-                            }
                         }
                     }
                 }
 
-                return implementedMembers.ToImmutableAndFree();
+                return implementedMembers.ToImmutable();
             }
 
             private bool IsReservedName(string name)
             {
                 return
                     IdentifiersMatch(State.ClassOrStructType.Name, name) ||
-                    State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
+                    State.ClassOrStructType.TypeParameters.Any(static (t, arg) => arg.self.IdentifiersMatch(t.Name, arg.name), (self: this, name));
             }
 
-            private string DetermineMemberName(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 if (HasConflictingMember(member, implementedVisibleMembers))
                 {
@@ -291,12 +288,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return member.Name;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
+                ParseOptions options,
                 ISymbol member,
-                List<ISymbol> implementedVisibleMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ArrayBuilder<ISymbol> implementedVisibleMembers,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // First check if we already generate a member that matches the member we want to
                 // generate.  This can happen in C# when you have interfaces that have the same
@@ -310,18 +307,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //
                 // In this case we only want to generate 'Goo' once.
                 if (HasMatchingMember(implementedVisibleMembers, member))
-                {
-                    return null;
-                }
+                    return SpecializedCollections.EmptyEnumerable<ISymbol?>();
 
                 var memberName = DetermineMemberName(member, implementedVisibleMembers);
 
                 // See if we need to generate an invisible member.  If we do, then reset the name
                 // back to what then member wants it to be.
-                var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
+                var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
-                var generateAbstractly = !generateInvisibleMember && Abstractly;
+                // The language doesn't allow static abstract implementations of interface methods. i.e,
+                // Only interface member is declared abstract static, but implementation should be only static.
+                var generateAbstractly = !member.IsStatic && !generateInvisibleMember && Abstractly;
 
                 // Check if we need to add 'new' to the signature we're adding.  We only need to do this
                 // if we're not generating something explicit and we have a naming conflict with
@@ -329,44 +326,43 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var addNew = !generateInvisibleMember && HasNameConflict(member, memberName, State.ClassOrStructType.GetBaseTypes());
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
 
-                return GenerateMember(
+                return GenerateMembers(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,
-                    addNew, addUnsafe, propertyGenerationBehavior, cancellationToken);
+                    addNew, addUnsafe, propertyGenerationBehavior);
             }
 
-            private bool GenerateInvisibleMember(ISymbol member, string memberName)
+            private bool ShouldGenerateInvisibleMember(ParseOptions options, ISymbol member, string memberName)
             {
                 if (Service.HasHiddenExplicitImplementation)
                 {
                     // User asked for an explicit (i.e. invisible) member.
                     if (Explicitly)
-                    {
                         return true;
-                    }
 
                     // Have to create an invisible member if we have constraints we can't express
                     // with a visible member.
-                    if (HasUnexpressibleConstraint(member))
-                    {
+                    if (HasUnexpressibleConstraint(options, member))
                         return true;
-                    }
 
                     // If we had a conflict with a member of the same name, then we have to generate
                     // as an invisible member.
                     if (member.Name != memberName)
-                    {
                         return true;
-                    }
+
+                    // If the member is less accessible than type, for which we are implementing it,
+                    // then only explicit implementation is valid.
+                    if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
+                        return true;
                 }
 
                 // Can't generate an invisible member if the language doesn't support it.
                 return false;
             }
 
-            private bool HasUnexpressibleConstraint(ISymbol member)
+            private bool HasUnexpressibleConstraint(ParseOptions options, ISymbol member)
             {
                 // interface IGoo<T> { void Bar<U>() where U : T; }
                 //
@@ -375,26 +371,25 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // In this case we cannot generate an implement method for Bar.  That's because we'd
                 // need to say "where U : int" and that's disallowed by the language.  So we must
                 // generate something explicit here.
-                if (member.Kind != SymbolKind.Method)
-                {
+                if (member is not IMethodSymbol method)
                     return false;
-                }
 
-                var method = member as IMethodSymbol;
-
-                return method.TypeParameters.Any(IsUnexpressibleTypeParameter);
+                var allowDelegateAndEnumConstraints = this.Service.AllowDelegateAndEnumConstraints(options);
+                return method.TypeParameters.Any(t => IsUnexpressibleTypeParameter(t, allowDelegateAndEnumConstraints));
             }
 
-            private static bool IsUnexpressibleTypeParameter(ITypeParameterSymbol typeParameter)
+            private static bool IsUnexpressibleTypeParameter(
+                ITypeParameterSymbol typeParameter,
+                bool allowDelegateAndEnumConstraints)
             {
                 var condition1 = typeParameter.ConstraintTypes.Count(t => t.TypeKind == TypeKind.Class) >= 2;
-                var condition2 = typeParameter.ConstraintTypes.Any(ts => ts.IsUnexpressibleTypeParameterConstraint());
-                var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
+                var condition2 = typeParameter.ConstraintTypes.Any(static (ts, allowDelegateAndEnumConstraints) => ts.IsUnexpressibleTypeParameterConstraint(allowDelegateAndEnumConstraints), allowDelegateAndEnumConstraints);
+                var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(static ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
 
                 return condition1 || condition2 || condition3;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
                 ISymbol member,
                 string memberName,
@@ -402,24 +397,29 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool addNew,
                 bool addUnsafe,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+                var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
+                var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly
                     ? Accessibility.Public
                     : Accessibility.Private;
 
-                return member switch
+                if (member is IMethodSymbol method)
                 {
-                    IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
-                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken),
-                    IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
-                    _ => null,
-                };
+                    yield return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                }
+                else if (member is IPropertySymbol property)
+                {
+                    foreach (var generated in GeneratePropertyMembers(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
+                        yield return generated;
+                }
+                else if (member is IEventSymbol @event)
+                {
+                    yield return GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event);
+                }
             }
 
             private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
             }
 
-            private IMethodSymbol GetAddOrRemoveMethod(
+            private IMethodSymbol? GetAddOrRemoveMethod(
                 IEventSymbol @event, bool generateInvisibly, IMethodSymbol accessor, string memberName,
                 Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
             {
@@ -491,21 +491,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
 
             private bool IdentifiersMatch(string identifier1, string identifier2)
-            {
-                return IsCaseSensitive
+                => IsCaseSensitive
                     ? identifier1 == identifier2
                     : StringComparer.OrdinalIgnoreCase.Equals(identifier1, identifier2);
-            }
 
-            private bool IsCaseSensitive
-            {
-                get
-                {
-                    return Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
-                }
-            }
+            private bool IsCaseSensitive => Document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive;
 
-            private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
+            private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:
@@ -533,9 +525,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private bool MembersMatch(ISymbol member1, ISymbol member2)
             {
                 if (member1.Kind != member2.Kind)
-                {
                     return false;
-                }
 
                 if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
                     member1.IsStatic != member2.IsStatic)
@@ -544,9 +534,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 if (member1.ExplicitInterfaceImplementations().Any() || member2.ExplicitInterfaceImplementations().Any())
-                {
                     return false;
-                }
 
                 return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
                     member1, member2, IsCaseSensitive);

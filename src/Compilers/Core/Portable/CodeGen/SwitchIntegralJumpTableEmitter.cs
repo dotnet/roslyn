@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //  c)	After bucketing, generate code to perform a binary search on these buckets array, 
             //      emitting conditional jumps if current bucket sub-array has more than one bucket and
             //      emitting the switch instruction when we are down to a single bucket in the sub-array.
-
 
             // (a) Sort switch labels: This was done in the constructor
 

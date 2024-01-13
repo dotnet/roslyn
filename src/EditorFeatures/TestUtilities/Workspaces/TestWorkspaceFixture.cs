@@ -2,41 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public abstract class TestWorkspaceFixture : IDisposable
     {
         public int Position;
         public string Code;
 
-        private TestWorkspace _workspace;
-        private TestHostDocument _currentDocument;
+        private EditorTestWorkspace _workspace;
+        private EditorTestHostDocument _currentDocument;
 
-        public TestHostDocument CurrentDocument => _currentDocument ?? _workspace.Documents.Single();
+        public EditorTestHostDocument CurrentDocument => _currentDocument ?? _workspace.Documents.Single();
 
-        public TestWorkspace GetWorkspace(ExportProvider exportProvider = null)
+        public EditorTestWorkspace GetWorkspace(TestComposition composition = null)
         {
-            _workspace = _workspace ?? CreateWorkspace(exportProvider);
+            _workspace ??= CreateWorkspace(composition);
             return _workspace;
         }
 
-        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null, string workspaceKind = null)
+        public EditorTestWorkspace GetWorkspace(string markup, TestComposition composition = null, string workspaceKind = null)
         {
-            if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
+            // If it looks like XML, we'll treat it as XML; any parse error would be rejected and will throw.
+            // We'll do a case insensitive search here so if somebody has a lowercase W it'll be tried (and
+            // rejected by the XML parser) rather than treated as regular text.
+            if (markup.TrimStart().StartsWith("<Workspace>", StringComparison.OrdinalIgnoreCase))
             {
                 CloseTextView();
                 _workspace?.Dispose();
 
-                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+                _workspace = EditorTestWorkspace.CreateWorkspace(XElement.Parse(markup), composition: composition, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
                 Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
@@ -45,23 +48,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             else
             {
                 MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out Code, out Position);
-                var workspace = GetWorkspace(exportProvider);
+                var workspace = GetWorkspace(composition);
                 _currentDocument = workspace.Documents.Single();
                 return workspace;
             }
         }
 
-        public TestWorkspaceFixture()
-        {
-        }
-
-        protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
+        protected abstract EditorTestWorkspace CreateWorkspace(TestComposition composition);
 
         public void Dispose()
         {
-            if (_workspace != null)
+            if (_workspace is null)
+                return;
+
+            try
             {
-                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
+                CloseTextView();
+                _currentDocument = null;
+                Code = null;
+                Position = 0;
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
             }
         }
 
@@ -92,22 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public void DisposeAfterTest()
-        {
-            try
-            {
-                CloseTextView();
-                _currentDocument = null;
-                Code = null;
-                Position = 0;
-                _workspace?.Dispose();
-            }
-            finally
-            {
-                _workspace = null;
-            }
-        }
-
         private void CloseTextView()
         {
             // The standard use for TestWorkspaceFixture is to call this method in the test's dispose to make sure it's ready to be used for
@@ -127,20 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
             existingProperties.Clear();
-        }
-
-        private static bool TryParseXElement(string input, out XElement output)
-        {
-            try
-            {
-                output = XElement.Parse(input);
-                return true;
-            }
-            catch (XmlException)
-            {
-                output = null;
-                return false;
-            }
         }
     }
 }

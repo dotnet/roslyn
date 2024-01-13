@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             if (reference.StartsWith(ReferencePrefix, StringComparison.Ordinal))
             {
-                var parts = reference.Substring(ReferencePrefix.Length).Split('/');
+                var parts = reference[ReferencePrefix.Length..].Split('/');
                 Debug.Assert(parts.Length > 0);
                 name = parts[0];
                 if (name.Length > 0)

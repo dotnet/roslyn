@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,24 +83,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             char c = path[path.Length - 1];
             return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
-        }
-
-        private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
-        {
-            foreach (string? metadataName in right.MetadataNames)
-            {
-                var leftValue = left.GetMetadata(metadataName);
-                var rightValue = right.GetMetadata(metadataName);
-
-                if (!string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, right.ItemSpec, metadataName, leftValue, rightValue);
-                }
-                else if (string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    left.SetMetadata(metadataName, rightValue);
-                }
-            }
         }
 
         public override bool Execute()

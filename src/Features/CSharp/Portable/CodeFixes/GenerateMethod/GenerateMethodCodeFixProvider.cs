@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -12,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
@@ -33,8 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS1503 = nameof(CS1503); // error CS1503: Argument 1: cannot convert from 'double' to 'int'
         private const string CS1660 = nameof(CS1660); // error CS1660: Cannot convert lambda expression to type 'string[]' because it is not a delegate type
         private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
-        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.M(int)'
+        private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(int)'
         private const string CS1955 = nameof(CS1955); // error CS1955: Non-invocable member 'Goo' cannot be used like a method.
+        private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'OnChanged' matches delegate 'NotifyCollectionChangedEventHandler'
 
         public static readonly ImmutableArray<string> FixableDiagnosticIds =
             ImmutableArray.Create(
@@ -51,12 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                 CS1660,
                 CS1739,
                 CS7036,
-                CS1955);
+                CS1955,
+                CS0123);
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
-    internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateVariable)]
+    internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -69,16 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            return node.IsKind(SyntaxKind.IdentifierName) ||
-                   node.IsKind(SyntaxKind.MethodDeclaration) ||
-                   node.IsKind(SyntaxKind.InvocationExpression) ||
-                   node.IsKind(SyntaxKind.CastExpression) ||
+            return node.Kind()
+                    is SyntaxKind.IdentifierName
+                    or SyntaxKind.MethodDeclaration
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.CastExpression ||
                    node is LiteralExpressionSyntax ||
                    node is SimpleNameSyntax ||
                    node is ExpressionSyntax;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
         {
             switch (node)
             {
@@ -86,16 +90,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                     return invocation.Expression.GetRightmostName();
                 case MemberBindingExpressionSyntax memberBindingExpression:
                     return memberBindingExpression.Name;
+                case AssignmentExpressionSyntax assignment:
+                    return assignment.Right;
             }
 
             return node;
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateParameterizedMemberService>();
-            return service.GenerateMethodAsync(document, node, cancellationToken);
+            return service.GenerateMethodAsync(document, node, fallbackOptions, cancellationToken);
         }
     }
 }

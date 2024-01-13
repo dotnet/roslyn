@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -25,17 +22,28 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract string Language { get; }
 
         /// <summary>
+        /// Immutable snapshot of the host services.  Preferable to use instead of this <see
+        /// cref="HostLanguageServices"/> when possible.
+        /// </summary>
+        public LanguageServices LanguageServices { get; }
+
+        protected HostLanguageServices()
+        {
+#pragma warning disable 618 // 'HostProjectServices.HostProjectServices(HostLanguageServices)' is obsolete: 'Do not call directly.
+            LanguageServices = new LanguageServices(this);
+#pragma warning restore
+        }
+
+        /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
-        [return: MaybeNull]
-        public abstract TLanguageService GetService<TLanguageService>() where TLanguageService : ILanguageService;
+        public abstract TLanguageService? GetService<TLanguageService>() where TLanguageService : ILanguageService;
 
         /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns throws <see cref="InvalidOperationException"/>.
         /// </summary>
-        [return: NotNull]
         public TLanguageService GetRequiredService<TLanguageService>() where TLanguageService : ILanguageService
         {
             var service = GetService<TLanguageService>();

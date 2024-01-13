@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -183,10 +185,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
                 {
-                    if (s1 == null)
-                    {
-                        s1 = new List<TNode>();
-                    }
+                    s1 ??= new List<TNode>();
 
                     s1.Add(e);
                 }
@@ -197,10 +196,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
                 {
-                    if (s2 == null)
-                    {
-                        s2 = new List<TNode>();
-                    }
+                    s2 ??= new List<TNode>();
 
                     s2.Add(e);
                 }

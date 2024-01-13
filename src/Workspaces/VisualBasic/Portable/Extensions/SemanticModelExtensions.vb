@@ -9,10 +9,10 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
-
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As ArgumentListSyntax,
@@ -36,20 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return semanticModel.GenerateParameterNames(
                 arguments,
                 Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
-                cancellationToken)
-        End Function
-
-        <Extension()>
-        Public Function GenerateParameterNames(semanticModel As SemanticModel,
-                                               arguments As IList(Of ArgumentSyntax),
-                                               reservedNames As IEnumerable(Of String),
-                                               parameterNamingRule As NamingRule,
-                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
-            Return semanticModel.GenerateParameterNames(
-                arguments,
-                Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
-                parameterNamingRule,
                 cancellationToken)
         End Function
 
@@ -94,6 +80,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
                                  ToImmutableArray()
+        End Function
+
+        <Extension()>
+        Public Function GenerateNameForArgument(semanticModel As SemanticModel,
+                                                argument As ArgumentSyntax,
+                                                cancellationToken As CancellationToken) As String
+            Dim result = GenerateNameForArgumentWorker(semanticModel, argument, cancellationToken)
+            Return If(String.IsNullOrWhiteSpace(result), [Shared].Extensions.ITypeSymbolExtensions.DefaultParameterName, result)
+        End Function
+
+        Private Function GenerateNameForArgumentWorker(semanticModel As SemanticModel,
+                                                       argument As ArgumentSyntax,
+                                                       cancellationToken As CancellationToken) As String
+            If argument.IsNamed Then
+                Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
+            ElseIf Not argument.IsOmitted Then
+                Return semanticModel.GenerateNameForExpression(
+                    argument.GetExpression(), capitalize:=False, cancellationToken:=cancellationToken)
+            Else
+                Return [Shared].Extensions.ITypeSymbolExtensions.DefaultParameterName
+            End If
         End Function
     End Module
 End Namespace

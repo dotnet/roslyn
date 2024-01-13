@@ -375,28 +375,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken, thirdToken As SyntaxToken) As String
-
-            ' grab the part that doesn't contain the preceding and trailing trivia.
-
-            Dim builder = PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder)
-
-            firstToken.WriteTo(writer)
-            secondToken.WriteTo(writer)
-            thirdToken.WriteTo(writer)
-
-            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-            Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
-            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
-
-            Debug.Assert(builder.Length = fullWidth)
-            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-
-        End Function
-
         Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext
             Dim result As BlockContext.LinkResult
             Dim incrementalContext = _context
@@ -1643,29 +1621,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' File:Parser.cpp
-        ' Lines: 4681 - 4681
-        ' .Parser::ReportGenericArgumentsDisallowedError( [ ERRID errid ] [ _Inout_ bool& ErrorInConstruct ] )
-
-        Private Function ReportGenericArgumentsDisallowedError(errid As ERRID) As TypeArgumentListSyntax
-            Dim allowEmptyGenericArguments As Boolean = True
-            Dim AllowNonEmptyGenericArguments As Boolean = True
-
-            Dim genericArguments As TypeArgumentListSyntax = ParseGenericArguments(
-                allowEmptyGenericArguments,
-                AllowNonEmptyGenericArguments)
-
-            If genericArguments.CloseParenToken.IsMissing Then
-                genericArguments = ResyncAt(genericArguments)
-            End If
-
-            Debug.Assert(Not genericArguments.OpenParenToken.IsMissing, "Generic params parsing lost!!!")
-
-            genericArguments = ReportSyntaxError(genericArguments, errid)
-
-            Return genericArguments
-        End Function
-
-        ' File:Parser.cpp
         ' Lines: 4730 - 4730
         ' .Parser::RejectGenericParametersForMemberDecl( [ _In_ bool& ErrorInConstruct ] )
 
@@ -2218,7 +2173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        ' Parses the as-clause and initializer for both locals, fields an properties
+        ' Parses the as-clause and initializer for both locals, fields and properties
         ' Properties allow Attributes before the type and allow implicit line continuations before "FROM", otherwise, fields and
         ' properties allow the same syntax.
         Private Sub ParseFieldOrPropertyAsClauseAndInitializer(isProperty As Boolean, allowAsNewWith As Boolean, ByRef optionalAsClause As AsClauseSyntax, ByRef optionalInitializer As EqualsValueSyntax)
@@ -2391,7 +2346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             End If
         End Sub
-
 
         ''' <summary>
         '''  Parses a CollectionInitializer 
@@ -2981,7 +2935,6 @@ checkNullable:
                 End If
 
                 elementBuilder.Add(element)
-
 
                 Dim commaToken As PunctuationSyntax = Nothing
                 If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken) Then
@@ -4181,14 +4134,6 @@ checkNullable:
 
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                 propertyParameters = ParseParameters(openParen, closeParen)
-
-                ' If we blow up on the parameters try to resume on the AS, =, or Implements
-                ' TODO - GreenSepList knows its error count. Expose it instead of recomputing it.
-                If propertyParameters.Count = 0 Then
-                    Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
-                    closeParen = closeParen.AddTrailingSyntax(unexpected)
-                End If
-
                 optionalParameters = SyntaxFactory.ParameterList(openParen, propertyParameters, closeParen)
             Else
                 If ident.ContainsDiagnostics Then
@@ -6080,16 +6025,6 @@ checkNullable:
             _currentToken = Nothing
         End Sub
 
-        ''' <summary>
-        ''' returns true if feature is available
-        ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
-            Return True
-        End Function
-
         '============ Methods to test properties of NodeKind. ====================
         '
 
@@ -6192,14 +6127,21 @@ checkNullable:
         ''' <summary>
         ''' Returns false and reports an error if the feature is un-available
         ''' </summary>
-        Friend Shared Function CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
+        Friend Shared Function CheckFeatureAvailability(diagnosticsOpt As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
             If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
+                If diagnosticsOpt IsNot Nothing Then
+                    Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                    Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+                    diagnosticsOpt.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
+                End If
+
                 Return False
             End If
             Return True
+        End Function
+
+        Friend Shared Function CheckFeatureAvailability(diagnostics As BindingDiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
+            Return CheckFeatureAvailability(diagnostics.DiagnosticBag, location, languageVersion, feature)
         End Function
 
     End Class

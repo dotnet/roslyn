@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DebugVerifier : BoundTreeWalker
         {
-            private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
+            private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> _analyzedNullabilityMap;
             private readonly SnapshotManager? _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
@@ -35,19 +33,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
             {
                 var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
                 verifier.Visit(node);
                 snapshotManagerOpt?.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
+                if (verifier._analyzedNullabilityMap.Count > verifier._visitedExpressions.Count)
+                {
+                    foreach (var analyzedNode in verifier._analyzedNullabilityMap.Keys)
+                    {
+                        if (!verifier._visitedExpressions.Contains(analyzedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
+                else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
+                {
+                    foreach (var verifiedNode in verifier._visitedExpressions)
+                    {
+                        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
+                if (expression.IsParamsArray)
+                {
+                    // Params array is processed element wise. 
+                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                }
+                else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
                     Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
@@ -74,6 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
+            }
+
+            public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
+            {
+                if (node.IsParamsArray)
+                {
+                    // Synthesized params array is processed element wise.
+                    this.Visit(node.InitializerOpt);
+                    return null;
+                }
+
+                return base.VisitArrayCreation(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -117,6 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Visit(node.IterationVariableType);
                 Visit(node.AwaitOpt);
+                if (node.EnumeratorInfoOpt != null)
+                {
+                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
+                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
+                    {
+                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
+                        {
+                            Visit(arg);
+                        }
+                    }
+                }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
@@ -140,6 +185,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // https://github.com/dotnet/roslyn/issues/33441 dynamic collection initializers aren't being handled correctly
                 VerifyExpression(node, overrideSkippedExpression: true);
+                return null;
+            }
+
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                // We're not correctly visiting the right side of object creation initializers when
+                // the symbol is null (such as for dynamic)
+                // https://github.com/dotnet/roslyn/issues/45088
+                if (node.Left is BoundObjectInitializerMember { MemberSymbol: null })
+                {
+                    VerifyExpression(node);
+                    Visit(node.Left);
+                    return null;
+                }
+
+                return base.VisitAssignmentOperator(node);
+            }
+
+            public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (node.LeftConversion is BoundConversion leftConversion)
+                {
+                    VerifyExpression(leftConversion);
+                }
+
+                Visit(node.Left);
+                Visit(node.Right);
                 return null;
             }
 
@@ -186,6 +258,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VerifyExpression(node);
                 Visit(node.BoundContainingTypeOpt);
                 return null;
+            }
+
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            {
+                this.Visit(node.Pattern);
+                // If the constant value of a when clause is true, it can be skipped by the dag
+                // generator as an optimization. In that case, it's a value type and will be set
+                // as not nullable in the output.
+                if (node.WhenClause?.ConstantValueOpt != ConstantValue.True)
+                {
+                    this.Visit(node.WhenClause);
+                }
+                this.Visit(node.Value);
+                return null;
+            }
+
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+            {
+                // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
+                // info is exposed to consumers.
+                return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+            {
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
+                return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

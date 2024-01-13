@@ -2,29 +2,224 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpCodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="translated">Ajouter [obsolète]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add 'await'</source>
+        <target state="translated">Ajouter 'await'</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">Ajouter des parenthèses</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">Ajouter 'this.'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="translated">Autoriser du code unsafe dans ce projet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">Assigner des paramètres 'out'</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">Assigner des paramètres 'out' (au début)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="translated">Affecter à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_return_type_from_0_to_1">
+        <source>Change return type from {0} to {1}</source>
+        <target state="translated">Changer le type de retour de {0} en {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="translated">Comparer à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">Convertir en record positionnel</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">Convertir 'typeof' en 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_constraint">
+        <source>Fix constraint</source>
+        <target state="translated">Correction de la contrainte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Déclarer comme nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">Hériter explicitement de la documentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix record declaration</source>
+        <target state="translated">Correction de la déclaration d’enregistrement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="translated">Corriger le type de retour</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hide_base_member">
+        <source>Hide base member</source>
+        <target state="translated">Masquer le membre de base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="translated">{0} doit retourner Task au lieu de void.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="translated">Rendre le champ 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="translated">Rendre la méthode async</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="translated">Rendre la méthode asynchrone (rester void)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="translated">Définir la propriété 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="translated">Définir 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">Passer les variables capturées en tant qu'arguments</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">Placer l'instruction sur la ligne suivante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="translated">Placer un jeton sur la ligne suivante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">Supprimer la ligne vide entre les accolades</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">Supprimer le mot clé 'in'</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">Supprimer le modificateur 'new'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
-        <target state="new">Remove unreachable code</target>
+        <target state="translated">Supprimer le code inaccessible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="translated">Supprimer la fonction inutilisée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_return_with_yield_return">
+        <source>Replace return with yield return</source>
+        <target state="translated">Remplacer return par yield return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="translated">Classe unsealed '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="translated">Mettre à niveau tous les projets C# vers la version de langage '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="translated">Mettre à niveau ce projet vers la version de langage C# '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="translated">Utiliser '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">Utiliser une expression de collection</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">Utiliser une chaîne verbatim interpolée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">Utiliser le constructeur principal (et supprimer les champs)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">Utiliser le constructeur principal (et supprimer des membres)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">Utiliser le constructeur principal (et supprimer les propriétés)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">Avertissement : L'ajout de paramètres à la déclaration de fonction locale peut produire du code non valide.</target>
         <note />
       </trans-unit>
     </body>

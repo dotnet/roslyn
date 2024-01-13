@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
@@ -20,8 +18,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        private const string MSBuildRoslynFolderName = "Roslyn";
-
         /// <summary>
         /// Copied from msbuild. ItemSpecs are normalized using this method.
         /// </summary>
@@ -154,6 +150,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string? TryGetAssemblyPath(Assembly assembly)
         {
+#if NETFRAMEWORK
             if (assembly.GlobalAssemblyCache)
             {
                 return null;
@@ -166,20 +163,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return null;
+#else
+            return assembly.Location;
+#endif
         }
 
         /// <summary>
         /// Generate the full path to the tool that is deployed with our build tasks.
         /// </summary>
-        internal static string GenerateFullPathToTool(string toolName)
+        internal static string GenerateFullPathToTool(string toolFileName)
         {
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
             var assemblyPath = buildTask.Location;
-            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath)!;
 
             return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory!, toolName)
-                : Path.Combine(assemblyDirectory!, "bincore", toolName);
+                ? Path.Combine(assemblyDirectory, toolFileName)
+                : Path.Combine(assemblyDirectory, "bincore", toolFileName);
         }
     }
 }

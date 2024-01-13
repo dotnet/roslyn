@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Generic;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             UnderlyingType = underlyingType;
         }
+
+        bool IDefinition.IsEncDeleted => false;
 
         ushort ITypeDefinition.Alignment => UnderlyingType.Alignment;
 
@@ -75,6 +79,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         bool INamedTypeReference.MangleName => UnderlyingType.MangleName;
 
+#nullable enable
+        string? INamedTypeReference.AssociatedFileIdentifier => UnderlyingType.AssociatedFileIdentifier;
+#nullable disable
+
         string INamedEntity.Name => UnderlyingType.Name;
 
         string INamespaceTypeReference.NamespaceName => UnderlyingType.NamespaceName;
@@ -118,5 +126,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context) => UnderlyingType.Interfaces(context);
 
         Cci.PrimitiveTypeCode ITypeReference.TypeCode => UnderlyingType.TypeCode;
+
+        Symbols.ISymbolInternal IReference.GetInternalSymbol() => null;
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        }
     }
 }

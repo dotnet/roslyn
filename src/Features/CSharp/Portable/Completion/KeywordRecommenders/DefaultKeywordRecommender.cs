@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -21,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsAnyExpressionContext ||
-                context.TargetToken.IsSwitchLabelContext();
+                context.TargetToken.IsSwitchLabelContext() ||
+                context.SyntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
         }
 
         private static bool IsValidPreProcessorContext(CSharpSyntaxContext context)

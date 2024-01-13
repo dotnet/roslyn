@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class WorkspaceDiagnosticEventArgs : EventArgs
+    public class WorkspaceDiagnosticEventArgs(WorkspaceDiagnostic diagnostic) : EventArgs
     {
-        public WorkspaceDiagnostic Diagnostic { get; }
-
-        public WorkspaceDiagnosticEventArgs(WorkspaceDiagnostic diagnostic)
-            => this.Diagnostic = diagnostic;
+        public WorkspaceDiagnostic Diagnostic { get; } = diagnostic;
     }
 }

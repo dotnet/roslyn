@@ -2,21 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class DiagnosticProviderMetadata : ILanguageMetadata
+    internal class DiagnosticProviderMetadata(IDictionary<string, object> data) : ILanguageMetadata
     {
-        public string Name { get; }
-        public string Language { get; }
-
-        public DiagnosticProviderMetadata(IDictionary<string, object> data)
-        {
-            Name = (string)data.GetValueOrDefault("Name");
-            Language = (string)data.GetValueOrDefault("Language");
-        }
+        public string Name { get; } = (string)data.GetValueOrDefault("Name");
+        public string Language { get; } = (string)data.GetValueOrDefault("Language");
     }
 }

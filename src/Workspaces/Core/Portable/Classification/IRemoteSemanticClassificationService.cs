@@ -3,18 +3,57 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
-        Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
+        /// <summary>
+        /// Gets the cached semantic classifications for the specified document and text spans.
+        /// </summary>
+        /// <param name="solutionChecksum">The checksum of the solution containing the document.</param>
+        /// <param name="documentId">The ID of the document to get classified spans for.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to get classified spans for.</param>
+        /// <param name="type">The type of classified spans to get.</param>
+        /// <param name="options">The options to use when getting classified spans.</param>
+        /// <param name="isFullyLoaded">Whether or not the document is fully loaded.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The classified spans for the specified document and text spans.</returns>
+        ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
+            Checksum solutionChecksum,
+            DocumentId documentId,
+            ImmutableArray<TextSpan> textSpans,
+            ClassificationType type,
+            ClassificationOptions options,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Tries to get cached semantic classifications for the specified document and the specified <paramref
+        /// name="textSpans"/>.  Will return an empty array not able to.
+        /// </summary>
+        /// <param name="documentKey">The key of the document to get cached classified spans for.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to get cached classified spans for.</param>
+        /// <param name="type">The type of classified spans to get.</param>
+        /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
+        /// classifications are only returned if they match the content the file currently has.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The cached classified spans for the specified document and text spans.</returns>
+        ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
+            DocumentKey documentKey,
+            ImmutableArray<TextSpan> textSpans,
+            ClassificationType type,
+            Checksum checksum,
+            CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -22,21 +61,25 @@ namespace Microsoft.CodeAnalysis.Classification
     /// first int is the index of classification type in <see cref="ClassificationTypes"/>, and the
     /// second and third ints encode the span.
     /// </summary>
-    internal sealed class SerializableClassifiedSpans
+    [DataContract]
+    internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classificationTypes, ImmutableArray<int> classificationTriples)
     {
-        public List<string> ClassificationTypes;
-        public List<int> ClassificationTriples;
+        [DataMember(Order = 0)]
+        public readonly ImmutableArray<string> ClassificationTypes = classificationTypes;
 
-        internal static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        [DataMember(Order = 1)]
+        public readonly ImmutableArray<int> ClassificationTriples = classificationTriples;
+
+        internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
             using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
             return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
-        private static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
+        private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
-            var classificationTypes = new List<string>();
-            var classificationTriples = new List<int>(capacity: classifiedSpans.Count * 3);
+            using var _1 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
+            using var _2 = ArrayBuilder<int>.GetInstance(capacity: classifiedSpans.Length * 3, out var classificationTriples);
 
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -54,16 +97,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 classificationTriples.Add(textSpan.Length);
             }
 
-            return new SerializableClassifiedSpans
-            {
-                ClassificationTypes = classificationTypes,
-                ClassificationTriples = classificationTriples,
-            };
+            return new SerializableClassifiedSpans(
+                classificationTypes.ToImmutableAndClear(),
+                classificationTriples.ToImmutableAndClear());
         }
 
-        internal void Rehydrate(List<ClassifiedSpan> classifiedSpans)
+        internal void Rehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            for (var i = 0; i < ClassificationTriples.Count; i += 3)
+            for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
             {
                 classifiedSpans.Add(new ClassifiedSpan(
                     ClassificationTypes[ClassificationTriples[i + 0]],

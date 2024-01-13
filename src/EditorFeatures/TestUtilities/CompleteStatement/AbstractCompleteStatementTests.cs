@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -19,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
     [UseExportProvider]
     public abstract class AbstractCompleteStatementTests
     {
-        internal static char semicolon = ';';
+        internal const char Semicolon = ';';
 
-        internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler GetCommandHandler(EditorTestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         /// <summary>
         /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 
@@ -34,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// delimiters or moving the caret prior to the semicolon character insertion. In other words, 
         /// statement completion does not impact typing behavior for the case.
         /// </summary>
-        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup, string newLine = "\r\n")
+        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup)
         {
-            var expected = initialMarkup.Contains("$$") ?
-                initialMarkup.Replace("$$", ";$$") :
-                initialMarkup.Replace("|]", ";$$|]");
+            var expected = initialMarkup.Contains("$$")
+                ? initialMarkup.Replace("$$", ";$$")
+                : initialMarkup.Replace("|]", ";$$|]");
 
-            VerifyTypingSemicolon(initialMarkup, expected, newLine);
+            VerifyTypingSemicolon(initialMarkup, expected);
         }
 
         /// <summary>
@@ -48,21 +47,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// produces the result in <paramref name="expectedMarkup"/>. The final caret location in
         /// <paramref name="expectedMarkup"/> is marked with <c>$$</c>.
         /// </summary>
-        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup, string newLine = "\r\n")
+        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup)
         {
-            Verify(initialMarkup, expectedMarkup, newLine: newLine,
-                execute: (view, workspace) =>
-                {
-                    var commandHandler = GetCommandHandler(workspace);
-
-                    var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
-                    var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
-
-                    commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
-                });
+            Verify(initialMarkup, expectedMarkup, ExecuteTest);
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        protected void ExecuteTest(IWpfTextView view, EditorTestWorkspace workspace)
+        {
+            var commandHandler = GetCommandHandler(workspace);
+
+            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, Semicolon);
+            var nextHandler = CreateInsertTextHandler(view, Semicolon.ToString());
+
+            commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
+        }
+
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             };
         }
 
-        private void Verify(string initialMarkup, string expectedMarkup,
-            Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace> setOptionsOpt = null, string newLine = "\r\n")
+        protected void Verify(string initialMarkup, string expectedMarkup,
+            Action<IWpfTextView, EditorTestWorkspace> execute,
+            Action<EditorTestWorkspace>? setOptions = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
 
-                setOptionsOpt?.Invoke(workspace);
+                setOptions?.Invoke(workspace);
 
                 execute(view, workspace);
                 MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+                AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
 
                 var endCaretPosition = view.Caret.Position.BufferPosition.Position;
                 Assert.True(expectedPosition == endCaretPosition,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -10,37 +12,39 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
+    [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task EmptyFile1()
         {
             var code = @"{";
 
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(
+            await AssertSmartTokenFormatterOpenBraceAsync(
                 code,
                 indentationLine: 0,
                 expectedSpace: 0);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmptyFile2()
         {
             var code = @"}";
 
             await ExpectException_SmartTokenFormatterCloseBraceAsync(
                 code,
-                indentationLine: 0,
-                expectedSpace: 0);
+                indentationLine: 0);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace1()
         {
             var code = @"namespace NS
@@ -53,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace2()
         {
             var code = @"namespace NS
@@ -66,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace3()
         {
             var code = @"namespace NS
@@ -80,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class1()
         {
             var code = @"namespace NS
@@ -95,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class2()
         {
             var code = @"namespace NS
@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class3()
         {
             var code = @"namespace NS
@@ -126,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method1()
         {
             var code = @"namespace NS
@@ -143,7 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method2()
         {
             var code = @"namespace NS
@@ -160,7 +157,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method3()
         {
             var code = @"namespace NS
@@ -178,7 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property1()
         {
             var code = @"namespace NS
@@ -195,7 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property2()
         {
             var code = @"namespace NS
@@ -213,7 +207,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event1()
         {
             var code = @"namespace NS
@@ -230,7 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event2()
         {
             var code = @"namespace NS
@@ -248,7 +240,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer1()
         {
             var code = @"namespace NS
@@ -265,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer2()
         {
             var code = @"namespace NS
@@ -283,7 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block1()
         {
             var code = @"namespace NS
@@ -301,7 +290,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block2()
         {
             var code = @"namespace NS
@@ -319,7 +307,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block3()
         {
             var code = @"namespace NS
@@ -338,7 +325,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block4()
         {
             var code = @"namespace NS
@@ -357,7 +343,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer1()
         {
             var code = @"namespace NS
@@ -384,9 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 indentationLine: 6);
         }
 
-        [Fact]
-        [WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         public async Task ArrayInitializer3()
         {
             var code = @"namespace NS
@@ -407,9 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [Fact]
-        [WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
         public async Task EnterWithTrailingWhitespace()
         {
             var code = @"class Class
@@ -426,8 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
         public async Task OpenBraceWithBaseIndentation()
         {
             var markup = @"
@@ -446,8 +426,7 @@ $${
             await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(markup, baseIndentation: 7, expectedIndentation: 11);
         }
 
-        [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
         public async Task CloseBraceWithBaseIndentation()
         {
             var markup = @"
@@ -466,8 +445,7 @@ $$}
             await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation: 7, expectedIndentation: 11);
         }
 
-        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestPreprocessor()
         {
             var code = @"
@@ -486,8 +464,7 @@ class C
             Assert.Equal(0, actualIndentation);
         }
 
-        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestRegion()
         {
             var code = @"
@@ -506,8 +483,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestEndRegion()
         {
             var code = @"
@@ -527,8 +503,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         public async Task TestSelect()
         {
             var code = @"
@@ -552,8 +527,7 @@ class Program
             Assert.Equal(15, actualIndentation);
         }
 
-        [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         public async Task TestWhere()
         {
             var code = @"
@@ -577,13 +551,13 @@ class Program
             Assert.Equal(15, actualIndentation);
         }
 
-        private async Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation)
+        private static async Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation)
         {
             await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(markup, baseIndentation, expectedIndentation, useTabs: false).ConfigureAwait(false);
             await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(markup.Replace("    ", "\t"), baseIndentation, expectedIndentation, useTabs: true).ConfigureAwait(false);
         }
 
-        private Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation, bool useTabs)
+        private static Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation, bool useTabs)
         {
             MarkupTestFile.GetPositionAndSpan(markup,
                 out var code, out var position, out TextSpan span);
@@ -597,7 +571,7 @@ class Program
                 span);
         }
 
-        private async Task AssertSmartTokenFormatterOpenBraceAsync(
+        private static async Task AssertSmartTokenFormatterOpenBraceAsync(
             string code,
             int indentationLine,
             int expectedSpace,
@@ -608,7 +582,7 @@ class Program
             await AssertSmartTokenFormatterOpenBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true, baseIndentation, span).ConfigureAwait(false);
         }
 
-        private async Task AssertSmartTokenFormatterOpenBraceAsync(
+        private static async Task AssertSmartTokenFormatterOpenBraceAsync(
             string code,
             int indentationLine,
             int expectedSpace,
@@ -620,7 +594,7 @@ class Program
             Assert.Equal(expectedSpace, actualIndentation);
         }
 
-        private async Task AssertSmartTokenFormatterOpenBraceAsync(
+        private static async Task AssertSmartTokenFormatterOpenBraceAsync(
             string expected,
             string code,
             int indentationLine)
@@ -629,31 +603,28 @@ class Program
             await AssertSmartTokenFormatterOpenBraceAsync(expected.Replace("    ", "\t"), code.Replace("    ", "\t"), indentationLine, useTabs: true).ConfigureAwait(false);
         }
 
-        private async Task AssertSmartTokenFormatterOpenBraceAsync(
+        private static async Task AssertSmartTokenFormatterOpenBraceAsync(
             string expected,
             string code,
             int indentationLine,
             bool useTabs)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
 
             var buffer = workspace.Documents.First().GetTextBuffer();
 
-            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
+            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{', useTabs);
             Assert.Equal(expected, actual);
         }
 
-        private async Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)
+        private static async Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)
         {
             await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation, expectedIndentation, useTabs: false).ConfigureAwait(false);
             await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup.Replace("    ", "\t"), baseIndentation, expectedIndentation, useTabs: true).ConfigureAwait(false);
         }
 
-        private Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation, bool useTabs)
+        private static Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation, bool useTabs)
         {
             MarkupTestFile.GetPositionAndSpan(markup,
                 out var code, out var position, out TextSpan span);
@@ -667,7 +638,7 @@ class Program
                 span);
         }
 
-        private async Task AssertSmartTokenFormatterCloseBraceAsync(
+        private static async Task AssertSmartTokenFormatterCloseBraceAsync(
             string code,
             int indentationLine,
             int expectedSpace,
@@ -678,7 +649,7 @@ class Program
             await AssertSmartTokenFormatterCloseBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true, baseIndentation, span).ConfigureAwait(false);
         }
 
-        private async Task AssertSmartTokenFormatterCloseBraceAsync(
+        private static async Task AssertSmartTokenFormatterCloseBraceAsync(
             string code,
             int indentationLine,
             int expectedSpace,
@@ -690,37 +661,17 @@ class Program
             Assert.Equal(expectedSpace, actualIndentation);
         }
 
-        private async Task ExpectException_SmartTokenFormatterOpenBraceAsync(
+        private static async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
             string code,
-            int indentationLine,
-            int expectedSpace)
+            int indentationLine)
         {
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(code, indentationLine, expectedSpace, useTabs: false).ConfigureAwait(false);
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true).ConfigureAwait(false);
+            await ExpectException_SmartTokenFormatterCloseBraceAsync(code, indentationLine, useTabs: false).ConfigureAwait(false);
+            await ExpectException_SmartTokenFormatterCloseBraceAsync(code.Replace("    ", "\t"), indentationLine, useTabs: true).ConfigureAwait(false);
         }
 
-        private async Task ExpectException_SmartTokenFormatterOpenBraceAsync(
+        private static async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
             string code,
             int indentationLine,
-            int expectedSpace,
-            bool useTabs)
-        {
-            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{', useTabs)));
-        }
-
-        private async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
-            string code,
-            int indentationLine,
-            int expectedSpace)
-        {
-            await ExpectException_SmartTokenFormatterCloseBraceAsync(code, indentationLine, expectedSpace, useTabs: false).ConfigureAwait(false);
-            await ExpectException_SmartTokenFormatterCloseBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true).ConfigureAwait(false);
-        }
-
-        private async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
-            string code,
-            int indentationLine,
-            int expectedSpace,
             bool useTabs)
         {
             Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}', useTabs)));

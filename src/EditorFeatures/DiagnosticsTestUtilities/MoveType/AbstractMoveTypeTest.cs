@@ -2,15 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -20,10 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
     public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
-        private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
-        private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
+        private readonly string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
+        private readonly string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
+        protected override TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeaturesWpf
+                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
@@ -61,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
+                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), this);
                         Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
                     }
                 }
@@ -107,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
+                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), this);
                         Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
                     }
                 }
@@ -116,13 +130,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
         private async Task<Tuple<Solution, Solution>> TestOperationAsync(
             TestParameters parameters,
-            Workspaces.TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedCode,
             string operation)
         {
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,
@@ -134,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 expectedChangedDocumentId: null);
         }
 
-        protected async Task TestMoveTypeToNewFileAsync(
+        private protected async Task TestMoveTypeToNewFileAsync(
             string originalCode,
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
@@ -142,34 +157,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             ImmutableArray<string> destinationDocumentContainers = default,
             bool expectedCodeAction = true,
             int index = 0,
-            Action<Workspace> onAfterWorkspaceCreated = null)
+            OptionsCollection options = null)
         {
-            var testOptions = new TestParameters(index: index);
+            var testOptions = new TestParameters(index: index, options: options);
             if (expectedCodeAction)
             {
-                using (var workspace = CreateWorkspaceFromFile(originalCode, testOptions))
-                {
-                    onAfterWorkspaceCreated?.Invoke(workspace);
+                using var workspace = CreateWorkspaceFromOptions(originalCode, testOptions);
 
-                    // replace with default values on null.
-                    destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();
+                // replace with default values on null.
+                destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();
 
-                    var sourceDocumentId = workspace.Documents[0].Id;
+                var sourceDocumentId = workspace.Documents[0].Id;
 
-                    // Verify the newly added document and its text
-                    var oldSolutionAndNewSolution = await TestAddDocumentAsync(
-                        testOptions, workspace, destinationDocumentText,
-                        expectedDocumentName, destinationDocumentContainers);
+                // Verify the newly added document and its text
+                var oldSolutionAndNewSolution = await TestAddDocumentAsync(
+                    testOptions, workspace, destinationDocumentText,
+                    expectedDocumentName, destinationDocumentContainers);
 
-                    // Verify source document's text after moving type.
-                    var oldSolution = oldSolutionAndNewSolution.Item1;
-                    var newSolution = oldSolutionAndNewSolution.Item2;
-                    var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
-                    Assert.True(changedDocumentIds.Contains(sourceDocumentId), "source document was not changed.");
+                // Verify source document's text after moving type.
+                var oldSolution = oldSolutionAndNewSolution.Item1;
+                var newSolution = oldSolutionAndNewSolution.Item2;
+                var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
+                Assert.True(changedDocumentIds.Contains(sourceDocumentId), "source document was not changed.");
 
-                    var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
-                    Assert.Equal(expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString());
-                }
+                var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
+                var actualSourceTextAfterRefactoring = (await modifiedSourceDocument.GetTextAsync()).ToString();
+                Assert.Equal(expectedSourceTextAfterRefactoring, actualSourceTextAfterRefactoring);
             }
             else
             {

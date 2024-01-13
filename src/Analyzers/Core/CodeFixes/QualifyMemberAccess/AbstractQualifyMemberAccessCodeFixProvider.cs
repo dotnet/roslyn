@@ -20,28 +20,23 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         where TInvocationSyntax : SyntaxNode
     {
         protected abstract string GetTitle();
+        protected abstract TSimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+            => ImmutableArray.Create(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(),
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            var title = GetTitle();
+            RegisterCodeFix(context, title, title);
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -57,16 +52,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                     editor.ReplaceNode(node, qualifiedAccess);
                 }
             }
-        }
 
-        protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
+            return Task.CompletedTask;
         }
     }
 }

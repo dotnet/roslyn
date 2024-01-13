@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // null when currently enclosing conditional access node
@@ -74,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
-
 
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
@@ -160,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredAccessExpression,
                         null,
                         currentConditionalAccessID,
+                        forceCopyOfNullableValueType: true,
                         type);
 
                     break;

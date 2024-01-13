@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected class TypeParameterCollector : SymbolVisitor
         {
-            private readonly List<ITypeParameterSymbol> _typeParameters = new List<ITypeParameterSymbol>();
+            private readonly List<ITypeParameterSymbol> _typeParameters = new();
 
             public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
             {
@@ -27,6 +29,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
+            }
+
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                symbol.Signature.ReturnType.Accept(this);
+                foreach (var param in symbol.Signature.Parameters)
+                {
+                    param.Type.Accept(this);
+                }
             }
 
             public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)

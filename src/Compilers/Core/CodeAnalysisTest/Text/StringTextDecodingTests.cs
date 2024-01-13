@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Text;
@@ -289,7 +291,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "        foreach (char ch in s) System.Console.WriteLine(\"{0:x2}\", (int)ch);\r\n" +
                 "    }\r\n" +
                 "}\r\n";
-
 
             var encodings = new Encoding[]
             {

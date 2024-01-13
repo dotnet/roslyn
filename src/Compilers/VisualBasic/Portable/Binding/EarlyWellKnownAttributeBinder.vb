@@ -51,9 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Hide the GetAttribute overload which takes a diagnostic bag.
         ' This ensures that diagnostics from the early bound attributes are never preserved.
         Friend Shadows Function GetAttribute(node As AttributeSyntax, boundAttributeType As NamedTypeSymbol, <Out> ByRef generatedDiagnostics As Boolean) As SourceAttributeData
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim earlyAttribute = MyBase.GetAttribute(node, boundAttributeType, diagnostics)
-            generatedDiagnostics = Not diagnostics.IsEmptyWithoutResolution()
+            generatedDiagnostics = Not diagnostics.DiagnosticBag.IsEmptyWithoutResolution()
             diagnostics.Free()
             Return earlyAttribute
         End Function
@@ -167,30 +167,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     Microsoft.VisualBasic.Strings.AscW, if the constant string is not empty
                     '     Microsoft.VisualBasic.Strings.Asc, if the constant string is not empty
 
-                    Dim memberAccess = TryCast(DirectCast(node, InvocationExpressionSyntax).Expression, MemberAccessExpressionSyntax)
-                    If memberAccess IsNot Nothing Then
-                        Dim diagnostics = DiagnosticBag.GetInstance
-                        Dim boundExpression = memberAccessBinder.BindExpression(memberAccess, diagnostics)
-                        diagnostics.Free()
+                    Dim invokedExpression = DirectCast(node, InvocationExpressionSyntax).Expression
+                    If TypeOf invokedExpression Is MemberAccessExpressionSyntax OrElse TypeOf invokedExpression Is IdentifierNameSyntax Then
+                        Dim boundExpression = memberAccessBinder.BindExpression(invokedExpression, BindingDiagnosticBag.Discarded)
 
                         If boundExpression.HasErrors Then
                             Return False
                         End If
 
                         Dim boundMethodGroup = TryCast(boundExpression, BoundMethodGroup)
-                        If boundMethodGroup IsNot Nothing AndAlso boundMethodGroup.Methods.Length = 1 Then
-
-                            Dim method = boundMethodGroup.Methods(0)
+                        If boundMethodGroup IsNot Nothing AndAlso boundMethodGroup.Methods.Length <> 0 Then
 
                             Dim compilation As VisualBasicCompilation = memberAccessBinder.Compilation
-                            If method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrWInt32Char) OrElse
-                                method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrInt32Char) OrElse
-                                method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscWCharInt32) OrElse
-                                method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscCharInt32) Then
 
-                                Return True
-                            End If
+                            For Each method In boundMethodGroup.Methods
+                                If Not IsConstantOptimizableLibraryMethod(compilation, method) Then
+                                    Return False
+                                End If
+                            Next
 
+                            Return True
                         End If
                     End If
 
@@ -205,9 +201,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' SyntaxKind.GetTypeExpression is a GetType expression, i.e. GetType(System.String).
                     Return True
 
+                Case SyntaxKind.NameOfExpression
+                    Return True
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Friend Shared Function IsConstantOptimizableLibraryMethod(compilation As VisualBasicCompilation, method As MethodSymbol) As Boolean
+            Return method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrWInt32Char) OrElse
+                   method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__ChrInt32Char) OrElse
+                   method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscWCharInt32) OrElse
+                   method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscWStringInt32) OrElse
+                   method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscCharInt32) OrElse
+                   method Is compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Strings__AscStringInt32)
         End Function
 
         Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions

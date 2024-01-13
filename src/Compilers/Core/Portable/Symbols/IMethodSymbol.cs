@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -133,12 +133,17 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
-        /// Indicates whether the method is readonly, i.e.
+        /// Indicates whether the method is readonly,
         /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
         /// Returns true for readonly instance methods and accessors
         /// and for reduced extension methods with a 'this in' parameter.
         /// </summary>
         bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Returns true for 'init' set accessors, and false otherwise.
+        /// </summary>
+        bool IsInitOnly { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
@@ -210,6 +215,18 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
 
         /// <summary>
+        /// The calling convention enum of the method symbol.
+        /// </summary>
+        SignatureCallingConvention CallingConvention { get; }
+
+        /// <summary>
+        /// Modifier types that are considered part of the calling convention of this method, if the <see cref="MethodKind"/> is <see cref="MethodKind.FunctionPointerSignature"/>
+        /// and the <see cref="CallingConvention"/> is <see cref="SignatureCallingConvention.Unmanaged"/>. If this is not a function pointer signature or the calling convention is
+        /// not unmanaged, this is an empty array. Order and duplication of these modifiers reflect source/metadata order and duplication, whichever this symbol came from.
+        /// </summary>
+        ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes { get; }
+
+        /// <summary>
         /// Returns a symbol (e.g. property, event, etc.) associated with the method.
         /// </summary>
         /// <remarks>
@@ -246,6 +263,17 @@ namespace Microsoft.CodeAnalysis
         /// null.
         /// </summary>
         IMethodSymbol? PartialImplementationPart { get; }
+
+        /// <summary>
+        /// Returns the implementation flags for the given method symbol.
+        /// </summary>
+        MethodImplAttributes MethodImplementationFlags { get; }
+
+        /// <summary>
+        /// Return true if this is a partial method definition without a body. If there
+        /// is an implementing body, it can be retrieved with <see cref="PartialImplementationPart"/>.
+        /// </summary>
+        bool IsPartialDefinition { get; }
 
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.

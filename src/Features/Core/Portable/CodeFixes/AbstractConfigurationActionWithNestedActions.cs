@@ -15,19 +15,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract class AbstractConfigurationActionWithNestedActions : CodeAction.CodeActionWithNestedActions
     {
         protected AbstractConfigurationActionWithNestedActions(ImmutableArray<CodeAction> nestedActions, string title)
-            : base(title, nestedActions, isInlinable: false)
+            : base(title, nestedActions, isInlinable: false,
+                   priority: CodeActionPriority.Lowest) // Put configurations/suppressions at the end of everything.
         {
         }
-
-        // Put configurations/suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
 
         /// <summary>
         /// Additional priority associated with all configuration and suppression code actions.
         /// This allows special code actions such as Bulk configuration to to be at the end of
         /// all suppression and configuration actions by having a lower additional priority.
         /// </summary>
-        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Medium;
+        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Default;
 
         internal virtual bool IsBulkConfigurationAction => false;
     }

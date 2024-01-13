@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -231,7 +233,6 @@ class C
 ";
             CreateCompilation(text).VerifyDiagnostics();
         }
-
 
         [ClrOnlyFact]
         public void EventInvocation()
@@ -850,7 +851,8 @@ class C
         #endregion
 
         #region Error cases
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
+        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =
@@ -1330,7 +1332,7 @@ struct S
 
     S(int unused1, int unused2)
     {
-        // CS0171: E not initialized
+        // CS0171: E not initialized before C# 11
         // No error for F
     }
 
@@ -1343,13 +1345,18 @@ struct S
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     S(int unused1, int unused2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.E"),
-                // (21,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.E", "11.0").WithLocation(11, 5),
+                // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
                 //         This.E = null; //CS1612: receiver is not a variable
-                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This"));
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
+                //         This.E = null; //CS1612: receiver is not a variable
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
         }
 
         [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
@@ -1442,10 +1449,15 @@ class C
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            var expected = new[] {
                 // (4,25): error CS0065: 'C.E': event property must have both add and remove accessors
                 //     event System.Action E { remove { } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E")
+                };
+
+            CreateCompilation(text).VerifyDiagnostics(expected).VerifyEmitDiagnostics(expected);
+
+            CreateCompilation(text).VerifyEmitDiagnostics(expected);
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]

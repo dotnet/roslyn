@@ -8,15 +8,21 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
-        private void EmitStackAllocInitializers(TypeSymbol type, BoundArrayInitialization inits)
+        private void EmitStackAlloc(TypeSymbol type, BoundArrayInitialization? inits, BoundExpression count)
         {
+            if (inits is null)
+            {
+                emitLocalloc();
+                return;
+            }
+
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
+            Debug.Assert(_diagnostics.DiagnosticBag is not null);
 
             var elementType = (type.TypeKind == TypeKind.Pointer
                 ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations
@@ -27,46 +33,109 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs);
             if (initializationStyle == ArrayInitializerStyle.Element)
             {
+                emitLocalloc();
                 EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
             }
             else
             {
-                ImmutableArray<byte> data = this.GetRawData(initExprs);
+                bool mixedInitialized = false;
+
+                emitLocalloc();
+
+                var sizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
+
+                ImmutableArray<byte> data = GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
-
-                    if (initializationStyle == ArrayInitializerStyle.Mixed)
-                    {
-                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
-                    }
+                    // All bytes are the same, no need for metadata blob, just initblk to fill it with the repeated value.
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitIntConstant(data[0]);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitOpCode(ILOpCode.Initblk, -3);
                 }
-                else if (elementType.SpecialType.SizeInBytes() == 1)
+                else if (sizeInBytes == 1)
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
-
-                    if (initializationStyle == ArrayInitializerStyle.Mixed)
-                    {
-                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
-                    }
+                    // Initialize the stackalloc by copying the data from a metadata blob
+                    var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitToken(field, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitIntConstant(data.Length);
+                    _builder.EmitUnaligned(alignment: 1);
+                    _builder.EmitOpCode(ILOpCode.Cpblk, -3);
                 }
                 else
                 {
-                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
+                    var syntaxNode = inits.Syntax;
+                    if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol createSpanHelper &&
+                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__get_Item, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol spanGetItemDefinition)
+                    {
+                        // Use RuntimeHelpers.CreateSpan and cpblk.
+                        var readOnlySpan = spanGetItemDefinition.ContainingType.Construct(elementType);
+                        Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
+                        var spanGetItem = spanGetItemDefinition.AsMember(readOnlySpan);
+
+                        _builder.EmitOpCode(ILOpCode.Dup);
+
+                        // ldtoken <PrivateImplementationDetails>...
+                        // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
+                        var field = _builder.module.GetFieldForData(data, alignment: (ushort)sizeInBytes, syntaxNode, _diagnostics.DiagnosticBag);
+                        _builder.EmitOpCode(ILOpCode.Ldtoken);
+                        _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
+                        _builder.EmitOpCode(ILOpCode.Call, 0);
+                        var createSpanHelperReference = createSpanHelper.Construct(elementType).GetCciAdapter();
+                        _builder.EmitToken(createSpanHelperReference, syntaxNode, _diagnostics.DiagnosticBag);
+
+                        var temp = AllocateTemp(readOnlySpan, syntaxNode);
+                        _builder.EmitLocalStore(temp);
+                        _builder.EmitLocalAddress(temp);
+
+                        // span.get_Item[0]
+                        _builder.EmitIntConstant(0);
+                        _builder.EmitOpCode(ILOpCode.Call, 0);
+                        EmitSymbolToken(spanGetItem, syntaxNode, optArgList: null);
+
+                        _builder.EmitIntConstant(data.Length);
+                        if (sizeInBytes != 8)
+                        {
+                            _builder.EmitUnaligned((sbyte)sizeInBytes);
+                        }
+                        _builder.EmitOpCode(ILOpCode.Cpblk, -3);
+
+                        FreeTemp(temp);
+                    }
+                    else
+                    {
+                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
+                        mixedInitialized = true;
+                    }
                 }
+
+                if (initializationStyle == ArrayInitializerStyle.Mixed && !mixedInitialized)
+                {
+                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                }
+            }
+
+            void emitLocalloc()
+            {
+                EmitExpression(count, used: true);
+
+                _sawStackalloc = true;
+                _builder.EmitOpCode(ILOpCode.Localloc);
             }
         }
 
         private ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return ArrayInitializerStyle.Element;
             }
 
-            elementType = elementType.EnumUnderlyingTypeOrSelf();
-
-            if (elementType.SpecialType.IsBlittable())
+            if (IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType))
             {
                 int initCount = 0;
                 int constCount = 0;
@@ -103,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(!(init is BoundArrayInitialization), "Nested initializers are not allowed for stackalloc");
 
                 initCount += 1;
-                if (init.ConstantValue != null)
+                if (init.ConstantValueOpt != null)
                 {
                     constInits += 1;
                 }
@@ -113,10 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitElementStackAllocInitializers(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool includeConstants)
         {
             int index = 0;
-            int elementTypeSizeInBytes = elementType.SpecialType.SizeInBytes();
+            int elementTypeSizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
             foreach (BoundExpression init in inits)
             {
-                if (includeConstants || init.ConstantValue == null)
+                if (includeConstants || init.ConstantValueOpt == null)
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
                     EmitPointerElementAccess(init, elementType, elementTypeSizeInBytes, index);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
         private Dictionary<string, string> _docComments;
 
         /// <summary>
@@ -75,11 +77,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
-                            {
-                                using var reader = e.CreateReader();
-                                reader.MoveToContent();
-                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                            }
+                                comments[e.Attribute("name").Value] = e.ToString();
                         }
 
                         _docComments = comments;
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             return _docComments.TryGetValue(documentationMemberID, out var docComment) ? docComment : "";
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
@@ -187,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return (object)this == obj;
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()

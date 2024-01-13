@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
 
             var oldType = oldTypeDeclaration != null
-                ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken) as INamedTypeSymbol
+                ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken)
                 : document.SemanticModel.Compilation.ScriptClass;
             var newNameToken = GenerateUniqueFieldName(document, expression, isConstant, cancellationToken);
             var typeDisplayString = oldType.ToMinimalDisplayString(document.SemanticModel, expression.SpanStart);
@@ -65,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 var newCompilationUnit = Rewrite(
                     document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, cancellationToken);
 
-                var insertionIndex = isConstant ?
-                    DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members) :
-                    DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
+                var insertionIndex = isConstant
+                    ? DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members)
+                    : DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
                 var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
                 return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 typeDeclaration.Members.Insert(index, memberDeclaration));
         }
 
-        private SyntaxTokenList MakeFieldModifiers(bool isConstant, bool inScript)
+        private static SyntaxTokenList MakeFieldModifiers(bool isConstant, bool inScript)
         {
             if (isConstant)
             {

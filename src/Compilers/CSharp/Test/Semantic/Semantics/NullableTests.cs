@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -207,7 +209,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -266,7 +268,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -975,7 +977,6 @@ class C
                 { "float", "float" },
            };
 
-
             string[,] shift1 =
             {
                 { "sbyte", "sbyte" },
@@ -1146,7 +1147,6 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-
             // Use 2 instead of 0 so that we don't get divide by zero errors.
             var twos = new Dictionary<string, string>()
             {
@@ -1189,13 +1189,12 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
                 { "^", "xor" }
             };
-
-
 
             var source = new StringBuilder(@"
 using System; 
@@ -1264,8 +1263,6 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-
-
             List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
             {
                 Tuple.Create("*", numerics1),
@@ -1278,12 +1275,12 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
                 Tuple.Create("^", logical3)
             };
-
 
             int m = 0;
 
@@ -1408,7 +1405,6 @@ class C
                 F((sxnn << null).HasValue);";
 
             source += "}}";
-
 
             var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
@@ -1904,7 +1900,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal
@@ -2034,7 +2030,6 @@ ttttfnnnn
 tttftfffnntnfnn
 ttttfnnnn";
 
-
             CompileAndVerify(source, expectedOutput: expected);
         }
 
@@ -2108,5 +2103,105 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
+
+        [Fact]
+        public void TestIsNullable1()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        if (o is int? i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,23): error CS0103: The name 'i' does not exist in the current context
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 23),
+                // (6,24): error CS1003: Syntax error, ':' expected
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(6, 24),
+                // (6,24): error CS1525: Invalid expression term ')'
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void TestIsNullable2()
+        {
+            var source = @"
+using A = System.Nullable<int>;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void TestIsNullable3()
+        {
+            var source = @"
+using A = int?;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
     }
 }

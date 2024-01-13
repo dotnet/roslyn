@@ -25,7 +25,7 @@ and binary compatible. The following steps should be followed when adding option
 
 Before:
 ```csharp
-    public O(string o1 = null, string o2 = null)
+    public void O(string o1 = null, string o2 = null)
     {
     }
 ```

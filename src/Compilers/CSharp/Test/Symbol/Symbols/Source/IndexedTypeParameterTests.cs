@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestTake()
         {
-            var zero = IndexedTypeParameterSymbol.Take(0);
+            var zero = IndexedTypeParameterSymbol.TakeSymbols(0);
             Assert.Equal(0, zero.Length);
 
-            var five = IndexedTypeParameterSymbol.Take(5);
+            var five = IndexedTypeParameterSymbol.TakeSymbols(5);
             Assert.Equal(5, five.Length);
             Assert.Equal(five[0], IndexedTypeParameterSymbol.GetTypeParameter(0));
             Assert.Equal(five[1], IndexedTypeParameterSymbol.GetTypeParameter(1));
@@ -27,14 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(five[3], IndexedTypeParameterSymbol.GetTypeParameter(3));
             Assert.Equal(five[4], IndexedTypeParameterSymbol.GetTypeParameter(4));
 
-            var fifty = IndexedTypeParameterSymbol.Take(50);
+            var fifty = IndexedTypeParameterSymbol.TakeSymbols(50);
             Assert.Equal(50, fifty.Length);
 
             // prove they are all unique
             var set = new HashSet<TypeParameterSymbol>(fifty);
             Assert.Equal(50, set.Count);
 
-            var fiveHundred = IndexedTypeParameterSymbol.Take(500);
+            var fiveHundred = IndexedTypeParameterSymbol.TakeSymbols(500);
             Assert.Equal(500, fiveHundred.Length);
         }
     }

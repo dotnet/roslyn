@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,16 +18,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForPropertiesHelper :
         UseExpressionBodyHelper<PropertyDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForPropertiesHelper Instance = new UseExpressionBodyForPropertiesHelper();
+        public static readonly UseExpressionBodyForPropertiesHelper Instance = new();
 
         private UseExpressionBodyForPropertiesHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   EnforceOnBuildValues.UseExpressionBodyForProperties,
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_property), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_property), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
                    ImmutableArray.Create(SyntaxKind.PropertyDeclaration))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedProperties;
 
         protected override BlockSyntax GetBody(PropertyDeclarationSyntax declaration)
             => GetBodyFromSingleGetAccessor(declaration.AccessorList);
@@ -59,14 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
-            PropertyDeclarationSyntax declaration, ParseOptions options,
+            PropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
+            CancellationToken cancellationToken,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            return TryConvertToExpressionBodyForBaseProperty(
-                declaration, options, conversionPreference,
-                out arrowExpression, out semicolonToken);
+            return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken);
         }
 
         protected override Location GetDiagnosticLocation(PropertyDeclarationSyntax declaration)

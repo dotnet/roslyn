@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The rule used when no rule is specified when constructing a <see cref="CompletionItem"/>.
         /// </summary>
         public static CompletionItemRules Default =
-            new CompletionItemRules(
+            new(
                 filterCharacterRules: default,
                 commitCharacterRules: default,
                 enterKeyRule: EnterKeyRule.Default,

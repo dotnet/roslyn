@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,20 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
+            builder.Add<AnonymousObjectCreationExpressionSyntax, AnonymousObjectCreationExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
             builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider>();
             builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionStructureProvider>();
             builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider>();
+            builder.Add<RecordDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
+            builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
 
             return builder.ToImmutable();
         }
@@ -54,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
             builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
+            builder.Add((int)SyntaxKind.MultiLineCommentTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new MultilineCommentBlockStructureProvider()));
 
             return builder.ToImmutable();
         }

@@ -11,10 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
-        Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
-            Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
-        End Function
-
         Private Shared Function IsMidStatement(node As BoundNode) As Boolean
             If node.Kind = BoundKind.Conversion Then
                 node = DirectCast(node, BoundConversion).Operand
@@ -89,15 +85,15 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(leftOnTheRight Is boundAssignment.LeftOnTheRightOpt)
 
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignment.Left))
+            Dim target As IOperation = Create(boundAssignment.Left)
+            Dim value As IOperation = CreateCompoundAssignmentRightOperand(boundAssignment)
             Dim syntax As SyntaxNode = boundAssignment.Syntax
             Dim type As ITypeSymbol = boundAssignment.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignment.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
-            Return New VisualBasicLazyCompoundAssignmentOperation(Me, boundAssignment, inConversion, outConversion, operatorInfo.OperatorKind,
-                                                                  operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
-                                                                  _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New CompoundAssignmentOperation(inConversion, outConversion, operatorInfo.OperatorKind, operatorInfo.IsLifted,
+                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, constrainedToType:=Nothing, target, value,
+                                                   _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Structure BinaryOperatorInfo
@@ -187,6 +183,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.RaiseEventStatement
                     Dim boundRaiseEvent = DirectCast(boundNode, BoundRaiseEventStatement)
                     Return DeriveArguments(DirectCast(boundRaiseEvent.EventInvocation, BoundCall))
+                Case BoundKind.Attribute
+                    Dim boundAttribute = DirectCast(boundNode, BoundAttribute)
+                    Return DeriveArguments(boundAttribute.ConstructorArguments, boundAttribute.Constructor.Parameters, boundAttribute.ConstructorDefaultArguments)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select
@@ -254,37 +253,23 @@ Namespace Microsoft.CodeAnalysis.Operations
             isImplicit As Boolean) As IArgumentOperation
 
             ' put argument syntax to argument operation
-            Dim argument = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
+            Dim syntax = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
+            Dim value = Create(valueNode)
 
-            If argument Is Nothing Then
-
-                ' We don't create this lazily because, in the case of query nodes we may want to skip intermediate nodes and then
-                ' use the same syntax as the underlying value for the containing Argument. So we need to actually create the child
-                ' node to determine the correct syntax
-                Dim value = Create(valueNode)
-
-                Return New ArgumentOperation(
-                    value,
-                    kind,
-                    parameter,
-                    inConversion,
-                    outConversion,
-                    semanticModel:=_semanticModel,
-                    syntax:=value.Syntax,
-                    isImplicit:=True)
-            Else
-                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is Create(valueNode).Syntax)
-                Return New VisualBasicLazyArgumentOperation(
-                    Me,
-                    valueNode,
-                    kind,
-                    inConversion,
-                    outConversion,
-                    parameter,
-                    semanticModel:=_semanticModel,
-                    syntax:=argument,
-                    isImplicit:=isImplicit)
+            If syntax Is Nothing Then
+                syntax = value.Syntax
+                isImplicit = True
             End If
+
+            Return New ArgumentOperation(
+                kind,
+                parameter,
+                value,
+                inConversion,
+                outConversion,
+                _semanticModel,
+                syntax,
+                isImplicit)
         End Function
 
         Friend Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
@@ -304,10 +289,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return Create(node)
         End Function
 
-        Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
-            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
-        End Function
-
         Private Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
             If child IsNot Nothing Then
@@ -324,10 +305,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Return Nothing
-        End Function
-
-        Private Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
-            Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
         Friend Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
@@ -352,13 +329,12 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
-                        [property],
+                        [property], constrainedToType:=Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
                         instance,
                         _semanticModel,
                         value.Syntax,
                         [property].Type,
-                        constantValue:=Nothing,
                         isImplicit:=True)
                     isImplicitAssignment = True
                 Else
@@ -371,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim isRef As Boolean = False
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
-                Dim constantValue As [Optional](Of Object) = value.ConstantValue
+                Dim constantValue As ConstantValue = value.GetConstantValue()
                 Dim assignment = New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
@@ -413,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             '
             ' This is an error scenario, but if we just use the BoundLocalDeclaration.Syntax.Parent directly, without deduplicating,
             ' we'll end up with two IVariableDeclarators that have the same syntax node. So, we group by VariableDeclaratorSyntax
-            ' to put x and y in the same IMutliVariableDeclaration
+            ' to put x and y in the same IMultiVariableDeclaration
             Dim groupedDeclarations = declarations.GroupBy(Function(declaration)
                                                                If declaration.Kind = BoundKind.LocalDeclaration AndAlso
                                                                   declaration.Syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then
@@ -451,24 +427,26 @@ Namespace Microsoft.CodeAnalysis.Operations
                             initializerSyntax = last.InitializerOpt.Syntax
                             isImplicit = True
                         End If
-                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit)
+                        Debug.Assert(last.InitializerOpt IsNot Nothing)
+                        Dim value = Create(last.InitializerOpt)
+                        initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, initializerSyntax, isImplicit)
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
+                    Debug.Assert(asNewDeclarations.Initializer IsNot Nothing)
+                    Dim value = Create(asNewDeclarations.Initializer)
+                    initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, initializerSyntax, isImplicit:=False)
                 End If
 
                 builder.Add(New VariableDeclarationOperation(declarators,
-                                                         initializer,
-                                                         ImmutableArray(Of IOperation).Empty,
-                                                         _semanticModel,
-                                                         declarationGroup.Key,
-                                                         type:=Nothing,
-                                                         constantValue:=Nothing,
-                                                         isImplicit:=False))
+                                                             initializer,
+                                                             ImmutableArray(Of IOperation).Empty,
+                                                             _semanticModel,
+                                                             declarationGroup.Key,
+                                                             isImplicit:=False))
             Next
 
             Return builder.ToImmutableAndFree()
@@ -478,13 +456,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim initializer As IVariableInitializerOperation = Nothing
             If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
                 Dim syntax = boundLocalDeclaration.Syntax
-                Dim initializerValue As BoundNode = boundLocalDeclaration.IdentifierInitializerOpt
-                initializer = New VisualBasicLazyVariableInitializerOperation(Me, initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                Dim initializerValue As IOperation = Create(boundLocalDeclaration.IdentifierInitializerOpt)
+                initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, initializerValue, _semanticModel, syntax, isImplicit:=True)
             End If
 
             Dim ignoredArguments = ImmutableArray(Of IOperation).Empty
 
-            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
@@ -492,15 +470,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                             GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
                             syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
                             isImplicit:=False) ' Declaration is always explicit
         End Function
 
         Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
+            Dim eventReference As IOperation = Create(statement.EventAccess)
+            Dim handlerValue As IOperation = Create(statement.Handler)
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
-            Return New VisualBasicLazyEventAssignmentOperation(
-                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Return New EventAssignmentOperation(eventReference, handlerValue, adds, _semanticModel, statement.Syntax, type:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"
@@ -542,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                    _semanticModel,
                                                                    boundOperand.Syntax,
                                                                    adjustedInfo.Operation.Type,
-                                                                   ConvertToOptional(boundOperand.ConstantValueOpt),
+                                                                   boundOperand.ConstantValueOpt,
                                                                    boundOperand.WasCompilerGenerated),
                             adjustedInfo.Conversion,
                             adjustedInfo.IsDelegateCreation)

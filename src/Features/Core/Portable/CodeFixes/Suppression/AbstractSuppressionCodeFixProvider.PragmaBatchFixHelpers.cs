@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,14 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 FixAllState fixAllState,
                 CancellationToken cancellationToken)
             {
-                // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
-#pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
                 return CodeAction.Create(
                     ((CodeAction)pragmaActions[0]).Title,
                     createChangedDocument: ct =>
-                        BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, cancellationToken),
+                        BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, fixAllState.CodeActionOptionsProvider, cancellationToken),
                     equivalenceKey: fixAllState.CodeActionEquivalenceKey);
-#pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
             }
 
             private static async Task<Document> BatchPragmaFixesAsync(
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Document document,
                 ImmutableArray<IPragmaBasedCodeAction> pragmaActions,
                 ImmutableArray<Diagnostic> diagnostics,
+                CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 // We apply all the pragma suppression fixes sequentially.
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         properties: diagnostic.Properties,
                         isSuppressed: diagnostic.IsSuppressed);
 
-                    var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                    var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), fallbackOptions, cancellationToken).ConfigureAwait(false);
                     var newSuppressionFix = newSuppressionFixes.SingleOrDefault();
                     if (newSuppressionFix != null)
                     {
                         var newPragmaAction = newSuppressionFix.Action as IPragmaBasedCodeAction ??
-                            newSuppressionFix.Action.NestedCodeActions.OfType<IPragmaBasedCodeAction>().SingleOrDefault();
+                            newSuppressionFix.Action.NestedActions.OfType<IPragmaBasedCodeAction>().SingleOrDefault();
                         if (newPragmaAction != null)
                         {
                             // Get the text changes with pragma suppression add/removals.
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument,
                                 includeStartTokenChange: false, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             var orderedChanges = startTokenChanges.Concat(endTokenChanges).OrderBy(change => change.Span).Distinct();
                             var newText = currentText.WithChanges(orderedChanges);
                             currentDocument = currentDocument.WithText(newText);

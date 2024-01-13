@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal class AbstractLexer : IDisposable
     {
         internal readonly SlidingTextWindow TextWindow;
-        private List<SyntaxDiagnosticInfo> _errors;
+        private List<SyntaxDiagnosticInfo>? _errors;
 
         protected AbstractLexer(SourceText text)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return _errors != null; }
         }
 
-        protected SyntaxDiagnosticInfo[] GetErrors(int leadingTriviaWidth)
+        protected SyntaxDiagnosticInfo[]? GetErrors(int leadingTriviaWidth)
         {
             if (_errors != null)
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddError(MakeError(code, args));
         }
 
-        protected void AddError(SyntaxDiagnosticInfo error)
+        protected void AddError(SyntaxDiagnosticInfo? error)
         {
             if (error != null)
             {

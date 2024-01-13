@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,29 +19,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         //{1} is some value
         //{2} is one greater than {1}
         private const string NUMERIC_INCREMENT_TEMPLATE = @"
+using System.Globalization;
+
 class C
 {{
     static void Main()
     {{
         {0} x = {1};
         {0} y = x++;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
         
         x = {1};
         y = ++x;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
 
         x = {2};
         y = x--;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
 
         x = {2};
         y = --x;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
     }}
 }}
 ";
@@ -1031,7 +1036,7 @@ public class Test
     }
 }
 ";
-            base.CompileAndVerify(source, expectedOutput: "12").
+            base.CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: "12").
                 VerifyIL("Test.Main",
 @"
 {

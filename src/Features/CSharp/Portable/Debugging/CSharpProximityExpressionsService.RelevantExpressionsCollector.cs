@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -10,16 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
     internal partial class CSharpProximityExpressionsService
     {
-        private class RelevantExpressionsCollector : CSharpSyntaxVisitor
+        private class RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions) : CSharpSyntaxVisitor
         {
-            private readonly bool _includeDeclarations;
-            private readonly IList<string> _expressions;
-
-            public RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions)
-            {
-                _includeDeclarations = includeDeclarations;
-                _expressions = expressions;
-            }
+            private readonly bool _includeDeclarations = includeDeclarations;
+            private readonly IList<string> _expressions = expressions;
 
             public override void VisitLabeledStatement(LabeledStatementSyntax node)
                 => AddRelevantExpressions(node.Statement, _expressions, _includeDeclarations);
@@ -110,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 ExpressionSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                    return;
 
                 switch (component.Kind())
                 {
@@ -137,14 +134,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 VariableDesignationSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                    return;
 
                 switch (component.Kind())
                 {
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         {
                             var t = (ParenthesizedVariableDesignationSyntax)component;
-                            foreach (var v in t.Variables) AddVariableExpressions(v, expressions);
+                            foreach (var v in t.Variables)
+                                AddVariableExpressions(v, expressions);
                             break;
                         }
                     case SyntaxKind.SingleVariableDesignation:

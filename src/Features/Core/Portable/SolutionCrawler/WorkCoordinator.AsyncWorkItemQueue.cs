@@ -15,29 +15,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
-            private abstract class AsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class AsyncWorkItemQueue<TKey>(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : IDisposable
                 where TKey : class
             {
-                private readonly object _gate;
-                private readonly SemaphoreSlim _semaphore;
+                private readonly object _gate = new();
+                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
+                private bool _disposed;
 
-                private readonly Workspace _workspace;
-                private readonly SolutionCrawlerProgressReporter _progressReporter;
+                private readonly Workspace _workspace = workspace;
+                private readonly SolutionCrawlerProgressReporter _progressReporter = progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
-
-                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                {
-                    _gate = new object();
-                    _semaphore = new SemaphoreSlim(initialCount: 0);
-                    _cancellationMap = new Dictionary<object, CancellationTokenSource>();
-
-                    _workspace = workspace;
-                    _progressReporter = progressReporter;
-                }
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -47,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
 
                 public int WorkItemCount
                 {
@@ -78,6 +69,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     lock (_gate)
                     {
+                        if (_disposed)
+                        {
+                            // The work queue was shut down, so mark the request as complete and return false to
+                            // indicate the work was not queued.
+                            item.AsyncToken.Dispose();
+                            return false;
+                        }
+
                         if (AddOrReplace_NoLock(item))
                         {
                             // the item is new item that got added to the queue.
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void RequestCancellationOnRunningTasks()
                 {
-                    List<CancellationTokenSource> cancellations;
+                    List<CancellationTokenSource>? cancellations;
                     lock (_gate)
                     {
                         // request to cancel all running works
@@ -134,9 +133,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void Dispose()
                 {
-                    List<CancellationTokenSource> cancellations;
+                    List<CancellationTokenSource>? cancellations;
                     lock (_gate)
                     {
+                        _disposed = true;
+
                         // here we don't need to care about progress reporter since
                         // it will be only called when host is shutting down.
                         // we do the below since we want to kill any pending tasks
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected Workspace Workspace => _workspace;
 
-                private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
+                private static void RaiseCancellation_NoLock(List<CancellationTokenSource>? cancellations)
                 {
                     if (cancellations == null)
                     {
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     cancellations.Do(s => s.Cancel());
                 }
 
-                private List<CancellationTokenSource> CancelAll_NoLock()
+                private List<CancellationTokenSource>? CancelAll_NoLock()
                 {
                     // nothing to do
                     if (_cancellationMap.Count == 0)
@@ -206,15 +207,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public bool TryTakeAnyWork(
-                    ProjectId preferableProjectId,
+                    ProjectId? preferableProjectId,
                     ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService analyzerService,
-                    out WorkItem workItem, out CancellationToken cancellationToken)
+                    out WorkItem workItem,
+                    out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
                         {
                             cancellationToken = GetNewCancellationToken_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
@@ -238,9 +239,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return source.Token;
                 }
 
-                protected ProjectId GetBestProjectId_NoLock<T>(
-                    Dictionary<ProjectId, T> workQueue, ProjectId projectId,
-                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                protected static ProjectId GetBestProjectId_NoLock<T>(
+                    Dictionary<ProjectId, T> workQueue, ProjectId? projectId,
+                    ProjectDependencyGraph dependencyGraph)
                 {
                     if (projectId != null)
                     {
@@ -249,23 +250,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return projectId;
                         }
 
-                        // prefer project that directly depends on the given project and has diagnostics as next project to
+                        // prefer project that directly depends on the given project as next project to
                         // process
                         foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
                         {
-                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService?.ContainsDiagnostics(Workspace, dependingProjectId) == true)
+                            if (workQueue.ContainsKey(dependingProjectId))
                             {
                                 return dependingProjectId;
                             }
-                        }
-                    }
-
-                    // prefer a project that has diagnostics as next project to process.
-                    foreach (var pendingProjectId in workQueue.Keys)
-                    {
-                        if (analyzerService?.ContainsDiagnostics(Workspace, pendingProjectId) == true)
-                        {
-                            return pendingProjectId;
                         }
                     }
 
@@ -275,7 +267,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return pair.Key;
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

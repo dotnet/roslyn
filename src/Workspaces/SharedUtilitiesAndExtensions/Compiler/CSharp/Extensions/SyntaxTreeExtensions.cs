@@ -8,75 +8,43 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree,
-            int position,
-            SyntaxToken tokenOnLeftOfPosition)
-            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+        public static ISet<SyntaxKind> GetPrecedingModifiers(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree,
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken,
             out int positionBeforeModifiers)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            positionBeforeModifiers = position;
+            var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
-            while (true)
+            while (token.IsPotentialModifier(out var modifierKind))
             {
-                switch (token.Kind())
-                {
-                    case SyntaxKind.PublicKeyword:
-                    case SyntaxKind.InternalKeyword:
-                    case SyntaxKind.ProtectedKeyword:
-                    case SyntaxKind.PrivateKeyword:
-                    case SyntaxKind.SealedKeyword:
-                    case SyntaxKind.AbstractKeyword:
-                    case SyntaxKind.StaticKeyword:
-                    case SyntaxKind.VirtualKeyword:
-                    case SyntaxKind.ExternKeyword:
-                    case SyntaxKind.NewKeyword:
-                    case SyntaxKind.OverrideKeyword:
-                    case SyntaxKind.ReadOnlyKeyword:
-                    case SyntaxKind.VolatileKeyword:
-                    case SyntaxKind.UnsafeKeyword:
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.RefKeyword:
-                        result.Add(token.Kind());
-                        token = token.GetPreviousToken(includeSkipped: true);
-                        continue;
-                    case SyntaxKind.IdentifierToken:
-                        if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
-                        {
-                            result.Add(SyntaxKind.AsyncKeyword);
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-
-                        break;
-                }
-
-                break;
+                result.Add(modifierKind);
+                positionBeforeModifiers = token.FullSpan.Start;
+                token = token.GetPreviousToken(includeSkipped: true);
             }
 
-            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
-        public static TypeDeclarationSyntax GetContainingTypeDeclaration(
+        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax GetContainingTypeOrEnumDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();
@@ -116,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
-        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
-            k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
+            k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken or SyntaxKind.ColonColonToken;
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, SyntaxToken targetToken, CancellationToken cancellationToken)
         {
@@ -207,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinSingleLineDocComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var trivia = root.FindTrivia(position);
 
             // If we ask right at the end of the file, we'll get back nothing.
@@ -224,9 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (trivia.IsSingleLineDocComment())
             {
-                var span = trivia.Span;
+                RoslynDebug.Assert(trivia.HasStructure);
+
                 var fullSpan = trivia.FullSpan;
-                var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+                var endsWithNewLine = trivia.GetStructure()!.GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 
                 if (endsWithNewLine)
                 {
@@ -346,21 +315,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
+        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
+            var kind = token.Kind();
+            if (kind is not (
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.CharacterLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            var startLength = 1;
-            if (token.IsVerbatimStringLiteral())
+            // A UTF8 string literal must end with `"u8` and is thus never incomplete.
+            if (kind is
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
-                startLength = 2;
+                return false;
             }
 
-            return position == token.Span.End &&
-                (token.Span.Length == startLength || (token.Span.Length > startLength && token.ToString().Cast<char>().LastOrDefault() != lastChar));
+            if (position != token.Span.End)
+                return false;
+
+            if (kind is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            {
+                var sourceText = token.SyntaxTree!.GetText(cancellationToken);
+                var startDelimeterLength = 0;
+                var endDelimeterLength = 0;
+                for (int i = token.SpanStart, n = token.Span.End; i < n; i++)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    startDelimeterLength++;
+                }
+
+                for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    endDelimeterLength++;
+                }
+
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && endDelimeterLength < startDelimeterLength);
+            }
+            else
+            {
+                var startDelimeterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && token.Text[^1] != lastChar);
+            }
         }
 
         public static bool IsEntirelyWithinStringOrCharLiteral(
@@ -371,19 +382,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsEntirelyWithinCharLiteral(position, cancellationToken);
         }
 
+        public static bool IsEntirelyWithinStringLiteral(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => IsEntirelyWithinStringLiteral(syntaxTree, position, out _, cancellationToken);
+
         public static bool IsEntirelyWithinStringLiteral(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
         {
             var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
-            if (token.IsKind(SyntaxKind.EndOfDirectiveToken, SyntaxKind.EndOfFileToken))
-            {
+            if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
-            }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            stringLiteral = token;
+            if (token.Kind() is
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -391,10 +410,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // "|"
                 // "|  (e.g. incomplete string literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringTextToken, SyntaxKind.InterpolatedStringEndToken))
+            if (token.Kind() is
+                    SyntaxKind.InterpolatedStringStartToken or
+                    SyntaxKind.InterpolatedStringTextToken or
+                    SyntaxKind.InterpolatedStringEndToken or
+                    SyntaxKind.InterpolatedRawStringEndToken or
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
             }
@@ -405,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinCharLiteral(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing.
@@ -424,7 +449,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|'
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
+            }
+
+            return false;
+        }
+
+        public static bool IsInInactiveRegion(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(syntaxTree);
+
+            // cases:
+            // $ is EOF
+
+            // #if false
+            //    |
+
+            // #if false
+            //    |$
+
+            // #if false
+            // |
+
+            // #if false
+            // |$
+
+            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
+            {
+                return false;
+            }
+
+            // The latter two are the hard cases we don't actually have an 
+            // DisabledTextTrivia yet. 
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return true;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
+                        {
+                            return !branch.IsActive || !branch.BranchTaken;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            // cases:
+            //  #|
+            //  #d|
+            //  # |
+            //  # d|
+
+            // note: comments are not allowed between the # and item.
+            var token = preProcessorTokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.HashToken))
+            {
+                return true;
             }
 
             return false;

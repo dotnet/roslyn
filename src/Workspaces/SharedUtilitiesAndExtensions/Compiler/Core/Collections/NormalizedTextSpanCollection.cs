@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared
 {
-    internal class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan>
+    internal sealed class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="NormalizedTextSpanCollection"/> that is
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Shared
 
                 if (span1.OverlapsWith(span2))
                 {
-                    spans.Add(span1.Overlap(span2).Value);
+                    spans.Add(span1.Overlap(span2)!.Value);
                 }
 
                 if (span1.End < span2.End)
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Shared
 
                 if (span1.IntersectsWith(span2))
                 {
-                    spans.Add(span1.Intersection(span2).Value);
+                    spans.Add(span1.Intersection(span2)!.Value);
                 }
 
                 if (span1.End < span2.End)
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <param name="left">The first set.</param>
         /// <param name="right">The second set.</param>
         /// <returns><c>true</c> if the two sets are equivalent, otherwise <c>false</c>.</returns>
-        public static bool operator ==(NormalizedTextSpanCollection left, NormalizedTextSpanCollection right)
+        public static bool operator ==(NormalizedTextSpanCollection? left, NormalizedTextSpanCollection? right)
         {
             if (object.ReferenceEquals(left, right))
             {
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <param name="left">The first set.</param>
         /// <param name="right">The second set.</param>
         /// <returns><c>true</c> if the two sets are not equivalent, otherwise <c>false</c>.</returns>
-        public static bool operator !=(NormalizedTextSpanCollection left, NormalizedTextSpanCollection right)
+        public static bool operator !=(NormalizedTextSpanCollection? left, NormalizedTextSpanCollection? right)
             => !(left == right);
 
         /// <summary>
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Shared
         /// </summary>
         /// <param name="obj">The object to test.</param>
         /// <returns><c>true</c> if the two objects are equal, otherwise <c>false</c>.</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var set = obj as NormalizedTextSpanCollection;
 

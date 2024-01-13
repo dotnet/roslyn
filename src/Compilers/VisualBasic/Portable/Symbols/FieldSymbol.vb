@@ -70,6 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
 
+        Public MustOverride ReadOnly Property IsRequired As Boolean
+
         ''' <summary>
         ''' If this variable serves as a backing variable for an automatically generated
         ''' property or event, returns that property or event. 
@@ -136,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return (value IsNot Nothing) AndAlso Not value.IsBad ' can be null in error scenarios
             End Get
         End Property
@@ -151,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return If(value IsNot Nothing, value.Value, Nothing) ' can be null in error scenarios
             End Get
         End Property
@@ -159,16 +161,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the constant value.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param>
-        Friend MustOverride Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param>
+        Friend MustOverride Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
 
         ''' <summary>
         ''' Const fields do not (always) have to be declared with a given type. To get the inferred type determined from
         ''' the initialization this method should be called instead of "Type". For non const field this method returns the
         ''' declared type.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param><returns></returns>
-        Friend Overridable Function GetInferredType(inProgress As SymbolsInProgress(Of FieldSymbol)) As TypeSymbol
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param><returns></returns>
+        Friend Overridable Function GetInferredType(inProgress As ConstantFieldsInProgress) As TypeSymbol
             Return Type
         End Function
 
@@ -267,59 +269,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
 
             Debug.Assert(IsDefinition)
 
             ' Check type.
-            Dim typeErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
 
-            If typeErrorInfo IsNot Nothing AndAlso typeErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
-                Return typeErrorInfo
+            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
+                Return useSiteInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
-                Return modifiersErrorInfo
+            If MergeUseSiteInfo(useSiteInfo, modifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
-
-            Dim result = If(typeErrorInfo, modifiersErrorInfo)
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If useSiteInfo.DiagnosticInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
 
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, Me, unificationCheckedTypes))
+                Dim errorInfo As DiagnosticInfo = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                                                     GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, Me, unificationCheckedTypes))
+
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return result
+            Return useSiteInfo
         End Function
 
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedField1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedField1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedField1
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedField1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -377,7 +380,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' If this is a field representing a tuple element,
         ''' returns the index of the element (zero-based).
@@ -405,6 +407,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbolInternal_Type As ITypeSymbolInternal Implements IFieldSymbolInternal.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IFieldSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_IsConst As Boolean Implements IFieldSymbol.IsConst
             Get
                 Return Me.IsConst
@@ -417,9 +431,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_IsRequired As Boolean Implements IFieldSymbol.IsRequired
+            Get
+                Return Me.IsRequired
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_IsFixedSizeBuffer As Boolean Implements IFieldSymbol.IsFixedSizeBuffer
             Get
                 Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
+            Get
+                Return 0
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns the RefKind of the field. 
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefKind As RefKind Implements IFieldSymbol.RefKind
+            Get
+                Return RefKind.None
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 
@@ -465,12 +509,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_HasExplicitTupleElementName As Boolean Implements IFieldSymbol.IsExplicitlyNamedTupleElement
+            Get
+                Return Not Me.IsImplicitlyDeclared
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitField(Me)
         End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitField(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitField(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

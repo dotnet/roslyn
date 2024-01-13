@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     // Create a callback that we can pass to the server process to hear about the 
@@ -29,21 +29,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // the 'progress' parameter which will then update the UI.
                     var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
-                    var success = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
+                    _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                         solution,
-                        new object[] { value, typeCode },
+                        (service, solutionInfo, callbackId, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, callbackId, value, typeCode, cancellationToken),
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
-
-                    if (success)
-                    {
-                        return;
-                    }
                 }
-
-                await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -52,9 +47,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            var engine = new FindLiteralsSearchEngine(
-                solution, progress, value, cancellationToken);
-            return engine.FindReferencesAsync();
+            var engine = new FindLiteralsSearchEngine(solution, progress, value);
+            return engine.FindReferencesAsync(cancellationToken);
         }
     }
 }

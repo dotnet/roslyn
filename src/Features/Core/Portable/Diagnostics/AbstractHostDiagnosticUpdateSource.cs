@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -26,19 +26,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => ImmutableArray<DiagnosticData>.Empty;
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => new(ImmutableArray<DiagnosticData>.Empty);
 
-        public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
-        public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
-            => DiagnosticsUpdated?.Invoke(this, args);
+        public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
+        {
+            if (!args.IsEmpty)
+                DiagnosticsUpdated?.Invoke(this, args);
+        }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
         {
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-            var project = (projectId != null) ? Workspace.CurrentSolution.GetProject(projectId) : null;
+            var solution = Workspace.CurrentSolution;
+            var project = projectId != null ? solution.GetProject(projectId) : null;
 
             // check whether project the diagnostic belong to still exist
             if (projectId != null && project == null)
@@ -48,11 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = (project != null) ?
-                DiagnosticData.Create(diagnostic, project) :
-                DiagnosticData.Create(diagnostic, Workspace.Options);
-
-            ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
+            ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(solution, diagnostic, project), project);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)
@@ -71,33 +71,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (raiseDiagnosticsUpdated)
             {
-                RaiseDiagnosticsUpdated(MakeCreatedArgs(analyzer, dxs, project));
+                RaiseDiagnosticsUpdated(ImmutableArray.Create(MakeCreatedArgs(analyzer, dxs, project)));
             }
         }
 
         public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
+            // Perf: if we don't have any diagnostics at all, just return right away; this avoids loading the analyzers
+            // which may have not been loaded if you didn't do too much in your session.
+            if (_analyzerHostDiagnosticsMap.Count == 0)
+                return;
+
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
             var analyzers = analyzerReference.GetAnalyzers(language);
-            ClearAnalyzerDiagnostics(analyzers, projectId);
+            AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), analyzers, projectId);
+            RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
         }
 
-        public void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
+        public void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
         {
             foreach (var analyzer in analyzers)
             {
-                ClearAnalyzerDiagnostics(analyzer, projectId);
+                AddArgsToClearAnalyzerDiagnostics(ref builder, analyzer, projectId);
             }
         }
 
-        public void ClearAnalyzerDiagnostics(ProjectId projectId)
+        public void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId)
         {
             foreach (var (analyzer, _) in _analyzerHostDiagnosticsMap)
             {
-                ClearAnalyzerDiagnostics(analyzer, projectId);
+                AddArgsToClearAnalyzerDiagnostics(ref builder, analyzer, projectId);
             }
         }
 
-        private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
+        private void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, DiagnosticAnalyzer analyzer, ProjectId projectId)
         {
             if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var existing))
             {
@@ -113,17 +120,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
                 {
                     var project = Workspace.CurrentSolution.GetProject(projectId);
-                    RaiseDiagnosticsUpdated(MakeRemovedArgs(analyzer, project));
+                    builder.Add(MakeRemovedArgs(analyzer, project));
                 }
             }
             else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
             {
                 var project = Workspace.CurrentSolution.GetProject(projectId);
-                RaiseDiagnosticsUpdated(MakeRemovedArgs(analyzer, project));
+                builder.Add(MakeRemovedArgs(analyzer, project));
 
                 if (existing.Any(d => d.ProjectId == null))
                 {
-                    RaiseDiagnosticsUpdated(MakeRemovedArgs(analyzer, project: null));
+                    builder.Add(MakeRemovedArgs(analyzer, project: null));
                 }
             }
         }
@@ -140,17 +147,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
         }
 
-        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new HostArgsId(this, analyzer, project?.Id);
+        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
         {
-            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource;
-
-            public TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
-                => _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
+            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
 
             internal ImmutableArray<DiagnosticData> GetReportedDiagnostics()
                 => _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
@@ -166,20 +170,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private sealed class HostArgsId : AnalyzerUpdateArgsId
+        private sealed class HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : AnalyzerUpdateArgsId(analyzer)
         {
-            private readonly AbstractHostDiagnosticUpdateSource _source;
-            private readonly ProjectId? _projectId;
+            private readonly AbstractHostDiagnosticUpdateSource _source = source;
+            private readonly ProjectId? _projectId = projectId;
 
-            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : base(analyzer)
+            public override bool Equals(object? obj)
             {
-                _source = source;
-                _projectId = projectId;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (!(obj is HostArgsId other))
+                if (obj is not HostArgsId other)
                 {
                     return false;
                 }

@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -12,9 +14,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class WorkspaceChangedEventTests
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean)
+        Public Async Function AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -27,12 +30,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Equal(environment.Workspace.CurrentSolution.Projects.Single().DocumentIds.Single(), change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Async Sub AddingTwoDocumentsInBatchRaisesProjectChanged()
+        Public Async Function AddingTwoDocumentsInBatchRaisesProjectChanged() As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using project.CreateBatchScope()
@@ -46,13 +50,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Null(change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleAdditionalFileInABatchRaisesDocumentAdded(addInBatch As Boolean)
+        Public Async Function AddingASingleAdditionalFileInABatchRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -65,13 +70,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Equal(environment.Workspace.CurrentSolution.Projects.Single().AdditionalDocumentIds.Single(), change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleMetadataReferenceRaisesProjectChanged(addInBatch As Boolean)
+        Public Async Function AddingASingleMetadataReferenceRaisesProjectChanged(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -84,13 +90,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Null(change.DocumentId)
             End Using
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(34309, "https://github.com/dotnet/roslyn/issues/34309")>
-        Public Async Sub StartingAndEndingBatchWithNoChangesDoesNothing()
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34309")>
+        Public Async Function StartingAndEndingBatchWithNoChangesDoesNothing() As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
                 Dim startingSolution = environment.Workspace.CurrentSolution
 
@@ -99,6 +105,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Empty(Await workspaceChangeEvents.GetNewChangeEventsAsync())
                 Assert.Same(startingSolution, environment.Workspace.CurrentSolution)
             End Using
-        End Sub
+        End Function
+
+        <WpfFact>
+        Public Async Function AddingAndRemovingOnlyProjectTriggersSolutionAddedAndSolutionRemoved() As Task
+            Using environment = New TestEnvironment()
+                Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+
+                Assert.Equal(WorkspaceChangeKind.SolutionAdded, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
+
+                project.RemoveFromWorkspace()
+
+                Assert.Equal(WorkspaceChangeKind.SolutionRemoved, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1581896")>
+        Public Async Function RemovingLastProjectCorrectlyClosesFiles() As Task
+            Using environment = New TestEnvironment()
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                project.AddSourceTextContainer(SourceText.From("// Test").Container, "Z:\Test.cs")
+
+                Assert.Single(environment.Workspace.GetOpenDocumentIds())
+
+                project.RemoveFromWorkspace()
+
+                Assert.Empty(environment.Workspace.GetOpenDocumentIds())
+            End Using
+        End Function
     End Class
 End Namespace

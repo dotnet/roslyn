@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeParameterConstraintContext(context);
         }
 
-        private bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
+        private static bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
         {
             // cases:
             //   class C<T> |
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
                 if (typeDecl.TypeParameterList != null &&
-                    typeDecl.BaseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
+                    baseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {
                     // token is IdentifierName "where"
                     // only suggest "where" if token's previous token is also "where"
@@ -109,14 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C<T> where T : IGoo |
             // delegate void D<T> where T : IGoo |
-            var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
-
-            if (constraintClause != null)
+            if (token.IsLastTokenOfNode<TypeParameterConstraintSyntax>())
             {
-                if (constraintClause.Constraints.Any(c => token == c.GetLastToken(includeSkipped: true)))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;

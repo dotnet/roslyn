@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
-        public static readonly NameSimplifier Instance = new NameSimplifier();
+        public static readonly NameSimplifier Instance = new();
 
         private NameSimplifier()
         {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             NameSyntax name,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             replacementNode = null;
             issueSpan = default;
 
-            if (name.IsVar)
+            if (name.IsVar || name.IsNint || name.IsNuint)
             {
                 return false;
             }
@@ -92,257 +94,258 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     name, replacementNode, semanticModel, cancellationToken);
             }
 
-            if (!(symbol is INamespaceOrTypeSymbol))
+            if (symbol is not INamespaceOrTypeSymbol)
             {
                 return false;
             }
 
             if (name.HasAnnotations(SpecialTypeAnnotation.Kind))
             {
-                replacementNode = SyntaxFactory.PredefinedType(
-                    SyntaxFactory.Token(
-                        name.GetLeadingTrivia(),
-                        GetPredefinedKeywordKind(SpecialTypeAnnotation.GetSpecialType(name.GetAnnotations(SpecialTypeAnnotation.Kind).First())),
-                        name.GetTrailingTrivia()));
-
-                issueSpan = name.Span;
-
-                return CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel);
-            }
-            else
-            {
-                if (!name.IsRightSideOfDotOrColonColon())
+                var keywordToken = TryGetPredefinedKeywordToken(semanticModel, SpecialTypeAnnotation.GetSpecialType(name.GetAnnotations(SpecialTypeAnnotation.Kind).First()));
+                if (keywordToken != null)
                 {
-                    if (TryReplaceExpressionWithAlias(name, semanticModel, symbol, cancellationToken, out var aliasReplacement))
+                    replacementNode = CreatePredefinedTypeSyntax(name, keywordToken.Value);
+                    issueSpan = name.Span;
+
+                    return CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel);
+                }
+            }
+
+            if (!name.IsRightSideOfDotOrColonColon())
+            {
+                if (TryReplaceExpressionWithAlias(name, semanticModel, symbol, cancellationToken, out var aliasReplacement))
+                {
+                    // get the token text as it appears in source code to preserve e.g. Unicode character escaping
+                    var text = aliasReplacement.Name;
+                    var syntaxRef = aliasReplacement.DeclaringSyntaxReferences.FirstOrDefault();
+
+                    if (syntaxRef != null)
                     {
-                        // get the token text as it appears in source code to preserve e.g. Unicode character escaping
-                        var text = aliasReplacement.Name;
-                        var syntaxRef = aliasReplacement.DeclaringSyntaxReferences.FirstOrDefault();
-
-                        if (syntaxRef != null)
-                        {
-                            var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias.Name.Identifier;
-                            text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString().Substring(1) : declIdentifier.ToString();
-                        }
-
-                        var identifierToken = SyntaxFactory.Identifier(
-                                name.GetLeadingTrivia(),
-                                SyntaxKind.IdentifierToken,
-                                text,
-                                aliasReplacement.Name,
-                                name.GetTrailingTrivia());
-
-                        identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name);
-                        replacementNode = SyntaxFactory.IdentifierName(identifierToken);
-
-                        // Merge annotation to new syntax node
-                        var annotatedNodesOrTokens = name.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind);
-                        foreach (var annotatedNodeOrToken in annotatedNodesOrTokens)
-                        {
-                            if (annotatedNodeOrToken.IsToken)
-                            {
-                                identifierToken = annotatedNodeOrToken.AsToken().CopyAnnotationsTo(identifierToken);
-                            }
-                            else
-                            {
-                                replacementNode = annotatedNodeOrToken.AsNode().CopyAnnotationsTo(replacementNode);
-                            }
-                        }
-
-                        annotatedNodesOrTokens = name.GetAnnotatedNodesAndTokens(AliasAnnotation.Kind);
-                        foreach (var annotatedNodeOrToken in annotatedNodesOrTokens)
-                        {
-                            if (annotatedNodeOrToken.IsToken)
-                            {
-                                identifierToken = annotatedNodeOrToken.AsToken().CopyAnnotationsTo(identifierToken);
-                            }
-                            else
-                            {
-                                replacementNode = annotatedNodeOrToken.AsNode().CopyAnnotationsTo(replacementNode);
-                            }
-                        }
-
-                        replacementNode = ((SimpleNameSyntax)replacementNode).WithIdentifier(identifierToken);
-                        issueSpan = name.Span;
-
-                        // In case the alias name is the same as the last name of the alias target, we only include 
-                        // the left part of the name in the unnecessary span to Not confuse uses.
-                        if (name.Kind() == SyntaxKind.QualifiedName)
-                        {
-                            var qualifiedName3 = (QualifiedNameSyntax)name;
-
-                            if (qualifiedName3.Right.Identifier.ValueText == identifierToken.ValueText)
-                            {
-                                issueSpan = qualifiedName3.Left.Span;
-                            }
-                        }
-
-                        // first check if this would be a valid reduction
-                        if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
-                        {
-                            // in case this alias name ends with "Attribute", we're going to see if we can also 
-                            // remove that suffix.
-                            if (TryReduceAttributeSuffix(
-                                    name,
-                                    identifierToken,
-                                    out var replacementNodeWithoutAttributeSuffix,
-                                    out var issueSpanWithoutAttributeSuffix))
-                            {
-                                if (CanReplaceWithReducedName(name, replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
-                                {
-                                    replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix);
-                                    issueSpan = issueSpanWithoutAttributeSuffix;
-                                }
-                            }
-
-                            return true;
-                        }
-
-                        return false;
+                        var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias.Name.Identifier;
+                        text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString()[1..] : declIdentifier.ToString();
                     }
 
-                    var nameHasNoAlias = false;
+                    var identifierToken = SyntaxFactory.Identifier(
+                            name.GetLeadingTrivia(),
+                            SyntaxKind.IdentifierToken,
+                            text,
+                            aliasReplacement.Name,
+                            name.GetTrailingTrivia());
 
-                    if (name is SimpleNameSyntax simpleName)
+                    identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name);
+                    replacementNode = SyntaxFactory.IdentifierName(identifierToken);
+
+                    // Merge annotation to new syntax node
+                    var annotatedNodesOrTokens = name.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind);
+                    foreach (var annotatedNodeOrToken in annotatedNodesOrTokens)
                     {
-                        if (!simpleName.Identifier.HasAnnotations(AliasAnnotation.Kind))
+                        if (annotatedNodeOrToken.IsToken)
                         {
-                            nameHasNoAlias = true;
+                            identifierToken = annotatedNodeOrToken.AsToken().CopyAnnotationsTo(identifierToken);
+                        }
+                        else
+                        {
+                            replacementNode = annotatedNodeOrToken.AsNode().CopyAnnotationsTo(replacementNode);
                         }
                     }
 
-                    if (name is QualifiedNameSyntax qualifiedName2)
+                    annotatedNodesOrTokens = name.GetAnnotatedNodesAndTokens(AliasAnnotation.Kind);
+                    foreach (var annotatedNodeOrToken in annotatedNodesOrTokens)
                     {
-                        if (!qualifiedName2.Right.HasAnnotation(Simplifier.SpecialTypeAnnotation))
+                        if (annotatedNodeOrToken.IsToken)
                         {
-                            nameHasNoAlias = true;
+                            identifierToken = annotatedNodeOrToken.AsToken().CopyAnnotationsTo(identifierToken);
+                        }
+                        else
+                        {
+                            replacementNode = annotatedNodeOrToken.AsNode().CopyAnnotationsTo(replacementNode);
                         }
                     }
 
-                    if (name is AliasQualifiedNameSyntax aliasQualifiedName)
+                    replacementNode = ((SimpleNameSyntax)replacementNode).WithIdentifier(identifierToken);
+                    issueSpan = name.Span;
+
+                    // In case the alias name is the same as the last name of the alias target, we only include 
+                    // the left part of the name in the unnecessary span to Not confuse uses.
+                    if (name.Kind() == SyntaxKind.QualifiedName)
                     {
-                        if (aliasQualifiedName.Name is SimpleNameSyntax &&
-                            !aliasQualifiedName.Name.Identifier.HasAnnotations(AliasAnnotation.Kind) &&
-                            !aliasQualifiedName.Name.HasAnnotation(Simplifier.SpecialTypeAnnotation))
+                        var qualifiedName3 = (QualifiedNameSyntax)name;
+
+                        if (qualifiedName3.Right.Identifier.ValueText == identifierToken.ValueText)
                         {
-                            nameHasNoAlias = true;
+                            issueSpan = qualifiedName3.Left.Span;
                         }
                     }
 
-                    var aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken);
-                    if (nameHasNoAlias && aliasInfo == null)
+                    // first check if this would be a valid reduction
+                    if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
                     {
-                        // Don't simplify to predefined type if name is part of a QualifiedName.
-                        // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
-                        // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
-                        var inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel);
-                        var inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel);
-
-                        if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
+                        // in case this alias name ends with "Attribute", we're going to see if we can also 
+                        // remove that suffix.
+                        if (TryReduceAttributeSuffix(
+                                name,
+                                identifierToken,
+                                out var replacementNodeWithoutAttributeSuffix,
+                                out var issueSpanWithoutAttributeSuffix))
                         {
-                            // See if we can simplify this name (like System.Int32) to a built-in type (like 'int').
-                            // If not, we'll still fall through and see if we can convert it to Int32.
-
-                            var codeStyleOptionName = inDeclarationContext
-                                ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
-                                : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
-
-                            var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
-                            if (type != null)
+                            if (CanReplaceWithReducedName(name, replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
                             {
-                                var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                                if (keywordKind != SyntaxKind.None &&
-                                    CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
-                                {
-                                    return true;
-                                }
-                            }
-                            else
-                            {
-                                var typeSymbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol;
-                                if (typeSymbol.IsKind(SymbolKind.NamedType))
-                                {
-                                    var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)typeSymbol).SpecialType);
-                                    if (keywordKind != SyntaxKind.None &&
-                                        CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
-                                    {
-                                        return true;
-                                    }
-                                }
+                                replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix);
+                                issueSpan = issueSpanWithoutAttributeSuffix;
                             }
                         }
+
+                        return true;
                     }
 
-                    // Nullable rewrite: Nullable<int> -> int?
-                    // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
-                    if (!name.IsVar && symbol.Kind == SymbolKind.NamedType && !name.IsLeftSideOfQualifiedName())
+                    return false;
+                }
+
+                var nameHasNoAlias = false;
+
+                if (name is SimpleNameSyntax simpleName)
+                {
+                    if (!simpleName.Identifier.HasAnnotations(AliasAnnotation.Kind))
                     {
-                        var type = (INamedTypeSymbol)symbol;
-                        if (aliasInfo == null && CanSimplifyNullable(type, name, semanticModel))
+                        nameHasNoAlias = true;
+                    }
+                }
+
+                if (name is QualifiedNameSyntax qualifiedName2)
+                {
+                    if (!qualifiedName2.Right.HasAnnotation(Simplifier.SpecialTypeAnnotation))
+                    {
+                        nameHasNoAlias = true;
+                    }
+                }
+
+                if (name is AliasQualifiedNameSyntax aliasQualifiedName)
+                {
+                    if (aliasQualifiedName.Name is SimpleNameSyntax &&
+                        !aliasQualifiedName.Name.Identifier.HasAnnotations(AliasAnnotation.Kind) &&
+                        !aliasQualifiedName.Name.HasAnnotation(Simplifier.SpecialTypeAnnotation))
+                    {
+                        nameHasNoAlias = true;
+                    }
+                }
+
+                var aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken);
+                if (nameHasNoAlias && aliasInfo == null)
+                {
+                    // Don't simplify to predefined type if name is part of a QualifiedName.
+                    // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
+                    // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
+                    var inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, options, semanticModel);
+                    var inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, options, semanticModel);
+
+                    if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
+                    {
+                        // See if we can simplify this name (like System.Int32) to a built-in type (like 'int').
+                        // If not, we'll still fall through and see if we can convert it to Int32.
+
+                        var codeStyleOptionName = inDeclarationContext
+                            ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                            : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+
+                        var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
+                        if (type != null)
                         {
-                            GenericNameSyntax genericName;
-                            if (name.Kind() == SyntaxKind.QualifiedName)
-                            {
-                                genericName = (GenericNameSyntax)((QualifiedNameSyntax)name).Right;
-                            }
-                            else
-                            {
-                                genericName = (GenericNameSyntax)name;
-                            }
-
-                            var oldType = genericName.TypeArgumentList.Arguments.First();
-                            if (oldType.Kind() == SyntaxKind.OmittedTypeArgument)
-                            {
-                                return false;
-                            }
-
-                            replacementNode = SyntaxFactory.NullableType(oldType)
-                                .WithLeadingTrivia(name.GetLeadingTrivia())
-                                    .WithTrailingTrivia(name.GetTrailingTrivia());
-                            issueSpan = name.Span;
-
-                            // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
-                            // System.Nullable<int> alone would be illegal.
-                            // If this fails we want to continue to try at least to remove the System if possible.
-                            if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
-                            {
+                            var keywordToken = TryGetPredefinedKeywordToken(semanticModel, type.SpecialType);
+                            if (CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordToken, codeStyleOptionName))
                                 return true;
+                        }
+                        else
+                        {
+                            var typeSymbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol;
+                            if (typeSymbol is INamedTypeSymbol namedType)
+                            {
+                                var keywordToken = TryGetPredefinedKeywordToken(semanticModel, namedType.SpecialType);
+                                if (CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordToken, codeStyleOptionName))
+                                    return true;
                             }
                         }
                     }
                 }
 
-                SyntaxToken identifier;
-                switch (name.Kind())
+                // Nullable rewrite: Nullable<int> -> int?
+                // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
+                if (!name.IsVar && symbol.Kind == SymbolKind.NamedType && !name.IsLeftSideOfQualifiedName())
                 {
-                    case SyntaxKind.AliasQualifiedName:
-                        var simpleName = ((AliasQualifiedNameSyntax)name).Name
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                    var type = (INamedTypeSymbol)symbol;
+                    if (aliasInfo == null && CanSimplifyNullable(type, name, semanticModel))
+                    {
+                        GenericNameSyntax genericName;
+                        if (name.Kind() == SyntaxKind.QualifiedName)
+                        {
+                            genericName = (GenericNameSyntax)((QualifiedNameSyntax)name).Right;
+                        }
+                        else
+                        {
+                            genericName = (GenericNameSyntax)name;
+                        }
 
-                        simpleName = simpleName.ReplaceToken(simpleName.Identifier,
-                            ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
-                                simpleName.Identifier.WithLeadingTrivia(
-                                    ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
+                        var oldType = genericName.TypeArgumentList.Arguments.First();
+                        if (oldType.Kind() == SyntaxKind.OmittedTypeArgument)
+                        {
+                            return false;
+                        }
 
-                        replacementNode = simpleName;
+                        replacementNode = SyntaxFactory.NullableType(oldType)
+                            .WithLeadingTrivia(name.GetLeadingTrivia())
+                                .WithTrailingTrivia(name.GetTrailingTrivia());
+                        issueSpan = name.Span;
 
-                        issueSpan = ((AliasQualifiedNameSyntax)name).Alias.Span;
+                        // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
+                        // System.Nullable<int> alone would be illegal.
+                        // If this fails we want to continue to try at least to remove the System if possible.
+                        if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
 
-                        break;
+            switch (name.Kind())
+            {
+                case SyntaxKind.AliasQualifiedName:
+                    var simpleName = ((AliasQualifiedNameSyntax)name).Name
+                        .WithLeadingTrivia(name.GetLeadingTrivia());
 
-                    case SyntaxKind.QualifiedName:
-                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
-                        issueSpan = ((QualifiedNameSyntax)name).Left.Span;
+                    simpleName = simpleName.ReplaceToken(simpleName.Identifier,
+                        ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
+                            simpleName.Identifier.WithLeadingTrivia(
+                                ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
 
-                        break;
+                    replacementNode = simpleName;
 
-                    case SyntaxKind.IdentifierName:
-                        identifier = ((IdentifierNameSyntax)name).Identifier;
+                    issueSpan = ((AliasQualifiedNameSyntax)name).Alias.Span;
+
+                    break;
+
+                case SyntaxKind.QualifiedName:
+                    replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
+                    issueSpan = ((QualifiedNameSyntax)name).Left.Span;
+
+                    break;
+
+                case SyntaxKind.IdentifierName:
+                    {
+                        var identifier = ((IdentifierNameSyntax)name).Identifier;
 
                         // we can try to remove the Attribute suffix if this is the attribute name
                         TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
                         break;
-                }
+                    }
+
+                case SyntaxKind.GenericName:
+                    {
+                        var identifier = ((GenericNameSyntax)name).Identifier;
+
+                        // we can try to remove the Attribute suffix if this is the attribute name
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                        break;
+                    }
             }
 
             if (replacementNode == null)
@@ -457,10 +460,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             ref TextSpan issueSpan,
-            SyntaxKind keywordKind,
+            SyntaxToken? keywordToken,
             string codeStyleOptionName)
         {
-            replacementNode = CreatePredefinedTypeSyntax(name, keywordKind);
+            replacementNode = null;
+            if (keywordToken == null)
+                return false;
+
+            replacementNode = CreatePredefinedTypeSyntax(name, keywordToken.Value);
 
             issueSpan = name.Span; // we want to show the whole name expression as unnecessary
 
@@ -490,12 +497,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 {
                     const string AttributeName = "Attribute";
 
-                    // an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName, StringComparison.Ordinal) && !identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                    // an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DoNotSimplifyAnnotation
+                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName, StringComparison.Ordinal) && !identifierToken.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                     {
                         // weird. the semantic model is able to bind attribute syntax like "[as()]" although it's not valid code.
                         // so we need another check for keywords manually.
-                        var newAttributeName = identifierToken.ValueText.Substring(0, identifierToken.ValueText.Length - 9);
+                        var newAttributeName = identifierToken.ValueText[..^9];
                         if (SyntaxFacts.GetKeywordKind(newAttributeName) != SyntaxKind.None)
                         {
                             return false;
@@ -513,8 +520,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 newAttributeName,
                                 identifierToken.TrailingTrivia));
 
-                        replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                        switch (name)
+                        {
+                            case GenericNameSyntax generic:
+                                replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+
+                            default:
+                                replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+                        }
                         issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;
@@ -547,7 +564,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)parent;
                         return object.Equals(namespaceDeclaration.Name, node);
 
                     default:
@@ -607,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
-            if (reducedName.IsKind(SyntaxKind.NullableType, out NullableTypeSyntax nullableType))
+            if (reducedName is NullableTypeSyntax nullableType)
             {
                 if (nullableType.ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
                     return true;
@@ -642,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
             // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
-            if (expression.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+            if (expression?.Parent is CastExpressionSyntax castExpression &&
                 castExpression.Type == expression)
             {
                 var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
@@ -672,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 name = (NameSyntax)name.Parent;
             }
 
-            if (name.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective) &&
+            if (name?.Parent is UsingDirectiveSyntax usingDirective &&
                 usingDirective.Alias == null)
             {
                 // We're a qualified name in a using.  We don't want to reduce this name as people like
@@ -710,12 +728,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, CSharpSimplifierOptions options, SemanticModel semanticModel)
         {
             return !name.IsDirectChildOfMemberAccessExpression() &&
                    !name.InsideCrefReference() &&
                    !InsideNameOfExpression(name, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, semanticModel.Language);
+                   options.PreferPredefinedTypeKeywordInDeclaration.Value;
         }
     }
 }

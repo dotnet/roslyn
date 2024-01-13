@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class ExtractMethodResult
+    internal sealed class ExtractMethodResult
     {
         /// <summary>
         /// True if the extract method operation succeeded.
@@ -15,52 +18,36 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public bool Succeeded { get; }
 
         /// <summary>
-        /// True if the extract method operation is possible if the original span is adjusted.
-        /// </summary>
-        public bool SucceededWithSuggestion { get; }
-
-        /// <summary>
-        /// The transformed document that was produced as a result of the extract method operation.
-        /// </summary>
-        public Document Document { get; }
-
-        /// <summary>
         /// The reasons why the extract method operation did not succeed.
         /// </summary>
-        public IEnumerable<string> Reasons { get; }
+        public ImmutableArray<string> Reasons { get; }
 
-        /// <summary>
-        /// the generated method node that contains the extracted code.
-        /// </summary>
-        public SyntaxNode MethodDeclarationNode { get; }
-
-        /// <summary>
-        /// The name token for the invocation node that replaces the extracted code.
-        /// </summary>
-        public SyntaxToken InvocationNameToken { get; }
+        private readonly AsyncLazy<(Document document, SyntaxToken? invocationNameToken)>? _lazyData;
 
         internal ExtractMethodResult(
-            OperationStatusFlag status,
-            IEnumerable<string> reasons,
-            Document document,
-            SyntaxToken invocationNameToken,
-            SyntaxNode methodDeclarationNode)
+            bool succeeded,
+            ImmutableArray<string> reasons,
+            Func<CancellationToken, Task<(Document document, SyntaxToken? invocationNameToken)>>? getDocumentAsync)
         {
-            Status = status;
+            Succeeded = succeeded;
 
-            Succeeded = status.Succeeded() && !status.HasSuggestion();
-            SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
+            Reasons = reasons.NullToEmpty();
 
-            Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
-
-            Document = document;
-            InvocationNameToken = invocationNameToken;
-            MethodDeclarationNode = methodDeclarationNode;
+            if (getDocumentAsync != null)
+                _lazyData = AsyncLazy.Create(getDocumentAsync);
         }
 
-        /// <summary>
-        /// internal status of result. more fine grained reason why it is failed. 
-        /// </summary>
-        internal OperationStatusFlag Status { get; }
+        public static ExtractMethodResult Fail(OperationStatus status)
+            => new(status.Succeeded, status.Reasons, getDocumentAsync: null);
+
+        public static ExtractMethodResult Success(
+            OperationStatus status,
+            Func<CancellationToken, Task<(Document document, SyntaxToken? invocationNameToken)>> getDocumentAsync)
+        {
+            return new(status.Succeeded, status.Reasons, getDocumentAsync);
+        }
+
+        public Task<(Document document, SyntaxToken? invocationNameToken)> GetDocumentAsync(CancellationToken cancellationToken)
+            => _lazyData!.GetValueAsync(cancellationToken);
     }
 }

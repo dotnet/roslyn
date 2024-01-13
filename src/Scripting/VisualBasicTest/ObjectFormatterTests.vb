@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
         Private Shared ReadOnly s_formatter As ObjectFormatter = New TestVisualBasicObjectFormatter()
 
-        <Fact()>
+        <Fact>
         Public Sub InlineCharacters()
             Assert.Equal("ChrW(20)", s_formatter.FormatObject(ChrW(20), SingleLineOptions))
             Assert.Equal("vbBack", s_formatter.FormatObject(ChrW(&H8), SingleLineOptions))
@@ -74,6 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=80).FormatObject(sort, SingleLineOptions)
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayMethodParameters()
+            Dim result = New TestVisualBasicObjectFormatter(maximumLineLength:=100).FormatMethodSignature(Signatures.Arrays)
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(Integer(), Integer(,), Integer(,,))", result)
         End Sub
 
         <Fact>

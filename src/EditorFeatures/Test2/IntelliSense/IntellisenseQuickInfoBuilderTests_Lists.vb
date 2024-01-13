@@ -3,18 +3,20 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <Trait(Traits.Feature, Traits.Features.QuickInfo)>
     Public Class IntellisenseQuickInfoBuilderTests_Lists
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
-        Public Async Sub QuickInfoForBulletedList(itemTags As String())
+        Public Async Function QuickInfoForBulletedList(itemTags As String()) As Task
             Dim openItemTag = String.Join("", itemTags.Select(Function(tag) $"<{tag}>"))
             Dim closeItemTag = String.Join("", itemTags.Reverse().Select(Function(tag) $"</{tag}>"))
             Dim workspace =
@@ -71,13 +73,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
-        Public Async Sub QuickInfoForNumberedList(itemTags As String())
+        Public Async Function QuickInfoForNumberedList(itemTags As String()) As Task
             Dim openItemTag = String.Join("", itemTags.Select(Function(tag) $"<{tag}>"))
             Dim closeItemTag = String.Join("", itemTags.Reverse().Select(Function(tag) $"</{tag}>"))
             Dim workspace =
@@ -134,11 +136,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub QuickInfoForBulletedTermList()
+        <WpfFact>
+        Public Async Function QuickInfoForBulletedTermList() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -199,11 +201,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub QuickInfoForNumberedTermList()
+        <WpfFact>
+        Public Async Function QuickInfoForNumberedTermList() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -264,13 +266,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
-        Public Async Sub QuickInfoForNestedLists(itemTags As String())
+        Public Async Function QuickInfoForNestedLists(itemTags As String()) As Task
             Dim openItemTag = String.Join("", itemTags.Select(Function(tag) $"<{tag}>"))
             Dim closeItemTag = String.Join("", itemTags.Reverse().Select(Function(tag) $"</{tag}>"))
             Dim workspace =
@@ -377,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                         New ClassifiedTextElement(
                                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2")))))))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
     End Class
 End Namespace

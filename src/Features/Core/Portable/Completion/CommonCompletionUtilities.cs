@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -81,46 +85,48 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            Workspace workspace,
+            SolutionServices workspaceServices,
             SemanticModel semanticModel,
             int position,
-            ISymbol symbol)
+            ISymbol symbol,
+            SymbolDescriptionOptions options)
         {
-            return CreateDescriptionFactory(workspace, semanticModel, position, new[] { symbol });
+            return CreateDescriptionFactory(workspaceServices, semanticModel, position, options, new[] { symbol });
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, SymbolDescriptionOptions options, IReadOnlyList<ISymbol> symbols)
         {
-            return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: null, cancellationToken: c);
+            return c => CreateDescriptionAsync(workspaceServices, semanticModel, position, symbols, options, supportedPlatforms: null, cancellationToken: c);
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData supportedPlatforms)
         {
-            return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: supportedPlatforms, cancellationToken: c);
+            return c => CreateDescriptionAsync(workspaceServices, semanticModel, position, symbols, options, supportedPlatforms: supportedPlatforms, cancellationToken: c);
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
-            var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
-            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
+            var symbolDisplayService = workspaceServices.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
+            var formatter = workspaceServices.GetRequiredLanguageService<IDocumentationCommentFormattingService>(semanticModel.Language);
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
 
-            if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
+            if (!sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTexts))
             {
                 return CompletionDescription.Empty;
             }
 
             var textContentBuilder = new List<TaggedText>();
-            textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
+            textContentBuilder.AddRange(mainDescriptionTexts);
 
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
+                case SymbolKind.Property:
                 case SymbolKind.NamedType:
                     if (overloadCount > 0)
                     {
@@ -146,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(parts);
             }
 
-            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out parts))
             {
                 if (!parts.IsDefaultOrEmpty)
                 {
@@ -166,9 +172,13 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
-            return CreateDescriptionAsync(workspace, semanticModel, position, symbols[0], overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
+            // Lets try to find the first non-obsolete symbol (overload) and fall-back
+            // to the first symbol if all are obsolete.
+            var symbol = symbols.FirstOrDefault(s => !s.IsObsolete()) ?? symbols[0];
+
+            return CreateDescriptionAsync(workspaceServices, semanticModel, position, symbol, overloadCount: symbols.Count - 1, options, supportedPlatforms, cancellationToken);
         }
 
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
@@ -219,10 +229,10 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, [NotNullWhen(true)] out string? name)
         {
             var isAttributeNameContext = context.IsAttributeNameContext;
-            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = context.GetRequiredLanguageService<ISyntaxFactsService>();
 
             if (!isAttributeNameContext)
             {
@@ -238,6 +248,16 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return true;
+        }
+
+        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        {
+            if (provider is LSPCompletionProvider lspProvider)
+            {
+                return lspProvider.TriggerCharacters;
+            }
+
+            return ImmutableHashSet<char>.Empty;
         }
     }
 }

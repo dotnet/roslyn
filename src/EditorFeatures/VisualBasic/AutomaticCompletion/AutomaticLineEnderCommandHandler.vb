@@ -3,13 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
+Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
@@ -25,11 +28,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         Inherits AbstractAutomaticLineEnderCommandHandler
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
-                       editorOperations As IEditorOperationsFactoryService)
+                       editorOperations As IEditorOperationsFactoryService,
+                       editorOptionsService As EditorOptionsService)
 
-            MyBase.New(undoRegistry, editorOperations)
+            MyBase.New(undoRegistry, editorOperations, editorOptionsService)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
@@ -37,20 +41,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             nextAction()
         End Sub
 
-        Protected Overrides Function TreatAsReturn(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function TreatAsReturn(document As ParsedDocument, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean
             ' No special handling in VB.
             Return False
         End Function
 
-        Protected Overrides Sub FormatAndApply(document As Document, position As Integer, cancellationToken As CancellationToken)
-            ' vb does automatic line commit
-            ' no need to do explicit formatting
+        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As ParsedDocument, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
         End Sub
 
-        Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
+        Protected Overrides Function GetValidNodeToModifyBraces(document As ParsedDocument, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?
+            Return Nothing
+        End Function
+
+        Protected Overrides Function FormatBasedOnEndToken(document As ParsedDocument, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As IList(Of TextChange)
+            ' vb does automatic line commit
+            ' no need to do explicit formatting
+            Return SpecializedCollections.EmptyList(Of TextChange)
+        End Function
+
+        Protected Overrides Function GetEndingString(document As ParsedDocument, position As Integer) As String
             ' prepare expansive information from document
-            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-            Dim text = root.SyntaxTree.GetText(cancellationToken)
+            Dim root = document.Root
+            Dim text = document.Text
 
             ' get line where the caret is on
             Dim line = text.Lines.GetLineFromPosition(position)

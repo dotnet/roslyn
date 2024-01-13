@@ -2,14 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.FlowAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -238,22 +241,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Sub
         End Class
 
-        <Fact>
+        <Fact, Obsolete("IsDiagnosticAnalyzerSuppressed is an obsolete public API")>
         Public Sub TestDisabledAnalyzers()
-            Dim FullyDisabledAnalyzer = New FullyDisabledAnalyzer()
-            Dim PartiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
+            Dim fullyDisabledAnalyzer = New FullyDisabledAnalyzer()
+            Dim partiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
 
             Dim options = TestOptions.ReleaseDll
-            Assert.True(FullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-            Assert.False(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.False(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
 
             Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
             specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn)
             specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress)
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
-            Assert.False(FullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
-            Assert.True(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
+            Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
         End Sub
 
         Public Class ModuleStatementAnalyzer
@@ -820,13 +823,27 @@ End Class
 <System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
 Class GeneratedCode{0}
 	Private Class Nested{0}
+        Private Sub NestedMethod()
+            System.Console.WriteLine(0)
+        End Sub
 	End Class
+
+    Private Sub GeneratedCodeMethod()
+        System.Console.WriteLine(0)
+    End Sub
 End Class
 
 Class NonGeneratedCode{0}
 	<System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
 	Private Class NestedGeneratedCode{0}
+        Private Sub NestedGeneratedCodeMethod()
+            System.Console.WriteLine(0)
+        End Sub
 	End Class
+
+    Private Sub NonGeneratedCodeMethod()
+        System.Console.WriteLine(0)
+    End Sub
 End Class
 ]]>.Value
 
@@ -915,7 +932,7 @@ End Class
             AddExpectedLocalDiagnostics(builder, False, squiggledText, line, column, GeneratedCodeAnalysisFlags.ReportDiagnostics, diagnosticArgument)
 
             ' Expected compilation diagnostics
-            AddExpectedNonLocalDiagnostic(builder, "PartialType", compilation.SyntaxTrees(0).FilePath)
+            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary, "PartialType(IsGeneratedCode:False)", $"{compilation.SyntaxTrees(0).FilePath}(IsGeneratedCode:False)")
 
             Dim expected = builder.ToArrayAndFree()
 
@@ -1139,19 +1156,30 @@ End Class
 
         Private Shared Sub VerifyGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, isGeneratedFileName As Func(Of String, Boolean), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?)
             Dim expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt)
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt)
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt, testIsGeneratedCodeInCallbacks:=True)
         End Sub
 
-        Private Shared Sub VerifyGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, expected As DiagnosticDescription(), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?)
-            Dim analyzers = New DiagnosticAnalyzer() {New GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt)}
+        Private Shared Sub VerifyGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, expected As DiagnosticDescription(), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?, Optional testIsGeneratedCodeInCallbacks As Boolean = False)
+            Dim analyzers = New DiagnosticAnalyzer() {New GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt, testIsGeneratedCodeInCallbacks)}
             compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, expected)
         End Sub
 
         Private Shared Function GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, isGeneratedFileName As Func(Of String, Boolean), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?) As DiagnosticDescription()
-            Dim analyzers = New DiagnosticAnalyzer() {New GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt)}
+            Dim analyzers = New DiagnosticAnalyzer() {New GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt, testIsGeneratedCodeInCallbacks:=True)}
             Dim files = compilation.SyntaxTrees.Select(Function(t) t.FilePath).ToImmutableArray()
             Dim sortedCallbackSymbolNames = New SortedSet(Of String)()
             Dim sortedCallbackTreePaths = New SortedSet(Of String)()
+            Dim sortedCallbackSyntaxNodeNames = New SortedSet(Of String)()
+            Dim sortedCallbackOperationNames = New SortedSet(Of String)()
+            Dim sortedCallbackSemanticModelPaths = New SortedSet(Of String)()
+            Dim sortedCallbackSymbolStartNames = New SortedSet(Of String)()
+            Dim sortedCallbackSymbolEndNames = New SortedSet(Of String)()
+            Dim sortedCallbackOperationBlockStartNames = New SortedSet(Of String)()
+            Dim sortedCallbackOperationBlockEndNames = New SortedSet(Of String)()
+            Dim sortedCallbackOperationBlockNames = New SortedSet(Of String)()
+            Dim sortedCallbackCodeBlockStartNames = New SortedSet(Of String)()
+            Dim sortedCallbackCodeBlockEndNames = New SortedSet(Of String)()
+            Dim sortedCallbackCodeBlockNames = New SortedSet(Of String)()
             Dim builder = ArrayBuilder(Of DiagnosticDescription).GetInstance()
             For i As Integer = 0 To compilation.SyntaxTrees.Count() - 1
                 Dim file = files(i)
@@ -1176,7 +1204,7 @@ End Class
                 ' Type "NonGeneratedCode{0}"
                 squiggledText = String.Format("NonGeneratedCode{0}", i)
                 diagnosticArgument = squiggledText
-                line = 8
+                line = 15
                 column = 7
                 isGeneratedCode = isGeneratedFile
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
@@ -1184,7 +1212,7 @@ End Class
                 ' Type "NestedGeneratedCode{0}"
                 squiggledText = String.Format("NestedGeneratedCode{0}", i)
                 diagnosticArgument = squiggledText
-                line = 10
+                line = 17
                 column = 16
                 isGeneratedCode = True
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
@@ -1192,31 +1220,73 @@ End Class
                 ' File diagnostic
                 squiggledText = "Class" ' last token in file.
                 diagnosticArgument = file
-                line = 12
+                line = 26
                 column = 5
                 isGeneratedCode = isGeneratedFile
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
                 ' Compilation end summary diagnostic (verify callbacks into analyzer)
                 ' Analyzer always called for generated code, unless generated code analysis is explicitly disabled.
+                Dim addNames As Action(Of SortedSet(Of String)) = Nothing
+                Dim addPath As Action(Of SortedSet(Of String)) = Nothing
+                Dim index = i
                 If generatedCodeAnalysisFlagsOpt Is Nothing OrElse (generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.Analyze) <> 0 Then
-                    sortedCallbackSymbolNames.Add(String.Format("GeneratedCode{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("Nested{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("NestedGeneratedCode{0}", i))
+                    addNames = Sub(names As SortedSet(Of String))
+                                   names.Add(String.Format("GeneratedCode{0}(IsGeneratedCode:True)", index))
+                                   names.Add(String.Format("Nested{0}(IsGeneratedCode:True)", index))
+                                   names.Add(String.Format("NonGeneratedCode{0}(IsGeneratedCode:{1})", index, isGeneratedFile))
+                                   names.Add(String.Format("NestedGeneratedCode{0}(IsGeneratedCode:True)", index))
+                               End Sub
 
-                    sortedCallbackTreePaths.Add(file)
+                    addPath = Sub(paths As SortedSet(Of String))
+                                  paths.Add($"{file}(IsGeneratedCode:{isGeneratedFile})")
+                              End Sub
                 ElseIf Not isGeneratedFile Then
                     ' Analyzer always called for non-generated code.
-                    sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
-                    sortedCallbackTreePaths.Add(file)
+                    addNames = Sub(names As SortedSet(Of String))
+                                   names.Add(String.Format("NonGeneratedCode{0}(IsGeneratedCode:False)", index))
+                               End Sub
+
+                    addPath = Sub(paths As SortedSet(Of String))
+                                  paths.Add($"{file}(IsGeneratedCode:False)")
+                              End Sub
+                End If
+
+                If addNames IsNot Nothing Then
+                    addNames(sortedCallbackSymbolNames)
+                    addNames(sortedCallbackSyntaxNodeNames)
+                    addNames(sortedCallbackSymbolStartNames)
+                    addNames(sortedCallbackSymbolEndNames)
+                    addNames(sortedCallbackOperationNames)
+                    addNames(sortedCallbackOperationBlockStartNames)
+                    addNames(sortedCallbackOperationBlockEndNames)
+                    addNames(sortedCallbackOperationBlockNames)
+                    addNames(sortedCallbackCodeBlockStartNames)
+                    addNames(sortedCallbackCodeBlockEndNames)
+                    addNames(sortedCallbackCodeBlockNames)
+                End If
+
+                If addPath IsNot Nothing Then
+                    addPath(sortedCallbackTreePaths)
+                    addPath(sortedCallbackSemanticModelPaths)
                 End If
             Next
 
             ' Compilation end summary diagnostic (verify callbacks into analyzer)
             Dim arg1 = sortedCallbackSymbolNames.Join(",")
             Dim arg2 = sortedCallbackTreePaths.Join(",")
-            AddExpectedNonLocalDiagnostic(builder, {arg1, arg2})
+            Dim arg3 = sortedCallbackSyntaxNodeNames.Join(",") + ";" +
+                sortedCallbackOperationNames.Join(",") + ";" +
+                sortedCallbackSemanticModelPaths.Join(",") + ";" +
+                sortedCallbackSymbolStartNames.Join(",") + ";" +
+                sortedCallbackSymbolEndNames.Join(",") + ";" +
+                sortedCallbackOperationBlockStartNames.Join(",") + ";" +
+                sortedCallbackOperationBlockEndNames.Join(",") + ";" +
+                sortedCallbackOperationBlockNames.Join(",") + ";" +
+                sortedCallbackCodeBlockStartNames.Join(",") + ";" +
+                sortedCallbackCodeBlockEndNames.Join(",") + ";" +
+                sortedCallbackCodeBlockNames.Join(",")
+            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary2, {arg1, arg2, arg3})
 
             If compilation.Options.GeneralDiagnosticOption = ReportDiagnostic.Error Then
                 For i As Integer = 0 To builder.Count - 1
@@ -1252,14 +1322,29 @@ End Class
             End If
         End Sub
 
-        Private Shared Sub AddExpectedNonLocalDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), ParamArray arguments As String())
-            AddExpectedDiagnostic(builder, GeneratedCodeAnalyzer.Summary.Id, Nothing, 1, 1, arguments)
+        Private Shared Sub AddExpectedNonLocalDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), descriptor As DiagnosticDescriptor, ParamArray arguments As String())
+            AddExpectedDiagnostic(builder, descriptor.Id, Nothing, 1, 1, arguments)
         End Sub
 
         Private Shared Sub AddExpectedDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), diagnosticId As String, squiggledText As String, line As Integer, column As Integer, ParamArray arguments As String())
             Dim diag = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column)
             builder.Add(diag)
         End Sub
+
+        <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+        Friend NotInheritable Class GeneratedCodeAnalyzer
+            Inherits AbstractGeneratedCodeAnalyzer(Of SyntaxKind)
+
+            Public Sub New(generatedCodeAnalysisFlags As GeneratedCodeAnalysisFlags?, Optional testIsGeneratedCodeInCallbacks As Boolean = False)
+                MyBase.New(generatedCodeAnalysisFlags, testIsGeneratedCodeInCallbacks)
+            End Sub
+
+            Protected Overrides ReadOnly Property ClassDeclarationSyntaxKind As SyntaxKind
+                Get
+                    Return SyntaxKind.ClassBlock
+                End Get
+            End Property
+        End Class
 
         <Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")>
         Public Sub TestFieldReferenceAnalyzer_InAttributes()
@@ -1527,11 +1612,11 @@ Block[B2] - Exit
             verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
         End Sub
 
-        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of ControlFlowGraph), expectedFlowGraphs As String())
+        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol)), expectedFlowGraphs As String())
             For i As Integer = 0 To expectedFlowGraphs.Length - 1
                 Dim expectedFlowGraph As String = expectedFlowGraphs(i)
-                Dim actualFlowGraph As ControlFlowGraph = flowGraphs(i)
-                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
+                Dim actualFlowGraphAndSymbol As (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol) = flowGraphs(i)
+                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraphAndSymbol.Graph, actualFlowGraphAndSymbol.AssociatedSymbol)
             Next
         End Sub
 
@@ -1560,5 +1645,74 @@ End Namespace
             compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
                 Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
         End Sub
+
+        <Theory, CombinatorialData>
+        Public Async Function TestAdditionalFileAnalyzer(registerFromInitialize As Boolean) As Task
+            Dim tree = VisualBasicSyntaxTree.ParseText(String.Empty)
+            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            compilation.VerifyDiagnostics()
+
+            Dim additionalFile As AdditionalText = New TestAdditionalText("Additional File Text")
+            Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalFile))
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+            Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+
+            Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
+
+            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+
+            analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+        End Function
+
+        Private Shared Sub TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
+                                                                        expectedDiagnosticSpan As TextSpan,
+                                                                        Analyzer As AdditionalFileAnalyzer,
+                                                                        additionalFile As AdditionalText)
+            Dim diagnostic = Assert.Single(diagnostics)
+            Assert.Equal(Analyzer.Descriptor.Id, diagnostic.Id)
+            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind)
+            Dim location = DirectCast(diagnostic.Location, ExternalFileLocation)
+            Assert.Equal(additionalFile.Path, location.GetLineSpan().Path)
+            Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
+        End Sub
+
+        <Fact>
+        Public Sub TestSemanticModelProvider()
+            Dim tree = VisualBasicSyntaxTree.ParseText("
+Class C
+End Class")
+            Dim compilation As Compilation = CreateCompilation({tree})
+
+            Dim semanticModelProvider = New MySemanticModelProvider()
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider)
+
+            ' Verify semantic model provider is used by Compilation.GetSemanticModel API
+            Dim model = compilation.GetSemanticModel(tree)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+
+            ' Verify semantic model provider is used by VisualBasicCompilation.GetSemanticModel API
+            model = CType(compilation, VisualBasicCompilation).GetSemanticModel(tree, ignoreAccessibility:=False)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+        End Sub
+
+        Private NotInheritable Class MySemanticModelProvider
+            Inherits SemanticModelProvider
+
+            Private ReadOnly _cache As New ConcurrentDictionary(Of SyntaxTree, SemanticModel)()
+
+            Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+                Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility))
+            End Function
+
+            Public Sub VerifyCachedModel(tree As SyntaxTree, model As SemanticModel)
+                Assert.Same(model, _cache(tree))
+            End Sub
+        End Class
     End Class
 End Namespace

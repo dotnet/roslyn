@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         internal partial class ImplementInterfaceCodeAction
         {
-            private ISymbol GenerateProperty(
+            private IEnumerable<ISymbol?> GeneratePropertyMembers(
                 Compilation compilation,
                 IPropertySymbol property,
                 Accessibility accessibility,
@@ -29,8 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 string memberName,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var attributesToRemove = AttributesToRemove(compilation);
@@ -43,7 +40,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                     propertyGenerationBehavior, attributesToRemove);
 
-                var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = Document.GetRequiredLanguageService<ISemanticFactsService>();
+
+                if (property is { IsIndexer: false, Parameters.Length: > 0 } &&
+                    !semanticFacts.SupportsParameterizedProperties)
+                {
+                    yield return getAccessor;
+                    yield return setAccessor;
+                    yield break;
+                }
 
                 var parameterNames = NameGenerator.EnsureUniqueness(
                     property.Parameters.SelectAsArray(p => p.Name),
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-                return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                yield return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     updatedProperty,
                     accessibility: accessibility,
                     modifiers: modifiers,
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             /// We never want to place it in source code.
             /// Same thing for the Dynamic attribute.
             /// </summary>
-            private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
+            private static INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
                 return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
                     compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray()!;
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 if (generateAbstractly)
                     return default;
 
-                var generator = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = Document.Project.Services.GetRequiredService<SyntaxGenerator>();
                 return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
                     propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
@@ -126,9 +129,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 if (_lazyGenericArguments == null)
                 {
                     var typeArgs = _lmrType.GetGenericArguments();
-                    var genericArgs = (typeArgs.Length == 0) ?
-                        s_emptyTypes :
-                        new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
+                    var genericArgs = (typeArgs.Length == 0)
+                        ? s_emptyTypes
+                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
                 return _lazyGenericArguments;
@@ -361,7 +364,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     uiSideVisualizerAssemblyLocation: Evaluation.DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     debuggeeSideVisualizerTypeName: debuggeeSideVisualizerTypeName,
                     debuggeeSideVisualizerAssemblyName: debuggeeSideVisualizerAssemblyName,
-                    visualizerDescription: visualizerDescription));
+                    visualizerDescription: visualizerDescription,
+                    extensionPartId: System.Guid.Empty));
             }
 
             return builder.ToArrayAndFree();

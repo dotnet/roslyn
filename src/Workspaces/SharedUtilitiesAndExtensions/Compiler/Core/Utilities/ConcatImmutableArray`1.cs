@@ -2,32 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    internal readonly struct ConcatImmutableArray<T> : IEnumerable<T>
+    internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerable<T>
     {
-        private readonly ImmutableArray<T> _first;
-        private readonly ImmutableArray<T> _second;
+        public int Length => first.Length + second.Length;
 
-        public ConcatImmutableArray(ImmutableArray<T> first, ImmutableArray<T> second)
-        {
-            _first = first;
-            _second = second;
-        }
+        public bool Any(Func<T, bool> predicate)
+            => first.Any(predicate) || second.Any(predicate);
 
         public Enumerator GetEnumerator()
-            => new Enumerator(_first, _second);
+            => new(first, second);
 
         public ImmutableArray<T> ToImmutableArray()
-            => _first.NullToEmpty().AddRange(_second.NullToEmpty());
+            => first.NullToEmpty().AddRange(second.NullToEmpty());
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
             => GetEnumerator();
@@ -35,16 +30,10 @@ namespace Roslyn.Utilities
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        public struct Enumerator : IEnumerator<T>
+        public struct Enumerator(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerator<T>
         {
-            private ImmutableArray<T>.Enumerator _current;
-            private ImmutableArray<T> _next;
-
-            public Enumerator(ImmutableArray<T> first, ImmutableArray<T> second)
-            {
-                _current = first.NullToEmpty().GetEnumerator();
-                _next = second.NullToEmpty();
-            }
+            private ImmutableArray<T>.Enumerator _current = first.NullToEmpty().GetEnumerator();
+            private ImmutableArray<T> _next = second.NullToEmpty();
 
             public T Current => _current.Current;
             object? IEnumerator.Current => Current;
@@ -61,7 +50,7 @@ namespace Roslyn.Utilities
                 return _current.MoveNext();
             }
 
-            void IDisposable.Dispose()
+            readonly void IDisposable.Dispose()
             {
             }
 

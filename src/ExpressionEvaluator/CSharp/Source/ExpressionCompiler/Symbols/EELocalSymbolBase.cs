@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -30,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal abstract EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             return null;
         }
 
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableArray<Diagnostic>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
         internal sealed override SynthesizedLocalKind SynthesizedKind
@@ -50,9 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return null; }
         }
 
-        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override bool IsImportedFromMetadata
@@ -62,33 +72,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override SyntaxNode GetDeclaratorSyntax()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override bool HasSourceLocation => false;
+
+        internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             var type = this.TypeWithAnnotations;
-            DiagnosticInfo result = null;
-            if (!DeriveUseSiteDiagnosticFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
+            UseSiteInfo<AssemblySymbol> result = default;
+            if (!DeriveUseSiteInfoFromType(ref result, type, AllowedRequiredModifierType.None) && this.ContainingModule.HasUnifiedReferences)
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes);
+                var diagnosticInfo = result.DiagnosticInfo;
+                type.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes);
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
+
             return result;
         }
 
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint ValEscapeScope => Binder.TopLevelScope;
-
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint RefEscapeScope => Binder.TopLevelScope;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

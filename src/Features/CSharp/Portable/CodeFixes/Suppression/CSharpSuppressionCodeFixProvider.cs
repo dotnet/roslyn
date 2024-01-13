@@ -2,24 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
     internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
     {
         [ImportingConstructor]
@@ -28,27 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
         }
 
-        protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+        protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var restoreKeyword = SyntaxFactory.Token(SyntaxKind.RestoreKeyword);
-            return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine);
+            return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
         }
 
         protected override SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(
-            Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+            Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var disableKeyword = SyntaxFactory.Token(SyntaxKind.DisableKeyword);
-            return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine);
+            return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
         }
 
-        private SyntaxTriviaList CreatePragmaDirectiveTrivia(
-            SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+        private static SyntaxTriviaList CreatePragmaDirectiveTrivia(
+            SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
             var id = SyntaxFactory.IdentifierName(diagnosticId);
             var ids = new SeparatedSyntaxList<ExpressionSyntax>().Add(id);
             var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
-            pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective);
+            pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
             var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective);
             var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+            => trivia.Kind() is SyntaxKind.EndOfLineTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia;
 
         protected override bool IsEndOfFileToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.EndOfFileToken;
@@ -95,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            Workspace workspace,
-            Compilation compilation,
+            SolutionServices services,
+            SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken)
         {
@@ -112,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                     attributeName,
                     diagnostic,
                     isAssemblyAttribute: true,
-                    leadingTrivia: default,
-                    needsLeadingEndOfLine: true));
+                    leadingTrivia: default));
 
             if (isFirst && !newRoot.HasLeadingTrivia)
                 compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
@@ -127,32 +130,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var memberNode = (MemberDeclarationSyntax)targetNode;
 
             SyntaxTriviaList leadingTriviaForAttributeList;
-            bool needsLeadingEndOfLine;
             if (!memberNode.GetAttributes().Any())
             {
                 leadingTriviaForAttributeList = memberNode.GetLeadingTrivia();
                 memberNode = memberNode.WithoutLeadingTrivia();
-                needsLeadingEndOfLine = !leadingTriviaForAttributeList.Any() || !IsEndOfLine(leadingTriviaForAttributeList.Last());
             }
             else
             {
                 leadingTriviaForAttributeList = default;
-                needsLeadingEndOfLine = true;
             }
 
             var attributeName = suppressMessageAttribute.GenerateNameSyntax();
             var attributeList = CreateAttributeList(
-                targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: needsLeadingEndOfLine);
+                targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList);
             return memberNode.AddAttributeLists(attributeList);
         }
 
-        private AttributeListSyntax CreateAttributeList(
+        private static AttributeListSyntax CreateAttributeList(
             ISymbol targetSymbol,
             NameSyntax attributeName,
             Diagnostic diagnostic,
             bool isAssemblyAttribute,
-            SyntaxTriviaList leadingTrivia,
-            bool needsLeadingEndOfLine)
+            SyntaxTriviaList leadingTrivia)
         {
             var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
 
@@ -170,18 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 attributeList = SyntaxFactory.AttributeList(attributes);
             }
 
-            var endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-            var triviaList = SyntaxFactory.TriviaList();
-
-            if (needsLeadingEndOfLine)
-            {
-                triviaList = triviaList.Add(endOfLineTrivia);
-            }
-
-            return attributeList.WithLeadingTrivia(leadingTrivia.AddRange(triviaList));
+            return attributeList.WithLeadingTrivia(leadingTrivia);
         }
 
-        private AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
+        private static AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
         {
             // SuppressMessage("Rule Category", "Rule Id", Justification = nameof(Justification), Scope = nameof(Scope), Target = nameof(Target))
             var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category));
@@ -251,23 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return SyntaxFactory.Trivia(newPragmaWarning);
         }
 
-        protected override SyntaxToken GetAdjustedTokenForPragmaRestore(
-            SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-        {
-            var nextToken = token.GetNextToken();
-            if (nextToken.Kind() == SyntaxKind.SemicolonToken &&
-                nextToken.Parent is StatementSyntax statement &&
-                statement.GetLastToken() == nextToken &&
-                token.Parent.FirstAncestorOrSelf<StatementSyntax>() == statement)
-            {
-                // both the current and next tokens belong to the same statement, and the next token
-                // is the final semicolon in a statement.  Do not put the pragma before that
-                // semicolon.  Place it after the semicolon so the statement stays whole.
+        protected override SyntaxNode GetContainingStatement(SyntaxToken token)
+            // If we can't get a containing statement, such as for expression bodied members, then
+            // return the arrow clause instead
+            => (SyntaxNode)token.GetAncestor<StatementSyntax>() ?? token.GetAncestor<ArrowExpressionClauseSyntax>();
 
-                return nextToken;
-            }
-
-            return token;
-        }
+        protected override bool TokenHasTrailingLineContinuationChar(SyntaxToken token)
+            => false;
     }
 }

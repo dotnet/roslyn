@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             End Get
         End Property
 
-        Private Sub GetNextWordIndex(text As String, startIndex As Integer, ByRef firstLetterIndex As Integer, ByRef lastLetterIndex As Integer)
+        Private Shared Sub GetNextWordIndex(text As String, startIndex As Integer, ByRef firstLetterIndex As Integer, ByRef lastLetterIndex As Integer)
             firstLetterIndex = -1
             lastLetterIndex = -1
 
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Next
         End Sub
 
-        Private Function SameAsOriginal(span As SnapshotSpan, firstLetterIndex As Integer, lastLetterIndex As Integer) As Boolean
+        Private Shared Function SameAsOriginal(span As SnapshotSpan, firstLetterIndex As Integer, lastLetterIndex As Integer) As Boolean
             Return firstLetterIndex = 0 AndAlso span.Length - 1 = lastLetterIndex
         End Function
 

@@ -2,21 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+extern alias InteractiveHost;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// ResetInteractive class that implements base functionality for reset interactive command.
@@ -28,25 +31,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         private readonly Func<string, string> _createImport;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         internal event EventHandler ExecutionCompleted;
 
-        internal ResetInteractive(IEditorOptionsFactoryService editorOptionsFactoryService, Func<string, string> createReference, Func<string, string> createImport)
+        internal ResetInteractive(EditorOptionsService editorOptionsService, Func<string, string> createReference, Func<string, string> createImport)
         {
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _createReference = createReference;
             _createImport = createImport;
         }
 
         internal Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
         {
-            if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var is64Bit))
+            if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var platform))
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
-                var waitIndicator = GetWaitIndicator();
-                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.Building_Project, allowCancel: true, showProgress: false);
+                var uiThreadOperationExecutor = GetUIThreadOperationExecutor();
+                var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesWpfResources.Building_Project, allowCancellation: true, showProgress: false);
 
                 var resetInteractiveTask = ResetInteractiveAsync(
                     interactiveWindow,
@@ -55,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     sourceSearchPaths,
                     projectNamespaces,
                     projectDirectory,
-                    is64Bit,
-                    waitContext);
+                    platform,
+                    context);
 
                 // Once we're done resetting, dismiss the wait indicator and focus the REPL window.
                 return resetInteractiveTask.SafeContinueWith(
                     _ =>
                     {
-                        waitContext.Dispose();
+                        context.Dispose();
                         ExecutionCompleted?.Invoke(this, new EventArgs());
                     },
                     TaskScheduler.FromCurrentSynchronizationContext());
@@ -78,15 +81,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             ImmutableArray<string> sourceSearchPaths,
             ImmutableArray<string> projectNamespaces,
             string projectDirectory,
-            bool? is64Bit,
-            IWaitContext waitContext)
+            InteractiveHostPlatform? platform,
+            IUIThreadOperationContext uiThreadOperationContext)
         {
             // First, open the repl window.
             var evaluator = (IResettableInteractiveEvaluator)interactiveWindow.Evaluator;
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
-            using (waitContext.CancellationToken.Register(() =>
+            using (uiThreadOperationContext.UserCancellationToken.Register(() =>
                 CancelBuildProject(), useSynchronizationContext: true))
             {
                 // First, start a build.
@@ -99,18 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             // Then reset the REPL
-            waitContext.Message = InteractiveEditorFeaturesResources.Resetting_Interactive;
-            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(is64Bit);
+            using var scope = uiThreadOperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Resetting_Interactive);
+            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 
             // TODO: load context from an rsp file.
 
             // Now send the reference paths we've collected to the repl.
-            // The SetPathsAsync method is not available through an Interface.
-            // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
-            var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
             await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
 
@@ -136,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit);
+            out InteractiveHostPlatform? platform);
 
         /// <summary>
         /// A method that should trigger an async project build.
@@ -149,6 +150,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// </summary>
         protected abstract void CancelBuildProject();
 
-        protected abstract IWaitIndicator GetWaitIndicator();
+        protected abstract IUIThreadOperationExecutor GetUIThreadOperationExecutor();
     }
 }

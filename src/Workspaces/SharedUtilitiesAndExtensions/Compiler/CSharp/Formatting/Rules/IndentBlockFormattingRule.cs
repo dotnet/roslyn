@@ -2,53 +2,78 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class IndentBlockFormattingRule : BaseFormattingRule
+    internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        private readonly CSharpSyntaxFormattingOptions _options;
+
+        public IndentBlockFormattingRule()
+            : this(CSharpSyntaxFormattingOptions.Default)
+        {
+        }
+
+        private IndentBlockFormattingRule(CSharpSyntaxFormattingOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
+        {
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
+
+            if (_options.LabelPositioning == newOptions.LabelPositioning &&
+                _options.Indentation == newOptions.Indentation)
+            {
+                return this;
+            }
+
+            return new IndentBlockFormattingRule(newOptions);
+        }
+
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
             AddAlignmentBlockOperation(list, node);
 
-            AddBlockIndentationOperation(list, node, options);
+            AddBlockIndentationOperation(list, node);
 
-            AddLabelIndentationOperation(list, node, options);
+            AddBracketIndentationOperation(list, node);
 
-            AddSwitchIndentationOperation(list, node, options);
+            AddLabelIndentationOperation(list, node);
+
+            AddSwitchIndentationOperation(list, node);
 
             AddEmbeddedStatementsIndentationOperation(list, node);
 
             AddTypeParameterConstraintClauseOperation(list, node);
         }
 
-        private void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (node is TypeParameterConstraintClauseSyntax typeParameterConstraintClause)
+            if (node is TypeParameterConstraintClauseSyntax { Parent: { } declaringNode })
             {
-                var declaringNode = typeParameterConstraintClause.Parent;
                 var baseToken = declaringNode.GetFirstToken();
                 AddIndentBlockOperation(list, baseToken, node.GetFirstToken(), node.GetLastToken());
             }
         }
 
-        private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
+        private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (!(node is SwitchSectionSyntax section))
+            if (node is not SwitchSectionSyntax section)
             {
                 return;
             }
@@ -60,32 +85,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var indentSwitchCase = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection);
-            var indentSwitchCaseWhenBlock = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock);
-            if (!indentSwitchCase && !indentSwitchCaseWhenBlock)
+            if (!_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && !_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
             {
                 // Never indent
                 return;
             }
 
-            var alwaysIndent = indentSwitchCase && indentSwitchCaseWhenBlock;
+            var alwaysIndent = _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock);
             if (!alwaysIndent)
             {
                 // Only one of these values can be true at this point.
-                Debug.Assert(indentSwitchCase != indentSwitchCaseWhenBlock);
+                Debug.Assert(_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) != _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock));
 
-                var firstStatementIsBlock =
-                    section.Statements.Count > 0 &&
-                    section.Statements[0].IsKind(SyntaxKind.Block);
-
-                if (indentSwitchCaseWhenBlock != firstStatementIsBlock)
+                var firstStatementIsBlock = section.Statements is [(kind: SyntaxKind.Block), ..];
+                if (_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock) != firstStatementIsBlock)
                 {
                     return;
                 }
             }
 
             // see whether we are the last statement
-            var switchStatement = node.Parent as SwitchStatementSyntax;
+            RoslynDebug.AssertNotNull(node.Parent);
+            var switchStatement = (SwitchStatementSyntax)node.Parent;
             var lastSection = switchStatement.Sections.Last() == node;
 
             if (section.Statements.Count == 0)
@@ -110,25 +131,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, startToken, endToken, span);
         }
 
-        private void AddLabelIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
+        private void AddLabelIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             // label statement
             if (node is LabeledStatementSyntax labeledStatement)
             {
-                var labelPositioningOption = options.GetOption(CSharpFormattingOptions2.LabelPositioning);
-
-                if (labelPositioningOption == LabelPositionOptions.OneLess)
+                if (_options.LabelPositioning == LabelPositionOptions.OneLess)
                 {
                     AddUnindentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
                 }
-                else if (labelPositioningOption == LabelPositionOptions.LeftMost)
+                else if (_options.LabelPositioning == LabelPositionOptions.LeftMost)
                 {
                     AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
                 }
             }
         }
 
-        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             switch (node)
             {
@@ -141,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousMethodExpressionSyntax anonymousMethod:
                     SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                     return;
-                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                     return;
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
@@ -153,18 +172,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
-                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKind.SwitchExpression):
-                    SetAlignmentBlockOperation(
-                        list,
-                        syntaxNode.GetFirstToken(),
-                        syntaxNode.ChildNodesAndTokens().First(child => child.IsKind(SyntaxKind.OpenBraceToken)).AsToken(),
-                        syntaxNode.ChildNodesAndTokens().Last(child => child.IsKind(SyntaxKind.CloseBraceToken)).AsToken(),
-                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                case StackAllocArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, arrayCreation.StackAllocKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, implicitArrayCreation.StackAllocKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case SwitchExpressionSyntax switchExpression:
+                    SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case WithExpressionSyntax withExpression:
+                    SetAlignmentBlockOperation(list, withExpression.GetFirstToken(), withExpression.Initializer.OpenBraceToken, withExpression.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case PropertyPatternClauseSyntax propertyPatternClause:
+                    if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })
+                    {
+                        var baseTokenForAlignment = recursivePatternParent.GetFirstToken();
+                        if (baseTokenForAlignment == propertyPatternClause.OpenBraceToken)
+                        {
+                            // It only makes sense to set the alignment for the '{' when it's on a separate line from
+                            // the base token for alignment. This is never the case when they are the same token.
+                            return;
+                        }
+
+                        SetAlignmentBlockOperation(list, baseTokenForAlignment, propertyPatternClause.OpenBraceToken, propertyPatternClause.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine | IndentBlockOption.IndentIfConditionOfAnchorToken);
+                    }
+
                     return;
             }
         }
 
-        private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
+        private static void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
         {
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
 
@@ -175,18 +213,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
 
-        private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
+        private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
 
             // don't put block indentation operation if the block only contains label statement
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKind.PropertyPatternClause) || node.IsKind(SyntaxKind.SwitchExpression))
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.Kind() is SyntaxKind.PropertyPatternClause or SyntaxKind.SwitchExpression)
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
@@ -197,28 +235,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
-            if (node is BlockSyntax && !options.GetOption(CSharpFormattingOptions2.IndentBlock))
+            if (node is BlockSyntax && !_options.Indentation.HasFlag(IndentationPlacement.BlockContents))
             {
                 // do not add indent operation for block
                 return;
             }
 
-            if (node is SwitchStatementSyntax && !options.GetOption(CSharpFormattingOptions2.IndentSwitchSection))
+            if (node is SwitchStatementSyntax && !_options.Indentation.HasFlag(IndentationPlacement.SwitchSection))
             {
                 // do not add indent operation for switch statement
                 return;
             }
 
-            AddIndentBlockOperation(list, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true));
+            AddIndentBlockOperation(list, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace.GetPreviousToken(includeZeroWidth: true));
         }
 
-        private void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, ValueTuple<SyntaxToken, SyntaxToken> bracePair)
+        private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            var bracketPair = node.GetBracketPair();
+
+            if (!bracketPair.IsValidBracketOrBracePair())
+                return;
+
+            if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
+            {
+                // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
+                AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+
+                // If we have:
+                //
+                // return Goo([ //<-- determining indentation here.
+                //
+                // Then we want to compute the indentation relative to the construct that the collection expression is
+                // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
+                // same line as it.
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
+                var firstToken = node.GetFirstToken(includeZeroWidth: true);
+                var lastToken = node.GetLastToken(includeZeroWidth: true);
+                var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
+                SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
+            }
+        }
+
+        private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
         {
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-            SetAlignmentBlockOperation(list, bracePair.Item1, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2, option);
+            SetAlignmentBlockOperation(list, bracePair.openBrace, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace, option);
         }
 
-        private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             // increase indentation - embedded statement cases
             if (node is IfStatementSyntax ifStatement && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
@@ -229,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is ElseClauseSyntax elseClause && elseClause.Statement != null)
             {
-                if (!(elseClause.Statement is BlockSyntax || elseClause.Statement is IfStatementSyntax))
+                if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
                 {
                     AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
                 }
@@ -280,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
+        private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
         {
             var firstToken = statement.GetFirstToken(includeZeroWidth: true);
             var lastToken = statement.GetLastToken(includeZeroWidth: true);

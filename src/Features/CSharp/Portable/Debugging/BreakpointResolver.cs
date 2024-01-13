@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -15,13 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
-    internal class BreakpointResolver : AbstractBreakpointResolver
+    internal class BreakpointResolver(Solution solution, string text) : AbstractBreakpointResolver(solution, text, LanguageNames.CSharp, EqualityComparer<string>.Default)
     {
-        public BreakpointResolver(Solution solution, string text)
-            : base(solution, text, LanguageNames.CSharp, EqualityComparer<string>.Default)
-        {
-        }
-
         protected override IEnumerable<ISymbol> GetMembers(INamedTypeSymbol type, string name)
         {
             var members = type.GetMembers()

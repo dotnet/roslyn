@@ -2,29 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
     internal partial class DateAndTimeEmbeddedCompletionProvider
     {
-        private readonly struct DateAndTimeItem
+        private readonly struct DateAndTimeItem(
+            string displayText, string inlineDescription, string fullDescription, CompletionChange change, bool isDefault)
         {
-            public readonly string DisplayText;
-            public readonly string InlineDescription;
-            public readonly string FullDescription;
-            public readonly CompletionChange Change;
-
-            public DateAndTimeItem(
-                string displayText, string inlineDescription, string fullDescription, CompletionChange change)
-            {
-                DisplayText = displayText;
-                InlineDescription = inlineDescription;
-                FullDescription = fullDescription;
-                Change = change;
-            }
+            public readonly string DisplayText = displayText;
+            public readonly string InlineDescription = inlineDescription;
+            public readonly string FullDescription = fullDescription;
+            public readonly CompletionChange Change = change;
+            public readonly bool IsDefault = isDefault;
         }
     }
 }

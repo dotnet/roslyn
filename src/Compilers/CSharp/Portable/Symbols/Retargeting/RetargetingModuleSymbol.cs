@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -47,13 +49,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Dictionary<AssemblySymbol, DestinationData> _retargetingAssemblyMap =
             new Dictionary<AssemblySymbol, DestinationData>();
 
+#nullable enable
+
         private struct DestinationData
         {
             public AssemblySymbol To;
-            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _symbolMap;
+            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _symbolMap;
 
             public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
         }
+
+#nullable disable
 
         internal readonly RetargetingSymbolTranslator RetargetingTranslator;
 
@@ -237,6 +243,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #endif
         }
 
+        internal bool RetargetingDefinitions(AssemblySymbol from, out AssemblySymbol to)
+        {
+            DestinationData destination;
+
+            if (!_retargetingAssemblyMap.TryGetValue(from, out destination))
+            {
+                to = null;
+                return false;
+            }
+
+            to = destination.To;
+            return true;
+        }
+
         internal override ICollection<string> TypeNames
         {
             get
@@ -293,8 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
+
+        internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingModule.ObsoleteAttributeData;
     }
 }

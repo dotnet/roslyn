@@ -1,0 +1,194 @@
+﻿// [ProvideInteractiveWindow("{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}", Orientation = ToolWindowOrientation.Bottom, Style = VsDockStyle.Tabbed, Window = CommonVsUtils.OutputWindowId)]
+[$RootKey$\ToolWindows\{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}]
+@="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
+"Orientation"="Bottom"
+"Style"="Tabbed"
+"Window"="34e76e81-ee4a-11d0-ae2e-00a0c90fffc3"
+
+[$RootKey$\Languages\File Extensions\.csx]
+@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
+
+[$RootKey$\Languages\File Extensions\.cs]
+@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
+
+[$RootKey$\Menus]
+"{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"=", Menus.ctmenu, 17"
+
+[$RootKey$\Languages\Language Services\CSharp]
+@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"LangResID"=dword:00000065
+
+"DefaultToInsertSpaces"=dword:00000001
+"EnableAdvancedMembersOption"=dword:00000001
+"RequestStockColors"=dword:00000001
+"ShowBraceCompletion"=dword:00000001
+"ShowCompletion"=dword:00000001
+"ShowDropdownBarOption"=dword:00000001
+"ShowSmartIndent"=dword:00000001
+"SupportsImageCaching"=dword:00000001
+// DesignerLoader is still set in the VS Repo since it contains a VS version number
+
+[$RootKey$\Services\{694dd9b6-b865-4c5b-ad85-86356e9c88dc}]
+@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Name"="C# Language Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{dba64c84-56df-4e20-8aa6-02332a97f474}]
+@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Name"="C# TempPE Compiler Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\CSharp-Specific]
+@="#104"
+"Description"="#105"
+"Name"="CSharp-Specific"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\CSharp]
+@="#101"
+"Description"="#106"
+"Name"="CSharp"
+"Package"="{f5e7e720-1401-11d1-883b-0000f87579d2}"
+"ResourcePackage"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+// The option page configuration is duplicated on CSharpPackage type definition.
+//
+// C# option pages tree:
+//   CSharp
+//     General (from editor)
+//     Scroll Bars (from editor)
+//     Tabs (from editor)
+//     Advanced
+//     Code Style (category)
+//       General
+//       Formatting (category)
+//         General
+//         Indentation
+//         New Lines
+//         Spacing
+//         Wrapping
+//       Naming
+//     IntelliSense
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\Spacing]
+@="#112"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{234fb566-73dd-4612-8de4-29031ff27052}"
+"Keywords"="#310"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Naming]
+@="#115"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{294fbc9c-ef70-4aa0-bd4f-eb0c6a5908d7}"
+"Keywords"="#314"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\Indentation]
+@="#109"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{5e21d017-6d2a-4114-a1f1-c923f001cbbb}"
+"Keywords"="#308"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\Wrapping]
+@="#110"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{8e334d9c-b7dc-4cf3-b7b7-014b831fe76b}"
+"Keywords"="#311"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Advanced]
+@="#102"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{8fd0b177-b244-4a97-8e37-6fb7b27de3af}"
+"Keywords"="#306"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\General]
+@="#108"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{da0446dd-55ba-401f-a364-7d3238412ae4}"
+"Keywords"="#307"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\NewLines]
+@="#111"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{eadc6ad3-91d4-3cc8-be96-3cde7d3080f0}"
+"Keywords"="#309"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\General]
+@="#108"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{eae577a7-acb9-40f5-a7b1-d2878c3c7d6f}"
+"Keywords"="#313"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\IntelliSense]
+@="#103"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Page"="{ede66829-7a36-4c5d-8e20-9290195dcf80}"
+"Keywords"="#312"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting]
+@="#107"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+
+[$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style]
+@="#114"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+
+[$RootKey$\Editors]
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
+"CommonPhysicalViewAttributes"=dword:00000003
+"DisplayName"="#2359"
+"EditorTrustLevel"=dword:00000002
+"ExcludeDefTextEditor"=dword:00000001
+"LinkedEditorGuid"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
+"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
+@="C# Editor with Encoding"
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\Extensions]
+"cs"=dword:00000027
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\LogicalViews]
+"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
+"CommonPhysicalViewAttributes"=dword:00000002
+"DisplayName"="#2358"
+"EditorTrustLevel"=dword:00000002
+"ExcludeDefTextEditor"=dword:00000001
+"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
+@="C# Editor"
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\Extensions]
+"cs"=dword:00000028
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\LogicalViews]
+"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\PhysicalViewAttributes]
+"Form"=dword:00000003
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\FileExtensionMapping\{201669EE-A2F4-4B72-82C6-028810C22A40}]
+"DisplayName"="#113"
+"EditorGUID"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
+"LogViewID"="{694DD9B6-B865-4C5B-AD85-86356E9C88DC}"
+"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
+"SortPriority"=dword:00000064
+@="Microsoft Visual C#"

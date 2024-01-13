@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -24,21 +22,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             typeof(PostfixUnaryExpressionSyntax));
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
+            TextSpan textSpan,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol
-                && methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
+            // Short-circuit simple assignments to prevent calculation of symbol info as it can be expensive.
+            if (syntax.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
-                var operatorSpan = GetOperatorTokenSpan(syntax);
-                if (!operatorSpan.IsEmpty)
-                {
-                    result.Add(new ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded));
-                }
+                return;
+            }
+
+            // Short-circuit operators whose span doesn't intersect the requested span.
+            var operatorSpan = GetOperatorTokenSpan(syntax);
+            if (operatorSpan.IsEmpty || !operatorSpan.IntersectsWith(textSpan))
+            {
+                return;
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
+            if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+            {
+                result.Add(new ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded));
             }
         }
 

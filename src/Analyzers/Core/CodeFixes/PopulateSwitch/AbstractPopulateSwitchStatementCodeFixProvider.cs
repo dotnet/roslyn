@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -59,10 +57,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected sealed override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
-            => switchOperation.Value.Type;
+            => switchOperation.Value.Type ?? throw ExceptionUtilities.Unreachable();
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(switchOperation);
+
+        protected sealed override bool HasNullSwitchArm(ISwitchOperation switchOperation)
+            => PopulateSwitchStatementHelpers.HasNullSwitchArm(switchOperation);
 
         protected sealed override TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms)
             => (TSwitchSyntax)generator.InsertSwitchSections(switchNode, insertLocation, newArms);
@@ -73,6 +74,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected sealed override TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel)
             => (TSwitchArmSyntax)generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
 
+        protected override TSwitchArmSyntax CreateNullSwitchArm(SyntaxGenerator generator, Compilation compilation)
+            => (TSwitchArmSyntax)generator.SwitchSection(generator.NullLiteralExpression(), new[] { generator.ExitSwitchStatement() });
+
         protected sealed override int InsertPosition(ISwitchOperation switchStatement)
         {
             // If the last section has a default label, then we want to be above that.
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (cases.Length > 0)
             {
                 var lastCase = cases.Last();
-                if (lastCase.Clauses.Any(c => c.CaseKind == CaseKind.Default))
+                if (lastCase.Clauses.Any(static c => c.CaseKind == CaseKind.Default))
                 {
                     return cases.Length - 1;
                 }

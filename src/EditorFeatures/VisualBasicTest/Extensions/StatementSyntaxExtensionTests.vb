@@ -10,14 +10,14 @@ Imports System.Threading
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
     Public Class StatementSyntaxExtensionTests
 
-        Private Sub TestStatementDeclarationWithPublicModifier(Of T As StatementSyntax)(node As T)
+        Private Shared Sub TestStatementDeclarationWithPublicModifier(Of T As StatementSyntax)(node As T)
             Dim modifierList = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             Dim newNode = DirectCast(node.WithModifiers(modifierList), T)
             Dim actual = newNode.GetModifiers().First().ToString()
             Assert.Equal("Public", actual)
         End Sub
 
-        Private Sub VerifyTokenName(Of T As DeclarationStatementSyntax)(code As String, expectedName As String)
+        Private Shared Sub VerifyTokenName(Of T As DeclarationStatementSyntax)(code As String, expectedName As String)
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of T).First()
             Dim actualNameToken = node.GetNameToken()
             Assert.Equal(expectedName, actualNameToken.ToString())
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Byte", returnTypeName)
         End Sub
 
-        Private Sub TestTypeBlockWithPublicModifier(Of T As TypeBlockSyntax)(code As String)
+        Private Shared Sub TestTypeBlockWithPublicModifier(Of T As TypeBlockSyntax)(code As String)
             Dim node = SyntaxFactory.ParseCompilationUnit(code).Members.First()
             Dim modifierList = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             Dim newNode = DirectCast(node.WithModifiers(modifierList), T)
@@ -207,7 +207,7 @@ End Class</String>.Value
             VerifyTokenName(Of SubNewStatementSyntax)(code, "")
         End Sub
 
-        <Fact, WorkItem(552823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552823")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552823")>
         Public Sub TestIsInStatementBlockOfKindForBrokenCode()
             Dim code = <String>End Sub
 End Module

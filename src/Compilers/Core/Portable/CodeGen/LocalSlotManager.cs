@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -52,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
                 return _constraints == other._constraints &&
-                    (_type == other._type || _type.Equals(other._type));
+                    (Cci.SymbolEquivalentEqualityComparer.Instance.Equals(_type, other._type));
             }
 
             public override int GetHashCode()
-                => Hash.Combine(_type, (int)_constraints);
+                => Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(_type), (int)_constraints);
 
             public override bool Equals(object? obj)
                 => obj is LocalSignature ls && Equals(ls);
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             _slotAllocator = slotAllocator;
 
-            // Add placeholders for pre-allocated locals. 
+            // Add placeholders for pre-allocated locals.
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocator != null)
             {

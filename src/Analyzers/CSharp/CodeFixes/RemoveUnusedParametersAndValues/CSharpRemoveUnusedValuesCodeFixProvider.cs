@@ -2,16 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
@@ -27,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         public CSharpRemoveUnusedValuesCodeFixProvider()
         {
         }
+
+        protected override ISyntaxFormatting GetSyntaxFormatting()
+            => CSharpSyntaxFormatting.Instance;
 
         protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);
@@ -47,24 +56,118 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
                 case SyntaxKind.VariableDeclarator:
                     var variableDeclarator = (VariableDeclaratorSyntax)node;
+                    if (newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName &&
+                        variableDeclarator.Initializer?.Value is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&
+                        variableDeclarator.Parent is VariableDeclarationSyntax parent)
+                    {
+                        // If we are generating a discard on the left of an initialization with an implicit object creation on the right,
+                        // then we need to replace the implicit object creation with an explicit one.
+                        // For example: 'TypeName v = new();' must be changed to '_ = new TypeName();'
+                        var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                            newKeyword: implicitObjectCreation.NewKeyword,
+                            type: parent.Type,
+                            argumentList: implicitObjectCreation.ArgumentList,
+                            initializer: implicitObjectCreation.Initializer);
+                        variableDeclarator = variableDeclarator.WithInitializer(variableDeclarator.Initializer.WithValue(objectCreationNode));
+                    }
+
                     return variableDeclarator.WithIdentifier(newName.WithTriviaFrom(variableDeclarator.Identifier));
 
                 case SyntaxKind.SingleVariableDesignation:
                     return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
                         ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
-                        : (SyntaxNode)SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                        : SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
 
                 case SyntaxKind.CatchDeclaration:
                     var catchDeclaration = (CatchDeclarationSyntax)node;
                     return catchDeclaration.WithIdentifier(newName.WithTriviaFrom(catchDeclaration.Identifier));
 
                 case SyntaxKind.VarPattern:
-                    return SyntaxFactory.DiscardPattern().WithTriviaFrom(node);
+                    return node.IsParentKind(SyntaxKind.Subpattern)
+                        ? SyntaxFactory.DiscardPattern().WithTriviaFrom(node)
+                        : SyntaxFactory.DiscardDesignation();
 
                 default:
                     Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
                     return null;
             }
+        }
+
+        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
+        {
+            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation))
+            {
+                var triviaToAppend = newNameNode.GetLeadingTrivia().AddRange(newNameNode.GetTrailingTrivia());
+
+                // 1) `... is MyType variable` -> `... is MyType`
+                // 2) `... is MyType /*1*/ variable /*2*/` -> `... is MyType /*1*/  /*2*/`
+                if (parent is DeclarationPatternSyntax declarationPattern &&
+                    parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
+                {
+                    var trailingTrivia = declarationPattern.Type.GetTrailingTrivia().AddRange(triviaToAppend);
+                    return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                }
+
+                // 1) `... is { } variable` -> `... is { }`
+                // 2) `... is { } /*1*/ variable /*2*/` -> `... is { } /*1*/  /*2*/`
+                if (parent is RecursivePatternSyntax recursivePattern)
+                {
+                    var withoutDesignation = recursivePattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
+
+                // 1) `... is [] variable` -> `... is []`
+                // 2) `... is [] /*1*/ variable /*2*/` -> `... is [] /*1*/  /*2*/`
+                if (parent is ListPatternSyntax listPattern)
+                {
+                    var withoutDesignation = listPattern.WithDesignation(null);
+                    return withoutDesignation.WithAppendedTrailingTrivia(triviaToAppend);
+                }
+            }
+            else if (parent is AssignmentExpressionSyntax assignment &&
+                assignment.Right is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&
+                newNameNode is IdentifierNameSyntax { Identifier.ValueText: AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName } &&
+                semanticModel.GetTypeInfo(implicitObjectCreation).Type is { } type)
+            {
+                // If we are generating a discard on the left of an assignment with an implicit object creation on the right,
+                // then we need to replace the implicit object creation with an explicit one.
+                // For example: 'v = new();' must be changed to '_ = new TypeOfV();'
+                var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                    newKeyword: implicitObjectCreation.NewKeyword,
+                    type: type.GenerateTypeSyntax(allowVar: false),
+                    argumentList: implicitObjectCreation.ArgumentList,
+                    initializer: implicitObjectCreation.Initializer);
+                return assignment.Update((ExpressionSyntax)newNameNode, assignment.OperatorToken, objectCreationNode);
+            }
+
+            return null;
+        }
+
+        protected override SyntaxNode ComputeReplacementNode(SyntaxNode originalOldNode, SyntaxNode changedOldNode, SyntaxNode proposedReplacementNode)
+        {
+            // Check for the following change: `{ ... } variable` -> `{ ... }`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is RecursivePatternSyntax originalOldRecursivePattern &&
+                proposedReplacementNode is RecursivePatternSyntax proposedReplacementRecursivePattern &&
+                proposedReplacementRecursivePattern.IsEquivalentTo(originalOldRecursivePattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((RecursivePatternSyntax)changedOldNode).WithDesignation(null)
+                                                                                  .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            // Check for the following change: `[...] variable` -> `[...]`
+            // Since the internals of this patterns might be changed during previous iterations
+            // we apply the same change (remove `variable` declaration) to the `changedOldNode`
+            if (originalOldNode is ListPatternSyntax originalOldListPattern &&
+                proposedReplacementNode is ListPatternSyntax proposedReplacementListPattern &&
+                proposedReplacementListPattern.IsEquivalentTo(originalOldListPattern.WithDesignation(null)))
+            {
+                proposedReplacementNode = ((ListPatternSyntax)changedOldNode).WithDesignation(null)
+                                                                             .WithTrailingTrivia(proposedReplacementNode.GetTrailingTrivia());
+            }
+
+            return proposedReplacementNode.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)
@@ -102,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // For example, "return x += MethodCall();" is replaced with "return x + MethodCall();"
             // and "return x ??= MethodCall();" is replaced with "return x ?? MethodCall();"
 
-            if (!(originalCompoundAssignment is AssignmentExpressionSyntax assignmentExpression))
+            if (originalCompoundAssignment is not AssignmentExpressionSyntax assignmentExpression)
             {
                 Debug.Fail($"Unexpected kind for originalCompoundAssignment: {originalCompoundAssignment.Kind()}");
                 return originalCompoundAssignment;
@@ -138,6 +241,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
                 return SyntaxFactory.BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
             }
+        }
+
+        protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
+        {
+            if (originalVarPattern is not VarPatternSyntax pattern)
+                throw ExceptionUtilities.Unreachable();
+
+            // If the replacement node is DiscardDesignationSyntax
+            // then we need to just change the incoming var's pattern designation
+            if (newNameNode is DiscardDesignationSyntax discardDesignation)
+            {
+                return pattern.WithDesignation(discardDesignation.WithTriviaFrom(pattern.Designation));
+            }
+
+            // Otherwise just return new node as a replacement.
+            // This would be the default behavior if there was no special case described above
+            return newNameNode;
         }
     }
 }

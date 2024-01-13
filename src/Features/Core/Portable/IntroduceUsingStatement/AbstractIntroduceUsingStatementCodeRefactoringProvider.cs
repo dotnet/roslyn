@@ -5,99 +5,96 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 {
-    internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<TStatementSyntax, TLocalDeclarationSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
+        TStatementSyntax,
+        TLocalDeclarationSyntax,
+        TTryStatementSyntax> : CodeRefactoringProvider
         where TStatementSyntax : SyntaxNode
         where TLocalDeclarationSyntax : TStatementSyntax
+        where TTryStatementSyntax : TStatementSyntax
     {
         protected abstract string CodeActionTitle { get; }
 
         protected abstract bool CanRefactorToContainBlockStatements(SyntaxNode parent);
-        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround);
+        protected abstract SyntaxList<TStatementSyntax> GetSurroundingStatements(TLocalDeclarationSyntax declarationStatement);
         protected abstract SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<TStatementSyntax> statements);
 
-        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
+        protected abstract bool HasCatchBlocks(TTryStatementSyntax tryStatement);
+        protected abstract (SyntaxList<TStatementSyntax> tryStatements, SyntaxList<TStatementSyntax> finallyStatements) GetTryFinallyStatements(TTryStatementSyntax tryStatement);
+
+        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxList<TStatementSyntax> statementsToSurround);
+        protected abstract bool TryCreateUsingLocalDeclaration(ParseOptions options, TLocalDeclarationSyntax declarationStatement, [NotNullWhen(true)] out TLocalDeclarationSyntax? usingDeclarationStatement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var declarationSyntax = await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false);
+            var (declarationSyntax, variableName) = await FindDisposableLocalDeclarationAsync(
+                document, span, cancellationToken).ConfigureAwait(false);
 
-            if (declarationSyntax != null)
+            if (declarationSyntax != null && variableName != null)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         CodeActionTitle,
-                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken)),
+                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, variableName, cancellationToken),
+                        CodeActionTitle),
                     declarationSyntax.Span);
             }
         }
 
-        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<(TLocalDeclarationSyntax? declaration, string? variableName)> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
-            if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
-            {
-                return null;
-            }
+            if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.GetRequiredParent()))
+                return default;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             if (disposableType is null)
-            {
-                return null;
-            }
+                return default;
 
             var operation = semanticModel.GetOperation(declarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
             if (operation?.Declarations.Length != 1)
-            {
-                return null;
-            }
+                return default;
 
             var localDeclaration = operation.Declarations[0];
             if (localDeclaration.Declarators.Length != 1)
-            {
-                return null;
-            }
+                return default;
 
             var declarator = localDeclaration.Declarators[0];
 
-            var localType = declarator.Symbol?.Type;
+            var localType = declarator.Symbol.Type;
             if (localType is null)
-            {
-                return null;
-            }
+                return default;
 
             var initializer = (localDeclaration.Initializer ?? declarator.Initializer)?.Value;
 
             // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
-            {
-                return null;
-            }
+                return default;
 
             if (!IsLegalUsingStatementType(semanticModel.Compilation, disposableType, localType))
-            {
-                return null;
-            }
+                return default;
 
-            return declarationSyntax;
+            return (declarationSyntax, declarator.Symbol.Name);
         }
 
         /// <summary>
@@ -106,11 +103,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         /// </summary>
         private static bool IsLegalUsingStatementType(Compilation compilation, ITypeSymbol disposableType, ITypeSymbol type)
         {
-            if (disposableType == null)
-            {
-                return false;
-            }
-
             // CS1674: type used in a using statement must be implicitly convertible to 'System.IDisposable'
             return compilation.ClassifyCommonConversion(type, disposableType).IsImplicit;
         }
@@ -118,59 +110,133 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         private async Task<Document> IntroduceUsingStatementAsync(
             Document document,
             TLocalDeclarationSyntax declarationStatement,
+            string variableName,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFactsService, cancellationToken);
+            var surroundingStatements = GetSurroundingStatements(declarationStatement);
+            var declarationStatementIndex = surroundingStatements.IndexOf(declarationStatement);
 
-            // Separate the newline from the trivia that is going on the using declaration line.
-            var (sameLine, endOfLine) = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
+            // See if the user had an explicit `try/finally` which was disposing this local already.  If so, just
+            // convert that to a `using` instead.
+            var tryStatement = declarationStatementIndex + 1 < surroundingStatements.Count
+                ? surroundingStatements[declarationStatementIndex + 1] as TTryStatementSyntax
+                : null;
 
-            var usingStatement =
-                CreateUsingStatement(
-                    declarationStatement,
-                    sameLine,
-                    statementsToSurround)
-                    .WithLeadingTrivia(declarationStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(endOfLine);
-
-            if (statementsToSurround.Any())
+            if (tryStatement != null &&
+                ShouldReplaceTryStatementWithUsing(
+                    syntaxFacts, declarationStatement, variableName, tryStatement, out var tryStatements))
             {
-                var parentStatements = GetStatements(declarationStatement.Parent);
-                var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
+                var usingStatement = CreateUsingStatement(declarationStatement, tryStatements);
 
                 var newParent = WithStatements(
-                    declarationStatement.Parent,
-                    new SyntaxList<TStatementSyntax>(parentStatements
+                    declarationStatement.GetRequiredParent(),
+                    new SyntaxList<TStatementSyntax>(surroundingStatements
                         .Take(declarationStatementIndex)
                         .Concat(usingStatement)
-                        .Concat(parentStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
+                        .Concat(surroundingStatements.Skip(declarationStatementIndex + 2)))); // +2 to skip the decl statement and the try statement
 
                 return document.WithSyntaxRoot(root.ReplaceNode(
-                    declarationStatement.Parent,
+                    declarationStatement.GetRequiredParent(),
                     newParent.WithAdditionalAnnotations(Formatter.Annotation)));
             }
             else
             {
-                // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
-                // or there’s just no need to replace more than the statement itself because no following statements
-                // will be surrounded.
-                return document.WithSyntaxRoot(root.ReplaceNode(
-                    declarationStatement,
-                    usingStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                var statementsToSurround = GetStatementsToSurround(
+                    declarationStatement, surroundingStatements, semanticModel, syntaxFacts, out var consumedLastSurroundingStatement, cancellationToken);
+
+                // If we're intending on surrounding all the statements that follow the declaration, and the language supports it.
+                // then generate `using var x = ...;` instead of `using (var x = ...) { }`
+                if (consumedLastSurroundingStatement &&
+                    this.TryCreateUsingLocalDeclaration(root.SyntaxTree.Options, declarationStatement, out var usingDeclarationStatement))
+                {
+                    return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingDeclarationStatement));
+                }
+                else
+                {
+                    var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
+
+                    if (statementsToSurround.Any())
+                    {
+                        var newParent = WithStatements(
+                            declarationStatement.GetRequiredParent(),
+                            new SyntaxList<TStatementSyntax>(surroundingStatements
+                                .Take(declarationStatementIndex)
+                                .Concat(usingStatement)
+                                .Concat(surroundingStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
+
+                        return document.WithSyntaxRoot(root.ReplaceNode(
+                            declarationStatement.GetRequiredParent(),
+                            newParent.WithAdditionalAnnotations(Formatter.Annotation)));
+                    }
+                    else
+                    {
+                        // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
+                        // or there’s just no need to replace more than the statement itself because no following statements
+                        // will be surrounded.
+                        return document.WithSyntaxRoot(root.ReplaceNode(
+                            declarationStatement,
+                            usingStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                    }
+                }
             }
         }
 
-        private SyntaxList<TStatementSyntax> GetStatementsToSurround(
+        private bool ShouldReplaceTryStatementWithUsing(
+            ISyntaxFactsService syntaxFacts,
             TLocalDeclarationSyntax declarationStatement,
+            string variableName,
+            TTryStatementSyntax tryStatement,
+            out SyntaxList<TStatementSyntax> tryStatements)
+        {
+            tryStatements = default;
+
+            if (HasCatchBlocks(tryStatement))
+                return false;
+
+            (tryStatements, var finallyStatements) = GetTryFinallyStatements(tryStatement);
+            if (finallyStatements.Count != 1)
+                return false;
+
+            var finallyStatement = finallyStatements.Single();
+            if (!syntaxFacts.IsExpressionStatement(finallyStatement))
+                return false;
+
+            var expression = syntaxFacts.GetExpressionOfExpressionStatement(finallyStatement);
+            if (!syntaxFacts.IsInvocationExpression(expression))
+                return false;
+
+            var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(expression);
+            if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+                return false;
+
+            syntaxFacts.GetPartsOfMemberAccessExpression(invokedExpression, out var accessedExpression, out var name);
+            if (syntaxFacts.GetIdentifierOfSimpleName(name).ValueText != nameof(IDisposable.Dispose))
+                return false;
+
+            if (!syntaxFacts.IsIdentifierName(accessedExpression))
+                return false;
+
+            if (syntaxFacts.GetIdentifierOfIdentifierName(accessedExpression).ValueText != variableName)
+                return false;
+
+            return true;
+        }
+
+        private static SyntaxList<TStatementSyntax> GetStatementsToSurround(
+            TLocalDeclarationSyntax declarationStatement,
+            SyntaxList<TStatementSyntax> surroundingStatements,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
+            out bool consumedLastSurroundingStatement,
             CancellationToken cancellationToken)
         {
+            consumedLastSurroundingStatement = false;
+
             // Find the minimal number of statements to move into the using block
             // in order to not break existing references to the local.
             var lastUsageStatement = FindSiblingStatementContainingLastUsage(
@@ -180,27 +246,15 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 cancellationToken);
 
             if (lastUsageStatement == declarationStatement)
-            {
                 return default;
-            }
 
-            var parentStatements = GetStatements(declarationStatement.Parent);
-            var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
-            var lastUsageStatementIndex = parentStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
+            consumedLastSurroundingStatement = lastUsageStatement == surroundingStatements.Last();
+            var declarationStatementIndex = surroundingStatements.IndexOf(declarationStatement);
+            var lastUsageStatementIndex = surroundingStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
 
-            return new SyntaxList<TStatementSyntax>(parentStatements
+            return new SyntaxList<TStatementSyntax>(surroundingStatements
                 .Take(lastUsageStatementIndex + 1)
                 .Skip(declarationStatementIndex + 1));
-        }
-
-        private static (SyntaxTriviaList sameLine, SyntaxTriviaList endOfLine) SplitTrailingTrivia(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
-        {
-            var trailingTrivia = node.GetTrailingTrivia();
-            var lastIndex = trailingTrivia.Count - 1;
-
-            return lastIndex != -1 && syntaxFactsService.IsEndOfLineTrivia(trailingTrivia[lastIndex])
-                ? (sameLine: trailingTrivia.RemoveAt(lastIndex), endOfLine: new SyntaxTriviaList(trailingTrivia[lastIndex]))
-                : (sameLine: trailingTrivia, endOfLine: SyntaxTriviaList.Empty);
         }
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(
@@ -216,7 +270,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // the last variable usage index to include the local's last usage.
 
             // Take all the statements starting with the trigger variable's declaration.
-            var statementsFromDeclarationToEnd = declarationSyntax.Parent.ChildNodesAndTokens()
+            var statementsFromDeclarationToEnd = declarationSyntax.GetRequiredParent().ChildNodesAndTokens()
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
                 .SkipWhile(node => node != declarationSyntax)
@@ -303,7 +357,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 var variable = localVariables.FirstOrDefault(localVariable
                     => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
-                        localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
+                        localVariable.Equals(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol));
 
                 if (variable is object)
                 {
@@ -328,14 +382,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 }
 
                 AddReferencedLocalVariables(referencedVariables, childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
-            }
-        }
-
-        private sealed class MyCodeAction : DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -9,7 +11,7 @@ using Microsoft.VisualStudio.Debugger.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct TypeAndCustomInfo
+    internal readonly struct TypeAndCustomInfo
     {
         public readonly DkmClrType ClrType;
         public readonly DkmClrCustomTypeInfo Info;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -65,6 +63,25 @@ namespace Roslyn.Utilities
                 {
                     hashCode = Hash.Combine(value.GetHashCode(), hashCode);
                 }
+            }
+
+            return hashCode;
+        }
+
+        internal static int CombineValues<TKey, TValue>(ImmutableDictionary<TKey, TValue> values, int maxItemsToHash = int.MaxValue)
+            where TKey : notnull
+        {
+            if (values == null)
+                return 0;
+
+            var hashCode = 0;
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (count++ >= maxItemsToHash)
+                    break;
+
+                hashCode = Hash.Combine(value.GetHashCode(), hashCode);
             }
 
             return hashCode;
@@ -140,6 +157,25 @@ namespace Roslyn.Utilities
                 {
                     hashCode = Hash.Combine(stringComparer.GetHashCode(value), hashCode);
                 }
+            }
+
+            return hashCode;
+        }
+
+        internal static int CombineValues(ImmutableArray<string> values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
+        {
+            if (values == null)
+                return 0;
+
+            var hashCode = 0;
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (count++ >= maxItemsToHash)
+                    break;
+
+                if (value != null)
+                    hashCode = Hash.Combine(stringComparer.GetHashCode(value), hashCode);
             }
 
             return hashCode;
@@ -229,14 +265,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static int GetFNVHashCode(ReadOnlySpan<char> data)
         {
-            int hashCode = Hash.FnvOffsetBias;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
+            return CombineFNVHash(Hash.FnvOffsetBias, data);
         }
 
         /// <summary>
@@ -256,17 +285,16 @@ namespace Roslyn.Utilities
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
         {
-            return GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
         }
 
-        internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
+        internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
             int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
 
-            for (int i = start; i < end; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(text[i])) * Hash.FnvPrime);
+                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(data[i])) * Hash.FnvPrime);
             }
 
             return hashCode;
@@ -304,12 +332,22 @@ namespace Roslyn.Utilities
         internal static int GetFNVHashCode(System.Text.StringBuilder text)
         {
             int hashCode = Hash.FnvOffsetBias;
+
+#if NETCOREAPP3_1_OR_GREATER
+            foreach (var chunk in text.GetChunks())
+            {
+                hashCode = CombineFNVHash(hashCode, chunk.Span);
+            }
+#else
+            // StringBuilder.GetChunks is not available in this target framework. Since there is no other direct access
+            // to the underlying storage spans of StringBuilder, we fall back to using slower per-character operations.
             int end = text.Length;
 
             for (int i = 0; i < end; i++)
             {
                 hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
             }
+#endif
 
             return hashCode;
         }
@@ -376,6 +414,23 @@ namespace Roslyn.Utilities
         internal static int CombineFNVHash(int hashCode, char ch)
         {
             return unchecked((hashCode ^ ch) * Hash.FnvPrime);
+        }
+
+        /// <summary>
+        /// Combine a string with an existing FNV-1a hash code
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// </summary>
+        /// <param name="hashCode">The accumulated hash code</param>
+        /// <param name="data">The string to combine</param>
+        /// <returns>The result of combining <paramref name="hashCode"/> with <paramref name="data"/> using the FNV-1a algorithm</returns>
+        internal static int CombineFNVHash(int hashCode, ReadOnlySpan<char> data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
+            }
+
+            return hashCode;
         }
     }
 }

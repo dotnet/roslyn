@@ -9,17 +9,14 @@ Imports Microsoft.CodeAnalysis.ConvertNumericLiteral
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertNumericLiteralCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertNumericLiteral), [Shared]>
     Friend NotInheritable Class VisualBasicConvertNumericLiteralCodeRefactoringProvider
         Inherits AbstractConvertNumericLiteralCodeRefactoringProvider(Of LiteralExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
+            MyBase.New(hexPrefix:="&H", binaryPrefix:="&B")
         End Sub
-
-        Protected Overrides Function GetNumericLiteralPrefixes() As (hexPrefix As String, binaryPrefix As String)
-            Return (hexPrefix:="&H", binaryPrefix:="&B")
-        End Function
     End Class
 End Namespace

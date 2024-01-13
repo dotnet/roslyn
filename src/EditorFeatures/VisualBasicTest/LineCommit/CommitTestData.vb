@@ -6,8 +6,11 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -21,20 +24,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Public ReadOnly Buffer As ITextBuffer
         Public ReadOnly CommandHandler As CommitCommandHandler
         Public ReadOnly EditorOperations As IEditorOperations
-        Public ReadOnly Workspace As TestWorkspace
+        Public ReadOnly Workspace As EditorTestWorkspace
         Public ReadOnly View As ITextView
         Public ReadOnly UndoHistory As ITextUndoHistory
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Function Create(test As XElement) As CommitTestData
-            Dim workspace = TestWorkspace.Create(test)
+            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
             Return New CommitTestData(workspace)
         End Function
 
-        Public Sub New(workspace As TestWorkspace)
+        Public Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             View = workspace.Documents.Single().GetTextView()
+            View.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
             EditorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(View)
 
             Dim position = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -43,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Buffer = workspace.Documents.Single().GetTextBuffer()
 
             ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
-            If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then
+            If Buffer.Properties.ContainsProperty(GetType(CommitBufferManager)) Then
                 Dim oldManager = Buffer.Properties.GetProperty(Of CommitBufferManager)(GetType(CommitBufferManager))
                 oldManager.RemoveReferencingView()
                 Buffer.Properties.RemoveProperty(GetType(CommitBufferManager))
@@ -64,7 +69,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry)
+                textUndoHistoryRegistry,
+                workspace.GetService(Of IGlobalOptionService))
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)
@@ -94,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End Get
             End Property
 
-            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
+            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, cancellationToken As CancellationToken) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
                 Throw New NotImplementedException()
             End Function
 
@@ -105,21 +111,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Sub Commit(Optional previewChanges As Boolean = False) Implements IInlineRenameSession.Commit
+                Public Function CommitAsync(previewChanges As Boolean, cancellationToken As CancellationToken) As Task Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
-                End Sub
+                End Function
             End Class
         End Class
 
         Private Class FormatterMock
             Implements ICommitFormatter
 
-            Private ReadOnly _testWorkspace As TestWorkspace
+            Private ReadOnly _testWorkspace As EditorTestWorkspace
             Public Property GotCommit As Boolean
 
             Public Property UsedSemantics As Boolean
 
-            Public Sub New(testWorkspace As TestWorkspace)
+            Public Sub New(testWorkspace As EditorTestWorkspace)
                 _testWorkspace = testWorkspace
             End Sub
 
@@ -141,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
                 End If
 
-                Dim realCommitFormatter As New CommitFormatter(_testWorkspace.GetService(Of IIndentationManagerService))
+                Dim realCommitFormatter = Assert.IsType(Of CommitFormatter)(_testWorkspace.GetService(Of ICommitFormatter)())
                 realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
             End Sub
         End Class

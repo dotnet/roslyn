@@ -47,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' hash table based jump table, we generate a single public string hash synthesized method (SynthesizedStringSwitchHashMethod)
     ' that is shared across the module.
 
-
     ' CONSIDER: Ideally generating the SynthesizedStringSwitchHashMethod in <PrivateImplementationDetails>
     ' CONSIDER: class must be done during code generation, as the lowering does not mention or use
     ' CONSIDER: the hash function in any way.
@@ -177,19 +176,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            If Not ShouldGenerateHashTableSwitch(_emitModule, node) Then
+            If Not ShouldGenerateHashTableSwitch(node) Then
                 Return
             End If
 
             ' If we have already generated this helper method, possibly for another select case
             ' or on another thread, we don't need to regenerate it.
-            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics)
+            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics.DiagnosticBag)
             If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
                 Return
             End If
 
             Dim method = New SynthesizedStringSwitchHashMethod(_emitModule.SourceModule, privateImplClass)
-            privateImplClass.TryAddSynthesizedMethod(method)
+            privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter())
         End Sub
 
         Private Function RewriteSelectExpression(
@@ -215,7 +214,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 endSelectResumeLabel = Nothing
             End If
-
 
             ' Rewrite select expression
             rewrittenSelectExpression = VisitExpressionNode(selectExpressionStmt.Expression)
@@ -339,14 +337,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Checks whether we are generating a hash table based string switch
-        Private Shared Function ShouldGenerateHashTableSwitch([module] As Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder, node As BoundSelectStatement) As Boolean
+        Private Shared Function ShouldGenerateHashTableSwitch(node As BoundSelectStatement) As Boolean
             Debug.Assert(Not node.HasErrors)
             Debug.Assert(node.ExpressionStatement.Expression.Type.IsStringType)
             Debug.Assert(node.RecommendSwitchTable)
-
-            If Not [module].SupportsPrivateImplClass Then
-                Return False
-            End If
 
             ' compute unique string constants from select clauses.
             Dim uniqueStringConstants = New HashSet(Of ConstantValue)
@@ -381,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Next
 
-            Return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch([module], uniqueStringConstants.Count)
+            Return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(uniqueStringConstants.Count)
         End Function
 
         Public Overrides Function VisitCaseBlock(node As BoundCaseBlock) As BoundNode

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
@@ -28,19 +28,18 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             AnalyzersResources.ResourceManager,
             typeof(AnalyzersResources));
 
-        private static readonly LocalizableString Description = new LocalizableResourceString(
-            nameof(AnalyzersResources.Invalid_format_string),
-            AnalyzersResources.ResourceManager,
-            typeof(AnalyzersResources));
-
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+#pragma warning disable RS0030 // Do not used banned APIs - We cannot use AbstractBuiltInCodeStyleDiagnosticAnalyzer nor AbstractCodeQualityDiagnosticAnalyzer.
+        // This analyzer is run against generated code while the abstract base classes mentioned doesn't. The rule is also not documented.
+        // There is even a current work to remove the rule completely in favor of CA2241.
+        private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticID,
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: Description);
+            customTags: EnforceOnBuildValues.ValidateFormatString.ToCustomTag());
+#pragma warning restore RS0030 // Do not used banned APIs
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);
@@ -49,13 +48,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         /// this regex is used to remove escaped brackets from
         /// the format string before looking for valid {} pairs
         /// </summary>
-        private static readonly Regex s_removeEscapedBracketsRegex = new Regex("{{");
+        private static readonly Regex s_removeEscapedBracketsRegex = new("{{");
 
         /// <summary>
         /// this regex is used to extract the text between the
         /// brackets and save the contents in a MatchCollection
         /// </summary>
-        private static readonly Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private static readonly Regex s_extractPlaceholdersRegex = new("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23583",
-            Constraint = nameof(AnalyzerHelper.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
+            Constraint = "Reading editorconfig options is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
             var syntaxFacts = GetSyntaxFacts();
@@ -97,10 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            var option = context.GetOption(
-                    ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                    context.SemanticModel.Language);
-            if (option == false)
+            if (!context.GetIdeAnalyzerOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }
@@ -159,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
+        private static bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
         {
             // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
@@ -203,8 +199,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
-            return semanticModel.GetTypeInfo(expression).Type;
+            Debug.Assert(syntaxFacts.IsArgument(argsArgument));
+            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument)!;
+            return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 
         protected SyntaxNode? TryGetArgument(
@@ -244,7 +241,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return arguments[parameterWithMatchingName.Ordinal];
         }
 
-        private IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
+        private static IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
         {
             foreach (var p in parameters)
             {
@@ -311,7 +308,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return (IMethodSymbol)symbolInfo.Symbol;
         }
 
-        private bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
+        private static bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
         {
             var testArray = new object[numberOfPlaceholderArguments];
             for (var i = 0; i < numberOfPlaceholderArguments; i++)
@@ -331,7 +328,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return true;
         }
 
-        protected void ValidateAndReportDiagnostic(
+        protected static void ValidateAndReportDiagnostic(
             SyntaxNodeAnalysisContext context,
             int numberOfPlaceholderArguments,
             string formatString,

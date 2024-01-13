@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,11 +15,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UseSimpleUsingStatementCodeFixProvider()
         {
         }
@@ -37,20 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_simple_using_statement, nameof(CSharpAnalyzersResources.Use_simple_using_statement));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode RewriteBlock(
+        private static BlockSyntax RewriteBlock(
             BlockSyntax originalBlock, BlockSyntax currentBlock,
             ISet<UsingStatementSyntax> topmostUsingStatements)
         {
@@ -89,36 +88,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return currentBlock;
         }
 
-        private static IEnumerable<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
+        private static ImmutableArray<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
         {
-            var result = new List<StatementSyntax>();
+            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
             var remainingTrivia = Expand(result, usingStatement);
 
             if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
             {
-                var lastStatement = result[result.Count - 1];
-                result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
+                var lastStatement = result[^1];
+                result[^1] = lastStatement.WithAppendedTrailingTrivia(
                     remainingTrivia.Insert(0, CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed));
             }
 
             for (int i = 0, n = result.Count; i < n; i++)
-            {
                 result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
-            }
 
-            return result;
+            return result.ToImmutable();
         }
 
-        private static SyntaxTriviaList Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
+        private static SyntaxTriviaList Expand(ArrayBuilder<StatementSyntax> result, UsingStatementSyntax usingStatement)
         {
             // First, convert the using-statement into a using-declaration.
             result.Add(Convert(usingStatement));
             switch (usingStatement.Statement)
             {
                 case BlockSyntax blockSyntax:
+                    var statements = blockSyntax.Statements;
+                    if (!statements.Any())
+                    {
+                        return blockSyntax.CloseBraceToken.LeadingTrivia;
+                    }
+
+                    var openBraceLeadingTrivia = blockSyntax.OpenBraceToken.LeadingTrivia;
+                    var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
+                    var usingHasEndOfLineTrivia = usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia);
+                    if (!usingHasEndOfLineTrivia)
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
+                    if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(openBraceTrailingTrivia);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
+                    if (openBraceLeadingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(openBraceLeadingTrivia);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
+                    var closeBraceTrailingTrivia = blockSyntax.CloseBraceToken.TrailingTrivia;
+                    if (closeBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var newLastStatement = statements.Last()
+                            .WithAppendedTrailingTrivia(closeBraceTrailingTrivia);
+                        statements = statements.Replace(statements.Last(), newLastStatement);
+                    }
+
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
-                    result.AddRange(blockSyntax.Statements);
+                    result.AddRange(statements);
                     return blockSyntax.CloseBraceToken.LeadingTrivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
@@ -130,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     result.Add(anythingElse);
                     return default;
             }
+
             return default;
         }
 
@@ -137,18 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             return LocalDeclarationStatement(
                 usingStatement.AwaitKeyword,
-                usingStatement.UsingKeyword,
+                usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
                 modifiers: default,
                 usingStatement.Declaration,
-                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_simple_using_statement, createChangedDocument, CSharpAnalyzersResources.Use_simple_using_statement)
-            {
-            }
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
         }
     }
 }

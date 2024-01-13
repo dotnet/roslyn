@@ -4,51 +4,62 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Tagging;
+
+/// <summary>
+/// Base type for async taggers that need access to an <see cref="ITextView"/>.  Used when a tagger needs things to
+/// operate like determining what is visible to the user, or where the caret is.
+/// </summary>
+/// <typeparam name="TTag"></typeparam>
+internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
+    where TTag : ITag
 {
-    internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>,
-        IViewTaggerProvider
-        where TTag : ITag
+    protected AsynchronousViewTaggerProvider(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener asyncListener)
+        : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
     {
-        protected AsynchronousViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+    }
+
+#pragma warning disable CS8765 // Nullability of type of 'textView' doesn't match overridden member (derivations of this type will never receive null in this call)
+    protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
+#pragma warning restore
+
+    public EfficientTagger<TTag>? CreateTagger(ITextView textView, ITextBuffer subjectBuffer)
+    {
+        if (textView == null)
+            throw new ArgumentNullException(nameof(subjectBuffer));
+
+        if (subjectBuffer == null)
+            throw new ArgumentNullException(nameof(subjectBuffer));
+
+        return this.CreateEfficientTagger(textView, subjectBuffer);
+    }
+
+    ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
+    {
+        var tagger = CreateTagger(textView, buffer);
+        if (tagger is null)
+            return null;
+
+        // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
+        // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
+        // sure we return that to the proper starting value.
+        if (tagger is not ITagger<T> typedTagger)
         {
+            tagger.Dispose();
+            return null;
         }
 
-        // TypeScript still is moving to calling the new constructor that takes an IThreadingContext. Until then, we can fetch one from another service of ours that
-        // already does. When TypeScript moves calling the new constructor, this should be deleted.
-        [Obsolete("This overload exists for TypeScript compatibility only and should not be used in new code.")]
-        protected AsynchronousViewTaggerProvider(
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener, notificationService)
-        {
-        }
-
-        public IAccurateTagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
-        {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffer));
-            }
-
-            if (subjectBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffer));
-            }
-
-            return this.CreateTaggerWorker<T>(textView, subjectBuffer);
-        }
-
-        ITagger<T> IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
-            => CreateTagger<T>(textView, buffer);
+        return typedTagger;
     }
 }

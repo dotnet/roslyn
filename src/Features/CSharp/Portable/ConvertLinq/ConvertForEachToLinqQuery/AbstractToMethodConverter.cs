@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,29 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     /// <summary>
     /// Provides a conversion to query.Method() like query.ToList(), query.Count().
     /// </summary>
-    internal abstract class AbstractToMethodConverter : AbstractConverter
+    internal abstract class AbstractToMethodConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        ExpressionSyntax selectExpression,
+        ExpressionSyntax modifyingExpression,
+        SyntaxTrivia[] trivia) : AbstractConverter(forEachInfo)
     {
         // It is "item" for for "list.Add(item)"
         // It can be anything for "counter++". It will be ingored in the case.
-        private readonly ExpressionSyntax _selectExpression;
+        private readonly ExpressionSyntax _selectExpression = selectExpression;
 
         // It is "list" for "list.Add(item)"
         // It is "counter" for "counter++"
-        private readonly ExpressionSyntax _modifyingExpression;
+        private readonly ExpressionSyntax _modifyingExpression = modifyingExpression;
 
         // Trivia around "counter++;" or "list.Add(item);". Required to keep comments.
-        private readonly SyntaxTrivia[] _trivia;
-
-        public AbstractToMethodConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression,
-            SyntaxTrivia[] trivia) : base(forEachInfo)
-        {
-            _selectExpression = selectExpression;
-            _modifyingExpression = modifyingExpression;
-            _trivia = trivia;
-        }
+        private readonly SyntaxTrivia[] _trivia = trivia;
 
         protected abstract string MethodName { get; }
 
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             CanReplaceInitialization(lastDeclaration.Initializer.Value, cancellationToken))
                         {
-                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? (SyntaxNode)previous : lastDeclaration);
+                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? previous : lastDeclaration);
                             return;
                         }
 
@@ -156,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var localDeclaration = (LocalDeclarationStatementSyntax)node;
                         if (localDeclaration.Declaration.Variables.Count != 1)
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
 
                         return new IEnumerable<SyntaxTrivia>[] {
@@ -177,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         break;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -187,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             => SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ParenthesizedExpression(queryOrLinqInvocationExpression),
+                        queryOrLinqInvocationExpression.Parenthesize(),
                         SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation);
     }
 }

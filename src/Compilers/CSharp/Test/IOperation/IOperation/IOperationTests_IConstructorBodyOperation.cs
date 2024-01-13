@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConstructorBodyOperation : SemanticModelTestBase
     {
         [Fact]
         public void ConstructorBody_01()
@@ -258,16 +259,21 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... row null; }')
-      Initializer: 
-        null
-      BlockBody: 
+      Initializer:
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'public C() ... row null; }')
+          Expression:
+            IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'public C() ... row null; }')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'public C() ... row null; }')
+              Arguments(0)
+      BlockBody:
         IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
           IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand: 
+              Operand:
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-      ExpressionBody: 
+      ExpressionBody:
         null
 ");
 
@@ -278,12 +284,18 @@ class C
         Next (Regular) Block[B1]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'public C() ... row null; }')
+              Expression:
+                IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'public C() ... row null; }')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'public C() ... row null; }')
+                  Arguments(0)
         Next (Throw) Block[null]
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 (ImplicitReference)
-              Operand: 
+              Operand:
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Block[B2] - Exit [UnReachable]
         Predecessors (0)
@@ -313,18 +325,23 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... throw null;')
-      Initializer: 
+      Initializer:
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'public C() ... throw null;')
+          Expression:
+            IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Arguments(0)
+      BlockBody:
         null
-      BlockBody: 
-        null
-      ExpressionBody: 
+      ExpressionBody:
         IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> throw null')
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
-            Expression: 
+            Expression:
               IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null')
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
@@ -335,12 +352,18 @@ class C
         Next (Regular) Block[B1]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Expression:
+                IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Arguments(0)
         Next (Throw) Block[null]
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 (ImplicitReference)
-              Operand: 
+              Operand:
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Block[B2] - Exit [UnReachable]
         Predecessors (0)
@@ -377,23 +400,28 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() ... throw null;')
-      Initializer: 
-        null
-      BlockBody: 
+      Initializer:
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+          Expression:
+            IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Arguments(0)
+      BlockBody:
         IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
           IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand: 
+              Operand:
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-      ExpressionBody: 
+      ExpressionBody:
         IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> throw null')
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-            Expression: 
+            Expression:
               IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null')
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ");
 
@@ -404,12 +432,18 @@ class C
         Next (Regular) Block[B1]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Expression:
+                IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Arguments(0)
         Next (Throw) Block[null]
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 (ImplicitReference)
-              Operand: 
+              Operand:
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
     .erroneous body {R1}
     {
@@ -420,7 +454,7 @@ class C
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (ImplicitReference)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
     }
     Block[B3] - Exit [UnReachable]
@@ -558,21 +592,31 @@ class C
 @"
     Block[B0] - Entry
         Statements (0)
-        Next (Regular) Block[B2]
+        Next (Regular) Block[B1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+              Expression:
+                IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'public C() ... throw null;')
+                  Arguments(0)
+        Next (Regular) Block[B3]
     .erroneous body {R1}
     {
-        Block[B1] - Block [UnReachable]
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Throw) Block[null]
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (ImplicitReference)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
     }
-    Block[B2] - Exit
-        Predecessors: [B0]
+    Block[B3] - Exit
+        Predecessors: [B1]
         Statements (0)
 ");
         }
@@ -1003,6 +1047,132 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ");
+        }
+
+        [Fact]
+        public void ConstructorBody_16()
+        {
+            string source = @"
+class C
+{
+    extern public C();
+}
+";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (4,19): warning CS0824: Constructor 'C.C()' is marked external
+                //     extern public C();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C.C()").WithLocation(4, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            Assert.Null(model.GetOperation(node1));
+        }
+
+        [Fact]
+        public void ConstructorBody_17()
+        {
+            string source = @"
+class C
+{
+    static C() { }
+}
+";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'static C() { }')
+                  Initializer:
+                    null
+                  BlockBody:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+                  ExpressionBody:
+                    null
+                """);
+        }
+
+        [Fact]
+        public void ConstructorBody_18()
+        {
+            string source = @"
+namespace System
+{
+    public class Object
+    {
+        public Object() { }
+    }
+
+    public class Void { }
+}
+";
+            var compilation = CreateEmptyCompilation(source);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public Object() { }')
+                  Initializer:
+                    null
+                  BlockBody:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+                  ExpressionBody:
+                    null
+                """);
+        }
+
+        [Fact]
+        public void ConstructorBody_19()
+        {
+            string source = @"
+class Base
+{
+    public Base(int x){}
+}
+
+class Program : Base
+{
+    Program()
+    {}
+}
+";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,5): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Base.Base(int)'
+                //     Program()
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Program").WithArguments("x", "Base.Base(int)").WithLocation(9, 5)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Skip(1).Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'Program() ... {}')
+                Initializer:
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                    Expression:
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                        Children(0)
+                BlockBody:
+                  IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                ExpressionBody:
+                  null
+                """);
         }
     }
 }

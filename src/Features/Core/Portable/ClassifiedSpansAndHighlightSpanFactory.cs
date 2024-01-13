@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,44 +15,29 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassifiedSpansAndHighlightSpanFactory
     {
-        public static async Task<DocumentSpan> GetClassifiedDocumentSpanAsync(
-            Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
-        {
-            var classifiedSpans = await ClassifyAsync(
-                document, sourceSpan, cancellationToken).ConfigureAwait(false);
-
-            var properties = ImmutableDictionary<string, object>.Empty.Add(
-                ClassifiedSpansAndHighlightSpan.Key, classifiedSpans);
-
-            return new DocumentSpan(document, sourceSpan, properties);
-        }
-
         public static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
-            DocumentSpan documentSpan, CancellationToken cancellationToken)
+            DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
         {
             // If the document span is providing us with the classified spans up front, then we
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
-            if (documentSpan.Properties != null &&
-                documentSpan.Properties.TryGetValue(ClassifiedSpansAndHighlightSpan.Key, out var value))
-            {
-                return (ClassifiedSpansAndHighlightSpan)value;
-            }
+            if (classifiedSpans != null)
+                return classifiedSpans.Value;
 
             return await ClassifyAsync(
-                documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
+                documentSpan.Document, documentSpan.SourceSpan, options, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
-            Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+            Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var narrowSpan = sourceSpan;
             var lineSpan = GetLineSpanForReference(sourceText, narrowSpan);
 
             var taggedLineParts = await GetTaggedTextForDocumentRegionAsync(
-                document, narrowSpan, lineSpan, cancellationToken).ConfigureAwait(false);
+                document, narrowSpan, lineSpan, options, cancellationToken).ConfigureAwait(false);
             return taggedLineParts;
         }
 
@@ -58,30 +46,34 @@ namespace Microsoft.CodeAnalysis.Classification
             var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
             var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
 
-            return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
+            // Get the span of the line from the first non-whitespace character to the end of it. Note: the reference
+            // span might actually start in the leading whitespace of the line (nothing prevents any of our
+            // languages/providers from doing that), so ensure that the line snap we clip out at least starts at that
+            // position so that our span math will be correct.
+            return TextSpan.FromBounds(Math.Min(firstNonWhitespacePosition, referenceSpan.Start), sourceLine.End);
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(
-            Document document, TextSpan narrowSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
+            Document document, TextSpan narrowSpan, TextSpan widenedSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var highlightSpan = new TextSpan(
                 start: narrowSpan.Start - widenedSpan.Start,
                 length: narrowSpan.Length);
 
             var classifiedSpans = await GetClassifiedSpansAsync(
-                document, narrowSpan, widenedSpan, cancellationToken).ConfigureAwait(false);
+                document, narrowSpan, widenedSpan, options, cancellationToken).ConfigureAwait(false);
             return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
         }
 
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
-            Document document, TextSpan narrowSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
+            Document document, TextSpan narrowSpan, TextSpan widenedSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
+            // We don't present things like static/assigned variables differently.  So pass `includeAdditiveSpans:
+            // false` as we don't need that data.
             var result = await ClassifierHelper.GetClassifiedSpansAsync(
-                document, widenedSpan, cancellationToken).ConfigureAwait(false);
+                document, widenedSpan, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
-            {
                 return result;
-            }
 
             // For languages that don't expose a classification service, we show the entire
             // item as plain text. Break the text into three spans so that we can properly

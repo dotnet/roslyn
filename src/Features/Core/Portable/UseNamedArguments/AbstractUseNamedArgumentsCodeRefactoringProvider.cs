@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,8 +31,9 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
-                var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                // We allow empty nodes here to find VB implicit arguments.
+                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, allowEmptyNodes: true, cancellationToken).ConfigureAwait(false);
+                var argument = potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                if (!(argument.Parent is TArgumentListSyntax argumentList))
+                if (argument.Parent is not TArgumentListSyntax argumentList)
                 {
                     return;
                 }
@@ -93,37 +92,45 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
+                var potentialArgumentsToName = 0;
                 for (var i = argumentIndex; i < argumentCount; i++)
                 {
-                    if (!(arguments[i] is TSimpleArgumentSyntax))
+                    if (arguments[i] is not TSimpleArgumentSyntax simpleArgumet)
                     {
                         return;
+                    }
+                    else if (IsPositionalArgument(simpleArgumet))
+                    {
+                        potentialArgumentsToName++;
                     }
                 }
 
                 var argumentName = parameters[argumentIndex].Name;
 
                 if (SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
-                    argumentIndex < argumentCount - 1)
+                    potentialArgumentsToName > 1)
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false),
+                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
                         argument.Span);
 
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
+                            nameof(FeaturesResources.Add_argument_name_0_including_trailing_arguments) + "_" + argumentName),
                         argument.Span);
                 }
                 else
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
+                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
                         argument.Span);
                 }
             }
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var arguments = GetArguments(argumentList);
                 var namedArguments = arguments
                     .Select((argument, i) => ShouldAddName(argument, i)
-                        ? WithName((TSimpleArgumentSyntax)argument, parameters[i].Name).WithTriviaFrom(argument)
+                        ? WithName((TSimpleArgumentSyntax)argument.WithoutTrivia(), parameters[i].Name).WithTriviaFrom(argument)
                         : argument);
 
                 return WithArguments(argumentList, namedArguments, arguments.GetSeparators());
@@ -193,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -205,14 +212,6 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             if (_attributeArgumentAnalyzer != null)
             {
                 await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
-            }
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }

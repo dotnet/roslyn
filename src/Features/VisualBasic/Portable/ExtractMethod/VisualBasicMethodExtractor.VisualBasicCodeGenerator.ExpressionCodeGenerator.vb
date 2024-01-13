@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -14,21 +16,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class ExpressionCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
-                Public Shared Function IsExtractMethodOnExpression(code As SelectionResult) As Boolean
+                Public Shared Function IsExtractMethodOnExpression(code As VisualBasicSelectionResult) As Boolean
                     Return code.SelectionInExpression
                 End Function
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     Dim methodName = "NewMethod"
-                    Dim containingScope = CType(VBSelectionResult.GetContainingScope(), SyntaxNode)
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope)
 
-                    Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
+                    Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
                     Return SyntaxFactory.Identifier(
                         nameGenerator.CreateUniqueMethodName(containingScope, methodName))
@@ -65,10 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return methodName
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As IEnumerable(Of StatementSyntax)
-                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(VBSelectionResult))
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
+                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(Me.SelectionResult))
 
-                    Dim expression = DirectCast(VBSelectionResult.GetContainingScope(), ExpressionSyntax)
+                    Dim expression = DirectCast(Me.SelectionResult.GetContainingScope(), ExpressionSyntax)
 
                     Dim statement As StatementSyntax
                     If Me.AnalyzerResult.HasReturnType Then
@@ -80,46 +82,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' return error code
                         If expression.Kind <> SyntaxKind.InvocationExpression AndAlso
                            expression.Kind <> SyntaxKind.SimpleMemberAccessExpression Then
-                            Return SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
+                            Return ImmutableArray(Of StatementSyntax).Empty
                         End If
 
                         statement = SyntaxFactory.ExpressionStatement(expression:=expression)
                     End If
 
-                    Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(statement)
-                End Function
-
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, (GetCallSiteContainerFromExpression()))
-                End Function
-
-                Private Function GetCallSiteContainerFromExpression() As SyntaxNode
-                    Dim container = VBSelectionResult.InnermostStatementContainer()
-
-                    Contract.ThrowIfNull(container)
-                    Contract.ThrowIfFalse(container.IsStatementContainerNode() OrElse
-                                          TypeOf container Is TypeBlockSyntax OrElse
-                                          TypeOf container Is CompilationUnitSyntax)
-
-                    Return container
+                    Return ImmutableArray.Create(statement)
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return VBSelectionResult.GetContainingScopeOf(Of StatementSyntax)()
+                    Return Me.SelectionResult.GetContainingScopeOf(Of StatementSyntax)()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                     Return GetFirstStatementOrInitializerSelectedAtCallSite()
                 End Function
 
-                Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(callSiteAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
                     Dim enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite()
-                    Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation)
-                    Dim invocation = If(TypeOf callSignature Is AwaitExpressionSyntax,
-                                        DirectCast(callSignature, AwaitExpressionSyntax).Expression, callSignature)
+                    Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation)
 
-                    Dim sourceNode = DirectCast(VBSelectionResult.GetContainingScope(), SyntaxNode)
+                    Dim sourceNode = Me.SelectionResult.GetContainingScope()
                     Contract.ThrowIfTrue(
                         sourceNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                         DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax).Name Is sourceNode,
@@ -142,32 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     ' because of the complexification we cannot guarantee that there is only one annotation.
                     ' however complexification of names is prepended, so the last annotation should be the original one.
-                    sourceNode = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode(), SyntaxNode)
-
-                    ' we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    ' a member access now instead of the identifier. So more syntax fiddling is needed.
-                    If sourceNode.Parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
-                        DirectCast(sourceNode, ExpressionSyntax).IsRightSideOfDot() Then
-
-                        Dim explicitMemberAccess = DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax)
-                        Dim replacementMemberAccess = SyntaxFactory.MemberAccessExpression(
-                                sourceNode.Parent.Kind(),
-                                explicitMemberAccess.Expression,
-                                SyntaxFactory.Token(SyntaxKind.DotToken),
-                                DirectCast(DirectCast(invocation, InvocationExpressionSyntax).Expression, SimpleNameSyntax))
-                        replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(replacementMemberAccess)
-
-                        Dim newInvocation = SyntaxFactory.InvocationExpression(
-                            replacementMemberAccess,
-                            DirectCast(invocation, InvocationExpressionSyntax).ArgumentList) _
-                                .WithTrailingTrivia(sourceNode.GetTrailingTrivia())
-
-                        Dim newCallSignature = If(callSignature IsNot invocation,
-                                                  callSignature.ReplaceNode(invocation, newInvocation), invocation.CopyAnnotationsTo(newInvocation))
-
-                        sourceNode = sourceNode.Parent
-                        callSignature = newCallSignature
-                    End If
+                    sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode()
 
                     Return newEnclosingStatement.ReplaceNode(sourceNode, callSignature)
                 End Function

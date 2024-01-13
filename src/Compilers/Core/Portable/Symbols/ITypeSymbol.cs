@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -129,6 +127,15 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
+        /// For source symbols, true if the type is a record.
+        /// For metadata symbols, true if the type is a record and a reference type.
+        /// </summary>
+        /// <remarks>
+        /// Returns false for record structs in metadata since they don't have any distinctive marker.
+        /// </remarks>
+        bool IsRecord { get; }
+
+        /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
         /// </summary>
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
@@ -191,7 +198,7 @@ namespace Microsoft.CodeAnalysis
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
     // Once Default Interface Implementations are supported, we can move these methods into the interface. 
-    static internal class ITypeSymbolHelpers
+    internal static class ITypeSymbolHelpers
     {
         internal static bool IsNullableType([NotNullWhen(returnValue: true)] ITypeSymbol? typeOpt)
         {
@@ -239,7 +246,7 @@ namespace Microsoft.CodeAnalysis
             return (type as INamedTypeSymbol)?.EnumUnderlyingType;
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
         {
             return GetEnumUnderlyingType(type) ?? type;

@@ -22,10 +22,6 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-#if NET20
-    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
-#endif
-
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for
@@ -48,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [DebuggerDisplay("{Value,nq}")]
         private struct Element
         {
-            internal T Value;
+            internal T? Value;
         }
 
         /// <remarks>
@@ -59,13 +55,15 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T _firstItem;
+        private T? _firstItem;
         private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
         // expand. compared to "new T()", Func gives more flexibility to implementers and faster
         // than "new T()".
         private readonly Factory _factory;
+
+        public readonly bool TrimOnFree;
 
 #if DETECT_LEAKS
         private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();
@@ -108,15 +106,17 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 #endif      
 
-        internal ObjectPool(Factory factory)
-            : this(factory, Environment.ProcessorCount * 2)
-        { }
+        internal ObjectPool(Factory factory, bool trimOnFree = true)
+            : this(factory, Environment.ProcessorCount * 2, trimOnFree)
+        {
+        }
 
-        internal ObjectPool(Factory factory, int size)
+        internal ObjectPool(Factory factory, int size, bool trimOnFree = true)
         {
             Debug.Assert(size >= 1);
             _factory = factory;
             _items = new Element[size - 1];
+            TrimOnFree = trimOnFree;
         }
 
         internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal void ForgetTrackedObject(T old, T replacement = null)
+        internal void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,8 +18,12 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// this object is supposed to be live very short but created a lot of time. that is why it is struct. 
     /// (same reason why SyntaxToken is struct - to reduce heap allocation)
     /// </summary>
-    internal readonly struct TokenData : IEqualityComparer<TokenData>, IEquatable<TokenData>, IComparable<TokenData>, IComparer<TokenData>
+    internal readonly record struct TokenData : IComparable<TokenData>
     {
+        public TokenStream TokenStream { get; }
+        public int IndexInStream { get; }
+        public SyntaxToken Token { get; }
+
         public TokenData(TokenStream tokenStream, int indexInStream, SyntaxToken token)
         {
             Contract.ThrowIfNull(tokenStream);
@@ -31,30 +34,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.Token = token;
         }
 
-        public TokenStream TokenStream { get; }
-        public int IndexInStream { get; }
-        public SyntaxToken Token { get; }
-
         public TokenData GetPreviousTokenData()
             => this.TokenStream.GetPreviousTokenData(this);
 
         public TokenData GetNextTokenData()
             => this.TokenStream.GetNextTokenData(this);
 
-        public bool Equals(TokenData x, TokenData y)
-            => x.Equals(y);
-
-        public int GetHashCode(TokenData obj)
-            => obj.GetHashCode();
-
         public override int GetHashCode()
             => this.Token.GetHashCode();
-
-        public override bool Equals(object obj)
-        {
-            return obj is TokenData data &&
-                   this.Equals(data);
-        }
 
         public bool Equals(TokenData other)
         {
@@ -70,9 +57,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             return this.Token.Equals(other.Token);
         }
-
-        public int Compare(TokenData x, TokenData y)
-            => x.CompareTo(y);
 
         public int CompareTo(TokenData other)
         {
@@ -97,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this is expansive check. but there is no other way to check.
             var commonRoot = this.Token.GetCommonRoot(other.Token);
-            Debug.Assert(commonRoot != null);
+            RoslynDebug.Assert(commonRoot != null);
 
             var tokens = commonRoot.DescendantTokens();
 
@@ -108,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return index1 - index2;
         }
 
-        private int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
+        private static int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
         {
             var index = 0;
 
@@ -130,11 +114,5 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static bool operator >(TokenData left, TokenData right)
             => left.CompareTo(right) > 0;
-
-        public static bool operator ==(TokenData left, TokenData right)
-            => left.Equals(right);
-
-        public static bool operator !=(TokenData left, TokenData right)
-            => left.Equals(right);
     }
 }

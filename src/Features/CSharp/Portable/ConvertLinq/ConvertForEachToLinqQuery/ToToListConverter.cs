@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,17 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     /// <summary>
     /// Provides a conversion to query.ToList().
     /// </summary>
-    internal sealed class ToToListConverter : AbstractToMethodConverter
+    internal sealed class ToToListConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        ExpressionSyntax selectExpression,
+        ExpressionSyntax modifyingExpression,
+        SyntaxTrivia[] trivia) : AbstractToMethodConverter(forEachInfo, selectExpression, modifyingExpression, trivia)
     {
-        public ToToListConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression,
-            SyntaxTrivia[] trivia)
-            : base(forEachInfo, selectExpression, modifyingExpression, trivia)
-        {
-        }
-
         protected override string MethodName => nameof(Enumerable.ToList);
 
         /// Checks that the expression is "new List();"
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             ExpressionSyntax expression, CancellationToken cancellationToken)
             => expression is ObjectCreationExpressionSyntax objectCreationExpression &&
                ForEachInfo.SemanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
-               CSharpConvertForEachToLinqQueryProvider.TypeSymbolOptIsList(typeSymbol, ForEachInfo.SemanticModel) &&
+               CSharpConvertForEachToLinqQueryProvider.TypeSymbolIsList(typeSymbol, ForEachInfo.SemanticModel) &&
                (objectCreationExpression.ArgumentList == null || !objectCreationExpression.ArgumentList.Arguments.Any()) &&
                (objectCreationExpression.Initializer == null || !objectCreationExpression.Initializer.Expressions.Any());
 

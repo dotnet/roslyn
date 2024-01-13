@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -19,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            Assert.Equal(tempDir.Path, provider.FileSystem.GetTempPath());
+            Assert.Equal(tempDir.Path, provider.FileSystem.GetSigningTempPath());
         }
 
         [Fact]
-        public void RespectDefaultTempPath()
+        public void RespectNullTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            Assert.Equal(Path.GetTempPath(), provider.FileSystem.GetTempPath());
+            Assert.Null(provider.FileSystem.GetSigningTempPath());
         }
 
         [Fact]

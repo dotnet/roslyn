@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -126,6 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return false; }
             }
+
+            internal override bool IsRequired => false;
+
+            internal sealed override bool HasUnscopedRefAttribute => false;
 
             internal sealed override ObsoleteAttributeData ObsoleteAttributeData
             {

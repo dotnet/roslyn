@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,8 +25,19 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        [return: MaybeNull]
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public static V GetOrAdd<K, V, TArg>(this IDictionary<K, V> dictionary, K key, Func<K, TArg, V> function, TArg arg)
+            where K : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var value))
+            {
+                value = function(key, arg);
+                dictionary.Add(key, value);
+            }
+
+            return value;
+        }
+
+        public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))
@@ -39,8 +48,9 @@ namespace Roslyn.Utilities
             return default!;
         }
 
-        public static V GetOrValue<K, V>(this Dictionary<K, V> dictionary, K key, V defaultValue)
-            where K : notnull
+        [return: NotNullIfNotNull(nameof(defaultValue))]
+        public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue)
+            where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))
             {
@@ -73,6 +83,18 @@ namespace Roslyn.Utilities
             }
 
             builder.Add(value);
+        }
+
+        public static void MultiAddRange<TKey, TValue>(this IDictionary<TKey, ArrayBuilder<TValue>> dictionary, TKey key, IEnumerable<TValue> values)
+            where TKey : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var builder))
+            {
+                builder = ArrayBuilder<TValue>.GetInstance();
+                dictionary.Add(key, builder);
+            }
+
+            builder.AddRange(values);
         }
 
         public static bool MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue>? comparer = null)

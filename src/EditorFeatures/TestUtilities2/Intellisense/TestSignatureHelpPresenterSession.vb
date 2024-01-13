@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public SignatureHelpItems As IList(Of SignatureHelpItem)
         Public SelectedItem As SignatureHelpItem
         Public SelectedParameter As Integer?
-        Private presented As Boolean = False
+        Private presented As Boolean
 
         Public ReadOnly Property EditorSessionIsActive As Boolean Implements ISignatureHelpPresenterSession.EditorSessionIsActive
             Get

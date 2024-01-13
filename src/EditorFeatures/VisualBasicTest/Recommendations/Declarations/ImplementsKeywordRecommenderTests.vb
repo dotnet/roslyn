@@ -2,69 +2,69 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ImplementsKeywordRecommenderTests
+        Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterClassDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsAfterClassDeclarationTest()
+            VerifyRecommendationsContain(<File>
 Class Goo
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterClassDeclarationAndBlankLineTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsAfterClassDeclarationAndBlankLineTest()
+            VerifyRecommendationsContain(<File>
 Class Goo
 
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterImplementsTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsAfterImplementsTest()
+            VerifyRecommendationsContain(<File>
 Class Goo
 Implements IGooable
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsInStructureTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsInStructureTest()
+            VerifyRecommendationsContain(<File>
 Structure Goo
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterInheritsTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsAfterInheritsTest()
+            VerifyRecommendationsContain(<File>
 Class Goo
 Inherits Base
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterMethodInClassImplementingInterfaceTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        <Fact>
+        Public Sub ImplementsAfterMethodInClassImplementingInterfaceTest()
+            VerifyRecommendationsContain(<File>
 Class Goo
 Implements IGooable
 Sub Goo() |
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsNotAfterMethodInClassNotImplementingInterfaceTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        <Fact>
+        Public Sub ImplementsNotAfterMethodInClassNotImplementingInterfaceTest()
+            VerifyRecommendationsMissing(<File>
 Class Goo
 Sub Goo() |
 |</File>, "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterPropertyNameTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterPropertyNameTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Integer
@@ -74,12 +74,11 @@ Class bar
     Property x |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyOpenParenTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyOpenParenTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As Integer
@@ -89,12 +88,11 @@ Class bar
     Property x( |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterPropertyCloseParenTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterPropertyCloseParenTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Integer
@@ -104,12 +102,11 @@ Class bar
     Property x() |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyAsTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyAsTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As Integer
@@ -119,12 +116,11 @@ Class bar
     Property x() As |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterCompletePropertyAsClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterCompletePropertyAsClauseTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Integer
@@ -134,12 +130,11 @@ Class bar
     Property x() As Integer |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterIncompletePropertyAsClauseInitializerTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterIncompletePropertyAsClauseInitializerTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As Integer
@@ -149,12 +144,11 @@ Class bar
     Property x() As Integer = |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterCompletePropertyAsClauseInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterCompletePropertyAsClauseInitializerTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Integer
@@ -164,12 +158,11 @@ Class bar
     Property x() As Integer = 3 |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterIncompletePropertyAsNewClauseTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterIncompletePropertyAsNewClauseTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As Object
@@ -179,12 +172,11 @@ Class bar
     Property x() As New |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterCompletePropertyAsNewClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterCompletePropertyAsNewClauseTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Object
@@ -194,12 +186,11 @@ Class bar
     Property x() As New Object |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyAsNewClauseOpenParenTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyAsNewClauseOpenParenTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As Object
@@ -209,12 +200,11 @@ Class bar
     Property x() As New Object( |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterPropertyAsNewClauseCloseParenTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub ImplementsAfterPropertyAsNewClauseCloseParenTest()
+            VerifyRecommendationsContain(
 <File>
 Interface goo
     Property x() As Object
@@ -224,12 +214,11 @@ Class bar
     Property x() As New Object() |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyAsNamespaceDotTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyAsNamespaceDotTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface goo
     Property x() As System.Collections.Generic.List(Of T)
@@ -239,12 +228,11 @@ Class bar
     Property x() As System.|
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyAsListOfTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyAsListOfTest()
+            VerifyRecommendationsMissing(
 <File>
 Imports System.Collections.Generic
 Interface goo
@@ -255,12 +243,11 @@ Class bar
     Property x() As List(Of |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyAsListOfTypeTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyAsListOfTypeTest()
+            VerifyRecommendationsMissing(
 <File>
 Imports System.Collections.Generic
 Interface goo
@@ -271,12 +258,11 @@ Class bar
     Property x() As List(Of bar |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterPropertyParameterTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
+        Public Sub NoImplementsAfterPropertyParameterTest()
+            VerifyRecommendationsMissing(
 <File>
 Imports System.Collections.Generic
 Interface goo
@@ -287,12 +273,11 @@ Class bar
     Property x(i As Integer |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterEventNameTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
+        Public Sub ImplementsAfterEventNameTest()
+            VerifyRecommendationsContain(
 <File>
 Interface i1
     Event myevent()
@@ -302,12 +287,11 @@ Class C1
     Event myevent |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsAfterEventOpenParenTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
+        Public Sub NoImplementsAfterEventOpenParenTest()
+            VerifyRecommendationsMissing(
 <File>
 Interface i1
     Event myevent()
@@ -317,12 +301,11 @@ Class C1
     Event myevent( |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterEventCloseParenTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
+        Public Sub ImplementsAfterEventCloseParenTest()
+            VerifyRecommendationsContain(
 <File>
 Interface i1
     Event myevent()
@@ -332,12 +315,11 @@ Class C1
     Event myevent() |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(546404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546404")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterAsClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546404")>
+        Public Sub ImplementsAfterAsClauseTest()
+            VerifyRecommendationsContain(
 <File>
 Interface I1
     Function F() As Integer
@@ -347,12 +329,11 @@ Class Bar
     Function F() As Integer |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsInPartialClass1Test() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
+        Public Sub ImplementsInPartialClass1Test()
+            VerifyRecommendationsContain(
 <File>
 Public Interface ITest
 End Interface
@@ -363,12 +344,11 @@ Partial Public Class Test
     Sub X() |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsInPartialClass2Test() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
+        Public Sub ImplementsInPartialClass2Test()
+            VerifyRecommendationsMissing(
 <File>
 Public Interface ITest
 End Interface
@@ -378,12 +358,11 @@ Partial Public Class Test
     Sub X() |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsInInterface1Test() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
+        Public Sub NoImplementsInInterface1Test()
+            VerifyRecommendationsMissing(
 <File>
 Public Interface ITest1
 End Interface
@@ -391,12 +370,11 @@ Public Interface ITest2
     |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsInInterface2Test() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
+        Public Sub NoImplementsInInterface2Test()
+            VerifyRecommendationsMissing(
 <File>
 Public Interface ITest1
 End Interface
@@ -405,12 +383,11 @@ Public Interface ITest2
     |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoImplementsInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
+        Public Sub NoImplementsInModuleTest()
+            VerifyRecommendationsMissing(
 <File>
 Public Interface ITest1
 End Interface
@@ -418,12 +395,11 @@ Public Module Test2
     |
 </File>,
 "Implements")
-        End Function
+        End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        Public Sub NotAfterHashTest()
+            VerifyRecommendationsMissing(<File>
 Imports System
 
 #|
@@ -433,6 +409,6 @@ Module Module1
 End Module
 
 </File>, "Implements")
-        End Function
+        End Sub
     End Class
 End Namespace

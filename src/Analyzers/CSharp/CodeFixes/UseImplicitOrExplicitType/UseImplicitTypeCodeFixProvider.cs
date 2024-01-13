@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -28,23 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.use_var_instead_of_explicit_type, nameof(CSharpAnalyzersResources.use_var_instead_of_explicit_type));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 
@@ -64,16 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                                             .WithTriviaFrom(type);
 
             editor.ReplaceNode(type, implicitType);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.use_var_instead_of_explicit_type,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.use_var_instead_of_explicit_type)
-            {
-            }
         }
     }
 }

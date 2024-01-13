@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class TopLevelSuppressionCodeAction : AbstractConfigurationActionWithNestedActions
+    internal sealed class TopLevelSuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<NestedSuppressionCodeAction> nestedActions) : AbstractConfigurationActionWithNestedActions(ImmutableArray<CodeAction>.CastUp(nestedActions), string.Format(FeaturesResources.Suppress_0, diagnostic.Id))
     {
-        public TopLevelSuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<NestedSuppressionCodeAction> nestedActions)
-            : base(ImmutableArray<CodeAction>.CastUp(nestedActions), string.Format(FeaturesResources.Suppress_0, diagnostic.Id))
-        {
-        }
     }
 }

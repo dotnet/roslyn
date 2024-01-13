@@ -2,15 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -19,26 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private partial class CSharpCodeGenerator
         {
-            private class ExpressionCodeGenerator : CSharpCodeGenerator
+            private sealed class ExpressionCodeGenerator(
+                CSharpSelectionResult selectionResult,
+                AnalyzerResult analyzerResult,
+                CSharpCodeGenerationOptions options,
+                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
-                public ExpressionCodeGenerator(
-                    InsertionPoint insertionPoint,
-                    SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult,
-                    OptionSet options,
-                    bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
-                {
-                }
-
-                public static bool IsExtractMethodOnExpression(SelectionResult code)
-                    => code.SelectionInExpression;
-
                 protected override SyntaxToken CreateMethodName()
                 {
                     var methodName = GenerateMethodNameFromUserPreference();
 
-                    var containingScope = CSharpSelectionResult.GetContainingScope();
+                    var containingScope = this.SelectionResult.GetContainingScope();
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope);
 
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
                 }
 
-                private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
@@ -91,16 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return methodName;
                 }
 
-                protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
-
-                    ExpressionSyntax expression = null;
+                    Contract.ThrowIfFalse(this.SelectionResult.SelectionInExpression);
 
                     // special case for array initializer
                     var returnType = AnalyzerResult.ReturnType;
-                    var containingScope = CSharpSelectionResult.GetContainingScope();
+                    var containingScope = this.SelectionResult.GetContainingScope();
 
+                    ExpressionSyntax expression;
                     if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
                     {
                         var typeSyntax = returnType.GenerateTypeSyntax();
@@ -114,13 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (AnalyzerResult.HasReturnType)
                     {
-                        return SpecializedCollections.SingletonEnumerable<StatementSyntax>(
+                        return ImmutableArray.Create<StatementSyntax>(
                             SyntaxFactory.ReturnStatement(
                                 WrapInCheckedExpressionIfNeeded(expression)));
                     }
                     else
                     {
-                        return SpecializedCollections.SingletonEnumerable<StatementSyntax>(
+                        return ImmutableArray.Create<StatementSyntax>(
                             SyntaxFactory.ExpressionStatement(
                                 WrapInCheckedExpressionIfNeeded(expression)));
                     }
@@ -128,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
                 {
-                    var kind = CSharpSelectionResult.UnderCheckedExpressionContext();
+                    var kind = this.SelectionResult.UnderCheckedExpressionContext();
                     if (kind == SyntaxKind.None)
                     {
                         return expression;
@@ -137,51 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.CheckedExpression(kind, expression);
                 }
 
-                protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-                {
-                    var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                    if (callSiteContainer != null)
-                    {
-                        return callSiteContainer;
-                    }
-                    else
-                    {
-                        return GetCallSiteContainerFromExpression();
-                    }
-                }
-
-                private SyntaxNode GetCallSiteContainerFromExpression()
-                {
-                    var container = CSharpSelectionResult.GetInnermostStatementContainer();
-
-                    Contract.ThrowIfNull(container);
-                    Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
-                                          container is TypeDeclarationSyntax ||
-                                          container is ConstructorDeclarationSyntax ||
-                                          container is CompilationUnitSyntax);
-
-                    return container;
-                }
-
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
                 {
-                    var scope = (SyntaxNode)CSharpSelectionResult.GetContainingScopeOf<StatementSyntax>();
-                    if (scope == null)
-                    {
-                        scope = CSharpSelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
-                    }
+                    var scope = (SyntaxNode)this.SelectionResult.GetContainingScopeOf<StatementSyntax>();
+                    scope ??= this.SelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
 
-                    if (scope == null)
-                    {
-                        scope = CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
-                    }
+                    scope ??= this.SelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
 
-                    if (scope == null)
-                    {
-                        // This is similar to FieldDeclaration case but we only want to do this 
-                        // if the member has an expression body.
-                        scope = CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
-                    }
+                    // This is similar to FieldDeclaration case but we only want to do this 
+                    // if the member has an expression body.
+                    scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
 
                     return scope;
                 }
@@ -189,16 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                     => GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
-                    SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)
+                protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {
                     var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
-                    var callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation);
-                    var invocation = callSignature.IsKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr) ? awaitExpr.Expression : callSignature;
 
-                    var sourceNode = CSharpSelectionResult.GetContainingScope();
+                    var callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation);
+
+                    var sourceNode = this.SelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(
-                        sourceNode.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)sourceNode.Parent).Name == sourceNode,
+                        sourceNode.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == sourceNode,
                         "invalid scope. given scope is not an expression");
 
                     // To lower the chances that replacing sourceNode with callSignature will break the user's
@@ -220,28 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // because of the complexification we cannot guarantee that there is only one annotation.
                     // however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
-
-                    // we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    // a member access now instead of the identifier. So more syntax fiddling is needed.
-                    if (sourceNode.Parent.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
-                        ((ExpressionSyntax)sourceNode).IsRightSideOfDot())
-                    {
-                        var explicitMemberAccess = (MemberAccessExpressionSyntax)sourceNode.Parent;
-                        var replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(
-                            SyntaxFactory.MemberAccessExpression(
-                                sourceNode.Parent.Kind(),
-                                explicitMemberAccess.Expression,
-                                (SimpleNameSyntax)((InvocationExpressionSyntax)invocation).Expression));
-                        var newInvocation = SyntaxFactory.InvocationExpression(
-                            replacementMemberAccess,
-                            ((InvocationExpressionSyntax)invocation).ArgumentList);
-
-                        var newCallSignature = callSignature != invocation ?
-                            callSignature.ReplaceNode(invocation, newInvocation) : invocation.CopyAnnotationsTo(newInvocation);
-
-                        sourceNode = sourceNode.Parent;
-                        callSignature = newCallSignature;
-                    }
 
                     return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);
                 }

@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.Interactive;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using System;
-using Microsoft.CodeAnalysis.Host.Mef;
+#nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+using System;
+using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.Utilities;
+
+namespace Microsoft.CodeAnalysis.Interactive
 {
     [ExportContentTypeLanguageService(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName, InteractiveLanguageNames.InteractiveCommand), Shared]
     internal class InteractiveCommandContentTypeLanguageService : IContentTypeLanguageService

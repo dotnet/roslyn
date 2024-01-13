@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../RemoteWorkspacesResources.resx">
+    <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">Varlık eşitleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">Asenkron işlem dinleyicisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CodeLensReferences">
+        <source>CodeLens references</source>
+        <target state="translated">CodeLens başvuruları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Proje semantiği kullanılabilirliği</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
+        <source>Convert tuple to struct refactoring</source>
+        <target state="translated">Demeti yapıya dönüştürme yeniden düzenlemesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DependentTypeFinder">
+        <source>Dependent type finder</source>
+        <target state="translated">Bağımlı tür bulucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
+        <source>DesignerAttribute discovery</source>
+        <target state="translated">DesignerAttribute bulma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticAnalyzer">
+        <source>Diagnostic analyzer runner</source>
+        <target state="translated">Tanılama çözümleyicisi çalıştırıcı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DocumentHighlights">
+        <source>Document highlights</source>
+        <target state="translated">Belgedeki önemli noktalar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Düzenle ve Devam Et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EncapsulateField">
+        <source>Encapsulate field refactoring</source>
+        <target state="translated">Alanı kapsülleme yeniden düzenlemesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
+        <source>Extension method import completion</source>
+        <target state="translated">Genişletme yöntemini içeri aktarma işlemi tamamlandı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FindUsages">
+        <source>Find usages</source>
+        <target state="translated">Kullanımları bul</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">Tam olarak nitele</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_GlobalNotificationDelivery">
+        <source>Global notification delivery</source>
+        <target state="translated">Genel bildirim teslimi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Devralma boşluğu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Etkin tutma hizmeti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">Çözüm Olayları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">İçeri aktarma bulma eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigateToSearch">
+        <source>Navigate to</source>
+        <target state="translated">Şuraya gidin:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Gezinti çubuğu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">İşlem telemetrisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProjectTelemetry">
+        <source>Project telemetry collection</source>
+        <target state="translated">Proje telemetri koleksiyonu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Renamer">
+        <source>Rename</source>
+        <target state="translated">Yeniden adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticClassification">
+        <source>Semantic classification</source>
+        <target state="translated">Anlamsal sınıflandırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">Varlık sağlayıcısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Kaynak oluşturma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Yığın İzlemesi Gezgini</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolFinder">
+        <source>Symbol finder</source>
+        <target state="translated">Sembol bulucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolSearchUpdate">
+        <source>Symbol search</source>
+        <target state="translated">Sembol araması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Görev listesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">Birim testi araması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Kullanılmayan başvuru analizi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Değer Takibi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
+        <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
+        <target state="translated">'{0}' özelliği, aralıklı bir hata nedeniyle şu anda kullanılamıyor. Lütfen daha sonra yeniden deneyin: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
+        <source>Feature '{0}' is currently unavailable due to an internal error.</source>
+        <target state="translated">'{0}' özelliği bir iç hata nedeniyle şu anda kullanılamıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
+        <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
+        <target state="translated">{1} kapanmakta olduğundan '{0}' özelliği şu anda kullanılamıyor.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

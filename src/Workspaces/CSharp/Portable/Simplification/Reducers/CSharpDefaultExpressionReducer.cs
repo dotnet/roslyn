@@ -8,11 +8,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpDefaultExpressionReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
-            () => new Rewriter(s_pool));
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(static () => new Rewriter(s_pool));
 
         public CSharpDefaultExpressionReducer() : base(s_pool)
         {
         }
+
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
     }
 }

@@ -10,28 +10,22 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal abstract partial class AbstractSignatureHelpProvider
     {
-        internal class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
+        internal class SymbolKeySignatureHelpItem(
+            ISymbol symbol,
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
+            IEnumerable<TaggedText> prefixParts,
+            IEnumerable<TaggedText> separatorParts,
+            IEnumerable<TaggedText> suffixParts,
+            IEnumerable<SignatureHelpParameter> parameters,
+            IEnumerable<TaggedText>? descriptionParts) : SignatureHelpItem(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts), IEquatable<SymbolKeySignatureHelpItem>
         {
-            public SymbolKey? SymbolKey { get; }
+            public SymbolKey? SymbolKey { get; } = symbol?.GetSymbolKey();
 
-            public SymbolKeySignatureHelpItem(
-                ISymbol symbol,
-                bool isVariadic,
-                Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
-                IEnumerable<TaggedText> prefixParts,
-                IEnumerable<TaggedText> separatorParts,
-                IEnumerable<TaggedText> suffixParts,
-                IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<TaggedText> descriptionParts)
-                : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
-            {
-                SymbolKey = symbol?.GetSymbolKey();
-            }
-
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => Equals(obj as SymbolKeySignatureHelpItem);
 
-            public bool Equals(SymbolKeySignatureHelpItem obj)
+            public bool Equals(SymbolKeySignatureHelpItem? obj)
             {
                 return ReferenceEquals(this, obj) ||
                     (obj?.SymbolKey != null &&

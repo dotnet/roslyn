@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
@@ -43,7 +45,7 @@ namespace BoundTreeGenerator
         public List<Field> Fields;
     }
 
-    public class Node : TreeType
+    public class Node : AbstractNode
     {
         [XmlAttribute]
         public string Root;
@@ -60,9 +62,6 @@ namespace BoundTreeGenerator
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
-
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
     }
 
     public class Kind

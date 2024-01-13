@@ -30,19 +30,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ReusableHoistedLocalField = '7',
         LambdaCacheField = '9',
         FixedBufferField = 'e',
+        FileType = 'F',
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
+        StateMachineStateIdField = 'I',
+        AnonymousTypeTypeParameter = 'j',
         AutoPropertyBackingField = 'k',
         IteratorCurrentThreadIdField = 'l',
         IteratorFinallyMethod = 'm',
         BaseMethodWrapper = 'n',
         AsyncBuilderField = 't',
+        DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
+        PrimaryConstructorParameter = 'P',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
         DisposeModeField = 'w',
-        CombinedTokensField = 'x', // last
+        CombinedTokensField = 'x',
+        InlineArrayType = 'y',
+        ReadOnlyListType = 'z', // last
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.
@@ -53,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete]
         Deprecated_InitializerLocal = 'g',
         [Obsolete]
-        Deprecated_AnonymousTypeTypeParameter = 'j',
-        [Obsolete]
         Deprecated_DynamicDelegate = 'q',
         [Obsolete]
         Deprecated_ComrefCallLocal = 'r',
@@ -63,17 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameKindExtensions
     {
         internal static bool IsTypeName(this GeneratedNameKind kind)
-        {
-            switch (kind)
-            {
-                case GeneratedNameKind.LambdaDisplayClass:
-                case GeneratedNameKind.StateMachineType:
-                case GeneratedNameKind.DynamicCallSiteContainerType:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => kind is GeneratedNameKind.LambdaDisplayClass
+                    or GeneratedNameKind.StateMachineType
+                    or GeneratedNameKind.DynamicCallSiteContainerType
+                    or GeneratedNameKind.DelegateCacheContainerType
+                    ;
     }
 }

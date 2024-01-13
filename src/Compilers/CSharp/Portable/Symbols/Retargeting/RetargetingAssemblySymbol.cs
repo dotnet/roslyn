@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -126,10 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         /// <summary>
-        /// The underlying AssemblySymbol.
-        /// This cannot be an instance of RetargetingAssemblySymbol.
+        /// The underlying <see cref="SourceAssemblySymbol"/>.
         /// </summary>
-        public AssemblySymbol UnderlyingAssembly
+        public SourceAssemblySymbol UnderlyingAssembly
         {
             get
             {
@@ -187,9 +188,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => _underlyingAssembly.HasImportedFromTypeLibAttribute;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => _underlyingAssembly.HasPrimaryInteropAssemblyAttribute;
+
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName);
+        }
+
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return _underlyingAssembly.GetInternalsVisibleToAssemblyNames();
         }
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
@@ -212,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             // Cor library should not have any references and, therefore, should never be
             // wrapped by a RetargetingAssemblySymbol.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
@@ -272,21 +282,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return null; }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         internal override bool GetGuidString(out string guidString)
         {
             return _underlyingAssembly.GetGuidString(out guidString);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
-        {
-            NamedTypeSymbol underlying = _underlyingAssembly.TryLookupForwardedMetadataType(ref emittedName);
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingAssembly.ObsoleteAttributeData;
 
-            if ((object)underlying == null)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
+        {
+            NamedTypeSymbol? underlying = _underlyingAssembly.TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies: null);
+
+            if ((object?)underlying == null)
             {
                 return null;
             }
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
+        }
+
+#nullable disable
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            foreach (NamedTypeSymbol underlying in _underlyingAssembly.GetAllTopLevelForwardedTypes())
+            {
+                yield return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
+            }
         }
 
         public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();

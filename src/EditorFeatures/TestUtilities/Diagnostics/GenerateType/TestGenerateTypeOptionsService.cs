@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
-    [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         public Accessibility Accessibility = Accessibility.NotApplicable;
@@ -50,10 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             // Storing the actual values
             ClassName = className;
             GenerateTypeDialogOptions = generateTypeDialogOptions;
-            if (DefaultNamespace == null)
-            {
-                DefaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
-            }
+            DefaultNamespace ??= projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
+
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,
                 typeKind: TypeKind,

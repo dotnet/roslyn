@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
@@ -32,23 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
         {
-            Initialize(view);
-
             var border = new Border()
             {
-                BorderBrush = _graphicsTagBrush,
+                BorderBrush = GetBrush(view),
                 BorderThickness = new Thickness(0, 0, 0, bottom: 1),
                 Height = 1,
                 Width = view.ViewportWidth
             };
-            void viewportWidthChangedHandler(object s, EventArgs e)
-            {
-                border.Width = view.ViewportWidth;
-            }
 
-            view.ViewportWidthChanged += viewportWidthChangedHandler;
+            view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
             // Subtract rect.Height to ensure that the line separator is drawn
             // at the bottom of the line, rather than immediately below.
@@ -56,7 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             Canvas.SetTop(border, bounds.Bounds.Bottom - border.Height);
 
             return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
+                () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
+
+            void ViewportWidthChangedHandler(object s, EventArgs e)
+            {
+                border.Width = view.ViewportWidth;
+            }
         }
     }
 }

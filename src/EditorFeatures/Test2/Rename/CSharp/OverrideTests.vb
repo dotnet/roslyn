@@ -2,8 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class OverrideTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -11,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass()
+        <Theory, CombinatorialData>
+        Public Sub RenameOverrideMemberFromDerivedClass(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -38,14 +41,14 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <WorkItem(25682, "https://github.com/dotnet/roslyn/issues/25682")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClassWhenMemberIsPrivate()
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25682")>
+        Public Sub RenameOverrideMemberFromDerivedClassWhenMemberIsPrivate(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -71,13 +74,13 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass_abstract_virtual()
+        <Theory, CombinatorialData>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_virtual(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -103,13 +106,13 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass_abstract_override()
+        <Theory, CombinatorialData>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_override(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -135,7 +138,7 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub

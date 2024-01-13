@@ -6,20 +6,22 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
+    <Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
     Public Class AutomaticParenthesesCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestCreation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_TopLevel()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_TopLevel2()
             Using session = CreateSession("Imports System$$")
                 Assert.NotNull(session)
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
@@ -46,7 +48,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
@@ -57,7 +59,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
@@ -68,7 +70,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestRightAfterStringLiteral()
             Dim code = <code>Class C
     Sub Method()
@@ -82,7 +84,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestTypeParameterListSyntax()
             Dim code = <code>Class C$$
 End Class</code>
@@ -93,7 +95,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestParameterListSyntax()
             Dim code = <code>Class C
     Sub Method$$
@@ -105,7 +107,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestArrayRankSpecifierSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -119,7 +121,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestParenthesizedExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -133,7 +135,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestGetTypeExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -147,7 +149,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestGetXmlNamespaceExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -161,7 +163,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestCTypeExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -175,7 +177,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestDirectCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -189,7 +191,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestTryCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -203,7 +205,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestPredefinedCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -217,7 +219,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestBinaryConditionalExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -231,7 +233,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestArgumentListSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -245,7 +247,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestFunctionAggregationSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -259,7 +261,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestTypeArgumentListSyntax()
             Dim code = <code>Class C
     Sub Method()
@@ -273,7 +275,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestExternalSourceDirectiveSyntax()
             Dim code = <code>Imports System
 
@@ -290,7 +292,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestExternalChecksumDirectiveSyntax()
             Dim code = "#ExternalChecksum$$"
             Using session = CreateSession(code)
@@ -299,8 +301,8 @@ End Class</code>
             End Using
         End Sub
 
-        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5607")>
+        <WpfFact>
         Public Sub TestOverTypeAfterIntegerLiteral()
             Dim code = <code>Imports System.Collections.Generic
 Class C
@@ -318,8 +320,8 @@ End Class</code>
             End Using
         End Sub
 
-        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5607")>
+        <WpfFact>
         Public Sub TestOverTypeAfterDateLiteral()
             Dim code = <code>Class C
     Sub Method()
@@ -335,7 +337,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestOverTypeAfterStringLiteral()
             Dim code = <code>Class C
     Sub Method()
@@ -351,14 +353,14 @@ End Class</code>
             End Using
         End Sub
 
-        Friend Overloads Function CreateSession(code As XElement) As Holder
+        Friend Overloads Shared Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
+        Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return CreateSession(
-TestWorkspace.CreateVisualBasic(code),
-BraceCompletionSessionProvider.Parenthesis.OpenCharacter, BraceCompletionSessionProvider.Parenthesis.CloseCharacter)
+                EditorTestWorkspace.CreateVisualBasic(code),
+                Parenthesis.OpenCharacter, Parenthesis.CloseCharacter)
         End Function
     End Class
 End Namespace

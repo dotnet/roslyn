@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -76,7 +74,10 @@ namespace Microsoft.CodeAnalysis
         /// Gets the current text for the document asynchronously.
         /// </summary>
         public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
-            => State.GetTextAsync(cancellationToken).AsTask();
+            => GetValueTextAsync(cancellationToken).AsTask();
+
+        internal ValueTask<SourceText> GetValueTextAsync(CancellationToken cancellationToken)
+            => State.GetTextAsync(cancellationToken);
 
         /// <summary>
         /// Fetches the current text for the document synchronously.
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the document's top level signature.
         /// </summary>
-        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
+        internal ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
             => State.GetTopLevelChangeTextVersionAsync(cancellationToken);
 
         /// <summary>

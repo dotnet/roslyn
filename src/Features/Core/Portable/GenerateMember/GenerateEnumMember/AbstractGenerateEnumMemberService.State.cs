@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
         private partial class State
         {
             // public TypeDeclarationSyntax ContainingTypeDeclaration { get; private set; }
-            public INamedTypeSymbol TypeToGenerateIn { get; private set; }
+            public INamedTypeSymbol TypeToGenerateIn { get; private set; } = null!;
 
             // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
-            public TSimpleNameSyntax SimpleName { get; private set; }
-            public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; private set; }
+            public TSimpleNameSyntax SimpleName { get; private set; } = null!;
+            public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; private set; } = null!;
 
-            public static async Task<State> GenerateAsync(
+            public static async Task<State?> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 var state = new State();
                 if (!await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false))
-                {
                     return null;
-                }
 
                 return state;
             }
@@ -48,9 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 if (service.IsIdentifierNameGeneration(node))
                 {
                     if (!TryInitializeIdentifierName(service, document, (TSimpleNameSyntax)node, cancellationToken))
-                    {
                         return false;
-                    }
                 }
                 else
                 {
@@ -71,13 +67,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, true, EnumType))
-                {
+                var sourceType = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                if (!ValidateTypeToGenerateIn(sourceType, true, EnumType))
                     return false;
-                }
 
+                TypeToGenerateIn = sourceType;
                 return CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
             }
 
@@ -89,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 SimpleName = identifierName;
                 if (!service.TryInitializeIdentifierNameState(semanticDocument, identifierName, cancellationToken,
-                    out var identifierToken, out var simpleNameOrMemberAccessExpression))
+                        out var identifierToken, out var simpleNameOrMemberAccessExpression))
                 {
                     return false;
                 }
@@ -98,8 +92,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
 
                 var semanticModel = semanticDocument.SemanticModel;
-                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var semanticFacts = semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (semanticFacts.IsWrittenTo(semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken) ||
                     syntaxFacts.IsInNamespaceOrTypeContext(SimpleNameOrMemberAccessExpression))
                 {
@@ -111,34 +105,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 cancellationToken.ThrowIfCancellationRequested();
                 var containingType = semanticModel.GetEnclosingNamedType(identifierToken.SpanStart, cancellationToken);
                 if (containingType == null)
-                {
                     return false;
-                }
 
                 var semanticInfo = semanticModel.GetSymbolInfo(SimpleNameOrMemberAccessExpression, cancellationToken);
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return false;
-                }
-
                 if (semanticInfo.Symbol != null)
-                {
                     return false;
-                }
+
                 // Either we found no matches, or this was ambiguous. Either way, we might be able
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
-                if (!service.TryDetermineTypeToGenerateIn(
-                    semanticDocument, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
-                    out var typeToGenerateIn, out var isStatic))
+                if (!TryDetermineTypeToGenerateIn(
+                        semanticDocument, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
+                        out var typeToGenerateIn, out var isStatic, out var isColorColorCase))
                 {
                     return false;
                 }
 
-                if (!isStatic)
-                {
+                if (!isStatic && !isColorColorCase)
                     return false;
-                }
 
                 TypeToGenerateIn = typeToGenerateIn;
                 return true;

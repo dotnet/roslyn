@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static string GetEditorConfigString(OperatorPlacementWhenWrappingPreference value)
             => value == OperatorPlacementWhenWrappingPreference.EndOfLine ? end_of_line : beginning_of_line;
 
-        public static Optional<OperatorPlacementWhenWrappingPreference> Parse(string optionString)
+        public static Optional<OperatorPlacementWhenWrappingPreference> Parse(string optionString, OperatorPlacementWhenWrappingPreference defaultValue)
         {
-            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                    optionString, out var value, out var notificationOpt))
+            if (CodeStyleHelpers.TryGetCodeStyleValue(optionString, out var value))
             {
                 switch (value)
                 {
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }
             }
 
-            // Default to beginning_of_line if we get something we don't understand.
-            return OperatorPlacementWhenWrappingPreference.BeginningOfLine;
+            return defaultValue;
         }
     }
 }

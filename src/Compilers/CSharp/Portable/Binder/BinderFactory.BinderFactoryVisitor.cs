@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -92,6 +94,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Binder VisitCore(SyntaxNode node)
             {
                 return ((CSharpSyntaxNode)node).Accept(this);
+            }
+
+            public override Binder VisitGlobalStatement(GlobalStatementSyntax node)
+            {
+                if (SyntaxFacts.IsSimpleProgramTopLevelStatement(node))
+                {
+                    var compilationUnit = (CompilationUnitSyntax)node.Parent;
+
+                    if (compilationUnit != syntaxTree.GetRoot())
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(node), "node not part of tree");
+                    }
+
+                    var key = CreateBinderCacheKey(compilationUnit, NodeUsage.MethodBody);
+
+                    Binder result;
+                    if (!binderCache.TryGetValue(key, out result))
+                    {
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
+                        ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
+                        result = bodyBinder.GetBinder(compilationUnit);
+
+                        binderCache.TryAdd(key, result);
+                    }
+
+                    return result;
+                }
+
+                return base.VisitGlobalStatement(node);
             }
 
             // This is used mainly by the method body binder.  During construction of the method symbol,
@@ -198,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitDestructorDeclaration(DestructorDeclarationSyntax parent)
             {
                 // If the position isn't in the scope of the method, then proceed to the parent syntax node.
-                if (!LookupPosition.IsInMethodDeclaration(_position, parent))
+                if (!LookupPosition.IsInBody(_position, parent))
                 {
                     return VisitCore(parent.Parent);
                 }
@@ -252,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)propertySymbol != null)
                                     {
-                                        accessor = (parent.Kind() == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+                                        accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
                                     }
                                     break;
                                 }
@@ -385,17 +416,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NamedTypeSymbol GetContainerType(Binder binder, CSharpSyntaxNode node)
             {
-                var container = binder.ContainingMemberOrLambda as NamedTypeSymbol;
+                Symbol containingSymbol = binder.ContainingMemberOrLambda;
+                var container = containingSymbol as NamedTypeSymbol;
                 if ((object)container == null)
                 {
-                    Debug.Assert(binder.ContainingMemberOrLambda is NamespaceSymbol);
+                    Debug.Assert(containingSymbol is NamespaceSymbol);
                     if (node.Parent.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular)
                     {
                         container = compilation.ScriptClass;
                     }
                     else
                     {
-                        container = ((NamespaceSymbol)binder.ContainingMemberOrLambda).ImplicitType;
+                        container = ((NamespaceSymbol)containingSymbol).ImplicitType;
                     }
                 }
 
@@ -416,11 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DestructorDeclaration:
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:
-                        return OperatorFacts.OperatorNameFromDeclaration((OperatorDeclarationSyntax)baseMethodDeclarationSyntax);
+                        var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
-                            ? WellKnownMemberNames.ImplicitConversionName
-                            : WellKnownMemberNames.ExplicitConversionName;
+                        var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
@@ -510,19 +542,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Symbol GetMemberSymbol(string memberName, TextSpan memberSpan, NamedTypeSymbol container, SymbolKind kind)
             {
-                // return container.GetMembers(methodSyntax.Identifier.ValueText).OfType<SourceMethodSymbol>().Single(m => m.Locations.Any(l => l.SourceTree == tree && methodSyntax.Span.Contains(l.SourceSpan)));
-                foreach (Symbol sym in container.GetMembers(memberName))
+                Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
+
+                if (container is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
                 {
+                    foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
+                    {
+                        if (sym.IsAccessor())
+                        {
+                            continue;
+                        }
+
+                        if (sym.Name == memberName && checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (Symbol sym in container.GetMembers(memberName))
+                    {
+                        if (checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+
+                return null;
+
+                bool checkSymbol(Symbol sym, TextSpan memberSpan, SymbolKind kind, out Symbol result)
+                {
+                    result = sym;
+
                     if (sym.Kind != kind)
                     {
-                        continue;
+                        return false;
                     }
 
                     if (sym.Kind == SymbolKind.Method)
                     {
-                        if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
-                            return sym;
+                            return true;
                         }
 
                         // If this is a partial method, the method represents the defining part,
@@ -531,19 +594,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
-                            if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
-                                return implementation;
+                                result = implementation;
+                                return true;
                             }
                         }
                     }
                     else if (InSpan(sym.Locations, this.syntaxTree, memberSpan))
                     {
-                        return sym;
+                        return true;
                     }
-                }
 
-                return null;
+                    return false;
+                }
             }
 
             /// <summary>
@@ -645,8 +709,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // we are visiting type declarations fairly frequently
                 // and position is more likely to be in the body, so lets check for "inBody" first.
-                if (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
-                    LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists))
+                if (parent.OpenBraceToken != default &&
+                    parent.CloseBraceToken != default &&
+                    LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken))
+                {
+                    extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
+                }
+                else if (LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists))
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
                 }
@@ -656,13 +725,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (LookupPosition.IsBetweenTokens(_position, parent.Keyword, parent.OpenBraceToken))
                 {
-                    extraInfo = NodeUsage.NamedTypeBaseList;
+                    extraInfo = NodeUsage.NamedTypeBaseListOrParameterList;
                 }
 
                 return VisitTypeDeclarationCore(parent, extraInfo);
             }
 
-            private Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
+            internal Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
             {
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
@@ -681,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
-                        if (extraInfo == NodeUsage.NamedTypeBaseList)
+                        if (extraInfo == NodeUsage.NamedTypeBaseListOrParameterList)
                         {
                             // even though there could be no type parameter, we need this binder 
                             // for its "IsAccessible"
@@ -689,6 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            resultBinder = new WithPrimaryConstructorParametersBinder(typeSymbol, resultBinder);
+
                             resultBinder = new InContainerBinder(typeSymbol, resultBinder);
 
                             if (parent.TypeParameterList != null)
@@ -721,7 +792,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitTypeDeclarationCore(node);
             }
 
-            public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
+            public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
+
+            public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
                 {
@@ -737,7 +811,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
             }
 
-            internal InContainerBinder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            public override Binder VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax parent)
+            {
+                if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
+                {
+                    return VisitCore(parent.Parent);
+                }
+
+                // Anywhere after the `;` is in the 'body' of this namespace.
+                bool inBody = _position >= parent.SemicolonToken.EndPosition;
+
+                bool inUsing = IsInUsing(parent);
+
+                return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
+            }
+
+            internal Binder VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
@@ -747,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
-                    InContainerBinder outer;
+                    Binder outer;
                     var container = parent.Parent;
 
                     if (InScript && container.Kind() == SyntaxKind.CompilationUnit)
@@ -759,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        outer = (InContainerBinder)_factory.GetBinder(parent.Parent, position);
+                        outer = _factory.GetBinder(parent.Parent, position);
                     }
 
                     if (!inBody)
@@ -776,22 +865,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binderCache.TryAdd(key, result);
                 }
 
-                return (InContainerBinder)result;
+                return result;
             }
 
-            private InContainerBinder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, InContainerBinder outer, bool inUsing)
+            private static Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
             {
-                QualifiedNameSyntax dotted;
-                while ((dotted = name as QualifiedNameSyntax) != null)
+                if (name is QualifiedNameSyntax dotted)
                 {
                     outer = MakeNamespaceBinder(dotted.Left, dotted.Left, outer, inUsing: false);
                     name = dotted.Right;
+                    Debug.Assert(name is not QualifiedNameSyntax);
                 }
 
-                NamespaceOrTypeSymbol container = outer.Container;
+                NamespaceOrTypeSymbol container;
+
+                if (outer is InContainerBinder inContainerBinder)
+                {
+                    container = inContainerBinder.Container;
+                }
+                else
+                {
+                    Debug.Assert(outer is SimpleProgramUnitBinder);
+                    container = outer.Compilation.GlobalNamespace;
+                }
+
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
-                return new InContainerBinder(ns, outer, node, inUsing: inUsing);
+
+                if (node is BaseNamespaceDeclarationSyntax namespaceDecl)
+                {
+                    outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
+                }
+                else
+                {
+                    Debug.Assert(!inUsing);
+                }
+
+                return new InContainerBinder(ns, outer);
             }
 
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
@@ -802,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inScript: InScript);
             }
 
-            internal InContainerBinder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
+            internal Binder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
             {
                 if (compilationUnit != syntaxTree.GetRoot())
                 {
@@ -835,29 +945,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //
 
                         bool isSubmissionTree = compilation.IsSubmissionSyntaxTree(compilationUnit.SyntaxTree);
-                        if (!isSubmissionTree)
-                        {
-                            result = result.WithAdditionalFlags(BinderFlags.InLoadedSyntaxTree);
-                        }
+                        var scriptClass = compilation.ScriptClass;
+                        bool isSubmissionClass = scriptClass.IsSubmissionClass;
 
-                        // This is declared here so it can be captured.  It's initialized below.
-                        InContainerBinder scriptClassBinder = null;
-
-                        if (inUsing)
+                        if (!inUsing)
                         {
-                            result = result.WithAdditionalFlags(BinderFlags.InScriptUsing);
-                        }
-                        else
-                        {
-                            result = new InContainerBinder(container: null, next: result, imports: compilation.GlobalImports);
+                            result = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, result, withImportChainEntry: true);
 
-                            // NB: This binder has a full Imports object, but only the non-alias imports are
-                            // ever consumed.  Aliases are actually checked in scriptClassBinder (below).
-                            // Note: #loaded trees don't consume previous submission imports.
-                            result = compilation.PreviousSubmission == null || !isSubmissionTree
-                                ? new InContainerBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
-                                : new InContainerBinder(result, basesBeingResolved =>
-                                    compilation.GetPreviousSubmissionImports().Concat(scriptClassBinder.GetImports(basesBeingResolved)));
+                            if (isSubmissionClass)
+                            {
+                                // NB: Only the non-alias imports are
+                                // ever consumed.  Aliases are actually checked in InSubmissionClassBinder (below).
+                                // Note: #loaded trees don't consume previous submission imports.
+                                result = WithUsingNamespacesAndTypesBinder.Create((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result,
+                                                                                  withPreviousSubmissionImports: compilation.PreviousSubmission != null && isSubmissionTree,
+                                                                                  withImportChainEntry: true);
+                            }
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);
@@ -867,26 +970,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result = new HostObjectModelBinder(result);
                         }
 
-                        scriptClassBinder = new InContainerBinder(compilation.ScriptClass, result, compilationUnit, inUsing: inUsing);
-                        result = scriptClassBinder;
+                        if (isSubmissionClass)
+                        {
+                            result = new InSubmissionClassBinder(scriptClass, result, compilationUnit, inUsing);
+                        }
+                        else
+                        {
+                            result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);
+                            result = new InContainerBinder(scriptClass, result);
+                        }
                     }
                     else
                     {
                         //
                         // Binder chain in regular code:
                         //
-                        // + global namespace with top-level imports
+                        // + compilation unit imported namespaces and types
+                        //   + compilation unit extern and using aliases
+                        //     + global namespace
                         // 
-                        result = new InContainerBinder(compilation.GlobalNamespace, result, compilationUnit, inUsing: inUsing);
+                        var globalNamespace = compilation.GlobalNamespace;
+                        result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);
+                        result = new InContainerBinder(globalNamespace, result);
+
+                        if (!inUsing &&
+                            SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
+                        {
+                            ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
+                            result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
+                        }
                     }
 
                     binderCache.TryAdd(key, result);
                 }
 
-                return (InContainerBinder)result;
+                return result;
             }
 
-            private static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
+            private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
+            {
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
+
+                if (inUsing)
+                {
+                    // Extern aliases are in scope
+                    return WithExternAliasesBinder.Create(declaringSymbol, declarationSyntax, next);
+                }
+                else
+                {
+                    // All imports are in scope
+                    return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, next));
+                }
+            }
+
+            internal static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
             {
                 Debug.Assert(BitArithmeticUtilities.CountBits((uint)usage) <= 1, "Not a flags enum.");
                 return new BinderCacheKey(node, usage);
@@ -1011,7 +1148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 XmlNameAttributeElementKind elementKind = parent.GetElementKind();
 
-
                 NodeUsage extraInfo;
                 switch (elementKind)
                 {
@@ -1077,12 +1213,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
             {
-                BaseMethodDeclarationSyntax baseMethodDeclSyntax = memberSyntax as BaseMethodDeclarationSyntax;
-                if ((object)baseMethodDeclSyntax != null && baseMethodDeclSyntax.ParameterList.ParameterCount > 0)
+                if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
                     return new WithParametersBinder(method.Parameters, nextBinder);
+                }
+
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                {
+                    Binder outerBinder = VisitCore(memberSyntax);
+                    SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    var primaryConstructor = type.PrimaryConstructor;
+
+                    if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
+                        primaryConstructor.GetSyntax() == memberSyntax)
+                    {
+                        return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
+                    }
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.
@@ -1200,13 +1348,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(crefSyntax != null);
             Debug.Assert(memberSyntax != null);
 
-            BaseTypeDeclarationSyntax typeDeclSyntax = memberSyntax as BaseTypeDeclarationSyntax;
-
-            Binder binder = (object)typeDeclSyntax == null
-                ? factory.GetBinder(memberSyntax)
-                : factory.GetBinder(memberSyntax, typeDeclSyntax.OpenBraceToken.SpanStart);
+            Binder binder = memberSyntax is BaseTypeDeclarationSyntax typeDeclSyntax
+                ? getBinder(typeDeclSyntax)
+                : factory.GetBinder(memberSyntax);
 
             return MakeCrefBinderInternal(crefSyntax, binder, inParameterOrReturnType);
+
+            Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
+            {
+                if (baseTypeDeclaration is TypeDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken }, OpenBraceToken: { RawKind: (int)SyntaxKind.None } } noBlockBodyTypeDeclarationWithSemicolon)
+                {
+                    return factory.GetInTypeBodyBinder(noBlockBodyTypeDeclarationWithSemicolon);
+                }
+
+                return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);
+            }
         }
 
         /// <summary>

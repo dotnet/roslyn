@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForEachToForCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), [Shared]>
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
         Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of StatementSyntax, ForEachBlockSyntax)
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                     foreachCollectionExpression.GetTrailingTrivia().Where(Function(t) t.IsWhitespaceOrEndOfLine()))
 
             ' and remove all trailing trivia if it is used for cast
-            If foreachInfo.RequireExplicitCastInterface Then
+            If foreachInfo.ExplicitCastInterface IsNot Nothing Then
                 expression = expression.WithoutTrailingTrivia()
             End If
 
@@ -79,11 +79,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             If nextStatement.ControlVariables.Count > 0 Then
                 Debug.Assert(nextStatement.ControlVariables.Count = 1)
 
-                Dim controlVariable As SyntaxNode = nextStatement.ControlVariables(0)
-                controlVariable = generator.IdentifierName(
+                Dim controlVariable As ExpressionSyntax = nextStatement.ControlVariables(0)
+                controlVariable = CType(generator.IdentifierName(
                     indexVariable _
                         .WithLeadingTrivia(controlVariable.GetFirstToken().LeadingTrivia) _
-                        .WithTrailingTrivia(controlVariable.GetLastToken().TrailingTrivia))
+                        .WithTrailingTrivia(controlVariable.GetLastToken().TrailingTrivia)), ExpressionSyntax)
 
                 nextStatement = nextStatement.WithControlVariables(
                     SyntaxFactory.SingletonSeparatedList(controlVariable))
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             Return forEachBlock.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
         End Function
 
-        Private Sub GetVariableNameAndType(
+        Private Shared Sub GetVariableNameAndType(
             forEachStatement As ForEachStatementSyntax, ByRef foreachVariable As SyntaxNode, ByRef type As SyntaxNode)
 
             Dim controlVariable = forEachStatement.ControlVariable

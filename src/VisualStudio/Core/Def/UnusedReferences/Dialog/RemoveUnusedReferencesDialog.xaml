@@ -1,0 +1,65 @@
+﻿<vsplatform:DialogWindow x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog.RemoveUnusedReferencesDialog"
+        x:ClassModifier="internal"
+        x:Uid="RemoveUnusedReferencesDialog"
+        x:Name="dialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vsplatform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog"
+        mc:Ignorable="d"
+        Height="450"
+        Width="600"
+        Title="{Binding RemoveUnusedReferences, ElementName=dialog}"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+        Resources="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogDefaultStylesKey}}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Text="{Binding HelpText, ElementName=dialog}"
+            Margin="12 12 12 18" />
+
+        <!--
+            The main content of this dialog, a table control of unused references, will be 
+            passed in via the constructor and set as the Child of this Border.
+        -->
+        <Border
+            x:Name="TablePanel"
+            Grid.Row="1"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"
+            Margin="12 0"
+            VerticalAlignment="Stretch"
+            HorizontalAlignment="Stretch" />
+
+        <StackPanel
+            Grid.Row="2"
+            Margin="12"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button
+                x:Name="ApplyButton"
+                x:Uid="ApplyButton"
+                Click="ApplyButton_Click"
+                Content="{Binding Apply, ElementName=dialog}" />
+            <Button
+                x:Name="CancelButton"
+                x:Uid="CancelButton"
+                IsCancel="True"
+                Margin="6, 0, 0, 0"
+                Content="{Binding Cancel, ElementName=dialog}" />
+        </StackPanel>
+
+    </Grid>
+</vsplatform:DialogWindow>

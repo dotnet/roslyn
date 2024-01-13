@@ -939,7 +939,6 @@ Namespace System.Runtime.CompilerServices
 End Namespace
     </file>
 </compilation>
-
             CompileAndVerify(compilationDef,
                              expectedOutput:=
             <![CDATA[
@@ -951,5 +950,4 @@ End Namespace
     End Class
 
 End Namespace
-
 

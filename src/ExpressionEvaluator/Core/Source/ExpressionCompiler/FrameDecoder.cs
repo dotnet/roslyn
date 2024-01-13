@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -94,6 +92,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // NOTE: We could always call GetClrGenericParameters, pass them to GetMethod and have that
             // return a constructed method symbol, but it seems unwise to call GetClrGenericParameters
             // for all frames (as this call requires a round-trip to the debuggee process).
+
+            // [nullability] We do not expect frames without instruction addresses in this path. Additionally, there is no good 
+            // way to return if we receive a frame with no address, as executing the onFailure callback would just hide a deeper issue.
+            RoslynDebug.AssertNotNull(frame.InstructionAddress);
             var instructionAddress = (DkmClrInstructionAddress)frame.InstructionAddress;
             var compilation = _instructionDecoder.GetCompilation(instructionAddress.ModuleInstance);
             var method = _instructionDecoder.GetMethod(compilation, instructionAddress);

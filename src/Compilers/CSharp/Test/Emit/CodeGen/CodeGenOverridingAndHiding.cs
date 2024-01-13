@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -601,9 +604,9 @@ Base.get_Property",
                     Signature("Base4`2", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(U value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestBaseAccessForMembersHiddenInImmediateBaseClass()
+        [Fact]
+        public void TestBaseAccessForMembersHiddenInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -695,9 +698,9 @@ Base.set_Property()");
   IL_0018:  ret       
 }");
         }
-        [Fact]
 
-        private void TestBaseAccessForMembersMissingInImmediateBaseClass()
+        [Fact]
+        public void TestBaseAccessForMembersMissingInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -797,9 +800,9 @@ Base.set_Property()");
   IL_001e:  ret       
 }");
         }
-        [Fact]
 
-        private void TestBaseAccessForObjectMembers()
+        [Fact]
+        public void TestBaseAccessForObjectMembers()
         {
             // Tests: 
             // Override virtual methods declared on object (ToString, GetHashCode etc.) 
@@ -855,9 +858,9 @@ abstract class DerivedClass : BaseClass<int, long>
   IL_0007:  ret       
 }");
         }
-        [Fact]
 
-        private void TestOverridingFinalizeImpersonator()
+        [Fact]
+        public void TestOverridingFinalizeImpersonator()
         {
             // Tests:
             // Override overloaded member from base type named Finalize having same / different signature 
@@ -978,9 +981,9 @@ Derived2.Finalize()
   IL_000a:  ret
 }");
         }
-        [Fact]
 
-        private void TestOverrideResolution2()
+        [Fact]
+        public void TestOverrideResolution2()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by generic type parameter count
@@ -1028,9 +1031,9 @@ Derived.Method()
 Derived.Method<>
 Derived.Method<,>)");
         }
-        [Fact]
 
-        private void TestOverrideResolution1()
+        [Fact]
+        public void TestOverrideResolution1()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by parameter types and count
@@ -1112,58 +1115,160 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
-        private void TestAmbiguousOverridesWarningCase()
+        [Fact]
+        public void TestAmbiguousOverridesRefOut()
         {
-            // Tests:
-            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out - test that only a warning (for runtime ambiguity) is reported 
-            // in the case where ambiguous signatures differ by just ref / out
-
-            var source = @"
-using System;
+            var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
+            var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
+            var source =
+@"using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
-    public virtual void Method(ref List<T> x, out List<U> y) { Console.WriteLine(""Base.Method(ref, out)""); y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { Console.WriteLine(""Base.Method(out, ref)""); y = null; }
-    public virtual void Method(ref List<U> x) { Console.WriteLine(""Base.Method(ref)""); }
+    METHOD1
+    METHOD2
+    public virtual void Method(BASEREF List<U> x) { x = null; Console.WriteLine(""Base<T, U>.Method(ref List<U> x)""); }  
 }
 class Base2<A, B> : Base<A, B>
 {
-    public virtual void Method(out List<A> x) { Console.WriteLine(""Base2.Method(out)""); x = null; }
+    public virtual void Method(BASE2REF List<A> x)
+    {
+        x = null;
+        Console.WriteLine(""Base2<A, B>.Method(BASE2REF List<A> x)"");
+    }
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; } // Reports warning about runtime ambiguity
-    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); } // No warning when ambiguous signatures are spread across multiple base types
-}
-class Test
-{
-    public static void Main()
+    public override void Method(ref List<int> a, out List<int> b)
     {
-        Base<int, int> b = new Derived();
-        List<int> arg = new List<int>();
-        b.Method(out arg, ref arg);
-        b.Method(ref arg, out arg);
-        b.Method(ref arg);
+        b = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
+    }
+    public override void Method(BASEREF List<int> a)
+    {
+        a = null;
+        Console.WriteLine(""Derived.Method(BASEREF List<int> a)"");
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        List<int> t = null;
+        Console.WriteLine();
+        Derived d = new Derived();
+        d.Method(ref t, out t);
+        d.Method(out t, ref t);
+        d.Method(BASEREF t);
+        d.Method(BASE2REF t);
+        Console.WriteLine();
+        Base2<int, int> b2 = d;
+        b2.Method(ref t, out t);
+        b2.Method(out t, ref t);
+        b2.Method(BASEREF t);
+        b2.Method(BASE2REF t);
+        Console.WriteLine();
+        Base<int, int> b1 = d;
+        b1.Method(ref t, out t);
+        b1.Method(out t, ref t);
+        b1.Method(BASEREF t);
     }
 }
 ";
-            // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
-            // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
-            // the test flaky, we can delete this test.
+            for (int i = 0; i < 2; i++)
+            {
+                var substitutedSource0 = i switch
+                {
+                    0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
+                    _ => source.Replace("METHOD2", method1).Replace("METHOD1", method2),
+                };
+                for (int j = 0; j < 2; j++)
+                {
+                    string subst(string s) => j switch
+                    {
+                        0 => s.Replace("BASEREF", "ref").Replace("BASE2REF", "out"),
+                        _ => s.Replace("BASEREF", "out").Replace("BASE2REF", "ref"),
+                    };
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
-Derived.Method(ref, out)
-Base.Method(ref, out)
-Base.Method(ref)");
+                    var substitutedSource = subst(substitutedSource0);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
+                    string expectedOutput;
+                    Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                    if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+                    {
+                        // Correct runtime behavior with no warning
+                        compilation.VerifyDiagnostics();
+                        expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+";
+                    }
+                    else if (ExecutionConditionUtil.IsCoreClr || ExecutionConditionUtil.IsDesktop)
+                    {
+                        // Imperfect runtime behavior with warning
+                        switch (i)
+                        {
+                            case 0:
+                                compilation.VerifyDiagnostics(
+                                    // (5,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(5, 25)
+                                    );
+                                break;
+                            default:
+                                compilation.VerifyDiagnostics(
+                                    // (6,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(6, 25)
+                                    );
+                                break;
+                        }
+                        var (m1, m2) = i switch
+                        {
+                            0 => ("Base<T, U>.Method(ref List<T> x, out List<U> y)", "Derived.Method(ref List<int> a, out List<int> b)"),
+                            _ => ("Derived.Method(ref List<int> a, out List<int> b)", "Base<T, U>.Method(out List<U> y, ref List<T> x)"),
+                        };
+                        expectedOutput = $@"
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)";
+                    }
+                    else
+                    {
+                        // unknown runtime behavior
+                        continue;
+                    }
+
+                    var substitutedExpected = subst(expectedOutput);
+                    var verifier = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
+                }
+            }
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-
-        private void TestEmitSynthesizedSealedSetter()
+        public void TestEmitSynthesizedSealedSetter()
         {
             var source = @"
 class Base
@@ -1218,10 +1323,10 @@ Base.P.Set(2)",
                     Signature("Derived", "set_P", ".method public hidebysig specialname virtual final instance System.Void set_P(System.Int32 value) cil managed")
                 });
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-
-        private void TestEmitSynthesizedSealedGetter()
+        public void TestEmitSynthesizedSealedGetter()
         {
             var source = @"
 class Base
@@ -1275,10 +1380,10 @@ Derived.P.Set(2)",
                     Signature("Derived", "get_P", ".method public hidebysig specialname virtual final instance System.Int32 get_P() cil managed")
                 });
         }
+
         [WorkItem(540327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
         [Fact]
-
-        private void TestOverrideWithSealedProperty()
+        public void TestOverrideWithSealedProperty()
         {
             var source = @"using System;
 abstract public class Base
@@ -1324,9 +1429,9 @@ Derived.set_Property3",
                     Signature("Base+Derived", "set_Property3", ".method public hidebysig specialname virtual final instance System.Void set_Property3(System.Single value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestOverrideWithAbstractProperty()
+        [Fact]
+        public void TestOverrideWithAbstractProperty()
         {
             var source = @"using System;
 public class Base1
@@ -1396,9 +1501,9 @@ Derived.set_Property2",
                     Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual instance System.Void set_Property2(System.Int64 value) cil managed")
                 });
         }
-        [Fact]
 
-        private void TestOverrideWithAbstractProperty2()
+        [Fact]
+        public void TestOverrideWithAbstractProperty2()
         {
             var source = @"using System;
 public class Base1
@@ -1872,10 +1977,10 @@ class Derived2 : Base2
 
             comp.VerifyDiagnostics();
         }
+
         [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-
-        private void TestInternalMethods()
+        public void TestInternalMethods()
         {
             // Tests:
             // internal virtual / abstract methods should be marked with strict modifier
@@ -1909,9 +2014,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedInternalMethods()
+        [Fact]
+        public void TestProtectedInternalMethods()
         {
             // Tests:
             // protected internal virtual / abstract methods should not be marked with strict modifier
@@ -1945,9 +2050,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedMethods()
+        [Fact]
+        public void TestProtectedMethods()
         {
             // Tests:
             // protected virtual / abstract methods should not be marked with strict modifier
@@ -1980,9 +2085,9 @@ class Derived : Base2<int>
                 Signature("Derived", "Method2", ".method family hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed")
             });
         }
-        [Fact]
 
-        private void TestPublicMethods()
+        [Fact]
+        public void TestPublicMethods()
         {
             // Tests:
             // public virtual / abstract methods should not be marked with strict modifier
@@ -2016,10 +2121,10 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
+
         [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-
-        private void TestInternalAccessors()
+        public void TestInternalAccessors()
         {
             // Tests:
             // internal virtual / abstract accessors should be marked with strict modifier
@@ -2123,9 +2228,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestProtectedInternalAccessorsInDifferentAssembly()
+        [Fact]
+        public void TestProtectedInternalAccessorsInDifferentAssembly()
         {
             var source1 = @"
 using System.Collections.Generic;
@@ -2208,9 +2313,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestPublicAccessors()
+        [Fact]
+        public void TestPublicAccessors()
         {
             // Tests:
             // public virtual / abstract accessors should not be marked with strict modifier
@@ -2244,9 +2349,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestOverrideOverloadedMethod()
+        [Fact]
+        public void TestOverrideOverloadedMethod()
         {
             var source = @"
 using System.Collections.Generic;
@@ -2280,9 +2385,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-        [Fact]
 
-        private void TestOverrideHidingMember()
+        [Fact]
+        public void TestOverrideHidingMember()
         {
             // Tests:
             // Hide base virtual member with a virtual new / abstract new member 
@@ -2451,7 +2556,7 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            CompileAndVerify(outerCompilation, verify: Verification.Fails).VerifyIL("Test.Main", @"
+            CompileAndVerify(outerCompilation, verify: Verification.FailsPEVerify).VerifyIL("Test.Main", @"
 {
   // Code size       65 (0x41)
   .maxstack  4
@@ -3053,14 +3158,14 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
-                            options: TestOptions.ReleaseDll);
+                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
-                            options: TestOptions.ReleaseDll);
+                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 
@@ -3565,9 +3670,9 @@ Derived1.Method`2",
                 // (19,46): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
-        [Fact]
 
-        private void TestHideMethodWithModreqCustomModifiers()
+        [Fact]
+        public void TestHideMethodWithModreqCustomModifiers()
         {
             var text = @"using System;
 using Metadata;
@@ -3695,17 +3800,46 @@ public class C : B
             var text = @"
 public class A
 {
-    public virtual int get_P() { return 0; }
+    public virtual int get_P()
+    {
+        System.Console.WriteLine(""A::get_P"");
+        return 0;
+    }
 }
 
 public class B : A
 {
-    public virtual int P { get; set; }
+    public virtual int P
+    {
+        get
+        {
+            System.Console.WriteLine(""B::P.get"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""B::P.set"");
+        }
+    }
 }
 
 public class C : B
 {
-    public override int get_P() { return 0; }
+    public override int get_P()
+    {
+        System.Console.WriteLine(""C::get_P"");
+        return 0;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C c = new C();
+        _ = c.P;
+        _ = c.get_P();
+    }
 }
 ";
             Action<ModuleSymbol> validator = module =>
@@ -3729,7 +3863,9 @@ public class C : B
                 Assert.Equal(methodA, methodC.OverriddenMethod);
             };
 
-            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput:
+@"B::P.get
+C::get_P");
         }
 
         /// <summary>
@@ -3968,7 +4104,7 @@ class B : A
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
 
-                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB));
+                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB, requireSameReturnType: false));
 
                 Assert.Equal(1, fooA.ParameterCount);
                 var parameterA = fooA.Parameters[0];
@@ -3985,11 +4121,29 @@ class B : A
 
                 if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                    VerifyParamArrayAttribute(parameterB);
                 };
             };
 
             var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
+        }
+
+        private static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
+        {
+            Assert.Equal(expected, parameter.IsParams);
+
+            var peParameter = (PEParameterSymbol)parameter;
+            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
+
+            if (expected)
+            {
+                Assert.Equal(1, paramArrayAttributes.Count());
+            }
+            else
+            {
+                Assert.Empty(paramArrayAttributes);
+            }
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
 #Region "Preview Text"
 
-        Private Shared s_fieldDeclarationPreviewTrue As String = "
+        Private Const s_fieldDeclarationPreviewTrue As String = "
 Class C
     Private capacity As Integer
     Sub Method()
@@ -26,7 +26,7 @@ Class C
 End Class
 "
 
-        Private Shared s_fieldDeclarationPreviewFalse As String = "
+        Private Const s_fieldDeclarationPreviewFalse As String = "
 Class C
     Private capacity As Integer
     Sub Method()
@@ -37,7 +37,7 @@ Class C
 End Class
 "
 
-        Private Shared s_propertyDeclarationPreviewTrue As String = "
+        Private Const s_propertyDeclarationPreviewTrue As String = "
 Class C
     Public Property Id As Integer
     Sub Method()
@@ -48,7 +48,7 @@ Class C
 End Class
 "
 
-        Private Shared s_propertyDeclarationPreviewFalse As String = "
+        Private Const s_propertyDeclarationPreviewFalse As String = "
 Class C
     Public Property Id As Integer
     Sub Method()
@@ -59,7 +59,7 @@ Class C
 End Class
 "
 
-        Private Shared s_methodDeclarationPreviewTrue As String = "
+        Private Const s_methodDeclarationPreviewTrue As String = "
 Class C
     Sub Display()
         '//[
@@ -69,7 +69,7 @@ Class C
 End Class
 "
 
-        Private Shared s_methodDeclarationPreviewFalse As String = "
+        Private Const s_methodDeclarationPreviewFalse As String = "
 Class C
     Sub Display()
         '//[
@@ -79,7 +79,7 @@ Class C
 End Class
 "
 
-        Private Shared s_eventDeclarationPreviewTrue As String = "
+        Private Const s_eventDeclarationPreviewTrue As String = "
 Imports System
 Class C
     Public Event Elapsed As EventHandler
@@ -91,7 +91,7 @@ Class C
 End Class
 "
 
-        Private Shared s_eventDeclarationPreviewFalse As String = "
+        Private Const s_eventDeclarationPreviewFalse As String = "
 Imports System
 Class C
     Public Event Elapsed As EventHandler
@@ -103,7 +103,7 @@ Class C
 End Class
 "
 
-        Private _intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
+        Private ReadOnly _intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Integer
@@ -114,7 +114,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
+        Private ReadOnly _intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Int32
@@ -125,7 +125,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
+        Private ReadOnly _intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
 Imports System
 Class Program
     '//[
@@ -136,7 +136,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
+        Private ReadOnly _intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
 Imports System
 Class Program
     '//[
@@ -386,8 +386,8 @@ Class Customer1
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Prefer_colon}
-    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
-    Public Overrides Function GetHashCodeAsInteger()
+    ' {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
+    Public Overrides Function GetHashCode() As Integer
         Return System.HashCode.Combine(a, b, c)
     End Function
 //]
@@ -396,7 +396,7 @@ Class Customer2
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Over_colon}
-    Public Overrides Function GetHashCodeAsInteger()
+    Public Overrides Function GetHashCode() As Integer
         Dim hashCode = 339610899
         hashCode = hashCode * -1521134295 + a.GetHashCode()
         hashCode = hashCode * -1521134295 + b.GetHashCode()
@@ -443,6 +443,42 @@ Class Customer
 //[
         ' {ServicesVSResources.Over_colon}
         value = value + 10
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferIsNotExpression As String = $"
+Imports System
+
+Class Customer
+    Sub M1(value as object)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim isSomething = value IsNot Nothing
+//]
+    End Sub
+    Sub M2(value as object)
+//[
+        ' {ServicesVSResources.Over_colon}
+        Dim isSomething = Not value Is Nothing
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferSimplifiedObjectCreation As String = $"
+Imports System
+
+Class Customer
+    Sub M1()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim c As New Customer()
+//]
+    End Sub
+    Sub M2()
+//[
+        ' {ServicesVSResources.Over_colon}
+        Dim c As Customer = New Customer()
 //]
     End Sub
 End Class"
@@ -585,6 +621,86 @@ Class Customer2
 //]
 End Class"
 
+        Private Shared ReadOnly s_allow_multiple_blank_lines_true As String = $"
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Allow_colon}
+        If True Then
+            DoWork()
+        End If
+
+
+        Return
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_allow_multiple_blank_lines_false As String = $"
+Class Customer1
+    Sub Method()
+//[
+        ' {ServicesVSResources.Require_colon}
+        If True Then
+            DoWork()
+        End If
+
+        Return
+//]
+    End Sub
+End Class
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Over_colon}
+        If True Then
+            DoWork()
+        End If
+
+
+        Return
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_allow_statement_immediately_after_block_true As String = $"
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Allow_colon}
+        If True Then
+            DoWork()
+        End If
+        Return
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_allow_statement_immediately_after_block_false As String = $"
+Class Customer1
+    Sub Method()
+//[
+        ' {ServicesVSResources.Require_colon}
+        If True Then
+            DoWork()
+        End If
+
+        Return
+//]
+    End Sub
+End Class
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Over_colon}
+        If True Then
+            DoWork()
+        End If
+        Return
+//]
+    End Sub
+End Class"
+
 #Region "unused parameters"
 
         Private Shared ReadOnly s_avoidUnusedParametersNonPublicMethods As String = $"
@@ -698,6 +814,7 @@ End Class
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
             Dim fieldPreferencesGroupTitle = ServicesVSResources.Modifier_preferences_colon
             Dim parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon
+            Dim newLinePreferencesGroupTitle = ServicesVSResources.New_line_preferences_experimental_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionStore, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -725,6 +842,8 @@ End Class
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, Me, optionStore, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferIsNotExpression, BasicVSResources.Prefer_IsNot_expression, s_preferIsNotExpression, s_preferIsNotExpression, Me, optionStore, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, BasicVSResources.Prefer_simplified_object_creation, s_preferSimplifiedObjectCreation, s_preferSimplifiedObjectCreation, Me, optionStore, expressionPreferencesGroupTitle))
 
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle)
 
@@ -738,29 +857,33 @@ End Class
 
             ' Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle)
+
+            ' New line preferences
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowMultipleBlankLines, ServicesVSResources.Allow_multiple_blank_lines, s_allow_multiple_blank_lines_true, s_allow_multiple_blank_lines_false, Me, optionStore, newLinePreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_true, Me, optionStore, newLinePreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
+                optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
                 BasicVSResources.In_arithmetic_binary_operators,
                 {s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.OtherBinaryParentheses,
+                optionStore, CodeStyleOptions2.OtherBinaryParentheses,
                 BasicVSResources.In_other_binary_operators,
                 {s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
+                optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
                 BasicVSResources.In_relational_binary_operators,
                 {s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.OtherParentheses,
+                optionStore, CodeStyleOptions2.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 {s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary},
                 defaultAddForClarity:=False)
@@ -806,7 +929,7 @@ End Class
                 s_avoidUnusedParametersAllMethods
             }
 
-            AddUnusedParameterOption(LanguageNames.VisualBasic, optionStore, parameterPreferencesGroupTitle, examples)
+            AddUnusedParameterOption(optionStore, parameterPreferencesGroupTitle, examples)
         End Sub
     End Class
 End Namespace

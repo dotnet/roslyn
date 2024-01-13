@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.ComponentModel;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -41,10 +37,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects)
+        /// <summary>
+        /// The analyzers initially associated with this solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+
+        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             Attributes = attributes;
             Projects = projects;
+            AnalyzerReferences = analyzerReferences;
+        }
+
+        // 3.5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a SolutionInfo.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SolutionInfo Create(
+            SolutionId id,
+            VersionStamp version,
+            string? filePath,
+            IEnumerable<ProjectInfo>? projects)
+        {
+            return Create(id, version, filePath, projects, analyzerReferences: null);
         }
 
         /// <summary>
@@ -54,53 +70,68 @@ namespace Microsoft.CodeAnalysis
             SolutionId id,
             VersionStamp version,
             string? filePath = null,
-            IEnumerable<ProjectInfo>? projects = null)
+            IEnumerable<ProjectInfo>? projects = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null)
         {
             return new SolutionInfo(
                 new SolutionAttributes(
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
-                    filePath),
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)));
+                    filePath,
+                    telemetryId: default),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => Projects.Select(p => p.Language).ToImmutableHashSet();
+        internal SolutionInfo WithTelemetryId(Guid telemetryId)
+            => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 
         /// <summary>
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal sealed class SolutionAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
         {
-            private Checksum? _lazyChecksum;
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The unique Id of the solution.
             /// </summary>
-            public SolutionId Id { get; }
+            public SolutionId Id { get; } = id;
 
             /// <summary>
             /// The version of the solution.
             /// </summary>
-            public VersionStamp Version { get; }
+            public VersionStamp Version { get; } = version;
 
             /// <summary>
             /// The path to the solution file, or null if there is no solution file.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; } = filePath;
 
-            public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath)
+            /// <summary>
+            /// The id report during telemetry events.
+            /// </summary>
+            public Guid TelemetryId { get; } = telemetryId;
+
+            public SolutionAttributes With(
+                VersionStamp? version = null,
+                Optional<string?> filePath = default,
+                Optional<Guid> telemetryId = default)
             {
-                Id = id;
-                Version = version;
-                FilePath = filePath;
+                var newVersion = version ?? Version;
+                var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
+                var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
+
+                if (newVersion == Version &&
+                    newFilePath == FilePath &&
+                    newTelemetryId == TelemetryId)
+                {
+                    return this;
+                }
+
+                return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
-
-            public SolutionAttributes WithVersion(VersionStamp versionStamp)
-                => new SolutionAttributes(Id, versionStamp, FilePath);
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -111,6 +142,7 @@ namespace Microsoft.CodeAnalysis
                 // info.Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
+                writer.WriteGuid(TelemetryId);
             }
 
             public static SolutionAttributes ReadFrom(ObjectReader reader)
@@ -118,12 +150,13 @@ namespace Microsoft.CodeAnalysis
                 var solutionId = SolutionId.ReadFrom(reader);
                 // var version = VersionStamp.ReadFrom(reader);
                 var filePath = reader.ReadString();
+                var telemetryId = reader.ReadGuid();
 
-                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
+                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
+            public Checksum Checksum
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }

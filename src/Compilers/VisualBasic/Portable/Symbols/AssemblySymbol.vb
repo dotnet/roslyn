@@ -49,6 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IAssemblySymbolInternal_CorLibrary As IAssemblySymbolInternal Implements IAssemblySymbolInternal.CorLibrary
+            Get
+                Return CorLibrary
+            End Get
+        End Property
+
         ''' <summary>
         ''' A helper method for ReferenceManager to set the system assembly, which provides primitive 
         ''' types like Object, String, etc., e.g. mscorlib.dll. 
@@ -232,30 +238,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+
+        Public MustOverride ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
         ''' compared case-sensitively.
         ''' </summary>
         ''' <param name="emittedName">
-        ''' Full type name with generic name mangling.
+        ''' Full type name, possibly with generic name mangling.
         ''' </param>
-        ''' <param name="digThroughForwardedTypes">
-        ''' Take forwarded types into account.
-        ''' </param>
-        ''' <remarks></remarks>
-        Friend Function LookupTopLevelMetadataType(ByRef emittedName As MetadataTypeName, digThroughForwardedTypes As Boolean) As NamedTypeSymbol
-            Return LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies:=Nothing, digThroughForwardedTypes:=digThroughForwardedTypes)
-        End Function
+        Friend MustOverride Function LookupDeclaredTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
@@ -267,10 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="visitedAssemblies">
         ''' List of assemblies lookup has already visited (since type forwarding can introduce cycles).
         ''' </param>
-        ''' <param name="digThroughForwardedTypes">
-        ''' Take forwarded types into account.
-        ''' </param>
-        Friend MustOverride Function LookupTopLevelMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), digThroughForwardedTypes As Boolean) As NamedTypeSymbol
+        Friend MustOverride Function LookupDeclaredOrForwardedTopLevelMetadataType(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol)) As NamedTypeSymbol
 
         ''' <summary>
         ''' Returns the type symbol for a forwarded type based its canonical CLR metadata name.
@@ -310,6 +301,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(forwardingModule, emittedName, diagnosticInfo)
         End Function
 
+        Friend MustOverride Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+
         ''' <summary>
         ''' Lookup declaration for predefined CorLib type in this Assembly. Only valid if this 
         ''' assembly is the Cor Library
@@ -337,14 +330,92 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Function SupportsRuntimeCapability(capability As RuntimeCapability) As Boolean
+            ' Keep in sync with C#'s AssemblySymbol.SupportsRuntimeCapability
+            Select Case capability
+                Case RuntimeCapability.ByRefFields
+                    Return Me.RuntimeSupportsByRefFields
+                Case RuntimeCapability.CovariantReturnsOfClasses
+                    Return Me.RuntimeSupportsCovariantReturnsOfClasses
+                Case RuntimeCapability.DefaultImplementationsOfInterfaces
+                    Return Me.RuntimeSupportsDefaultInterfaceImplementation
+                Case RuntimeCapability.NumericIntPtr
+                    Return Me.RuntimeSupportsNumericIntPtr
+                Case RuntimeCapability.UnmanagedSignatureCallingConvention
+                    Return Me.RuntimeSupportsUnmanagedSignatureCallingConvention
+                Case RuntimeCapability.VirtualStaticsInInterfaces
+                    Return Me.RuntimeSupportsVirtualStaticsInInterfaces
+                Case RuntimeCapability.InlineArrayTypes
+                    Return Me.RuntimeSupportsInlineArrayTypes
+            End Select
+
+            Return False
+        End Function
+
+        Private ReadOnly Property RuntimeSupportsByRefFields As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefFields
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsCovariantReturnsOfClasses As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsCovariantReturnsOfClasses
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) AndAlso
+                       GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute).IsClassType()
+            End Get
+        End Property
+
         ''' <summary>
         ''' Figure out if the target runtime supports default interface implementation.
         ''' </summary>
         Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
             Get
-                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) IsNot Nothing
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsDefaultInterfaceImplementation
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
             End Get
         End Property
+
+        Private ReadOnly Property RuntimeSupportsNumericIntPtr As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsNumericIntPtr
+
+                ' CorLibrary should never be null, but that invariant Is broken in some cases for MissingAssemblySymbol.
+                ' Tracked by https://github.com/dotnet/roslyn/issues/61262
+                Return CorLibrary IsNot Nothing AndAlso
+                       RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsUnmanagedSignatureCallingConvention As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsUnmanagedSignatureCallingConvention
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsVirtualStaticsInInterfaces As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsStaticAbstractMembersInInterfaces
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsInlineArrayTypes As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
+        Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+
+            Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
+                   GetSpecialTypeMember(feature) IsNot Nothing
+        End Function
 
         ''' <summary>
         ''' Return an array of assemblies involved in canonical type resolution of
@@ -373,9 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         Public MustOverride ReadOnly Property TypeNames As ICollection(Of String) Implements IAssemblySymbol.TypeNames
 
@@ -389,6 +458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns></returns>
         ''' <remarks></remarks>
         Friend MustOverride Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
+
+        Friend MustOverride Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
 
         Friend MustOverride Function AreInternalsVisibleToThisAssembly(other As AssemblySymbol) As Boolean
 
@@ -425,7 +496,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetPrimitiveType(type As Microsoft.Cci.PrimitiveTypeCode) As NamedTypeSymbol
             Return GetSpecialType(SpecialTypes.GetTypeFromMetadataName(type))
         End Function
-
 
         ''' <summary>
         ''' Lookup a type within the assembly using its canonical CLR metadata name (names are compared case-sensitively).
@@ -480,12 +550,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
                 type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, conflicts)
 
+                If type Is Nothing Then
+                    Return Nothing
+                End If
+
+                Debug.Assert(Not type.IsErrorType())
+
                 Dim i As Integer = 1
 
-                While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
+                While i < parts.Length
                     mdName = MetadataTypeName.FromTypeName(parts(i))
-                    Dim temp = type.LookupMetadataType(mdName)
-                    type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
+                    type = type.LookupMetadataType(mdName)
+
+                    If type Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Debug.Assert(Not type.IsErrorType())
+
+                    If isWellKnownType AndAlso Not IsValidWellKnownType(type) Then
+                        Return Nothing
+                    End If
+
                     i += 1
                 End While
             Else
@@ -494,9 +580,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      ignoreCorLibraryDuplicatedTypes:=ignoreCorLibraryDuplicatedTypes)
             End If
 
-            Return If(type Is Nothing OrElse type.IsErrorType(), Nothing, type)
+            Debug.Assert(If(Not type?.IsErrorType(), True))
+            Return type
         End Function
-
 
         ''' <summary>
         ''' Lookup a top level type within the assembly or one of the assemblies referenced by the primary module, 
@@ -512,59 +598,90 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
-            result = Me.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+            result = Me.LookupDeclaredTopLevelMetadataType(metadataName)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
 
             If isWellKnownType AndAlso Not IsValidWellKnownType(result) Then
                 result = Nothing
             End If
 
-            If (IsAcceptableMatchForGetTypeByNameAndArity(result)) Then
+            If IsAcceptableMatchForGetTypeByNameAndArity(result) Then
                 Return result
             End If
 
             result = Nothing
 
-            If includeReferences Then
-                ' Lookup in references
-                Dim references As ImmutableArray(Of AssemblySymbol) = Me.Modules(0).GetReferencedAssemblySymbols()
-
-                For i As Integer = 0 To references.Length - 1 Step 1
-                    Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
-                    Dim candidate As NamedTypeSymbol = references(i).LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
-
-                    If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
-                        candidate = Nothing
-                    End If
-
-                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
-                        Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
-                        Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
-                        Not TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
-
-                        If (result IsNot Nothing) Then
-                            ' Ambiguity
-                            If ignoreCorLibraryDuplicatedTypes Then
-                                If IsInCorLib(candidate) Then
-                                    ' ignore candidate
-                                    Continue For
-                                End If
-                                If IsInCorLib(result) Then
-                                    ' drop previous result
-                                    result = candidate
-                                    Continue For
-                                End If
-                            End If
-
-                            conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
-                            Return Nothing
-                        End If
-
-                        result = candidate
-                    End If
-                Next
+            If Not includeReferences Then
+                Return result
             End If
 
+            ' Then try corlib, when finding a result there means we've found the final result
+            Dim skipCorLibrary = False
+
+            If CorLibrary IsNot Me AndAlso
+                Not CorLibrary.IsMissing AndAlso
+                Not ignoreCorLibraryDuplicatedTypes Then
+
+                Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not corLibCandidate?.IsErrorType(), True))
+                skipCorLibrary = True
+
+                If IsValidCandidate(corLibCandidate, isWellKnownType) Then
+                    Return corLibCandidate
+                End If
+            End If
+
+            ' Lookup in references
+            Dim references As ImmutableArray(Of AssemblySymbol) = Me.Modules(0).GetReferencedAssemblySymbols()
+
+            For i As Integer = 0 To references.Length - 1 Step 1
+                Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
+                Dim reference = references(i)
+
+                If skipCorLibrary AndAlso reference Is CorLibrary Then
+                    Continue For
+                End If
+
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
+
+                If Not IsValidCandidate(candidate, isWellKnownType) OrElse
+                        TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
+
+                    Continue For
+                End If
+
+                If result IsNot Nothing Then
+                    ' Ambiguity
+                    If ignoreCorLibraryDuplicatedTypes Then
+                        If IsInCorLib(candidate) Then
+                            ' ignore candidate
+                            Continue For
+                        End If
+                        If IsInCorLib(result) Then
+                            ' drop previous result
+                            result = candidate
+                            Continue For
+                        End If
+                    End If
+
+                    conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
+                    Return Nothing
+                End If
+
+                result = candidate
+            Next
+
+            Debug.Assert(If(Not result?.IsErrorType(), True))
             Return result
+        End Function
+
+        Private Function IsValidCandidate(candidate As NamedTypeSymbol, isWellKnownType As Boolean) As Boolean
+
+            Return (Not isWellKnownType OrElse IsValidWellKnownType(candidate)) AndAlso
+                IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
+                Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute()
         End Function
 
         Private Function IsInCorLib(type As NamedTypeSymbol) As Boolean
@@ -643,6 +760,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me.ResolveForwardedType(metadataName)
         End Function
 
+        Private Function IAssemblySymbol_GetForwardedTypes() As ImmutableArray(Of INamedTypeSymbol) Implements IAssemblySymbol.GetForwardedTypes
+            Return ImmutableArrayExtensions.AsImmutable(Of INamedTypeSymbol)(GetAllTopLevelForwardedTypes().OrderBy(Function(t) t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat)))
+        End Function
+
         Private Function IAssemblySymbol_GetTypeByMetadataName(metadataName As String) As INamedTypeSymbol Implements IAssemblySymbol.GetTypeByMetadataName
             Return Me.GetTypeByMetadataName(metadataName)
         End Function
@@ -655,12 +776,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitAssembly(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitAssembly(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitAssembly(Me)
         End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitAssembly(Me)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte)) Implements IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys
+            Return GetInternalsVisibleToPublicKeys(simpleName)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String) Implements IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames
+            Return GetInternalsVisibleToAssemblyNames()
+        End Function
+
+        Private Function IAssemblySymbolInternal_AreInternalsVisibleToThisAssembly(other As IAssemblySymbolInternal) As Boolean Implements IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly
+            Return AreInternalsVisibleToThisAssembly(DirectCast(other, AssemblySymbol))
         End Function
 
 #End Region

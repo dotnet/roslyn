@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,16 +11,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -26,17 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
         protected readonly Workspace Workspace;
+        protected readonly Solution OriginalSolution;
         protected readonly ITextBuffer SubjectBuffer;
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
-
-        private bool _isApplied;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
@@ -44,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
@@ -54,123 +60,123 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             SourceProvider = sourceProvider;
             Workspace = workspace;
+            OriginalSolution = originalSolution;
             SubjectBuffer = subjectBuffer;
             Provider = provider;
             CodeAction = codeAction;
         }
 
-        internal virtual CodeActionPriority Priority => CodeAction.Priority;
-
-        internal bool IsForCodeQualityImprovement
-            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
-
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = CodeAction.GetType().GetTelemetryId();
+            telemetryId = CodeAction.GetTelemetryId();
             return true;
         }
 
         // NOTE: We want to avoid computing the operations on the UI thread. So we use Task.Run() to do this work on the background thread.
         protected Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
+                () => CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+            CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
+                () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, progressTracker, cancellationToken), cancellationToken);
         }
 
         protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => CodeAction.GetPreviewOperationsAsync(cancellationToken), cancellationToken);
+                () => CodeAction.GetPreviewOperationsAsync(this.OriginalSolution, cancellationToken), cancellationToken);
         }
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            // While we're not technically doing anything async here, we need to let the
-            // integration test harness know that it should not proceed until all this
-            // work is done.  Otherwise it might ask to do some work before we finish.
-            // That can happen because although we're on the UI thread, we may do things
-            // that end up causing VS to pump the messages that the test harness enqueues
-            // to the UI thread as well.
-            using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
+            throw new NotImplementedException("Invoke(CancellationToken) is no longer supported. Use Invoke(IUIThreadOperationContext) instead.");
+        }
+
+        public void Invoke(IUIThreadOperationContext context)
+        {
+            // we're going to return immediately from Invoke and kick off our own async work to invoke the
+            // code action. Once this returns, the editor will close the threaded wait dialog it created.
+            // So we need to take ownership of it and start our own TWD instead to track this.
+            context.TakeOwnership();
+
+            _ = InvokeAsync();
+        }
+
+        private async Task InvokeAsync()
+        {
+            try
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods
-                // later in this call chain, do not await them.
-                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
-                {
-                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
-                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    {
-                        actionCallback.Value.OnSuggestedActionExecuted(this);
-                    }
-                });
+                using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Application_Summary, $"Total");
+
+                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
+                using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
+                    EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
+                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+                await this.InnerInvokeAsync(scope.GetCodeAnalysisProgress(), context.UserCancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
             }
         }
 
-        protected virtual void InnerInvoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        protected virtual async Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                InvokeCore(getFromDocument, progressTracker, cancellationToken);
+                // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
+                await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+                    Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
             }
         }
 
-        protected void InvokeCore(
-            Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        private async Task InvokeWorkerAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var extensionManager = Workspace.Services.GetService<IExtensionManager>();
-            extensionManager.PerformAction(Provider, () =>
-            {
-                InvokeWorker(getFromDocument, progressTracker, cancellationToken);
-            });
-        }
-
-        private void InvokeWorker(
-            Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            AssertIsForeground();
             IEnumerable<CodeActionOperation> operations = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
-                {
-                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                }
+                    operations = await GetOperationsAsync(actionWithOptions, options, progressTracker, cancellationToken).ConfigureAwait(true);
             }
             else
             {
-                // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                operations = GetOperationsAsync(progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
+                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
             }
+
+            AssertIsForeground();
 
             if (operations != null)
             {
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
-                progressTracker.Clear();
+                progressTracker.Report(CodeAnalysisProgress.Clear());
 
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    _isApplied = EditHandler.Apply(Workspace, getFromDocument(),
-                        operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken);
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                    await EditHandler.ApplyAsync(
+                        Workspace,
+                        OriginalSolution,
+                        document,
+                        operations.ToImmutableArray(),
+                        CodeAction.Title,
+                        progressTracker,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -178,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void CreateLogProperties(Dictionary<string, object> map)
         {
             // set various correlation info
-            if (CodeAction is FixSomeCodeAction fixSome)
+            if (CodeAction is AbstractFixAllCodeFixCodeAction fixSome)
             {
                 // fix all correlation info
                 map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
@@ -210,17 +216,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
+        public string DisplayTextSuffix => "";
+
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We will always invoke this from the UI thread.
-            AssertIsForeground();
-
-            // We use ConfigureAwait(true) to stay on the UI thread.
             var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
         }
 
         public virtual bool HasPreview => false;
@@ -250,11 +253,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var tags = CodeAction.Tags;
                 if (tags.Length > 0)
                 {
-                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    foreach (var service in SourceProvider.ImageIdServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
+                        if (service.Value.TryGetImageId(tags, out var imageId) && !imageId.Equals(default(ImageId)))
                         {
-                            return moniker;
+                            // Not using the extension method because it's not available in Cocoa
+                            return new ImageMoniker
+                            {
+                                Guid = imageId.Guid,
+                                Id = imageId.Id
+                            };
                         }
                     }
                 }
@@ -313,18 +321,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly SuggestedAction _suggestedAction;
-
-            public TestAccessor(SuggestedAction suggestedAction)
-                => _suggestedAction = suggestedAction;
-
-            public ref bool IsApplied => ref _suggestedAction._isApplied;
-        }
     }
 }

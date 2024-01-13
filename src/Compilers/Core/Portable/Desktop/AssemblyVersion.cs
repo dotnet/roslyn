@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct AssemblyVersion : IEquatable<AssemblyVersion>, IComparable<AssemblyVersion>
+    internal readonly struct AssemblyVersion : IEquatable<AssemblyVersion>, IComparable<AssemblyVersion>
     {
         private readonly ushort _major;
         private readonly ushort _minor;

@@ -6,14 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -26,23 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
-            : base(GetKeywordRecommenders())
-        {
-        }
-
-        private static ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
-        {
-            return new IKeywordRecommender<CSharpSyntaxContext>[]
-            {
+            : base(ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
                 new AbstractKeywordRecommender(),
                 new AddKeywordRecommender(),
                 new AliasKeywordRecommender(),
+                new AndKeywordRecommender(),
                 new AnnotationsKeywordRecommender(),
                 new AscendingKeywordRecommender(),
                 new AsKeywordRecommender(),
                 new AssemblyKeywordRecommender(),
                 new AsyncKeywordRecommender(),
-                new AwaitKeywordRecommender(),
                 new BaseKeywordRecommender(),
                 new BoolKeywordRecommender(),
                 new BreakKeywordRecommender(),
@@ -78,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ExternKeywordRecommender(),
                 new FalseKeywordRecommender(),
                 new FieldKeywordRecommender(),
+                new FileKeywordRecommender(),
                 new FinallyKeywordRecommender(),
                 new FixedKeywordRecommender(),
                 new FloatKeywordRecommender(),
@@ -91,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new HiddenKeywordRecommender(),
                 new IfKeywordRecommender(),
                 new ImplicitKeywordRecommender(),
+                new InitKeywordRecommender(),
                 new InKeywordRecommender(),
                 new InterfaceKeywordRecommender(),
                 new InternalKeywordRecommender(),
@@ -103,12 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new LoadKeywordRecommender(),
                 new LockKeywordRecommender(),
                 new LongKeywordRecommender(),
+                new ManagedKeywordRecommender(),
                 new MethodKeywordRecommender(),
                 new ModuleKeywordRecommender(),
                 new NameOfKeywordRecommender(),
                 new NamespaceKeywordRecommender(),
                 new NewKeywordRecommender(),
                 new NintKeywordRecommender(),
+                new NotKeywordRecommender(),
                 new NotNullKeywordRecommender(),
                 new NuintKeywordRecommender(),
                 new NullableKeywordRecommender(),
@@ -117,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new OnKeywordRecommender(),
                 new OperatorKeywordRecommender(),
                 new OrderByKeywordRecommender(),
+                new OrKeywordRecommender(),
                 new OutKeywordRecommender(),
                 new OverrideKeywordRecommender(),
                 new ParamKeywordRecommender(),
@@ -128,13 +123,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ProtectedKeywordRecommender(),
                 new PublicKeywordRecommender(),
                 new ReadOnlyKeywordRecommender(),
+                new RecordKeywordRecommender(),
                 new ReferenceKeywordRecommender(),
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
+                new RequiredKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
+                new ScopedKeywordRecommender(),
                 new SealedKeywordRecommender(),
                 new SelectKeywordRecommender(),
                 new SetKeywordRecommender(),
@@ -169,39 +167,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhenKeywordRecommender(),
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
-                new YieldKeywordRecommender(),
-            }.ToImmutableArray();
-        }
-
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
-
-        protected override async Task<CSharpSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+                new WithKeywordRecommender(),
+                new YieldKeywordRecommender()))
         {
-            var span = new TextSpan(position, length: 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
+
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) ||
+               CompletionUtilities.IsCompilerDirectiveTriggerCharacter(text, characterPosition);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var rules = context.IsPossibleTupleContext ? s_tupleRules : CompletionItemRules.Default;
 
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
                 displayTextSuffix: "",
-                description: keyword.DescriptionFactory(CancellationToken.None),
+                description: keyword.DescriptionFactory(cancellationToken),
                 glyph: Glyph.Keyword,
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
-
-        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

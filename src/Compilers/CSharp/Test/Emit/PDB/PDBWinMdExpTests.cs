@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -91,7 +93,6 @@ namespace X
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""33"" end-line=""9"" end-column=""36""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""38"" end-line=""9"" end-column=""41""/>
     <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
-    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
     <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""13"" start-column=""22"" end-line=""13"" end-column=""27""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""21"" end-line=""14"" end-column=""24""/>

@@ -3,7 +3,7 @@
 
 
 <!-- 
- To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
 
  Important things to know about reference types, value types, and nulls.
 
@@ -35,6 +35,7 @@
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
     <ValueType Name="BitVector" />
+    <ValueType Name="ReadOnlyBindingDiagnostic" />
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -412,6 +413,8 @@
       <!-- Type is not significant for this node type; always null -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
       <Field Name="Binder" Type="Binder" Null="disallow"/>
+      <!-- Track dependencies while resolving the delegate -->
+      <Field Name="WithDependencies" Type="Boolean"/>      
       <Field Name="MethodGroup" Type="BoundMethodGroup" Null="disallow"/>      
     </Node>
 
@@ -659,6 +662,7 @@
         
         <Field Name="Constructor" Type="MethodSymbol" Null="allow"/>
         <Field Name="ConstructorArguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <Field Name="ConstructorDefaultArguments" Type="BitVector" Null="NotApplicable"/>
         <Field Name="NamedArguments" Type ="ImmutableArray(Of BoundExpression)"/>
         <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     </Node>
@@ -866,7 +870,6 @@
     -->
     <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase" HasValidate="true">
       <Field Name="CreateTemporaryLocalForInitialization" Type="Boolean" />
-      <Field Name="Binder" Type="Binder" Null="disallow" />
     </Node>
 
     <!-- 
@@ -943,7 +946,7 @@
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
         <Field Name="SuppressVirtualCalls" PropertyOverrides="true" Type="Boolean"/>
 
-        <Field Name="ConstantsInProgressOpt" Type="SymbolsInProgress(Of FieldSymbol)" Null="allow"/>
+        <Field Name="ConstantsInProgressOpt" Type="ConstantFieldsInProgress" Null="allow"/>
     </Node>
  
     <Node Name="BoundPropertyAccess" Base="BoundExpression" HasValidate="true">
@@ -1034,6 +1037,7 @@
     <Node Name="BoundAsNewLocalDeclarations" Base="BoundLocalDeclarationBase">
         <Field Name="LocalDeclarations" Type="ImmutableArray(Of BoundLocalDeclaration)" />
         <Field Name="Initializer" Type="BoundExpression" />
+        <Field Name="Binder" Type="Binder" Null="disallow" />
     </Node>
 
     <!--
@@ -1062,6 +1066,7 @@
     <Field Name="MemberAccessExpressionOpt" Type="BoundExpression" Null="allow" />
     <!-- The expression representing the initial value -->
     <Field Name="InitialValue" Type="BoundExpression" Null="disallow"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow" />
   </AbstractNode>
 
   <!-- Bound node that represents a field initialization. --> 
@@ -1353,7 +1358,7 @@
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
     </Node>
 
-    <Node Name="BoundPseudoVariable" Base="BoundExpression">
+    <Node Name="BoundPseudoVariable" Base="BoundExpression" HasValidate="true">
         <!-- Non-null type is required for this node kind -->
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
         <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
@@ -1434,7 +1439,7 @@
     </Node>
 
     <!-- 
-    This represents a the bound form of a label reference (i.e. in a goto).
+    This represents the bound form of a label reference (i.e. in a goto).
     It is only used for the SemanticModel API.
     -->
     <Node Name="BoundLabel" Base="BoundExpression">
@@ -1486,7 +1491,7 @@
 
       <Field Name="LambdaSymbol" Type="LambdaSymbol" Null="disallow" />
       <Field Name="Body" Type="BoundBlock"/>
-      <Field Name="Diagnostics" Type="ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)" Null="disallow" />
+      <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic(Of AssemblySymbol)"/> 
       <Field Name="LambdaBinderOpt" Type="LambdaBodyBinder" Null="allow" />
 
       <!-- 
@@ -1879,6 +1884,7 @@
 
   <Node Name="BoundConditionalAccessReceiverPlaceholder" Base="BoundRValuePlaceholderBase" HasValidate="true">
     <Field Name="PlaceholderId" Type="Integer"/>
+    <Field Name="Capture" Type="Boolean" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression" HasValidate="true">

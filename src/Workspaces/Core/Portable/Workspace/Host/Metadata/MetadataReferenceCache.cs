@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,15 +14,12 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// A cache for metadata references.
     /// </summary>
-    internal class MetadataReferenceCache
+    internal class MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
     {
         private ImmutableDictionary<string, ReferenceSet> _referenceSets
             = ImmutableDictionary<string, ReferenceSet>.Empty;
 
-        private readonly Func<string, MetadataReferenceProperties, MetadataReference> _createReference;
-
-        public MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
-            => _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
+        private readonly Func<string, MetadataReferenceProperties, MetadataReference> _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)
         {
@@ -35,18 +34,13 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// A collection of references to the same underlying metadata, each with different properties.
         /// </summary>
-        private class ReferenceSet
+        private class ReferenceSet(MetadataReferenceCache cache)
         {
-            private readonly MetadataReferenceCache _cache;
-
-            private readonly NonReentrantLock _gate = new NonReentrantLock();
+            private readonly NonReentrantLock _gate = new();
 
             // metadata references are held weakly, so even though this is a cache that enables reuse, it does not control lifetime.
             private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references
-                = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
-
-            public ReferenceSet(MetadataReferenceCache cache)
-                => _cache = cache;
+                = new();
 
             public MetadataReference GetAddOrUpdate(string path, MetadataReferenceProperties properties)
             {
@@ -65,10 +59,7 @@ namespace Microsoft.CodeAnalysis.Host
                             }
                         }
 
-                        if (mref == null)
-                        {
-                            mref = _cache._createReference(path, properties);
-                        }
+                        mref ??= cache._createReference(path, properties);
 
                         _references[properties] = new WeakReference<MetadataReference>(mref);
                     }

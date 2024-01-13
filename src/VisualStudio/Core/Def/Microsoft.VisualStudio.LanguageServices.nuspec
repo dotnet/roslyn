@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    $CommonMetadataElements$
+    <dependencies>
+      <group targetFramework="net472">
+        <dependency id="Microsoft.CodeAnalysis.Common" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.EditorFeatures.Text" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.Features" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$Version$" />
+        <dependency id="Microsoft.CSharp" version="$MicrosoftCSharpVersion$" />
+        <dependency id="Microsoft.VisualStudio.Composition" version="$MicrosoftVisualStudioCompositionVersion$" />
+        <dependency id="System.Threading.Tasks.Dataflow" version="$SystemThreadingTasksDataflowVersion$" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    $CommonFileElements$
+
+    <!--
+      Ideally we would only include ref assembly under ref\net472,
+      but that's not supported by packages.config according to
+      https://docs.microsoft.com/en-us/nuget/create-packages/select-assemblies-referenced-by-projects.
+    -->
+    <file src="net472\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net472" />
+    <file src="net472\Microsoft.VisualStudio.LanguageServices*.pdb" target="lib\net472" />
+  </files>
+</package>

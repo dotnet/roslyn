@@ -13,7 +13,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -365,7 +365,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseXmlDocType(enclosingState As ScannerState) As GreenNode
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
-
 
             Dim builder = SyntaxListBuilder(Of GreenNode).Create()
 
@@ -994,7 +993,6 @@ LessThanSlashTokenCase:
                         value = ParseXmlString(ScannerState.Element)
                         Result = SyntaxFactory.XmlAttribute(Name, equals, value)
                     End If
-
 
                 ElseIf Name.Kind = SyntaxKind.XmlEmbeddedExpression Then
                     ' // In this case, the Name is some expression which may evaluate to an attribute
@@ -2422,7 +2420,7 @@ TryResync:
 
     Friend Structure XmlContext
         Private ReadOnly _start As XmlElementStartTagSyntax
-        Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
+        Private ReadOnly _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)

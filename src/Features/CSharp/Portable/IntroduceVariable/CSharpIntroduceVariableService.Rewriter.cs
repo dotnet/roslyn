@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             {
                 var newNode = base.VisitParenthesizedExpression(node);
                 if (node != newNode &&
-                    newNode.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
+                    newNode is ParenthesizedExpressionSyntax parenthesizedExpression)
                 {
                     var innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent;
                     if (innerExpression.HasAnnotation(_replacementAnnotation))

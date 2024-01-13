@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
-                Debug.Assert(rewrittenArgument.ConstantValue == ConstantValue.Null);
+                Debug.Assert(rewrittenArgument.ConstantValueOpt == ConstantValue.Null);
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
                 rewrittenArgument = MakeLiteral(
                     rewrittenArgument.Syntax,
-                    rewrittenArgument.ConstantValue,
+                    rewrittenArgument.ConstantValueOpt,
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
             }
 
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Boxing,
                     argumentType,
                     @checked: false,
-                    constantValueOpt: rewrittenArgument.ConstantValue);
+                    constantValueOpt: rewrittenArgument.ConstantValueOpt);
             }
 
             BoundAssignmentOperator assignmentToLockTemp;
@@ -65,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
-                    null,
+                    receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     exitMethod,
                     boundLockTemp);
             }
@@ -110,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp,
                         boundLockTakenTemp));
@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp);
                 }
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
             return this.Instrument ?
-                _instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
+                Instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
                 lockTargetCapture;
         }
     }

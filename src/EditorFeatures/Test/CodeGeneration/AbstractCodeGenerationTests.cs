@@ -4,15 +4,15 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var projectId = ProjectId.CreateNewId();
 
             var project = workspace.CurrentSolution
-                .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetProject(projectId);
+                .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetRequiredProject(projectId);
 
             var normalizedSyntax = syntaxNode.NormalizeWhitespace().ToFullString();
-            var document = project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                 .AddDocument("Fake Document", SourceText.From(normalizedSyntax));
 
+            var root = document.GetRequiredSyntaxRootAsync(default).AsTask().Result;
             var annotatedDocument = document.WithSyntaxRoot(
-                    document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
+                    root.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            var annotatedRootNode = annotatedDocument.GetSyntaxRootAsync().Result;
+            var options = document.Project.Services.GetRequiredService<ISimplificationService>().DefaultOptions;
+            var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument, options, CancellationToken.None).Result;
 
-            var simplifiedDocument = Simplification.Simplifier.ReduceAsync(annotatedDocument).Result;
-
-            var rootNode = simplifiedDocument.GetSyntaxRootAsync().Result;
+            var rootNode = simplifiedDocument.GetRequiredSyntaxRootAsync(default).AsTask().Result;
 
             return rootNode;
         }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 );
         }
 
-        internal void Test(
+        internal static void Test(
             Func<SyntaxGenerator, SyntaxNode> nodeCreator,
             string cs, string csSimple,
             string vb, string vbSimple)
@@ -74,12 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Assert.True(cs != null || csSimple != null || vb != null || vbSimple != null,
                 $"At least one of {nameof(cs)}, {nameof(csSimple)}, {nameof(vb)}, {nameof(vbSimple)} must be provided");
 
-            var hostServices = VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
-            var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
 
             if (cs != null || csSimple != null)
             {
-                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<SyntaxGenerator>();
+                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<SyntaxGenerator>();
 
                 var node = nodeCreator(codeDefFactory);
                 node = node.NormalizeWhitespace();
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             if (vb != null || vbSimple != null)
             {
-                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<SyntaxGenerator>();
+                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService<SyntaxGenerator>();
 
                 var node = nodeCreator(codeDefFactory);
                 node = node.NormalizeWhitespace();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // #define COLLECT_STATS
 
 using System;
@@ -99,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             System.Threading.Interlocked.Increment(ref misses);
         }
 #endif
-
 
         internal SyntaxToken LookupToken(
             char[] textBuffer,

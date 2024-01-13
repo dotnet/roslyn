@@ -1508,11 +1508,11 @@ String
         End Function
 
         Private Shared Function IsBeforeFieldInit(typeSymbol As NamedTypeSymbol) As Boolean
-            Return (DirectCast(typeSymbol, Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
+            Return (DirectCast(typeSymbol.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
         End Function
 
         Private Shared Function IsStatic(symbol As Symbol) As Boolean
-            Return (DirectCast(symbol, Microsoft.Cci.IFieldDefinition)).IsStatic
+            Return (DirectCast(symbol.GetCciAdapter(), Microsoft.Cci.IFieldDefinition)).IsStatic
         End Function
 
         Private Shared Sub CompileAndCheckInitializers(sources As Xml.Linq.XElement, expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer), expectedStaticInitializers As IEnumerable(Of ExpectedInitializer))
@@ -1577,13 +1577,15 @@ String
         End Sub
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
-            Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
-            For Each d In sealedDiagnostics
+
+            For Each d In diagnostics.DiagnosticBag.AsEnumerable
                 Console.WriteLine(d)
             Next
-            Assert.False(sealedDiagnostics.Any())
+            Assert.True(diagnostics.DiagnosticBag.IsEmptyWithoutResolution)
+
+            diagnostics.Free()
             Return processedFieldInitializers
         End Function
 

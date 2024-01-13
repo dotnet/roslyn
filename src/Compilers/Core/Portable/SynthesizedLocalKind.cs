@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -15,8 +13,9 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// Synthesized local variables are either 
     /// 1) Short-lived (temporary)
-    ///    The lifespan of an temporary variable shall not cross a statement boundary (a PDB sequence point).
-    ///    These variables are not tracked by EnC and don't have names.
+    ///    The lifespan of a temporary variable shall not cross a statement boundary (a PDB sequence point).
+    ///    These variables are not tracked by EnC and don't have names. Only values less than 0 are considered
+    ///    short-lived: new short-lived kinds should have a negative value.
     ///  
     /// 2) Long-lived
     ///    All variables whose lifespan might cross a statement boundary (include a PDB sequence point)
@@ -213,6 +212,12 @@ namespace Microsoft.CodeAnalysis
         /// converted to the type against which it is being matched.
         /// </summary>
         SwitchCasePatternMatching = 35,
+
+        /// <summary>
+        /// Variable that stores the context object used to track local variable and parameter stores in method bodies instrumented with <see cref="InstrumentationKindExtensions.LocalStateTracing"/>.
+        /// Associated with the method body syntax.
+        /// </summary>
+        LocalStoreTracker = 36,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 

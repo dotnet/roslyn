@@ -3,69 +3,53 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class InsideModuleDeclaration
+        Inherits RecommenderTests
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DefaultNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Default")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub DefaultNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Default")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NarrowingNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Narrowing")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub NarrowingNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Narrowing")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OverloadsNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Overloads")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub OverloadsNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Overloads")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OverridesNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Overrides")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub OverridesNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Overrides")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ShadowsNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Shadows")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub ShadowsNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Shadows")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SharedNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Shared")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub SharedNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Shared")
+        End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WideningNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Widening")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        Public Sub WideningNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Widening")
+        End Sub
 
-        <Fact>
-        <WorkItem(554103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554103")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function PartialInModuleTest() As Task
-            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Partial")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554103")>
+        Public Sub PartialInModuleTest()
+            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Partial")
+        End Sub
 
-        <Fact>
-        <WorkItem(554103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554103")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function PartialAfterPrivateTest() As Task
-            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>Private |</ModuleDeclaration>, "Partial")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554103")>
+        Public Sub PartialAfterPrivateTest()
+            VerifyRecommendationsContain(<ModuleDeclaration>Private |</ModuleDeclaration>, "Partial")
+        End Sub
     End Class
 End Namespace

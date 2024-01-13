@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +21,7 @@ using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -163,8 +166,7 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
             Assert.Equal("True False True", script.EvaluateAsync().Result.ToString());
         }
 
-        [WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
         public void AnonymousTypes_Redefinition()
         {
             var script = CSharpScript.Create(@"
@@ -380,8 +382,7 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
-        [WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
         public void ExternDestructor()
         {
             var script = CSharpScript.Create(
@@ -474,7 +475,7 @@ Environment.ProcessorCount
             var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
             var compilation1 = state1.Result.Script.GetCompilation();
             compilation1.VerifyDiagnostics(
-                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed type
                 // internal class C1 { }   protected int X;   1
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
                 );
@@ -708,7 +709,7 @@ public override string ToString() { return null; }
 
         #region Generics
 
-        [Fact, WorkItem(201759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
         public void CompilationChain_GenericTypes()
         {
             var script = CSharpScript.Create(@"
@@ -725,8 +726,7 @@ iC.method(iC.field)
             Assert.Equal(3, script.EvaluateAsync().Result);
         }
 
-        [WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
         public void RecursiveBaseType()
         {
             CSharpScript.EvaluateAsync(@"
@@ -735,8 +735,7 @@ class B<T> : A<B<B<T>>> { }
 ");
         }
 
-        [WorkItem(5378, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5378, "DevDiv_Projects/Roslyn")]
         public void CompilationChain_GenericMethods()
         {
             var s0 = CSharpScript.Create(@"
@@ -852,8 +851,7 @@ x
             Assert.Equal(1, CSharpScript.EvaluateAsync<long>("6 / (2 * 3)").Result);
         }
 
-        [WorkItem(5397, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5397, "DevDiv_Projects/Roslyn")]
         public void TopLevelLambda()
         {
             var s = CSharpScript.RunAsync(@"
@@ -911,8 +909,7 @@ result
             Assert.Equal(4, f(2));
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Arrays()
         {
             var s = CSharpScript.RunAsync(@"
@@ -1030,11 +1027,10 @@ new object[] { x, y, z }
         /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
-        [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
-        [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2721")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
-        [Fact]
         public async Task PrivateImplementationDetailsType()
         {
             var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");
@@ -1149,7 +1145,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(3, state.ReturnValue);
         }
 
-        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39548")]
         public async Task PatternVariableDeclaration()
         {
             var state = await CSharpScript.RunAsync("var x = (false, 4);");
@@ -1157,11 +1153,51 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(true, state.ReturnValue);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63144")]
+        public void InteractiveSession_ImportScopes()
+        {
+            var script = CSharpScript.Create(@"
+1 + 1", ScriptOptions.Default.WithImports("System"));
+
+            var compilation = script.GetCompilation();
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var scopes = semanticModel.GetImportScopes(0);
+            Assert.Single(scopes);
+
+            var scope = scopes.Single();
+            Assert.Empty(scope.Aliases);
+            Assert.Empty(scope.ExternAliases);
+            Assert.Empty(scope.XmlNamespaces);
+
+            Assert.Single(scope.Imports);
+            var import = scope.Imports.Single();
+
+            Assert.True(import.NamespaceOrType is INamespaceSymbol { Name: "System", ContainingNamespace.IsGlobalNamespace: true });
+            Assert.Null(import.DeclaringSyntaxReference);
+        }
+
         #endregion
 
         #region References
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53391")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/53391")]
         public void ReferenceDirective_FileWithDependencies()
         {
             var file1 = Temp.CreateFile();
@@ -1179,7 +1215,7 @@ public interface I
 public class C : I
 {
     public int F() => 1;
-}", new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
+}", new MetadataReference[] { NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
 
             lib2.Emit(file2.Path);
 
@@ -1191,7 +1227,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1209,7 +1245,7 @@ new C()
             script.GetCompilation().VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseRoot()
         {
             var file = Temp.CreateFile();
@@ -1217,7 +1253,7 @@ new C()
             lib.Emit(file.Path);
 
             string root = Path.GetPathRoot(file.Path);
-            string unrooted = file.Path.Substring(root.Length);
+            string unrooted = file.Path[root.Length..];
 
             string dir = Path.Combine(root, "goo", "bar", "baz");
             string scriptPath = Path.Combine(dir, "a.csx");
@@ -1241,7 +1277,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1271,7 +1307,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1323,8 +1359,7 @@ d
             Assert.True(result is Dictionary<string, int>, "Expected Dictionary<string, int>");
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings1()
         {
             var options = ScriptOptions.Default.
@@ -1335,8 +1370,7 @@ d
             Assert.Equal(1, result);
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings2()
         {
             var options = ScriptOptions.Default.
@@ -1482,7 +1516,9 @@ new List<ArgumentException>()
 
         public class M<T>
         {
+#pragma warning disable IDE0051 // Remove unused private members
             private int F() => 3;
+#pragma warning restore IDE0051 // Remove unused private members
             public T G() => default(T);
         }
 
@@ -1794,8 +1830,7 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
             }
         }
 
-        [Fact]
-        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39565")]
         public async Task MethodCallWithImplicitReceiverAndOutVar()
         {
             var code = @"
@@ -1832,8 +1867,7 @@ return M();
                     Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
         }
 
-        [Fact]
-        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39581")]
         public void StaticLocalFunctionCannotAccessGlobalInstance()
         {
             var code = @"
@@ -1878,9 +1912,8 @@ return M();
 
         #region Exceptions
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException1()
         {
             var s0 = CSharpScript.Create(@"
@@ -1902,9 +1935,8 @@ int F() => i + j;
             Assert.Equal(10, state2.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException2()
         {
             var s0 = CSharpScript.Create(@"
@@ -1930,9 +1962,8 @@ int F() => i + j + k;
             Assert.Equal(120, state3.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException3()
         {
             var s0 = CSharpScript.Create(@"
@@ -1959,9 +1990,8 @@ int F() => i + j + k + l;
             Assert.Equal(1200, state4.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException4()
         {
             var state0 = await CSharpScript.RunAsync(@"
@@ -2083,7 +2113,7 @@ int F() => i + j + k + l;
 ");
 
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
+                s3.RunAsync(globals, catchException: e => e is not OperationCanceledException, cancellationToken: cancellationSource.Token));
         }
 
         #endregion

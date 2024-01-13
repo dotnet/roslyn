@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class VariablePendingInference : BoundExpression
     {
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag? diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, BindingDiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(type.HasType);
 
             return SetInferredTypeWithAnnotations(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag? diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, BindingDiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || type.HasType);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     var localSymbol = (SourceLocalSymbol)this.VariableSymbol;
 
-                    if (diagnosticsOpt != null)
+                    if (diagnosticsOpt?.DiagnosticBag != null)
                     {
                         if (inferenceFailed)
                         {
@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Syntax;
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+
+                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrRefLikeType())
+                            {
+                                diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
+                                                   (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);
+                            }
                         }
                     }
 
@@ -71,7 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
-                    var inferenceDiagnostics = DiagnosticBag.GetInstance();
+                    var inferenceDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies:
+#if DEBUG
+                                                                                                                         true
+#else
+                                                                                                                         false
+#endif
+                                                                        );
 
                     if (inferenceFailed)
                     {
@@ -79,6 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     type = fieldSymbol.SetTypeWithAnnotations(type, inferenceDiagnostics);
+#if DEBUG
+                    Debug.Assert(inferenceDiagnostics.DependenciesBag is object);
+                    Debug.Assert(inferenceDiagnostics.DependenciesBag.Count == 0);
+#endif
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
@@ -95,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
+        internal BoundExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)
         {
             return this.SetInferredTypeWithAnnotations(default, binder, diagnosticsOpt);
         }
 
-        private void ReportInferenceFailure(DiagnosticBag diagnostics)
+        private void ReportInferenceFailure(BindingDiagnosticBag diagnostics)
         {
             SingleVariableDesignationSyntax designation;
             switch (this.Syntax.Kind())
@@ -112,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     designation = (SingleVariableDesignationSyntax)this.Syntax;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             Binder.Error(

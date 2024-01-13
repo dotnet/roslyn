@@ -35,36 +35,30 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
             Return FixIncorrectTokensRewriter.CreateAsync(document, spans, cancellationToken)
         End Function
 
         Private Class FixIncorrectTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _document As Document
-            Private ReadOnly _modifiedSpan As TextSpan
             Private ReadOnly _semanticModel As SemanticModel
 
-            Private Sub New(document As Document,
-                            semanticModel As SemanticModel,
+            Private Sub New(semanticModel As SemanticModel,
                             spans As ImmutableArray(Of TextSpan),
-                            modifiedSpan As TextSpan,
                             cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                _document = document
                 _semanticModel = semanticModel
-                _modifiedSpan = modifiedSpan
             End Sub
 
             Public Shared Async Function CreateAsync(document As Document, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing,
                     Nothing,
-                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
+                    Await document.ReuseExistingSpeculativeModelAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                Return New FixIncorrectTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+                Return New FixIncorrectTokensRewriter(semanticModel, spans, cancellationToken)
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia

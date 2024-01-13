@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<FSharpUnusedOpensDiagnosticAnalyzerService>();
+            var analyzer = document.Project.Services.GetService<FSharpUnusedOpensDiagnosticAnalyzerService>();
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
@@ -68,7 +70,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public bool OpenFileOnly(Workspace workspace)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return true;
         }

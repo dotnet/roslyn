@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -35,12 +38,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
                 {
                     var hostDocument = workspace.DocumentWithCursor;
                     var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                    Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
-                    var targetPosition = await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
-                        document,
+                    var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
+                    Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
+                    var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                    var targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                        service,
+                        parsedDocument.Root,
                         hostDocument.CursorPosition.Value,
-                        next,
-                        CancellationToken.None);
+                        next);
 
                     Assert.NotNull(targetPosition);
                     Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
@@ -58,13 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
+                var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
+                Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
 
-                return await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
-                    document,
+                return GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                    document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                    parsedDocument.Root,
                     hostDocument.CursorPosition.Value,
-                    next,
-                    CancellationToken.None);
+                    next);
             }
         }
     }

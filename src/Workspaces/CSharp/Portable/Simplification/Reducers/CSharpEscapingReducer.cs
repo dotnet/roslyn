@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,19 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpEscapingReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
+
+        private static readonly Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
 
         public CSharpEscapingReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxToken SimplifyIdentifierToken(
             SyntaxToken token,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var unescapedIdentifier = token.ValueText;
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             if (SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) == SyntaxKind.AwaitKeyword)
             {
-                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
+                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
                 if (enclosingLambdaExpression != null)
                 {
                     if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var enclosingMethodBlock = parent.GetAncestorsOrThis(n => n is MethodDeclarationSyntax).FirstOrDefault();
 
-                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(n => n.Kind() == SyntaxKind.AsyncKeyword))
+                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(SyntaxKind.AsyncKeyword))
                 {
                     return token;
                 }
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return originalToken;
             }
 
-            var unescapedText = isVerbatimIdentifier ? originalToken.ToString().Substring(1) : originalToken.ToString();
+            var unescapedText = isVerbatimIdentifier ? originalToken.ToString()[1..] : originalToken.ToString();
 
             return escape
                 ? originalToken.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(originalToken.LeadingTrivia, unescapedText, originalToken.ValueText, originalToken.TrailingTrivia))

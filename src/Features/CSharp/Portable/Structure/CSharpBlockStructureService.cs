@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,15 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpBlockStructureService(languageServices.WorkspaceServices.Workspace);
+            => new CSharpBlockStructureService(languageServices.LanguageServices.SolutionServices);
     }
 
-    internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
+    internal class CSharpBlockStructureService(SolutionServices services) : BlockStructureServiceWithProviders(services)
     {
-        public CSharpBlockStructureService(Workspace workspace) : base(workspace)
-        {
-        }
-
         protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
         {
             return ImmutableArray.Create<BlockStructureProvider>(

@@ -388,41 +388,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function EqualIdentifierName(x As SyntaxToken, y As SyntaxToken, ByRef comparisonResult As Integer) As Boolean
-            If NeitherNull(x, y, comparisonResult) Then
-                comparisonResult = CaseInsensitiveComparison.Compare(x.ValueText, y.ValueText)
-            End If
-
+            comparisonResult = CaseInsensitiveComparison.Compare(x.ValueText, y.ValueText)
             Return comparisonResult = 0
         End Function
 
         Private Shared Function EqualOperatorPrecedence(x As SyntaxToken, y As SyntaxToken, ByRef comparisonResult As Integer) As Boolean
-            If NeitherNull(x, y, comparisonResult) Then
-                Dim xPrecedence = 0
-                Dim yPrecedence = 0
+            Dim xPrecedence = 0
+            Dim yPrecedence = 0
 
-                s_operatorPrecedenceMap.TryGetValue(x.Kind, xPrecedence)
-                s_operatorPrecedenceMap.TryGetValue(y.Kind, yPrecedence)
+            s_operatorPrecedenceMap.TryGetValue(x.Kind, xPrecedence)
+            s_operatorPrecedenceMap.TryGetValue(y.Kind, yPrecedence)
 
-                comparisonResult = If(xPrecedence = yPrecedence, 0, If(xPrecedence < yPrecedence, -1, 1))
-            End If
-
+            comparisonResult = If(xPrecedence = yPrecedence, 0, If(xPrecedence < yPrecedence, -1, 1))
             Return comparisonResult = 0
         End Function
 
         Private Shared Function EqualParameterLists(x As ParameterListSyntax, y As ParameterListSyntax, ByRef comparisonResult As Integer) As Boolean
             Dim result = 0
             If NeitherNull(x, y, result) Then
-                Dim xParameterCount = x.Parameters.Count
-                Dim yParameterCount = y.Parameters.Count
-
-                comparisonResult = If(xParameterCount = yParameterCount, 0, If(x.Parameters.Count < y.Parameters.Count, -1, 1))
-            End If
-
-            Return comparisonResult = 0
-        End Function
-
-        Private Shared Function EqualTypeParameterCount(x As TypeParameterListSyntax, y As TypeParameterListSyntax, ByRef comparisonResult As Integer) As Boolean
-            If NeitherNull(x, y, comparisonResult) Then
                 Dim xParameterCount = x.Parameters.Count
                 Dim yParameterCount = y.Parameters.Count
 

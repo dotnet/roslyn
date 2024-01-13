@@ -1,0 +1,59 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore
+{
+  "name": "C# (.NET 8)",
+  "build": {
+    "dockerfile": "Dockerfile",
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.associations": {
+          "*.csproj": "msbuild",
+          "*.fsproj": "msbuild",
+          "*.globalconfig": "ini",
+          "*.manifest": "xml",
+          "*.nuspec": "xml",
+          "*.pkgdef": "ini",
+          "*.projitems": "msbuild",
+          "*.props": "msbuild",
+          "*.resx": "xml",
+          "*.rsp": "Powershell",
+          "*.ruleset": "xml",
+          "*.settings": "xml",
+          "*.shproj": "msbuild",
+          "*.slnf": "json",
+          "*.targets": "msbuild",
+          "*.vbproj": "msbuild",
+          "*.vsixmanifest": "xml",
+          "*.vstemplate": "xml",
+          "*.xlf": "xml",
+          "*.yml": "azure-pipelines"
+        },
+        // ms-dotnettools.csharp settings
+        "omnisharp.disableMSBuildDiagnosticWarning": true,
+        "omnisharp.enableEditorConfigSupport": true,
+        "omnisharp.enableImportCompletion": true,
+        "omnisharp.useModernNet": true,
+        "omnisharp.enableAsyncCompletion": true,
+        // ms-dotnettools.csdevkit settings
+        "dotnet.defaultSolution": "Roslyn.sln",
+        // ms-vscode.powershell settings
+        "powershell.promptToUpdatePowerShell": false,
+        "powershell.integratedConsole.showOnStartup": false,
+        "powershell.startAutomatically": false,
+        // ms-azure-devops.azure-pipelines settings
+        "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json"
+      },
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "EditorConfig.EditorConfig",
+        "ms-vscode.powershell",
+        "tintoy.msbuild-project-tools",
+        "ms-azure-devops.azure-pipelines"
+      ]
+    }
+  },
+  "postCreateCommand": "${containerWorkspaceFolder}/restore.sh"
+}

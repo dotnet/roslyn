@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundEventAccess
+    Partial Friend Class BoundEventAccess
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return Me.EventSymbol

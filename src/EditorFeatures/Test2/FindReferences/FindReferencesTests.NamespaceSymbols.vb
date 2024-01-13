@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -62,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -96,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace5(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -117,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCaseSensitivity1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -141,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCaseSensitivity2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -169,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -194,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -219,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -248,8 +250,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -272,8 +274,8 @@ namespace {|Definition:$$[|var|]|} { }
             Await TestAPI(input, host)
         End Function
 
-        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -296,7 +298,7 @@ namespace var { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithUnicodeCharacter(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -317,7 +319,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithComment(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -336,7 +338,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithVerbatimIdentifier(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -355,7 +357,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalNamespace(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -371,6 +373,145 @@ namespace var { }
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestNamespace_TypeOrNamespaceUsageInfo(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        using {|TypeOrNamespaceUsageInfo.Import:[|N1|]|};
+        using {|TypeOrNamespaceUsageInfo.Qualified,Import:[|N1|]|}.N2;
+
+        namespace {|Definition:{|TypeOrNamespaceUsageInfo.NamespaceDeclaration:[|$$N1|]|}|}
+        {
+            public class Class1
+            {
+                public static int Field;
+            }
+        }
+        
+        namespace {|TypeOrNamespaceUsageInfo.Qualified,NamespaceDeclaration:[|N1|]|}.N2
+        {
+            public class Class2
+            {
+                public static int M() =>  {|TypeOrNamespaceUsageInfo.Qualified:[|N1|]|}.Class1.Field;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:[|N|].C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|N|].C.M")]
+
+        namespace {|Definition:[|$$N|]|}
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression_OuterNamespace(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N1|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N1|].N2")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:[|N1|].N2.C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|N1|].N2.C.M")]
+
+        namespace {|Definition:[|$$N1|]|}.N2
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression_InnerNamespace(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:N1.[|N2|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:N1.[|N2|].C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N1.[|N2|].C.M")]
+
+        namespace N1.{|Definition:[|$$N2|]|}
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfFact, CombinatorialData>
+        Public Async Function TestNamespaceUsedInSourceGeneratedDocument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        namespace {|Definition:[|$$N|]|}
+        {
+            class C
+            {
+                void Goo()
+                {
+                    [|N|].C x;
+                }
+            }
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+        namespace [|N|]
+        {
+            class D
+            {
+            }
+        }
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPI(input, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
     End Class
 End Namespace

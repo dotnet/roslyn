@@ -1,0 +1,214 @@
+parameters:
+  # These are actually booleans but must be defined as string.
+  # Parameters are evaluated at compile time, but all variables are strings at compile time.
+  # So in order to pass a parameter that comes from a variable these must be typed as string.
+  - name: createDraftPR
+    type: string
+    default: ''
+  - name: autoComplete
+    type: string
+    default: ''
+  - name: insertToolset
+    type: string
+    default: ''
+  - name: queueSpeedometerValidation
+    type: string
+    default: 'true'
+
+  - name: buildUserName
+    type: string
+  - name: buildPassword
+    type: string
+  - name: componentUserName
+    type: string
+  - name: componentPassword
+    type: string
+  
+  - name: publishDataURI
+    type: string
+  - name: publishDataAccessToken
+    type: string
+    default: ''
+
+  - name: vsBranchName
+    type: string
+    default: ''
+  - name: componentBuildProjectName
+    type: string
+    default: ''
+  - name: titlePrefix
+    type: string
+    default: ''
+
+  - name: sourceBranch
+    type: string
+
+  - name: dropPath
+    type: string
+    default: ''
+
+steps:
+  - checkout: none
+  
+  - task: NuGetCommand@2
+    displayName: 'Install RIT from Azure Artifacts'
+    inputs:
+      command: custom
+      arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+
+  - powershell: |
+      $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
+      $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
+      $branchName = "${{ parameters.sourceBranch }}"
+      $branchData = $response.branches.$branchName
+      if (!$branchData)
+      {
+        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
+        $branchData = $response.branches.main
+      }
+
+      # Set our template variables to reasonable defaults
+      Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
+      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.DropPath]$('(default)')"
+
+      Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($branchData.vsBranch)"
+
+      # Overwrite the default template variables with the values from PublishData for this sourceBranch
+      if ($null -ne $branchData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $branchData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $branchData.insertionTitlePrefix)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($branchData.insertionTitlePrefix)"
+      }
+
+      if ($null -ne $branchData.insertToolset)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($branchData.insertToolset)"
+      }
+
+    displayName: Set Variables from PublishData
+    env:
+      PublishDataAccessToken: ${{ parameters.publishDataAccessToken }}
+
+  - powershell: |
+      # Set AzDO authorization template variables
+      Write-Host "Setting BuildUserName to $Env:BuildUserName"
+      Write-Host "##vso[task.setvariable variable=Template.BuildUserName]$Env:BuildUserName"
+      Write-Host "##vso[task.setvariable variable=Template.BuildPassword]$Env:BuildPassword"
+
+      Write-Host "Setting ComponentUserName to $Env:ComponentUserName"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentUserName]$Env:ComponentUserName"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentPassword]$Env:ComponentPassword"
+
+      # Overwrite template variables with values passed into this template as parameters
+      if ("" -ne $Env:CreateDraftPR)
+      {
+        Write-Host "Setting CreateDraftPR to $Env:CreateDraftPR"
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$Env:CreateDraftPR"
+      }
+
+      if ("" -ne $Env:AutoComplete)
+      {
+        Write-Host "Setting AutoComplete to $Env:AutoComplete"
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$Env:AutoComplete"
+      }
+
+      if ("" -ne $Env:TitlePrefix)
+      {
+        Write-Host "Setting TitlePrefix to $Env:TitlePrefix"
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$Env:TitlePrefix"
+      }
+
+      if ("" -ne $Env:InsertToolset)
+      {
+        Write-Host "Setting InsertToolset to $Env:InsertToolset"
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$Env:InsertToolset"
+      }
+
+      # Workaround for pipeline parameters not supporting optional empty parameters.
+      if ("" -ne $Env:VSBranchName -and "default" -ne $Env:VSBranchName)
+      {
+        Write-Host "Setting VSBranchName to $Env:VSBranchName"
+        Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$Env:VSBranchName"
+      }
+
+      if ("" -ne $Env:ComponentBuildProjectName)
+      {
+        Write-Host "Setting component Azdo parameters $('$(System.CollectionUri)') and $Env:ComponentBuildProjectName"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$Env:ComponentBuildProjectName"
+      }
+
+      if ("" -ne $Env:DropPath)
+      {
+        Write-Host "Setting DropPath to $Env:DropPath"
+        Write-Host "##vso[task.setvariable variable=Template.DropPath]$Env:DropPath"
+      }
+
+    displayName: Set Variables from Input Parameters
+    env:
+      BuildUserName: ${{ parameters.buildUserName }}
+      BuildPassword: ${{ parameters.buildPassword }}
+      ComponentUserName: ${{ parameters.componentUserName }}
+      ComponentPassword: ${{ parameters.componentPassword }}
+      CreateDraftPR: ${{ parameters.createDraftPR }}
+      AutoComplete: ${{ parameters.autoComplete }}
+      TitlePrefix: ${{ parameters.titlePrefix }}
+      InsertToolset: ${{ parameters.insertToolset }}
+      VSBranchName: ${{ parameters.vsBranchName }}
+      ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
+      DropPath: ${{ parameters.dropPath }}
+
+  # Now that everything is set, actually perform the insertion.
+  - powershell: |
+      mv RoslynTools.VisualStudioInsertionTool.* RIT
+      .\RIT\tools\net46\OneOffInsertion.ps1 `
+        -autoComplete "$(Template.AutoComplete)" `
+        -buildQueueName "$(Build.DefinitionName)" `
+        -cherryPick "(default)" `
+        -userName "$(Template.BuildUserName)" `
+        -password "$(Template.BuildPassword)" `
+        -componentUserName "$(Template.ComponentUserName)" `
+        -componentPassword "$(Template.ComponentPassword)" `
+        -componentAzdoUri "$(Template.ComponentAzdoUri)" `
+        -componentProjectName "$(Template.ComponentProjectName)" `
+        -componentName "Roslyn" `
+        -componentGitHubRepoName "dotnet/roslyn" `
+        -componentBranchName "$(Template.ComponentBranchName)" `
+        -createDraftPR "$(Template.CreateDraftPR)" `
+        -defaultValueSentinel "(default)" `
+        -dropPath "$(Template.DropPath)" `
+        -insertCore "(default)" `
+        -insertDevDiv "(default)" `
+        -insertionCount "1" `
+        -insertToolset "$(Template.InsertToolset)" `
+        -titlePrefix "$(Template.TitlePrefix)" `
+        -titleSuffix "$(Template.TitleSuffix)" `
+        -queueValidation "true" `
+        -requiredValueSentinel "REQUIRED" `
+        -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
+        -specificBuild "$(Build.BuildNumber)" `
+        -updateAssemblyVersions "(default)" `
+        -updateCoreXTLibraries "(default)" `
+        -visualStudioBranchName "$(Template.VSBranchName)" `
+        -writePullRequest "prid.txt" `
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
+    displayName: 'Run OneOffInsertion.ps1'
+
+  - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
+    displayName: 'Report PR URL'

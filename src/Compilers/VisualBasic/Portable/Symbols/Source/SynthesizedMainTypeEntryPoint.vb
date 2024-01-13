@@ -8,6 +8,7 @@ Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
 
             Dim syntaxNode As SyntaxNode = Me.Syntax
@@ -52,34 +53,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim binder As Binder = BinderBuilder.CreateBinderForType(container.ContainingSourceModule, syntaxNode.SyntaxTree, container)
 
             Debug.Assert(binder.IsDefaultInstancePropertyAllowed)
-            Dim instance As BoundExpression = binder.TryDefaultInstanceProperty(New BoundTypeExpression(syntaxNode, container),
-                                                                                diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1:=Nothing)
+            Dim defaultInstancePropertyDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim instance As BoundExpression = binder.TryDefaultInstanceProperty(New BoundTypeExpression(syntaxNode, container), defaultInstancePropertyDiagnostics)
 
             If instance Is Nothing Then
                 ' Default instance is not available, create instance by invoking constructor.
                 instance = binder.BindObjectCreationExpression(syntaxNode, container, ImmutableArray(Of BoundExpression).Empty, diagnostics)
+            Else
+                diagnostics.AddDependencies(defaultInstancePropertyDiagnostics)
             End If
 
+            defaultInstancePropertyDiagnostics.Free()
+
             ' Call System.Windows.Forms.Application.Run(<instance>)
-            Dim useSiteError As DiagnosticInfo = Nothing
-            Dim runMethod = DirectCast(Binder.GetWellKnownTypeMember(container.DeclaringCompilation, WellKnownMember.System_Windows_Forms_Application__RunForm, useSiteError), MethodSymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim runMethod = DirectCast(Binder.GetWellKnownTypeMember(container.DeclaringCompilation, WellKnownMember.System_Windows_Forms_Application__RunForm, useSiteInfo), MethodSymbol)
             Dim statement As BoundStatement
 
-            If useSiteError Is Nothing Then
+            If Not Binder.ReportUseSite(diagnostics, syntaxNode, useSiteInfo) Then
                 statement = binder.BindInvocationExpression(syntaxNode, syntaxNode, TypeCharacter.None,
                                                             New BoundMethodGroup(syntaxNode, Nothing, ImmutableArray.Create(runMethod), LookupResultKind.Good, Nothing, QualificationKind.QualifiedViaTypeName),
                                                             ImmutableArray.Create(instance), Nothing, diagnostics,
                                                             callerInfoOpt:=Nothing).ToStatement()
             Else
-                Binder.ReportDiagnostic(diagnostics, syntaxNode, useSiteError)
                 statement = New BoundBadStatement(syntaxNode, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
             End If
 
             Return New BoundBlock(syntaxNode, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(statement, New BoundReturnStatement(syntaxNode, Nothing, Nothing, Nothing)))
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             AddSynthesizedAttribute(attributes,
                                     DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_STAThreadAttribute__ctor))
@@ -96,8 +100,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
     End Class
 End Namespace
-
-
-
-
 

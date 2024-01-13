@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
-    internal static class EncodingExtensions
+    internal static partial class EncodingExtensions
     {
         /// <summary>
         /// Get maximum char count needed to decode the entire stream.

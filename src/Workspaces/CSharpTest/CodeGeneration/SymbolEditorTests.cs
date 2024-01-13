@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
@@ -21,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator _g;
 
         private SyntaxGenerator Generator
-            => _g ?? (_g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp));
+            => _g ??= SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
-        private Solution GetSolution(params string[] sources)
+        private static Solution GetSolution(params string[] sources)
         {
             var ws = new AdhocWorkspace();
             var pid = ProjectId.CreateNewId();
@@ -32,25 +37,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                 DocumentInfo.Create(
                     DocumentId.CreateNewId(pid),
                     name: "code" + i,
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s), VersionStamp.Default)))).ToList();
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s, encoding: null, SourceHashAlgorithms.Default), VersionStamp.Default)))).ToList();
 
             var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
-                metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                metadataReferences: new[] { TestMetadata.Net451.mscorlib });
 
             return ws.AddProject(proj).Solution;
         }
 
-        private async Task<IEnumerable<ISymbol>> GetSymbolsAsync(Solution solution, string name)
+        private static async Task<IEnumerable<ISymbol>> GetSymbolsAsync(Solution solution, string name)
         {
             var compilation = await solution.Projects.First().GetCompilationAsync();
             return compilation.GlobalNamespace.GetMembers(name);
         }
 
-        private async Task<string> GetActualAsync(Document document)
+        private static async Task<string> GetActualAsync(Document document)
         {
-            document = await Simplifier.ReduceAsync(document);
-            document = await Formatter.FormatAsync(document, Formatter.Annotation);
-            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation);
+            document = await Simplifier.ReduceAsync(document, CSharpSimplifierOptions.Default, CancellationToken.None);
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             return (await document.GetSyntaxRootAsync()).ToFullString();
         }
 
@@ -1004,8 +1009,7 @@ interface I
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
-        [WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2650")]
         public async Task TestEditExplicitInterfaceIndexer()
         {
             var code =

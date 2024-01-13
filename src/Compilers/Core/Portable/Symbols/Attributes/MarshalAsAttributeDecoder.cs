@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             bool hasTypeSymbol = false;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             int? parameterIndex = null;
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             bool hasErrors = false;
 
             foreach (var namedArg in arguments.Attribute.NamedArguments)
@@ -207,11 +209,11 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             UnmanagedType? elementType = null;
-            int? elementCount = isFixed ? 1 : (int?)null;
+            int? elementCount = null;
             short? parameterIndex = null;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -266,6 +268,17 @@ namespace Microsoft.CodeAnalysis
                 position++;
             }
 
+            if (isFixed && elementCount is null)
+            {
+                // SizeConst must be specified for fixed arrays, but due to back-compat with the native compiler and older versions of Roslyn
+                // we can't issue the same error as we do for other cases. Instead, issue a warning and fall back to emitting the attribute with element count 1.
+                if (messageProvider.WRN_ByValArraySizeConstRequired is { } warningCode)
+                {
+                    arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(warningCode, arguments.AttributeSyntaxOpt.GetLocation()));
+                }
+                elementCount = 1;
+            }
+
             if (!hasErrors)
             {
                 var data = arguments.GetOrCreateData<TWellKnownAttributeData>().GetOrCreateData();
@@ -289,7 +302,7 @@ namespace Microsoft.CodeAnalysis
             int symbolIndex = -1;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -355,7 +368,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             int elementCount = -1;
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             bool hasErrors = false;
 
             foreach (var namedArg in arguments.Attribute.NamedArguments)

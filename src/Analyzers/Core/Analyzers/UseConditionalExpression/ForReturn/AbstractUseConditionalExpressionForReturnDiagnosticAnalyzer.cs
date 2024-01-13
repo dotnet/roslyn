@@ -16,13 +16,30 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
+                   EnforceOnBuildValues.UseConditionalExpressionForReturn,
                    message,
                    CodeStyleOptions2.PreferConditionalExpressionOverReturn)
         {
         }
 
-        protected override bool TryMatchPattern(IConditionalOperation ifOperation)
-            => UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    GetSyntaxFacts(), ifOperation, out _, out _);
+        protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
+            => context.GetAnalyzerOptions().PreferConditionalExpressionOverReturn;
+
+        protected override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
+        {
+            if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
+                    GetSyntaxFacts(), ifOperation, containingSymbol, out var isRef, out var trueStatement, out var falseStatement, out var trueReturn, out var falseReturn))
+            {
+                return default;
+            }
+
+            var canSimplify = UseConditionalExpressionHelpers.CanSimplify(
+                trueReturn?.ReturnedValue ?? trueStatement,
+                falseReturn?.ReturnedValue ?? falseStatement,
+                isRef,
+                out _);
+
+            return (matched: true, canSimplify);
+        }
     }
 }

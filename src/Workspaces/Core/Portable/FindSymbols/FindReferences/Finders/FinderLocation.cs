@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal readonly struct FinderLocation
+    internal readonly struct FinderLocation(SyntaxNode node, ReferenceLocation location)
     {
         /// <summary>
         /// The actual node that we found the reference on.  Normally the 'Name' portion
         /// of any piece of syntax.  Might also be something like a 'foreach' statement node
         /// when finding results for something like GetEnumerator.
         /// </summary>
-        public readonly SyntaxNode Node;
+        public readonly SyntaxNode Node = node;
 
         /// <summary>
         /// The location we want want to return through the FindRefs API.  The location contains
@@ -25,13 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// location we will take the user to will be the zero-length position immediately preceding
         /// the `[` character.
         /// </summary>
-        public readonly ReferenceLocation Location;
-
-        public FinderLocation(SyntaxNode node, ReferenceLocation location)
-        {
-            Node = node;
-            Location = location;
-        }
+        public readonly ReferenceLocation Location = location;
 
         public void Deconstruct(out SyntaxNode node, out ReferenceLocation location)
         {

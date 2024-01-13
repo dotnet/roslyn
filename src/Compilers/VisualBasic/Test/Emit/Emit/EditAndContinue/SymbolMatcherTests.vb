@@ -79,7 +79,7 @@ End Class"
             Dim n As Integer = members.Length
             For i = 0 To n - 1
                 Dim member = members((i + startAt) Mod n)
-                Dim other = matcher.MapDefinition(DirectCast(member, Cci.IDefinition))
+                Dim other = matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IDefinition))
                 Assert.NotNull(other)
             Next
         End Sub
@@ -112,7 +112,7 @@ End Class
 
             Assert.Equal(members.Length, 2)
             For Each member In members
-                Dim other = matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition))
+                Dim other = matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition))
                 Assert.NotNull(other)
             Next
         End Sub
@@ -132,7 +132,7 @@ End Class
             Dim compilation1 = compilation0.WithSource(source)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             Assert.NotNull(other)
         End Sub
 
@@ -164,7 +164,7 @@ End Class
             Assert.Equal(DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
-            Dim other = DirectCast(matcher.MapDefinition(member1), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
         End Sub
@@ -192,7 +192,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim mf1 = matcher.MapDefinition(f1)
+            Dim mf1 = matcher.MapDefinition(f1.GetCciAdapter()).GetInternalSymbol()
             Assert.Equal(f0, mf1)
         End Sub
 
@@ -225,7 +225,7 @@ End Class
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
             Dim member = compilation1.CreateArrayTypeSymbol(elementType)
-            Dim other = matcher.MapReference(member)
+            Dim other = matcher.MapReference(member.GetCciAdapter())
             Assert.NotNull(other)
         End Sub
 
@@ -257,7 +257,7 @@ End Class
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
             Dim member = compilation1.CreateArrayTypeSymbol(elementType)
-            Dim other = matcher.MapReference(member)
+            Dim other = matcher.MapReference(member.GetCciAdapter())
             ' For a newly added type, there is no match in the previous generation.
             Assert.Null(other)
         End Sub
@@ -292,7 +292,7 @@ End Class
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.y")
-            Dim other = matcher.MapReference(DirectCast(member.Type, Cci.ITypeReference))
+            Dim other = matcher.MapReference(DirectCast(member.Type.GetCciAdapter(), Cci.ITypeReference))
             ' For a newly added type, there is no match in the previous generation.
             Assert.Null(other)
         End Sub
@@ -331,7 +331,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousType_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_1", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("B", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal(2, anonymousTypeMap0.Count)
@@ -355,9 +356,8 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -401,7 +401,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousType_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_1", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("X", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_2", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("Y", isKey:=False, ignoreCase:=True)))).Name)
@@ -426,9 +427,8 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -472,7 +472,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousDelegate_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(
                 New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True),
                 New AnonymousTypeKeyField(AnonymousTypeDescriptor.FunctionReturnParameterName, isKey:=False, ignoreCase:=True)), isDelegate:=True)).Name)
@@ -491,21 +492,20 @@ End Class
 
             Dim c = compilation1.GetMember(Of NamedTypeSymbol)("C")
             Dim displayClasses = peAssemblyBuilder.GetSynthesizedTypes(c).ToArray()
-            Assert.Equal("_Closure$__1-0", displayClasses(0).Name)
-            Assert.Equal("_Closure$__", displayClasses(1).Name)
+            Assert.Equal("_Closure$__", displayClasses(0).Name)
+            Assert.Equal("_Closure$__1-0", displayClasses(1).Name)
 
             Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
-            Dim fields = displayClasses(0).GetFields(emitContext).ToArray()
+            Dim fields = displayClasses(1).GetFields(emitContext).ToArray()
             Dim x1 = fields(0)
             Dim x2 = fields(1)
             Assert.Equal("$VB$Local_x1", x1.Name)
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -513,6 +513,32 @@ End Class
 
             Assert.Equal("$VB$Local_x1", mappedX1.Name)
             Assert.Null(mappedX2)
+        End Sub
+
+        <Fact>
+        Public Sub Method_RenameParameter()
+            Dim source0 = "
+Class C
+    Public Function X(a As Integer) As Integer
+        Return a
+    End Function
+End Class
+"
+            Dim source1 = "
+Class C
+    Public Function X(b As Integer) As Integer
+        Return b
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim matcher = CreateMatcher(compilation1, compilation0)
+
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
+            Assert.NotNull(other)
         End Sub
 
         <Fact>
@@ -530,16 +556,10 @@ Class C
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other)
         End Sub
@@ -560,18 +580,12 @@ Class C
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types must match because just an element name was changed.
-            Dim otherSymbol = DirectCast(other, SourceFieldSymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourceFieldSymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("C.x As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
@@ -595,16 +609,10 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types should not match: one is tuple and another is not.
             Assert.Null(other)
         End Sub
@@ -628,16 +636,10 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types should not match: one is tuple and another is not.
             Assert.Null(other)
         End Sub
@@ -661,16 +663,10 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other)
         End Sub
@@ -694,18 +690,12 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types must match because just an element name was changed.
-            Dim otherSymbol = DirectCast(other, SourceMemberMethodSymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourceMemberMethodSymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("Function C.X() As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
@@ -733,16 +723,10 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other)
         End Sub
@@ -770,18 +754,12 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types must match because just an element name was changed.
-            Dim otherSymbol = DirectCast(other, SourcePropertySymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourcePropertySymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("ReadOnly Property C.X As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
@@ -801,16 +779,10 @@ End Structure
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other)
         End Sub
@@ -830,18 +802,12 @@ End Structure
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types must match because just an element name was changed.
-            Dim otherSymbol = DirectCast(other, SourceFieldSymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourceFieldSymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("Vector.Coordinates As (x As System.Int32, y As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
@@ -861,18 +827,12 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Tuple delegate defines a type. We should be able to match old and new types by name.
-            Dim otherSymbol = DirectCast(other, SourceNamedTypeSymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourceNamedTypeSymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("C.F", otherSymbol.ToTestDisplayString())
         End Sub
@@ -891,18 +851,12 @@ End Class"
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
-            Dim other = matcher.MapDefinition(member)
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
             ' Types must match because just an element name was changed.
-            Dim otherSymbol = DirectCast(other, SourceNamedTypeSymbol)
+            Dim otherSymbol = DirectCast(other.GetInternalSymbol(), SourceNamedTypeSymbol)
             Assert.NotNull(otherSymbol)
             Assert.Equal("C.F", otherSymbol.ToTestDisplayString())
         End Sub

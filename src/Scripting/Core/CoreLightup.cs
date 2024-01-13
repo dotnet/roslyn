@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -80,7 +82,11 @@ namespace Roslyn.Utilities
                     _handler = handler;
                 }
 
+#pragma warning disable IDE0051 // Remove unused private members - Reflection (s_stubInfo)
+#pragma warning disable IDE0060 // Remove unused parameter
                 private Assembly Stub(object sender, object resolveEventArgs)
+#pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore IDE0060 // Remove unused parameter
                 {
                     var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
                     var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
@@ -104,7 +110,7 @@ namespace Roslyn.Utilities
                 var currentAppDomain = AppDomain.CurrentDomain;
                 object resolveEventHandler = new AssemblyResolveWrapper(handler).GetHandler();
 
-                handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
+                handlerOperation.Invoke(currentAppDomain, [resolveEventHandler]);
             }
 
             internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)

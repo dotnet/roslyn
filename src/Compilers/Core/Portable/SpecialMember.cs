@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     // members of special types
@@ -144,6 +142,7 @@ namespace Microsoft.CodeAnalysis
         System_UIntPtr__op_Explicit_FromUInt64,
 
         System_Nullable_T_GetValueOrDefault,
+        System_Nullable_T_GetValueOrDefaultDefaultValue,
         System_Nullable_T_get_Value,
         System_Nullable_T_get_HasValue,
         System_Nullable_T__ctor,
@@ -151,6 +150,14 @@ namespace Microsoft.CodeAnalysis
         System_Nullable_T__op_Explicit_ToT,
 
         System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces,
+        System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention,
+        System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses,
+        System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces,
+        System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr,
+        System_Runtime_CompilerServices_RuntimeFeature__ByRefFields,
+
+        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
+        System_Runtime_CompilerServices_InlineArrayAttribute__ctor,
 
         Count
     }

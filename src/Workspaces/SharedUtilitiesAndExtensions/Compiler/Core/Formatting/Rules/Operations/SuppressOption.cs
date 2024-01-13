@@ -7,12 +7,22 @@ using System;
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// Options for SuppressOperation
-    /// 
-    /// NoWrappingIfOnSingleLine means no wrapping if given tokens are on same line
-    /// NoWrapping means no wrapping regardless of relative positions of two tokens
-    /// NoSpacing means no spacing regardless of relative positions of two tokens
-    /// 
+    /// Options for <see cref="SuppressOperation"/>.
+    ///
+    /// <list type="bullet">
+    ///   <item>
+    ///     <term><see cref="NoWrappingIfOnSingleLine"/></term>
+    ///     <description>no wrapping if given tokens are on same line</description>
+    ///   </item>
+    ///   <item>
+    ///     <term><see cref="NoWrapping"/></term>
+    ///     <description>no wrapping regardless of relative positions of two tokens</description>
+    ///   </item>
+    ///   <item>
+    ///     <term><see cref="NoSpacing"/></term>
+    ///     <description>no spacing regardless of relative positions of two tokens</description>
+    ///   </item>
+    /// </list>
     /// </summary>
     [Flags]
     internal enum SuppressOption

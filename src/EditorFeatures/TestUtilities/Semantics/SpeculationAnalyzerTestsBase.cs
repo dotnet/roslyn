@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 
         protected readonly Regex UnderTestRegex = new Regex(@"\[\|(?<content>.*?)\|\]");
 
-        protected readonly MetadataReference[] References = new[]
-        {
+        protected readonly MetadataReference[] References =
+        [
             MscorlibRef,
             SystemRef,
             SystemCoreRef,
             MsvbRef
-        };
+        ];
 
         protected void Test(string code, string replacementExpression, bool semanticChanges, string expressionToAnalyze = null, bool isBrokenCode = false)
         {

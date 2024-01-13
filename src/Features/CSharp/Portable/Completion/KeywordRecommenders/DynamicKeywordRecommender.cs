@@ -2,23 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var syntaxTree = context.SyntaxTree;
-            if (context.IsPreProcessorDirectiveContext)
+            if (context.IsPreProcessorDirectiveContext ||
+                context.IsTaskLikeTypeContext)
             {
                 return false;
             }
@@ -26,14 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return IsDynamicTypeContext(position, context, cancellationToken);
         }
 
-        public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (IsValidContext(position, context, cancellationToken))
-            {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("dynamic")));
-            }
-
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return IsValidContext(position, context, cancellationToken)
+                ? ImmutableArray.Create(new RecommendedKeyword("dynamic"))
+                : ImmutableArray<RecommendedKeyword>.Empty;
         }
 
         protected static bool IsDynamicTypeContext(
@@ -54,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsPossibleCastTypeContext(position, context.LeftToken, cancellationToken) ||
                 context.IsObjectCreationTypeContext ||
                 context.IsGenericTypeArgumentContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 context.IsIsOrAsTypeContext ||
                 syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
@@ -62,16 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsUsingAliasTypeContext ||
+                context.IsPossibleTupleContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
 
         private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)
-            => context.TargetToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
+            => context.TargetToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword &&
                context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
     }
 }

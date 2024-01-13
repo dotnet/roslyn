@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -25,32 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// C# language version 3
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: LINQ.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         CSharp3 = 3,
 
         /// <summary>
         /// C# language version 4
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: dynamic.
-        /// </remarks>
+        /// </para>        
+        /// </summary>        
         CSharp4 = 4,
 
         /// <summary>
         /// C# language version 5
-        /// </summary>
-        /// <remarks> 
+        /// <para>
         /// Features: async, caller info attributes.
-        /// </remarks>
+        /// </para>        
+        /// </summary> 
         CSharp5 = 5,
 
         /// <summary>
         /// C# language version 6
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Using of a static class</description></item>
@@ -63,13 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>nameof operator</description></item>
         /// <item><description>Dictionary initializer</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp6 = 6,
 
         /// <summary>
         /// C# language version 7.0
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Out variables</description></item>
@@ -84,13 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>More expression-bodied members</description></item>
         /// <item><description>Throw expressions</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7 = 7,
 
         /// <summary>
         /// C# language version 7.1
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Async Main</description></item>
@@ -98,13 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Inferred tuple element names</description></item>
         /// <item><description>Pattern-matching with generics</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7_1 = 701,
 
         /// <summary>
         /// C# language version 7.2
-        /// </summary>
-        /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
         /// <item><description>Ref readonly</description></item>
@@ -115,18 +105,131 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Digit separators after base specifier</description></item>
         /// <item><description>Non-trailing named arguments</description></item>
         /// </list>
-        /// </remarks>
+        /// </summary>
         CSharp7_2 = 702,
 
         /// <summary>
         /// C# language version 7.3
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Indexing fixed fields does not require pinning</description></item>
+        /// <item><description>ref local variables may be reassigned</description></item>
+        /// <item><description>stackalloc arrays support initializers</description></item>
+        /// <item><description>More types support the fixed statement</description></item>
+        /// <item><description>Enhanced generic constraints</description></item>
+        /// <item><description>Tuples support == and !=</description></item>
+        /// <item><description>Attach attributes to the backing fields for auto-implemented properties</description></item>
+        /// <item><description>Method overload resolution improvements when arguments differ by 'in'</description></item>
+        /// <item><description>Extend expression variables in initializers</description></item>
+        /// <item><description>Improved overload candidates</description></item>
+        /// <item><description>New compiler options (-publicsign and -pathmap)</description></item>
+        /// </list>
         /// </summary>
         CSharp7_3 = 703,
 
         /// <summary>
         /// C# language version 8.0
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Readonly members</description></item>
+        /// <item><description>Default interface methods</description></item>
+        /// <item><description>Pattern matching enhancements (switch expressions, property patterns, tuple patterns, and positional patterns)</description></item>
+        /// <item><description>Using declarations</description></item>
+        /// <item><description>Static local functions</description></item>
+        /// <item><description>Disposable ref structs</description></item>
+        /// <item><description>Nullable reference types</description></item>
+        /// <item><description>Asynchronous streams</description></item>
+        /// <item><description>Asynchronous disposable</description></item>
+        /// <item><description>Indices and ranges</description></item>
+        /// <item><description>Null-coalescing assignment</description></item>
+        /// <item><description>Unmanaged constructed types</description></item>
+        /// <item><description>Stackalloc in nested expressions</description></item>
+        /// <item><description>Enhancement of interpolated verbatim strings</description></item>
+        /// </list>
         /// </summary>
         CSharp8 = 800,
+
+        /// <summary>
+        /// C# language version 9.0
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Records</description></item>
+        /// <item><description>Init only setters</description></item>
+        /// <item><description>Top-level statements</description></item>
+        /// <item><description>Pattern matching enhancements</description></item>
+        /// <item><description>Native sized integers</description></item>
+        /// <item><description>Function pointers</description></item>
+        /// <item><description>Suppress emitting localsinit flag</description></item>
+        /// <item><description>Target-typed new expressions</description></item>
+        /// <item><description>Static anonymous functions</description></item>
+        /// <item><description>Target-typed conditional expressions</description></item>
+        /// <item><description>Covariant return types</description></item>
+        /// <item><description>Extension GetEnumerator support for foreach loops</description></item>
+        /// <item><description>Lambda discard parameters</description></item>
+        /// <item><description>Attributes on local functions</description></item>
+        /// <item><description>Module initializers</description></item>
+        /// <item><description>New features for partial methods</description></item>
+        /// </list>
+        /// </summary>
+        CSharp9 = 900,
+
+        /// <summary>
+        /// C# language version 10.0
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Record structs</description></item>
+        /// <item><description>Global using directives</description></item>
+        /// <item><description>Lambda improvements</description></item>
+        /// <item><description>Improved definite assignment</description></item>
+        /// <item><description>Constant interpolated strings</description></item>
+        /// <item><description>Mix declarations and variables in deconstruction</description></item>
+        /// <item><description>Extended property patterns</description></item>
+        /// <item><description>Sealed record ToString</description></item>
+        /// <item><description>Source Generator v2 APIs</description></item>
+        /// <item><description>Method-level AsyncMethodBuilder</description></item>
+        /// </list>
+        /// </summary>
+        CSharp10 = 1000,
+
+        /// <summary>
+        /// C# language version 11.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Raw string literals</description></item>
+        /// <item><description>Static abstract members in interfaces</description></item>
+        /// <item><description>Generic attributes</description></item>
+        /// <item><description>Newlines in interpolations</description></item>
+        /// <item><description>List-patterns</description></item>
+        /// <item><description>Required members</description></item>
+        /// <item><description>Span&lt;char> constant pattern</description></item>
+        /// <item><description>Struct auto-default</description></item>
+        /// <item><description>Nameof(parameter)</description></item>
+        /// <item><description>Checked user-defined operators</description></item>
+        /// <item><description>UTF-8 string literals</description></item>
+        /// <item><description>Unsigned right-shift operator</description></item>
+        /// <item><description>Relaxed shift operator</description></item>
+        /// <item><description>Ref fields</description></item>
+        /// <item><description>File-local types</description></item>
+        /// </list> 
+        /// </summary>
+        CSharp11 = 1100,
+
+        /// <summary>
+        /// C# language version 12.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Primary constructors</description></item>
+        /// <item><description>Using aliases for any types</description></item>
+        /// <item><description>Nameof accessing instance members</description></item>
+        /// <item><description>Inline arrays</description></item>
+        /// <item><description>Collection expressions</description></item>
+        /// <item><description>Ref readonly parameters</description></item>
+        /// <item><description>Lambda optional parameters</description></item>
+        /// </list>
+        /// </summary>
+        CSharp12 = 1200,
 
         /// <summary>
         /// The latest major supported version.
@@ -166,6 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_2:
                 case LanguageVersion.CSharp7_3:
                 case LanguageVersion.CSharp8:
+                case LanguageVersion.CSharp9:
+                case LanguageVersion.CSharp10:
+                case LanguageVersion.CSharp11:
+                case LanguageVersion.CSharp12:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -199,6 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_3;
                 case LanguageVersion.CSharp8:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion8;
+                case LanguageVersion.CSharp9:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion9;
+                case LanguageVersion.CSharp10:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion10;
+                case LanguageVersion.CSharp11:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion11;
+                case LanguageVersion.CSharp12:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion12;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -211,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpRequiredLanguageVersion(LanguageVersion version)
         {
-            Version = (version == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()) ? LanguageVersion.Preview : version;
+            Version = version;
         }
 
         public override string ToString() => Version.ToDisplayString();
@@ -220,8 +335,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static class LanguageVersionFacts
     {
         /// <summary>
+        /// Usages of:
+        /// - TestOptions.RegularNext,
+        /// - LanguageVersionFacts.CSharpNext,
+        /// - Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext
+        /// will be replaced with:
+        /// - TestOptions.RegularN,
+        /// - LanguageVersion.CSharpN,
+        /// - LanguageVersion.CSharpN
+        /// when language version N is introduced.
+        /// </summary>
+        internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
+
+        /// <summary>
         /// Displays the version number in the format expected on the command-line (/langver flag).
-        /// For instance, "6", "7", "7.1", "latest".
+        /// For instance, "6", "7.0", "7.1", "latest".
         /// </summary>
         public static string ToDisplayString(this LanguageVersion version)
         {
@@ -249,6 +377,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "7.3";
                 case LanguageVersion.CSharp8:
                     return "8.0";
+                case LanguageVersion.CSharp9:
+                    return "9.0";
+                case LanguageVersion.CSharp10:
+                    return "10.0";
+                case LanguageVersion.CSharp11:
+                    return "11.0";
+                case LanguageVersion.CSharp12:
+                    return "12.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -345,6 +481,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp8;
                     return true;
 
+                case "9":
+                case "9.0":
+                    result = LanguageVersion.CSharp9;
+                    return true;
+
+                case "10":
+                case "10.0":
+                    result = LanguageVersion.CSharp10;
+                    return true;
+
+                case "11":
+                case "11.0":
+                    result = LanguageVersion.CSharp11;
+                    return true;
+
+                case "12":
+                case "12.0":
+                    result = LanguageVersion.CSharp12;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -361,13 +517,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp8;
+                    return LanguageVersion.CSharp12;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp8;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp12;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

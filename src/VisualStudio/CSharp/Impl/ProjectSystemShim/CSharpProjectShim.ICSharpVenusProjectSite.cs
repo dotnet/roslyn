@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var projectSite = GetProjectSite(project);
 
-            var projectReferencesToRemove = VisualStudioProject.GetProjectReferences().Where(p => p.ProjectId == projectSite.VisualStudioProject.Id).ToList();
+            var projectReferencesToRemove = ProjectSystemProject.GetProjectReferences().Where(p => p.ProjectId == projectSite.ProjectSystemProject.Id).ToList();
 
             if (projectReferencesToRemove.Count == 0)
             {
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             foreach (var projectReferenceToRemove in projectReferencesToRemove)
             {
-                VisualStudioProject.RemoveProjectReference(new ProjectReference(projectSite.VisualStudioProject.Id));
+                ProjectSystemProject.RemoveProjectReference(new ProjectReference(projectSite.ProjectSystemProject.Id));
             }
         }
 
@@ -39,12 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var projectSite = GetProjectSite(project);
 
-            using (VisualStudioProject.CreateBatchScope())
+            using (ProjectSystemProject.CreateBatchScope())
             {
-                var existingProjectReference = VisualStudioProject.GetProjectReferences().Single(p => p.ProjectId == projectSite.VisualStudioProject.Id);
+                var existingProjectReference = ProjectSystemProject.GetProjectReferences().Single(p => p.ProjectId == projectSite.ProjectSystemProject.Id);
 
-                VisualStudioProject.RemoveProjectReference(existingProjectReference);
-                VisualStudioProject.AddProjectReference(new ProjectReference(existingProjectReference.ProjectId, ImmutableArray.Create(currentAliases), existingProjectReference.EmbedInteropTypes));
+                ProjectSystemProject.RemoveProjectReference(existingProjectReference);
+                ProjectSystemProject.AddProjectReference(new ProjectReference(existingProjectReference.ProjectId, ImmutableArray.Create(currentAliases), existingProjectReference.EmbedInteropTypes));
             }
         }
 
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var projectSite = GetProjectSite(projectRoot);
 
-            VisualStudioProject.AddProjectReference(new ProjectReference(projectSite.VisualStudioProject.Id, embedInteropTypes: optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA));
+            ProjectSystemProject.AddProjectReference(new ProjectReference(projectSite.ProjectSystemProject.Id, embedInteropTypes: optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA));
         }
 
         /// <summary>
@@ -67,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by
             // the project system.
-            if (!(project.GetProjectSite(ref projectSiteGuid) is CSharpProjectShim projectSite))
+            if (project.GetProjectSite(ref projectSiteGuid) is not CSharpProjectShim projectSite)
             {
                 throw new ArgumentException($"{project} was not properly sited with the language service.", nameof(project));
             }

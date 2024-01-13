@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// as this structure. We can then pick out this broken pattern, and convert
     /// it to null instead of true.
     /// </summary>
-    internal struct HACK_VariantStructure
+    [StructLayout(LayoutKind.Sequential)]
+    internal readonly struct HACK_VariantStructure
     {
         private readonly short _type;
 

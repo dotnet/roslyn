@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement rewrittenLocalDeclaration = new BoundExpressionStatement(
                 syntax,
-                new BoundAssignmentOperator(
+                _factory.AssignmentExpression(
                     syntax,
                     new BoundLocal(
                         syntax,
@@ -80,15 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement &&
                         ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
-                rewrittenLocalDeclaration = _instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
+                rewrittenLocalDeclaration = Instrumenter.InstrumentUserDefinedLocalInitialization(originalOpt, rewrittenLocalDeclaration);
             }
 
             return rewrittenLocalDeclaration;
         }
 
-        public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
+        public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

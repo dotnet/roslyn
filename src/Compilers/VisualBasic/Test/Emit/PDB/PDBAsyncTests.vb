@@ -213,23 +213,20 @@ End Module
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_1_F"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
@@ -243,18 +240,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68" document="1"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25" document="1"/>
-                <entry offset="0x1e" hidden="true" document="1"/>
-                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17" document="1"/>
-                <entry offset="0x7e" hidden="true" document="1"/>
-                <entry offset="0x86" hidden="true" document="1"/>
-                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
-                <entry offset="0xad" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0xbb">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -264,27 +249,32 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
 
             compilation.VerifyPdb("Module1.Test",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Test">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_2_Test"/>
+                <encStateMachineStateMap>
+                    <state number="8" offset="0"/>
+                    <state number="2" offset="8"/>
+                    <state number="0" offset="38"/>
+                    <state number="1" offset="94"/>
+                    <state number="7" offset="125"/>
+                    <state number="5" offset="155"/>
+                    <state number="4" offset="163"/>
+                    <state number="3" offset="171"/>
+                    <state number="6" offset="205"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
             <customDebugInfo>
@@ -304,26 +294,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34" document="1"/>
-                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34" document="1"/>
-                <entry offset="0x70" hidden="true" document="1"/>
-                <entry offset="0xf1" hidden="true" document="1"/>
-                <entry offset="0x176" hidden="true" document="1"/>
-                <entry offset="0x1f0" hidden="true" document="1"/>
-                <entry offset="0x269" hidden="true" document="1"/>
-                <entry offset="0x2e2" hidden="true" document="1"/>
-                <entry offset="0x363" hidden="true" document="1"/>
-                <entry offset="0x3e4" hidden="true" document="1"/>
-                <entry offset="0x463" hidden="true" document="1"/>
-                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
-                <entry offset="0x4c1" hidden="true" document="1"/>
-                <entry offset="0x4c9" hidden="true" document="1"/>
-                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
-                <entry offset="0x4f0" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4fd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -341,27 +311,24 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
 
             compilation.VerifyPdb("Module1.S",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="S">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_3_S"/>
+                <encStateMachineStateMap>
+                    <state number="0" offset="0"/>
+                </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
             <customDebugInfo>
@@ -373,18 +340,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18" document="1"/>
-                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25" document="1"/>
-                <entry offset="0x1d" hidden="true" document="1"/>
-                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
-                <entry offset="0x7a" hidden="true" document="1"/>
-                <entry offset="0x82" hidden="true" document="1"/>
-                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
-                <entry offset="0xa9" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb6">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -395,7 +350,7 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
         End Sub
 
         <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
@@ -428,6 +383,7 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -467,7 +423,9 @@ End Class
                 <entry offset="0x12c" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x139" attributes="0"/>
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x139" attributes="0"/>
             </scope>
@@ -509,6 +467,7 @@ End Class
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -538,7 +497,9 @@ End Class
                 <entry offset="0x103" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x10f" attributes="0"/>
             </scope>
             <asyncInfo>
@@ -783,7 +744,7 @@ End Module
 
             v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
 {
-  // Code size      266 (0x10a)
+  // Code size      254 (0xfe)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -800,7 +761,7 @@ End Module
    ~IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_006f
+    IL_000c:  br.s       IL_0063
    -IL_000e:  nop
    ~IL_000f:  ldarg.0
     IL_0010:  newobj     ""Sub M._Closure$__0-0..ctor()""
@@ -809,100 +770,96 @@ End Module
     IL_001b:  ldarg.0
     IL_001c:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
     IL_0021:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_0026:  ldarg.0
-    IL_0027:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_002c:  ldfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
-    IL_0031:  pop
-    IL_0032:  ldc.i4.1
-    IL_0033:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0038:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_003d:  stloc.3
-   ~IL_003e:  ldloca.s   V_3
-    IL_0040:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0045:  brtrue.s   IL_008d
-    IL_0047:  ldarg.0
-    IL_0048:  ldc.i4.0
-    IL_0049:  dup
-    IL_004a:  stloc.1
-    IL_004b:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-   <IL_0050:  ldarg.0
-    IL_0051:  ldloc.3
-    IL_0052:  stfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0057:  ldarg.0
-    IL_0058:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-    IL_005d:  ldloca.s   V_3
-    IL_005f:  ldarg.0
-    IL_0060:  stloc.s    V_4
-    IL_0062:  ldloca.s   V_4
-    IL_0064:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), M.VB$StateMachine_0_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef M.VB$StateMachine_0_F)""
-    IL_0069:  nop
-    IL_006a:  leave      IL_0109
-   >IL_006f:  ldarg.0
-    IL_0070:  ldc.i4.m1
-    IL_0071:  dup
-    IL_0072:  stloc.1
-    IL_0073:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-    IL_0078:  ldarg.0
-    IL_0079:  ldfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_007e:  stloc.3
-    IL_007f:  ldarg.0
-    IL_0080:  ldflda     ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_008b:  br.s       IL_008d
-    IL_008d:  ldarg.0
-    IL_008e:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_0093:  ldloca.s   V_3
-    IL_0095:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_009a:  stloc.s    V_5
-    IL_009c:  ldloca.s   V_3
-    IL_009e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00a4:  ldloc.s    V_5
-    IL_00a6:  stfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
-    IL_00ab:  ldarg.0
-    IL_00ac:  ldnull
-    IL_00ad:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-   -IL_00b2:  ldarg.0
-    IL_00b3:  ldarg.0
-    IL_00b4:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
-    IL_00b9:  ldftn      ""Sub M._Closure$__0-0._Lambda$__0()""
-    IL_00bf:  newobj     ""Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)""
-    IL_00c4:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_x$1 As <generated method>""
-   -IL_00c9:  ldc.i4.0
-    IL_00ca:  stloc.0
-    IL_00cb:  leave.s    IL_00f2
+    IL_0026:  ldc.i4.1
+    IL_0027:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_002c:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0031:  stloc.3
+   ~IL_0032:  ldloca.s   V_3
+    IL_0034:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0039:  brtrue.s   IL_0081
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  dup
+    IL_003e:  stloc.1
+    IL_003f:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+   <IL_0044:  ldarg.0
+    IL_0045:  ldloc.3
+    IL_0046:  stfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004b:  ldarg.0
+    IL_004c:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_0051:  ldloca.s   V_3
+    IL_0053:  ldarg.0
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldloca.s   V_4
+    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), M.VB$StateMachine_0_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef M.VB$StateMachine_0_F)""
+    IL_005d:  nop
+    IL_005e:  leave      IL_00fd
+   >IL_0063:  ldarg.0
+    IL_0064:  ldc.i4.m1
+    IL_0065:  dup
+    IL_0066:  stloc.1
+    IL_0067:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_006c:  ldarg.0
+    IL_006d:  ldfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0072:  stloc.3
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007f:  br.s       IL_0081
+    IL_0081:  ldarg.0
+    IL_0082:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+    IL_0087:  ldloca.s   V_3
+    IL_0089:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_008e:  stloc.s    V_5
+    IL_0090:  ldloca.s   V_3
+    IL_0092:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0098:  ldloc.s    V_5
+    IL_009a:  stfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldnull
+    IL_00a1:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+   -IL_00a6:  ldarg.0
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
+    IL_00ad:  ldftn      ""Sub M._Closure$__0-0._Lambda$__0()""
+    IL_00b3:  newobj     ""Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)""
+    IL_00b8:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_x$1 As <generated method>""
+   -IL_00bd:  ldc.i4.0
+    IL_00be:  stloc.0
+    IL_00bf:  leave.s    IL_00e6
   }
   catch System.Exception
   {
-   ~IL_00cd:  dup
-    IL_00ce:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_00d3:  stloc.s    V_6
-   ~IL_00d5:  ldarg.0
-    IL_00d6:  ldc.i4.s   -2
-    IL_00d8:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-    IL_00dd:  ldarg.0
-    IL_00de:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-    IL_00e3:  ldloc.s    V_6
-    IL_00e5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetException(System.Exception)""
-    IL_00ea:  nop
-    IL_00eb:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00f0:  leave.s    IL_0109
+   ~IL_00c1:  dup
+    IL_00c2:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00c7:  stloc.s    V_6
+   ~IL_00c9:  ldarg.0
+    IL_00ca:  ldc.i4.s   -2
+    IL_00cc:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_00d7:  ldloc.s    V_6
+    IL_00d9:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetException(System.Exception)""
+    IL_00de:  nop
+    IL_00df:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00e4:  leave.s    IL_00fd
   }
- -IL_00f2:  ldarg.0
-  IL_00f3:  ldc.i4.s   -2
-  IL_00f5:  dup
-  IL_00f6:  stloc.1
-  IL_00f7:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
- ~IL_00fc:  ldarg.0
-  IL_00fd:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-  IL_0102:  ldloc.0
-  IL_0103:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetResult(Boolean)""
-  IL_0108:  nop
-  IL_0109:  ret
+ -IL_00e6:  ldarg.0
+  IL_00e7:  ldc.i4.s   -2
+  IL_00e9:  dup
+  IL_00ea:  stloc.1
+  IL_00eb:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+ ~IL_00f0:  ldarg.0
+  IL_00f1:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+  IL_00f6:  ldloc.0
+  IL_00f7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetResult(Boolean)""
+  IL_00fc:  nop
+  IL_00fd:  ret
 }
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <Fact>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -938,16 +895,18 @@ End Class
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
 MethodDebugInformation (index: 0x31, size: 20): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: #4
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4:      
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -960,8 +919,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002D: (7, 5) - (7, 12)
   IL_0037: <hidden>
 }
-5: nil
-", writer.ToString())
+5: nil", writer.ToString())
             End Using
         End Sub
 

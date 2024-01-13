@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // A few dependencies from System.dll -- we want to avoid referencing the entire System.dll.
 
 namespace System.Diagnostics

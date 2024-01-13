@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -118,6 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsFixedSizeBuffer
+        {
+            get
+            {
+                return _underlyingField.IsFixedSizeBuffer;
+            }
+        }
+
         internal override int? TypeLayoutOffset
         {
             get
@@ -194,5 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.IsStatic;
             }
         }
+
+        internal sealed override bool IsRequired => _underlyingField.IsRequired;
     }
 }

@@ -3,34 +3,34 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class GoToDestinationsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ZeroAndOneAfterOnErrorGotoTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On Error Goto |</MethodBody>, "0", "-1")
-        End Function
+        Inherits RecommenderTests
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact>
+        Public Sub ZeroAndOneAfterOnErrorGotoTest()
+            VerifyRecommendationsAreExactly(<MethodBody>On Error Goto |</MethodBody>, "0", "-1")
+        End Sub
+
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>On Error Goto 
 |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsAreExactly(
 <MethodBody>On Error Goto _
  |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        <Fact>
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsAreExactly(
 <MethodBody>On Error Goto _ ' Test
  |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
     End Class
 End Namespace

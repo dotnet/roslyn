@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return Hash.Combine(obj.SourceSpan.GetHashCode(),
                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.SourceTree.FilePath));
             }
+
             return obj?.GetHashCode() ?? 0;
         }
     }

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                 {BinaryOperatorKind.GreaterThanOrEqual, (SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.GreaterThanEqualsToken)}
             }
 
-        Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of AnalyzedSwitchSection)) As SyntaxNode
+        Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of AnalyzedSwitchSection), feature As Feature) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             Return If(node.IsStatementContainerNode(), node.GetStatements(), SpecializedCollections.SingletonEnumerable(node))
         End Function
 
-        Public Overrides Function AsSwitchLabelSyntax(label As AnalyzedSwitchLabel) As SyntaxNode
+        Public Overrides Function AsSwitchLabelSyntax(label As AnalyzedSwitchLabel, feature As Feature) As SyntaxNode
             Debug.Assert(label.Guards.IsDefaultOrEmpty)
             Return AsCaseClauseSyntax(label.Pattern).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function

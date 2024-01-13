@@ -1,0 +1,142 @@
+is_global = true
+
+dotnet_diagnostic.CA1067.severity = warning
+dotnet_diagnostic.CA1068.severity = warning
+dotnet_diagnostic.CA1200.severity = warning
+dotnet_diagnostic.CA1821.severity = warning
+dotnet_diagnostic.CA1868.severity = warning
+dotnet_diagnostic.CA2009.severity = warning
+
+# CA2012: Use ValueTasks correctly
+dotnet_diagnostic.CA2012.severity = warning
+
+# IDE0073: File header
+dotnet_diagnostic.IDE0073.severity = warning
+
+# IDE0035: Remove unreachable code
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0043: Format string contains invalid placeholder
+dotnet_diagnostic.IDE0043.severity = warning
+
+# IDE0044: Make field readonly
+dotnet_diagnostic.IDE0044.severity = warning
+
+# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
+# IDE0051: Remove unused private member
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0170: Prefer extended property pattern
+dotnet_diagnostic.IDE0170.severity = warning
+
+# dotnet_style_allow_multiple_blank_lines_experimental
+dotnet_diagnostic.IDE2000.severity = warning
+
+# dotnet_style_allow_statement_immediately_after_block_experimental
+dotnet_diagnostic.IDE2003.severity = warning
+
+dotnet_diagnostic.RS1001.severity = none
+dotnet_diagnostic.RS1002.severity = none
+dotnet_diagnostic.RS1003.severity = none
+dotnet_diagnostic.RS1004.severity = none
+dotnet_diagnostic.RS1005.severity = none
+dotnet_diagnostic.RS1006.severity = none
+dotnet_diagnostic.RS1008.severity = none
+dotnet_diagnostic.RS1009.severity = none
+dotnet_diagnostic.RS1010.severity = none
+dotnet_diagnostic.RS1011.severity = none
+dotnet_diagnostic.RS1012.severity = none
+dotnet_diagnostic.RS1013.severity = none
+dotnet_diagnostic.RS1014.severity = warning
+# https://github.com/dotnet/roslyn/issues/26420: Enable rule RS1022 for Roslyn.sln
+dotnet_diagnostic.RS1022.severity = none
+# RS1024: Compare symbols correctly
+dotnet_diagnostic.RS1024.severity = refactoring
+
+# RS1034: Prefer 'IsKind' for checking syntax kinds
+# Hold on https://github.com/dotnet/roslyn/pull/51823#pullrequestreview-612747491
+dotnet_diagnostic.RS1034.severity = none
+
+# error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
+dotnet_diagnostic.RS2008.severity = none
+
+dotnet_diagnostic.AD0001.severity = error
+
+dotnet_diagnostic.RS0001.severity = warning
+dotnet_diagnostic.RS0002.severity = warning
+dotnet_diagnostic.RS0006.severity = error
+dotnet_diagnostic.RS0012.severity = warning
+dotnet_diagnostic.RS0014.severity = warning
+dotnet_diagnostic.RS0015.severity = warning
+dotnet_diagnostic.RS0016.severity = error
+dotnet_diagnostic.RS0017.severity = error
+dotnet_diagnostic.RS0018.severity = warning
+dotnet_diagnostic.RS0022.severity = error
+dotnet_diagnostic.RS0023.severity = error
+dotnet_diagnostic.RS0024.severity = error
+dotnet_diagnostic.RS0025.severity = error
+dotnet_diagnostic.RS0026.severity = error
+dotnet_diagnostic.RS0027.severity = error
+# RS0037: PublicAPI.txt is missing '#nullable enable'
+dotnet_diagnostic.RS0037.severity = none
+# RS0040: Defaultable types should have defaultable fields
+dotnet_diagnostic.RS0040.severity = none
+# RS0046: Avoid the 'Opt' suffix in nullable-enabled code (too noisy right now)
+dotnet_diagnostic.RS0046.severity = suggestion
+# RS0047: (Suppressor) The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'
+dotnet_diagnostic.RS0047.severity = none
+
+# RS1014 - Re-enable when we have a fix from https://github.com/dotnet/roslyn-analyzers/pull/6442
+dotnet_diagnostic.RS1014.severity = none
+
+# allow skipped tests, with a code fix to unskip them
+dotnet_diagnostic.xUnit1004.severity = refactoring
+# xUnit2006: "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2006.severity = none
+# xUnit2009: "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2009.severity = none
+# xUnit2012: "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2012.severity = none
+# xUnit2013: "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2013.severity = none
+# xUnit2017: "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2017.severity = none
+
+# https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/index.md
+# VSSDK001: Derive from AsyncPackage
+dotnet_diagnostic.VSSDK001.severity = warning
+# VSSDK003: Support async tool windows
+dotnet_diagnostic.VSSDK003.severity = warning
+# VSSDK006: Remove suppression. https://github.com/dotnet/roslyn/issues/38471
+dotnet_diagnostic.VSSDK006.severity = none
+
+# VSTHRD002: Avoid problematic synchronous waits
+dotnet_diagnostic.VSTHRD002.severity = none
+# VSTHRD003: Avoid awaiting foreign Tasks https://github.com/dotnet/roslyn/issues/34331
+dotnet_diagnostic.VSTHRD003.severity = none
+# VSTHRD103: Call async methods when in an async method
+dotnet_diagnostic.VSTHRD103.severity = none
+# VSTHRD010: Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275
+dotnet_diagnostic.VSTHRD010.severity = none
+# VSTHRD110: Observe result of async calls
+dotnet_diagnostic.VSTHRD110.severity = none
+
+dotnet_diagnostic.HAA0101.severity = none
+dotnet_diagnostic.HAA0102.severity = none
+dotnet_diagnostic.HAA0201.severity = none
+dotnet_diagnostic.HAA0202.severity = none
+dotnet_diagnostic.HAA0301.severity = none
+dotnet_diagnostic.HAA0302.severity = none
+dotnet_diagnostic.HAA0303.severity = none
+dotnet_diagnostic.HAA0401.severity = none
+dotnet_diagnostic.HAA0501.severity = none
+dotnet_diagnostic.HAA0502.severity = none
+dotnet_diagnostic.HAA0503.severity = none
+dotnet_diagnostic.HAA0506.severity = none
+dotnet_diagnostic.HAA0601.severity = none
+dotnet_diagnostic.HAA0602.severity = none
+dotnet_diagnostic.HAA0603.severity = none
+dotnet_diagnostic.HeapAnalyzerReadonlyMethodGroupAllocationRule.severity = none

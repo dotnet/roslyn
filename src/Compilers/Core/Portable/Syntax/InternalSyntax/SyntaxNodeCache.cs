@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 using System;
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Console.WriteLine("RateOfCacheable: " + (cacheHits * 100 / (cacheableNodes)) + "%");
         }
 #else
-        internal static void NoteGreen(GreenNode node)
+        internal static void NoteGreen(GreenNode _)
         {
         }
 
@@ -277,9 +275,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode? child1)
         {
             int code = (int)(flags) ^ kind;
-            // the only child is never null
-            // https://github.com/dotnet/roslyn/issues/41539
-            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1!), code);
+            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code);
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;

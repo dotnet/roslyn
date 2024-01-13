@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Programmatic suppression of a <see cref="Diagnostic"/> by a <see cref="DiagnosticSuppressor"/>.
     /// </summary>
-    public struct Suppression : IEquatable<Suppression>
+    public readonly struct Suppression : IEquatable<Suppression>
     {
         private Suppression(SuppressionDescriptor descriptor, Diagnostic suppressedDiagnostic)
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return !(left == right);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Suppression suppression
                 && Equals(suppression);

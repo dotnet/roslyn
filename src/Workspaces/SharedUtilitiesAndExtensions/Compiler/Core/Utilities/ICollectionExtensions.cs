@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,6 +23,30 @@ namespace Roslyn.Utilities
                 {
                     collection.Add(item);
                 }
+            }
+        }
+
+        public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
+            if (values != null)
+            {
+                foreach (var item in values)
+                    collection.Add(item);
+            }
+        }
+
+        public static void AddRange<TKey, TValue>(this ICollection<TKey> collection, Dictionary<TKey, TValue>.KeyCollection? keyCollection) where TKey : notnull
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
+            if (keyCollection != null)
+            {
+                foreach (var key in keyCollection)
+                    collection.Add(key);
             }
         }
 

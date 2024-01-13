@@ -3,38 +3,36 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-#End If
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
     Partial Public Class RemoveUnusedValueExpressionStatementTests
         Inherits RemoveUnusedValuesTestsBase
 
-        Private Protected Overrides ReadOnly Property PreferNone As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferNone As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.None))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferDiscard As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferDiscard As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferUnusedLocal As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferUnusedLocal As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent))
             End Get
         End Property
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferNone() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -48,7 +46,7 @@ $"Class C
 End Class", options:=PreferNone)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferDiscard() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -71,7 +69,7 @@ $"Class C
 End Class", options:=PreferDiscard)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferUnusedLocal() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -94,7 +92,7 @@ $"Class C
 End Class", options:=PreferUnusedLocal)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function CallStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C

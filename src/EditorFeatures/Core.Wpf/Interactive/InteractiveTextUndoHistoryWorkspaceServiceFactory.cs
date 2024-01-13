@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), WorkspaceKind.Interactive), Shared]
     internal sealed class InteractiveTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 undoHistory = null;
 
-                if (!(editorWorkspace is InteractiveWorkspace interactiveWorkspace))
+                if (editorWorkspace is not InteractiveWindowWorkspace)
                 {
                     return false;
                 }

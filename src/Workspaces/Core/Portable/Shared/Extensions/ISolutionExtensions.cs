@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -40,6 +39,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
             => solution.GetTextDocument(documentId)?.Kind;
 
+        internal static TextDocument? GetTextDocumentForLocation(this Solution solution, Location location)
+        {
+            switch (location.Kind)
+            {
+                case LocationKind.SourceFile:
+                    return solution.GetDocument(location.SourceTree);
+                case LocationKind.ExternalFile:
+                    var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
+                    return solution.GetTextDocument(documentId);
+                default:
+                    return null;
+            }
+        }
+
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
             var documentKind = solution.GetDocumentKind(documentId);
@@ -61,10 +74,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
-
-        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
-            => documentIds.WhereAsArray(
-                (documentId, args) => args.solution.GetDocument(documentId)?.Project.Language == args.language,
-                (solution, language));
     }
 }

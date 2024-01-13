@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         private sealed class BasicBlockAnalysisData : IDisposable
         {
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
-                new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
+                new(() => new BasicBlockAnalysisData());
 
             /// <summary>
             /// Map from each symbol to possible set of reachable write operations that are live at current program point.
@@ -71,15 +73,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// <summary>
             /// Gets the currently reachable writes for the given symbol.
             /// </summary>
-            public IEnumerable<IOperation> GetCurrentWrites(ISymbol symbol)
+            public void ForEachCurrentWrite<TArg>(ISymbol symbol, Action<IOperation, TArg> action, TArg arg)
+            {
+                ForEachCurrentWrite(
+                    symbol,
+                    static (write, arg) =>
+                    {
+                        arg.action(write, arg.arg);
+                        return true;
+                    },
+                    (action, arg));
+            }
+
+            public bool ForEachCurrentWrite<TArg>(ISymbol symbol, Func<IOperation, TArg, bool> action, TArg arg)
             {
                 if (_reachingWrites.TryGetValue(symbol, out var values))
                 {
                     foreach (var value in values)
                     {
-                        yield return value;
+                        if (!action(value, arg))
+                            return false;
                     }
                 }
+
+                return true;
             }
 
             /// <summary>
@@ -110,35 +127,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return false;
                 }
 
-                var uniqueSymbols = PooledHashSet<ISymbol>.GetInstance();
-                try
+                // Check if both _reachingWrites maps have same set of keys.  This is a quick out based on O(keys),
+                // instead of doing the full O(k*v) check below.
+                foreach (var key in _reachingWrites.Keys)
                 {
-                    // Check if both _reachingWrites maps have same set of keys.
-                    uniqueSymbols.AddRange(_reachingWrites.Keys);
-                    uniqueSymbols.AddRange(other._reachingWrites.Keys);
-                    if (uniqueSymbols.Count != _reachingWrites.Count)
-                    {
+                    if (!other._reachingWrites.ContainsKey(key))
                         return false;
-                    }
-
-                    // Check if both _reachingWrites maps have same set of write
-                    // operations for each tracked symbol.
-                    foreach (var symbol in uniqueSymbols)
-                    {
-                        var writes1 = _reachingWrites[symbol];
-                        var writes2 = other._reachingWrites[symbol];
-                        if (!writes1.SetEquals(writes2))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
                 }
-                finally
+
+                // Check if both _reachingWrites maps have same set of write operations for each tracked symbol.
+                foreach (var (symbol, writes1) in _reachingWrites)
                 {
-                    uniqueSymbols.Free();
+                    var writes2 = other._reachingWrites[symbol];
+                    if (!SetEquals(writes1, writes2))
+                        return false;
                 }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Same as <see cref="HashSet{T}.SetEquals(IEnumerable{T})"/>, except this avoids allocations by
+            /// enumerating the set directly with a no-alloc enumerator.
+            /// </summary>
+            private static bool SetEquals<T>(HashSet<T> set1, HashSet<T> set2)
+            {
+#if NET8_0_OR_GREATER
+                // 📝 PERF: The boxed enumerator allocation that appears in some traces was fixed in .NET 8:
+                // https://github.com/dotnet/runtime/pull/78613
+                return set1.SetEquals(set2);
+#else
+                // same logic as https://github.com/dotnet/runtime/blob/62d6a8fe599ea3a77ef7af3c7660d398d692f062/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs#L1192
+
+                if (set1.Count != set2.Count)
+                    return false;
+
+                foreach (var operation in set1)
+                {
+                    if (!set2.Contains(operation))
+                        return false;
+                }
+
+                return true;
+#endif
             }
 
             private bool IsEmpty => _reachingWrites.Count == 0;
@@ -172,6 +203,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 var mergedData = GetInstance();
+
                 AddEntries(mergedData._reachingWrites, data1);
                 AddEntries(mergedData._reachingWrites, data2);
 
@@ -194,15 +226,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (source != null)
                 {
-                    foreach (var kvp in source._reachingWrites)
+                    foreach (var (symbol, operations) in source._reachingWrites)
                     {
-                        if (!result.TryGetValue(kvp.Key, out var values))
+                        if (!result.TryGetValue(symbol, out var values))
                         {
                             values = PooledHashSet<IOperation>.GetInstance();
-                            result.Add(kvp.Key, values);
+                            result.Add(symbol, values);
                         }
 
-                        values.AddRange(kvp.Value);
+#if NET
+                        values.EnsureCapacity(values.Count + operations.Count);
+#endif
+
+                        // Enumerate explicitly, instead of calling AddRange, to avoid unnecessary expensive IEnumerator allocation.
+                        foreach (var operation in operations)
+                            values.Add(operation);
                     }
                 }
             }

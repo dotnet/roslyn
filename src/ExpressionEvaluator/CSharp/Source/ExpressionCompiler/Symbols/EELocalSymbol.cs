@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override SyntaxToken IdentifierToken
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
@@ -122,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsPinned
         {
             get { return _isPinned; }
+        }
+
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
         }
 
         internal override bool IsCompilerGenerated

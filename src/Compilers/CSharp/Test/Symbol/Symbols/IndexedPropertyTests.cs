@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1404,7 +1406,8 @@ End Interface";
             compilation2.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact]
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/39934")]
+        [WorkItem(39934, "https://github.com/dotnet/roslyn/issues/39934")]
         public void OverloadResolutionWithSimpleProperty()
         {
             var source1 =
@@ -1488,6 +1491,7 @@ End Class";
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2);
         }
 
         [ClrOnlyFact]
@@ -1545,7 +1549,7 @@ End Class";
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (5,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'B.Q[object, object]'
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'B.Q[object, object]'
                 //         var o = b.Q[0];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "b.Q[0]").WithArguments("y", "B.Q[object, object]").WithLocation(5, 17));
             var source3 =
@@ -2237,7 +2241,7 @@ using System;
 class B
 {
 
-    delegate int del(int i);
+    delegate int @del(int i);
     static void Main(string[] args)
     {
         del myDelegate = x =>
@@ -2498,7 +2502,7 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule

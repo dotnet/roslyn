@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // In most cases, unprocessed doc comments are reported by UnprocessedDocumentationCommentFinder.
                                 // However, in places where doc comments *are* allowed, it's easier to determine which will
                                 // be unprocessed here.
-                                var tree = (SyntaxTree)trivia.SyntaxTree;
+                                var tree = trivia.SyntaxTree;
                                 if (tree.ReportDocumentationCommentDiagnostics())
                                 {
                                     int start = trivia.Position; // FullSpan start to include /** or ///

@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// are added.  For example, for the type "X.Y.O`1.I`2, we will produce [X, Y, O, I]
         /// 
         /// </summary>
-        private class FirstEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object>
+        private class FirstEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object?>
         {
-            public static readonly FirstEntityHandleProvider Instance = new FirstEntityHandleProvider();
+            public static readonly FirstEntityHandleProvider Instance = new();
 
             public EntityHandle GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle)
             {
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // instantiated generics).  It will call back into us to get the first handle
                 // for the type def or type ref that the specification starts with.
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<EntityHandle, object>(this, reader, genericContext: null).DecodeType(ref sigReader);
+                return new SignatureDecoder<EntityHandle, object?>(this, reader, genericContext: null).DecodeType(ref sigReader);
             }
 
-            public EntityHandle GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind) =>
-                GetTypeFromSpecification(reader, handle);
+            public EntityHandle GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+                => GetTypeFromSpecification(reader, handle);
 
             public EntityHandle GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => handle;
             public EntityHandle GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => handle;
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // just return the empty string.  Similarly, as we never construct generics,
             // there is no need to provide anything for the generic parameter names.
             public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default;
-            public EntityHandle GetGenericMethodParameter(object genericContext, int index) => default;
-            public EntityHandle GetGenericTypeParameter(object genericContext, int index) => default;
+            public EntityHandle GetGenericMethodParameter(object? genericContext, int index) => default;
+            public EntityHandle GetGenericTypeParameter(object? genericContext, int index) => default;
 
             public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default;
         }

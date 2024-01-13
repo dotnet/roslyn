@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // while keeping the rarely executed code in a separate method.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IEnumerable<T> RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
         {
             if (sequence == null)
             {
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ThrowArgumentItemNullException(sequence, argumentName);
             }
+
+            return sequence;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         {
             using var _ = PooledHashSet<T>.GetInstance(out var set);
 
-            int i = 0;
+            var i = 0;
             foreach (var item in sequence)
             {
                 if (item is null || !set.Add(item))
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
 
         private static int IndexOfNullOrDuplicateItem<T>(this IReadOnlyList<T> list) where T : class
         {
-            int length = list.Count;
+            var length = list.Count;
 
             if (length == 0)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
             using var _ = PooledHashSet<T>.GetInstance(out var set);
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var item = list[i];
                 if (item is null || !set.Add(item))
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis
         private static void ThrowArgumentItemNullOrDuplicateException<T>(IEnumerable<T> sequence, string argumentName) where T : class
         {
             var list = sequence.ToList();
-            int index = list.IndexOfNullOrDuplicateItem();
+            var index = list.IndexOfNullOrDuplicateItem();
 
             argumentName = MakeIndexedArgumentName(argumentName, index);
 
-            throw (list[index] is null) ?
-                 new ArgumentNullException(argumentName) :
-                 new ArgumentException(CompilerExtensionsResources.Specified_sequence_has_duplicate_items, argumentName);
+            throw (list[index] is null)
+                 ? new ArgumentNullException(argumentName)
+                 : new ArgumentException(CompilerExtensionsResources.Specified_sequence_has_duplicate_items, argumentName);
         }
 
         [DoesNotReturn]

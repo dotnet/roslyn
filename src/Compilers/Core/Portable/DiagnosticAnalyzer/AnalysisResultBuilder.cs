@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,20 +21,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class AnalysisResultBuilder
     {
+        private static readonly ImmutableDictionary<string, OneOrMany<AdditionalText>> s_emptyPathToAdditionalTextMap =
+            ImmutableDictionary<string, OneOrMany<AdditionalText>>.Empty.WithComparers(PathUtilities.Comparer);
+
         private readonly object _gate = new object();
-        private readonly Dictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeOpt;
-        private readonly HashSet<DiagnosticAnalyzer> _completedAnalyzers;
+        private readonly Dictionary<DiagnosticAnalyzer, TimeSpan>? _analyzerExecutionTimeOpt;
+        private readonly HashSet<DiagnosticAnalyzer> _completedAnalyzersForCompilation;
+        private readonly Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>> _completedSyntaxAnalyzersByTree;
+        private readonly Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>> _completedSemanticAnalyzersByTree;
+        private readonly Dictionary<AdditionalText, HashSet<DiagnosticAnalyzer>> _completedSyntaxAnalyzersByAdditionalFile;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _analyzerActionCounts;
+        private readonly ImmutableDictionary<string, OneOrMany<AdditionalText>> _pathToAdditionalTextMap;
 
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSemanticDiagnosticsOpt = null;
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSyntaxDiagnosticsOpt = null;
-        private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> _nonLocalDiagnosticsOpt = null;
+        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSemanticDiagnosticsOpt = null;
+        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSyntaxDiagnosticsOpt = null;
+        private Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localAdditionalFileDiagnosticsOpt = null;
+        private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? _nonLocalDiagnosticsOpt = null;
 
-        internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
-            _completedAnalyzers = new HashSet<DiagnosticAnalyzer>();
+            _completedAnalyzersForCompilation = new HashSet<DiagnosticAnalyzer>();
+            _completedSyntaxAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
+            _completedSemanticAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
+            _completedSyntaxAnalyzersByAdditionalFile = new Dictionary<AdditionalText, HashSet<DiagnosticAnalyzer>>();
             _analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
+            _pathToAdditionalTextMap = CreatePathToAdditionalTextMap(additionalFiles);
         }
 
         private static Dictionary<DiagnosticAnalyzer, TimeSpan> CreateAnalyzerExecutionTimeMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -41,10 +54,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var map = new Dictionary<DiagnosticAnalyzer, TimeSpan>(analyzers.Length);
             foreach (var analyzer in analyzers)
             {
-                map[analyzer] = default(TimeSpan);
+                map[analyzer] = default;
             }
 
             return map;
+        }
+
+        private static ImmutableDictionary<string, OneOrMany<AdditionalText>> CreatePathToAdditionalTextMap(ImmutableArray<AdditionalText> additionalFiles)
+        {
+            if (additionalFiles.IsEmpty)
+            {
+                return s_emptyPathToAdditionalTextMap;
+            }
+
+            var builder = ImmutableDictionary.CreateBuilder<string, OneOrMany<AdditionalText>>(PathUtilities.Comparer);
+            foreach (var file in additionalFiles)
+            {
+                // Null file path for additional files is not possible from IDE or command line compiler host.
+                // However, it is possible from custom third party analysis hosts.
+                // Ensure we handle it gracefully
+                var path = file.Path ?? string.Empty;
+
+                // Handle multiple additional files with same path.
+                if (builder.TryGetValue(path, out var value))
+                {
+                    value = value.Add(file);
+                }
+                else
+                {
+                    value = new OneOrMany<AdditionalText>(file);
+                }
+
+                builder[path] = value;
+            }
+
+            return builder.ToImmutable();
         }
 
         public TimeSpan GetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
@@ -57,54 +101,193 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private HashSet<DiagnosticAnalyzer>? GetCompletedAnalyzersForFile_NoLock(SourceOrAdditionalFile filterFile, bool syntax)
         {
-            lock (_gate)
+            if (filterFile.SourceTree is { } tree)
             {
-                ArrayBuilder<DiagnosticAnalyzer> builder = null;
-                foreach (var analyzer in analyzers)
+                var completedAnalyzersByTree = syntax ? _completedSyntaxAnalyzersByTree : _completedSemanticAnalyzersByTree;
+                if (completedAnalyzersByTree.TryGetValue(tree, out var completedAnalyzersForTree))
                 {
-                    if (!_completedAnalyzers.Contains(analyzer))
-                    {
-                        builder = builder ?? ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
-                        builder.Add(analyzer);
-                    }
+                    return completedAnalyzersForTree;
                 }
+            }
+            else if (filterFile.AdditionalFile is { } additionalFile)
+            {
+                if (_completedSyntaxAnalyzersByAdditionalFile.TryGetValue(additionalFile, out var completedAnalyzersForFile))
+                {
+                    return completedAnalyzersForFile;
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
 
-                return builder != null ? builder.ToImmutableAndFree() : ImmutableArray<DiagnosticAnalyzer>.Empty;
+            return null;
+        }
+
+        private void AddCompletedAnalyzerForFile_NoLock(SourceOrAdditionalFile filterFile, bool syntax, DiagnosticAnalyzer analyzer)
+        {
+            var completedAnalyzers = new HashSet<DiagnosticAnalyzer> { analyzer };
+            if (filterFile.SourceTree is { } tree)
+            {
+                var completedAnalyzersByTree = syntax ? _completedSyntaxAnalyzersByTree : _completedSemanticAnalyzersByTree;
+                completedAnalyzersByTree.Add(tree, completedAnalyzers);
+            }
+            else if (filterFile.AdditionalFile is { } additionalFile)
+            {
+                _completedSyntaxAnalyzersByAdditionalFile.Add(additionalFile, completedAnalyzers);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        internal void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, bool fullAnalysisResultForAnalyzersInScope)
+        /// <summary>
+        /// Filters down the given <paramref name="analyzers"/> to only retain the analyzers which have
+        /// not completed execution. If the <paramref name="filterScope"/> is non-null, then return
+        /// the analyzers which have not fully exected on the filterScope. Otherwise, return the analyzers
+        /// which have not fully executed on the entire compilation.
+        /// </summary>
+        /// <param name="analyzers">Analyzers to be filtered.</param>
+        /// <param name="filterScope">Optional scope for filtering.</param>
+        /// <returns>
+        /// Analyzers which have not fully executed on the given <paramref name="filterScope"/>, if non-null,
+        /// or the entire compilation, if <paramref name="filterScope"/> is null.
+        /// </returns>
+        public ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, (SourceOrAdditionalFile file, bool syntax)? filterScope)
         {
-            Debug.Assert(!fullAnalysisResultForAnalyzersInScope || analysisScope.FilterTreeOpt == null, "Full analysis result cannot come from partial (tree) analysis.");
+            lock (_gate)
+            {
+                // If we have a non-null filter scope, then fetch the set of analyzers that have
+                // already completed execution on this filter scope.
+                var completedAnalyzersForFile = filterScope.HasValue
+                    ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
+                    : null;
 
+                return analyzers.WhereAsArray(
+                    static (analyzer, arg) =>
+                    {
+                        // If the analyzer has not executed for the entire compilation, or we are computing
+                        // pending analyzers for a specific filterScope and the analyzer has not executed on
+                        // this filter scope, then we add the analyzer to pending analyzers.
+                        if (!arg.self._completedAnalyzersForCompilation.Contains(analyzer) &&
+                            (arg.completedAnalyzersForFile == null || !arg.completedAnalyzersForFile.Contains(analyzer)))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    },
+                    (self: this, completedAnalyzersForFile));
+            }
+        }
+
+        public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, CancellationToken cancellationToken)
+        {
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: true, compilation: compilation);
-                var semanticDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: false, compilation: compilation);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnosticsAndApplySuppressions(analyzer, compilation);
+                var syntaxDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: true, compilation: compilation, cancellationToken);
+                var semanticDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: false, compilation: compilation, cancellationToken);
+                var compilationDiagnostics = driver.DequeueNonLocalDiagnosticsAndApplySuppressions(analyzer, compilation, cancellationToken);
 
                 lock (_gate)
                 {
-                    if (_completedAnalyzers.Contains(analyzer))
+                    if (_completedAnalyzersForCompilation.Contains(analyzer))
                     {
                         // Already stored full analysis result for this analyzer.
                         continue;
                     }
 
-                    if (syntaxDiagnostics.Length > 0 || semanticDiagnostics.Length > 0 || compilationDiagnostics.Length > 0 || fullAnalysisResultForAnalyzersInScope)
+                    // Determine if we have computed fully syntax/semantic diagnostics
+                    // for a specific filter file or the entire compilation for this analyzer.
+                    // If we have full diagnostics for the filter file/compilation, we add this analyzer to
+                    // the corresponding completed analyzers set to avoid re-executing this analyzer
+                    // for future diagnostic requests on this analysis scope.
+                    bool fullSyntaxDiagnosticsForTree = false;
+                    bool fullSyntaxDiagnosticsForAdditionalFile = false;
+                    bool fullSemanticDiagnosticsForTree = false;
+                    bool fullCompilationDiagnostics = false;
+
+                    // Check if we computed syntax/semantic diagnostics for a specific filter file only.
+                    if (analysisScope.FilterFileOpt.HasValue)
                     {
-                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, ref _localSyntaxDiagnosticsOpt);
-                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, ref _localSemanticDiagnosticsOpt);
-                        UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullAnalysisResultForAnalyzersInScope);
+                        var completedAnalyzersForFile = GetCompletedAnalyzersForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis);
+                        if (completedAnalyzersForFile?.Contains(analyzer) == true)
+                        {
+                            // Already stored analysis result for this analyzer for the analyzed file.
+                            continue;
+                        }
+                        else if (!analysisScope.FilterSpanOpt.HasValue && !analysisScope.OriginalFilterSpan.HasValue)
+                        {
+                            // We have complete analysis result for this file.
+                            // Mark this file as completely analyzed for this analyzer.
+                            if (completedAnalyzersForFile != null)
+                            {
+                                completedAnalyzersForFile.Add(analyzer);
+                            }
+                            else
+                            {
+                                AddCompletedAnalyzerForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis, analyzer);
+                            }
+
+                            // Set the appropriate full diagnostics for tree/additional file flag.
+                            if (analysisScope.IsSyntacticSingleFileAnalysis)
+                            {
+                                if (analysisScope.FilterFileOpt.Value.SourceTree != null)
+                                {
+                                    fullSyntaxDiagnosticsForTree = true;
+                                }
+                                else
+                                {
+                                    fullSyntaxDiagnosticsForAdditionalFile = true;
+                                }
+                            }
+                            else
+                            {
+                                fullSemanticDiagnosticsForTree = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(!analysisScope.FilterSpanOpt.HasValue);
+
+                        _completedAnalyzersForCompilation.Add(analyzer);
+                        fullCompilationDiagnostics = true;
+                        fullSyntaxDiagnosticsForTree = true;
+                        fullSyntaxDiagnosticsForAdditionalFile = true;
+                        fullSemanticDiagnosticsForTree = true;
+                    }
+
+                    // Finally, update the appropriate syntax/semantic/compilation diagnostic maps to store the
+                    // computed diagnostics. If we have full diagnostics for the filter file/compilation,
+                    // we overwrite the diagnostics in the map.
+                    // Otherwise, we have computed partial diagnostics for a file span, so we just
+                    // append to the previously computed and stored diagnostics.
+
+                    if (!syntaxDiagnostics.IsEmpty)
+                    {
+                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullSyntaxDiagnosticsForTree, getSourceTree, ref _localSyntaxDiagnosticsOpt);
+                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullSyntaxDiagnosticsForAdditionalFile, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
+                    }
+
+                    if (!semanticDiagnostics.IsEmpty)
+                    {
+                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullSemanticDiagnosticsForTree, getSourceTree, ref _localSemanticDiagnosticsOpt);
+                    }
+
+                    if (!compilationDiagnostics.IsEmpty)
+                    {
+                        UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullCompilationDiagnostics);
                     }
 
                     if (_analyzerExecutionTimeOpt != null)
                     {
                         var timeSpan = driver.ResetAnalyzerExecutionTime(analyzer);
-                        _analyzerExecutionTimeOpt[analyzer] = fullAnalysisResultForAnalyzersInScope ?
+                        _analyzerExecutionTimeOpt[analyzer] = fullCompilationDiagnostics ?
                             timeSpan :
                             _analyzerExecutionTimeOpt[analyzer] + timeSpan;
                     }
@@ -113,52 +296,71 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _analyzerActionCounts.Add(analyzer, getAnalyzerActionCounts(analyzer));
                     }
+                }
+            }
 
-                    if (fullAnalysisResultForAnalyzersInScope)
+            static SyntaxTree? getSourceTree(Diagnostic diagnostic)
+                => diagnostic.Location.SourceTree;
+
+            AdditionalText? getAdditionalTextKey(Diagnostic diagnostic)
+            {
+                // Fetch the first additional file that matches diagnostic location.
+                if (diagnostic.Location is ExternalFileLocation externalFileLocation)
+                {
+                    if (_pathToAdditionalTextMap.TryGetValue(externalFileLocation.GetLineSpan().Path, out var additionalTexts))
                     {
-                        _completedAnalyzers.Add(analyzer);
+                        foreach (var additionalText in additionalTexts)
+                        {
+                            if (analysisScope.AdditionalFiles.Contains(additionalText))
+                            {
+                                return additionalText;
+                            }
+                        }
                     }
                 }
+
+                return null;
             }
         }
 
-        private void UpdateLocalDiagnostics_NoLock(
+        private void UpdateLocalDiagnostics_NoLock<TKey>(
             DiagnosticAnalyzer analyzer,
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,
-            ref Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> lazyLocalDiagnostics)
+            Func<Diagnostic, TKey?> getKeyFunc,
+            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics)
+            where TKey : class
         {
             if (diagnostics.IsEmpty)
             {
                 return;
             }
 
-            lazyLocalDiagnostics = lazyLocalDiagnostics ?? new Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>();
+            lazyLocalDiagnostics = lazyLocalDiagnostics ?? new Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>();
 
-            foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
+            foreach (var diagsByKey in diagnostics.GroupBy(getKeyFunc))
             {
-                var tree = diagsByTree.Key;
-
-                Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> allDiagnostics;
-                if (!lazyLocalDiagnostics.TryGetValue(tree, out allDiagnostics))
+                var key = diagsByKey.Key;
+                if (key is null)
                 {
-                    allDiagnostics = new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
-                    lazyLocalDiagnostics[tree] = allDiagnostics;
+                    continue;
                 }
 
-                ImmutableArray<Diagnostic>.Builder analyzerDiagnostics;
+                Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? allDiagnostics;
+                if (!lazyLocalDiagnostics.TryGetValue(key, out allDiagnostics))
+                {
+                    allDiagnostics = new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
+                    lazyLocalDiagnostics[key] = allDiagnostics;
+                }
+
+                ImmutableArray<Diagnostic>.Builder? analyzerDiagnostics;
                 if (!allDiagnostics.TryGetValue(analyzer, out analyzerDiagnostics))
                 {
                     analyzerDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
                     allDiagnostics[analyzer] = analyzerDiagnostics;
                 }
 
-                if (overwrite)
-                {
-                    analyzerDiagnostics.Clear();
-                }
-
-                analyzerDiagnostics.AddRange(diagsByTree);
+                UpdateDiagnosticsCore_NoLock(analyzerDiagnostics, diagsByKey, overwrite);
             }
         }
 
@@ -171,16 +373,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _nonLocalDiagnosticsOpt = _nonLocalDiagnosticsOpt ?? new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
 
-            ImmutableArray<Diagnostic>.Builder currentDiagnostics;
+            ImmutableArray<Diagnostic>.Builder? currentDiagnostics;
             if (!_nonLocalDiagnosticsOpt.TryGetValue(analyzer, out currentDiagnostics))
             {
                 currentDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
                 _nonLocalDiagnosticsOpt[analyzer] = currentDiagnostics;
             }
 
+            UpdateDiagnosticsCore_NoLock(currentDiagnostics, diagnostics, overwrite);
+        }
+
+        private static void UpdateDiagnosticsCore_NoLock(ImmutableArray<Diagnostic>.Builder currentDiagnostics, IEnumerable<Diagnostic> diagnostics, bool overwrite)
+        {
             if (overwrite)
             {
                 currentDiagnostics.Clear();
+            }
+            else
+            {
+                // Always de-dupe diagnostic to add
+                diagnostics = diagnostics.Where(d => !currentDiagnostics.Contains(d));
             }
 
             currentDiagnostics.AddRange(diagnostics);
@@ -201,14 +413,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
             if (getLocalDiagnostics)
             {
-                if (!analysisScope.IsTreeAnalysis)
+                if (!analysisScope.IsSingleFileAnalysis)
                 {
                     AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
                     AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
+                    AddAllLocalDiagnostics_NoLock(_localAdditionalFileDiagnosticsOpt, analysisScope, builder);
                 }
-                else if (analysisScope.IsSyntaxOnlyTreeAnalysis)
+                else if (analysisScope.IsSyntacticSingleFileAnalysis)
                 {
                     AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
+                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localAdditionalFileDiagnosticsOpt, analysisScope, builder);
                 }
                 else
                 {
@@ -218,48 +432,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (getNonLocalDiagnostics && _nonLocalDiagnosticsOpt != null)
             {
-                AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope, builder);
+                AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope.Analyzers, builder);
             }
 
             return builder.ToImmutableArray();
         }
 
-        private static void AddAllLocalDiagnostics_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnostics,
+        private static void AddAllLocalDiagnostics_NoLock<TKey>(
+            Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
+            where TKey : class
         {
-            if (localDiagnostics != null)
+            if (lazyLocalDiagnostics != null)
             {
-                foreach (var localDiagsByTree in localDiagnostics.Values)
+                foreach (var localDiagsByTree in lazyLocalDiagnostics.Values)
                 {
-                    AddDiagnostics_NoLock(localDiagsByTree, analysisScope, builder);
+                    AddDiagnostics_NoLock(localDiagsByTree, analysisScope.Analyzers, builder);
                 }
             }
         }
 
         private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnostics,
+            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
+            => AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, analysisScope.FilterFileOpt!.Value.SourceTree, analysisScope.Analyzers, builder);
+
+        private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
+            Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
+            AnalysisScope analysisScope,
+            ImmutableArray<Diagnostic>.Builder builder)
+            => AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, analysisScope.FilterFileOpt!.Value.AdditionalFile, analysisScope.Analyzers, builder);
+
+        private static void AddLocalDiagnosticsForPartialAnalysis_NoLock<TKey>(
+            Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
+            TKey? key,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<Diagnostic>.Builder builder)
+            where TKey : class
         {
-            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> diagnosticsForTree;
-            if (localDiagnostics != null && localDiagnostics.TryGetValue(analysisScope.FilterTreeOpt, out diagnosticsForTree))
+            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? diagnosticsForTree;
+            if (key != null && localDiagnostics != null && localDiagnostics.TryGetValue(key, out diagnosticsForTree))
             {
-                AddDiagnostics_NoLock(diagnosticsForTree, analysisScope, builder);
+                AddDiagnostics_NoLock(diagnosticsForTree, analyzers, builder);
             }
         }
 
         private static void AddDiagnostics_NoLock(
             Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> diagnostics,
-            AnalysisScope analysisScope,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<Diagnostic>.Builder builder)
         {
             Debug.Assert(diagnostics != null);
 
-            foreach (var analyzer in analysisScope.Analyzers)
+            foreach (var analyzer in analyzers)
             {
-                ImmutableArray<Diagnostic>.Builder diagnosticsByAnalyzer;
+                ImmutableArray<Diagnostic>.Builder? diagnosticsByAnalyzer;
                 if (diagnostics.TryGetValue(analyzer, out diagnosticsByAnalyzer))
                 {
                     builder.AddRange(diagnosticsByAnalyzer);
@@ -267,51 +496,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSyntaxDiagnostics;
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSemanticDiagnostics;
+            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics;
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics;
 
             var analyzersSet = analyzers.ToImmutableHashSet();
+            Func<Diagnostic, bool> shouldInclude = analysisScope.ShouldInclude;
             lock (_gate)
             {
-                localSyntaxDiagnostics = GetImmutable(analyzersSet, _localSyntaxDiagnosticsOpt);
-                localSemanticDiagnostics = GetImmutable(analyzersSet, _localSemanticDiagnosticsOpt);
-                nonLocalDiagnostics = GetImmutable(analyzersSet, _nonLocalDiagnosticsOpt);
+                localSyntaxDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSyntaxDiagnosticsOpt);
+                localSemanticDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSemanticDiagnosticsOpt);
+                localAdditionalFileDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localAdditionalFileDiagnosticsOpt);
+                nonLocalDiagnostics = GetImmutable(analyzersSet, shouldInclude, _nonLocalDiagnosticsOpt);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var analyzerTelemetryInfo = GetTelemetryInfo(analyzers, cancellationToken);
-            return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
+            var analyzerTelemetryInfo = GetTelemetryInfo(analyzers);
+            return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, localAdditionalFileDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
-        private static ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable(
+        private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnosticsOpt)
+            Func<Diagnostic, bool> shouldInclude,
+            Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
+            where TKey : class
         {
             if (localDiagnosticsOpt == null)
             {
-                return ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>.Empty;
+                return ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>.Empty;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>();
+            var builder = ImmutableDictionary.CreateBuilder<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>();
             var perTreeBuilder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();
 
             foreach (var diagnosticsByTree in localDiagnosticsOpt)
             {
-                var tree = diagnosticsByTree.Key;
+                var key = diagnosticsByTree.Key;
                 foreach (var diagnosticsByAnalyzer in diagnosticsByTree.Value)
                 {
                     if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
-                        perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                        var diagnostics = diagnosticsByAnalyzer.Value.Where(shouldInclude).ToImmutableArray();
+                        if (!diagnostics.IsEmpty)
+                        {
+                            perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                        }
                     }
                 }
 
-                builder.Add(tree, perTreeBuilder.ToImmutable());
+                builder.Add(key, perTreeBuilder.ToImmutable());
                 perTreeBuilder.Clear();
             }
 
@@ -320,7 +558,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> nonLocalDiagnosticsOpt)
+            Func<Diagnostic, bool> shouldInclude,
+            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {
             if (nonLocalDiagnosticsOpt == null)
             {
@@ -332,7 +571,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                 {
-                    builder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                    var diagnostics = diagnosticsByAnalyzer.Value.Where(shouldInclude).ToImmutableArray();
+                    if (!diagnostics.IsEmpty)
+                    {
+                        builder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                    }
                 }
             }
 
@@ -340,8 +583,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> GetTelemetryInfo(
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            CancellationToken cancellationToken)
+            ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
 
@@ -349,9 +591,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var analyzer in analyzers)
                 {
-                    var actionCounts = _analyzerActionCounts[analyzer];
+                    if (!_analyzerActionCounts.TryGetValue(analyzer, out var actionCounts))
+                    {
+                        actionCounts = AnalyzerActionCounts.Empty;
+                    }
+
                     var suppressionActionCounts = analyzer is DiagnosticSuppressor ? 1 : 0;
-                    var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default(TimeSpan);
+                    var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default;
                     var telemetryInfo = new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
                     builder.Add(analyzer, telemetryInfo);
                 }

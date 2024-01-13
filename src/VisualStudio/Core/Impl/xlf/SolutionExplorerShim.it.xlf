@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../SolutionExplorerShim.resx">
+    <body>
+      <trans-unit id="Analyzers">
+        <source>Analyzers</source>
+        <target state="translated">Analizzatori</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Folder_Properties">
+        <source>Folder Properties</source>
+        <target state="translated">Proprietà cartelle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Properties">
+        <source>Analyzer Properties</source>
+        <target state="translated">Proprietà dell'analizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Analyzer">
+        <source>Add Analyzer</source>
+        <target state="translated">Aggiungi analizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Files">
+        <source>Analyzer Files</source>
+        <target state="translated">File dell'analizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostic_Properties">
+        <source>Diagnostic Properties</source>
+        <target state="translated">Proprietà diagnostica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
+        <source>No rule set file is specified, or the file does not exist.</source>
+        <target state="translated">Il file del set di regole non è stato specificato oppure non esiste.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_Generated_File_Properties">
+        <source>Source Generated File Properties</source>
+        <target state="translated">Proprietà del file generato da origine</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_Generator_Properties">
+        <source>Source Generator Properties</source>
+        <target state="translated">Proprietà del generatore di origini</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rule_set_file_could_not_be_opened">
+        <source>The rule set file could not be opened.</source>
+        <target state="translated">Non è stato possibile aprire il file del set di regole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rule_set_file_could_not_be_updated">
+        <source>The rule set file could not be updated.</source>
+        <target state="translated">Non è stato possibile aggiornare il file del set di regole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_create_a_rule_set_for_project_0">
+        <source>Could not create a rule set for project {0}.</source>
+        <target state="translated">Non è stato possibile creare un set di regole per il progetto {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_">
+        <source>Default</source>
+        <target state="translated">Predefinito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_">
+        <source>Error</source>
+        <target state="translated">Errore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_generator_is_not_generating_files">
+        <source>This generator is not generating files.</source>
+        <target state="translated">Questo generatore non genera file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type Name</source>
+        <target state="translated">Nome del tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">Avviso</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Info">
+        <source>Info</source>
+        <target state="translated">Info</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hidden">
+        <source>Hidden</source>
+        <target state="translated">Nascosto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppressed">
+        <source>Suppressed</source>
+        <target state="translated">Eliminato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rule_Set">
+        <source>Rule Set</source>
+        <target state="translated">Set di regole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Checking_out_0_for_editing">
+        <source>Checking out {0} for editing...</source>
+        <target state="translated">Estrazione di {0} per la modifica...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name">
+        <source>(Name)</source>
+        <target state="translated">(Nome)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path">
+        <source>Path</source>
+        <target state="translated">PERCORSO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Category">
+        <source>Category</source>
+        <target state="translated">Categoria</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_severity">
+        <source>Default severity</source>
+        <target state="translated">Gravità predefinita</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Description">
+        <source>Description</source>
+        <target state="translated">Descrizione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Effective_severity">
+        <source>Effective severity</source>
+        <target state="translated">Gravità effettiva</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enabled_by_default">
+        <source>Enabled by default</source>
+        <target state="translated">Abilitato per impostazione predefinita</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Help_link">
+        <source>Help link</source>
+        <target state="translated">Collegamento alla Guida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ID">
+        <source>ID</source>
+        <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Message">
+        <source>Message</source>
+        <target state="translated">Messaggio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tags">
+        <source>Tags</source>
+        <target state="translated">Tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Title">
+        <source>Title</source>
+        <target state="translated">Titolo</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

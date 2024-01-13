@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,15 +14,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class ParameterSymbol :
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter : SymbolAdapter,
+#else
+        ParameterSymbol :
+#endif 
         Cci.IParameterTypeInformation,
         Cci.IParameterDefinition
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.TypeWithAnnotations.CustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedParameterSymbol.TypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -28,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind != RefKind.None;
+                return AdaptedParameterSymbol.RefKind != RefKind.None;
             }
         }
 
@@ -36,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedParameterSymbol.RefCustomModifiers);
             }
         }
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
-                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedParameterSymbol.Type,
+                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                       diagnostics: context.Diagnostics);
         }
 
@@ -51,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (ushort)this.Ordinal;
+                return (ushort)AdaptedParameterSymbol.Ordinal;
             }
         }
 
@@ -66,42 +76,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal MetadataConstant GetMetadataConstantValue(EmitContext context)
         {
-            if (!HasMetadataConstantValue)
+            if (!AdaptedParameterSymbol.HasMetadataConstantValue)
             {
                 return null;
             }
 
-            ConstantValue constant = this.ExplicitDefaultConstantValue;
+            ConstantValue constant = AdaptedParameterSymbol.ExplicitDefaultConstantValue;
             TypeSymbol type;
             if (constant.SpecialType != SpecialType.None)
             {
                 // preserve the exact type of the constant for primitive types,
                 // e.g. it should be Int16 for [DefaultParameterValue((short)1)]int x
-                type = this.ContainingAssembly.GetSpecialType(constant.SpecialType);
+                type = AdaptedParameterSymbol.ContainingAssembly.GetSpecialType(constant.SpecialType);
             }
             else
             {
                 // default(struct), enum
-                type = this.Type;
+                type = AdaptedParameterSymbol.Type;
             }
 
             return ((PEModuleBuilder)context.Module).CreateConstant(type, constant.Value,
-                                                           syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                           syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                            diagnostics: context.Diagnostics);
-        }
-
-        internal virtual bool HasMetadataConstantValue
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                // For a decimal value, DefaultValue won't be used directly, instead, DecimalConstantAttribute will be generated.
-                // Similarly for DateTime. (C# does not directly support optional parameters with DateTime constants, but honors
-                // the attributes if [Optional][DateTimeConstant(whatever)] are on the parameter.)
-                return this.ExplicitDefaultConstantValue != null &&
-                       this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_Decimal &&
-                       this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_DateTime;
-            }
         }
 
         bool Cci.IParameterDefinition.HasDefaultValue
@@ -109,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return HasMetadataConstantValue;
+                return AdaptedParameterSymbol.HasMetadataConstantValue;
             }
         }
 
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMetadataOptional;
+                return AdaptedParameterSymbol.IsMetadataOptional;
             }
         }
 
@@ -127,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return IsMetadataIn;
+                return AdaptedParameterSymbol.IsMetadataIn;
             }
         }
 
@@ -136,16 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMarshalledExplicitly;
-            }
-        }
-
-        internal virtual bool IsMarshalledExplicitly
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.MarshallingInformation != null;
+                return AdaptedParameterSymbol.IsMarshalledExplicitly;
             }
         }
 
@@ -154,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return IsMetadataOut;
+                return AdaptedParameterSymbol.IsMetadataOut;
             }
         }
 
@@ -163,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingInformation;
+                return AdaptedParameterSymbol.MarshallingInformation;
             }
         }
 
@@ -172,22 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingDescriptor;
-            }
-        }
-
-        internal virtual ImmutableArray<byte> MarshallingDescriptor
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return default(ImmutableArray<byte>);
+                return AdaptedParameterSymbol.MarshallingDescriptor;
             }
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
             //At present we have no scenario that needs this method.
             //Should one arise, uncomment implementation and add a test.
 #if false   
@@ -214,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            if (this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if (AdaptedParameterSymbol.IsDefinition &&
+                AdaptedParameterSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -225,7 +203,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         string Cci.INamedEntity.Name
         {
-            get { return this.MetadataName; }
+            get { return AdaptedParameterSymbol.MetadataName; }
         }
     }
+
+    internal partial class ParameterSymbol
+    {
+#if DEBUG
+        private ParameterSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new ParameterSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new ParameterSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal ParameterSymbol AdaptedParameterSymbol => this;
+
+        internal new ParameterSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual bool HasMetadataConstantValue
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                // For a decimal value, DefaultValue won't be used directly, instead, DecimalConstantAttribute will be generated.
+                // Similarly for DateTime. (C# does not directly support optional parameters with DateTime constants, but honors
+                // the attributes if [Optional][DateTimeConstant(whatever)] are on the parameter.)
+                return this.ExplicitDefaultConstantValue != null &&
+                       this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_Decimal &&
+                       this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_DateTime;
+            }
+        }
+
+        internal virtual bool IsMarshalledExplicitly
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.MarshallingInformation != null;
+            }
+        }
+
+        internal virtual ImmutableArray<byte> MarshallingDescriptor
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return default(ImmutableArray<byte>);
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class ParameterSymbolAdapter
+    {
+        internal ParameterSymbolAdapter(ParameterSymbol underlyingParameterSymbol)
+        {
+            AdaptedParameterSymbol = underlyingParameterSymbol;
+
+            if (underlyingParameterSymbol is NativeIntegerParameterSymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedParameterSymbol;
+        internal ParameterSymbol AdaptedParameterSymbol { get; }
+    }
+#endif
 }

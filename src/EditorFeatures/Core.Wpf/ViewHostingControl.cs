@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         private void EnsureBufferCreated()
         {
-            if (_createdTextBuffer == null)
-            {
-                _createdTextBuffer = _createBuffer();
-            }
+            _createdTextBuffer ??= _createBuffer();
         }
 
         private void EnsureContentCreated()

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -34,16 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
                 !identifierName.IsVar)
             {
                 simpleNameOrMemberAccessExpression = identifierName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == identifierName
-                    ? (ExpressionSyntax)memberAccess
+                    ? memberAccess
                     : identifierName;
 
                 // If we're being invoked, then don't offer this, offer generate method instead.
                 // Note: we could offer to generate a field with a delegate type.  However, that's
                 // very esoteric and probably not what most users want.
-                if (simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) ||
-                    simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
-                    simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.GotoStatement) ||
-                    simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.AliasQualifiedName))
+                if (simpleNameOrMemberAccessExpression.Parent.Kind()
+                        is SyntaxKind.InvocationExpression
+                        or SyntaxKind.ObjectCreationExpression
+                        or SyntaxKind.GotoStatement
+                        or SyntaxKind.AliasQualifiedName)
                 {
                     return false;
                 }

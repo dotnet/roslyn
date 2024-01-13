@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -40,16 +39,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        | <expr0> is <pattern>                             // C#
         //        | <expr0> is <type>                                // C#
         //        | <expr0> == <const-expr>                          // C#, VB
-        //        | <expr0> <comparison-op> <const>                  //     VB
+        //        | <expr0> <comparison-op> <const>                  // C#, VB
         //        | ( <expr0> >= <const> | <const> <= <expr0> )
-        //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
+        //           && ( <expr0> <= <const> | <const> >= <expr0> )  // C#, VB
         //        | ( <expr0> <= <const> | <const> >= <expr0> )
-        //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
+        //           && ( <expr0> >= <const> | <const> <= <expr0> )  // C#, VB
         //
         internal abstract class Analyzer
         {
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
+            public abstract bool CanImplicitlyConvert(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol targetType);
 
             /// <summary>
             /// Holds the expression determined to be used as the target expression of the switch
@@ -58,17 +58,22 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// Note that this is initially unset until we find a non-constant expression.
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
+            /// <summary>
+            /// Holds the type of the <see cref="_switchTargetExpression"/>
+            /// </summary>
+            private ITypeSymbol? _switchTargetType = null!;
             private readonly ISyntaxFacts _syntaxFacts;
-            private readonly Feature _features;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
-                _features = features;
+                Features = features;
             }
 
+            public Feature Features { get; }
+
             public bool Supports(Feature feature)
-                => (_features & feature) != 0;
+                => (Features & feature) != 0;
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
@@ -96,20 +101,30 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //
             private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
-                if (operations.Length > 1 &&
-                    operations[0] is IConditionalOperation { WhenFalse: null } op &&
-                    HasUnreachableEndPoint(op.WhenTrue))
+                var current = 0;
+                while (current < operations.Length &&
+                    operations[current] is IConditionalOperation { WhenFalse: null } op &&
+                    HasUnreachableEndPoint(op.WhenTrue) &&
+                    ParseIfStatement(op, sections, out _))
                 {
-                    if (!ParseIfStatement(op, sections, out defaultBodyOpt))
-                    {
-                        return false;
-                    }
+                    current++;
+                }
 
-                    if (!ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt))
+                defaultBodyOpt = null;
+                if (current == 0)
+                {
+                    // didn't consume a sequence of if-statements with unreachable ends.  Check for the last case.
+                    return operations.Length > 0 && ParseIfStatement(operations[0], sections, out defaultBodyOpt);
+                }
+                else
+                {
+                    if (current < operations.Length)
                     {
-                        var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: { } } ||
-                            nextStatement is IThrowOperation { Exception: { } })
+                        // consumed a sequence of if-statements with unreachable-ends.  If we end with a normal
+                        // if-statement, we're done.  Otherwise, we end with whatever last return/throw we see.
+                        var nextStatement = operations[current];
+                        if (!ParseIfStatement(nextStatement, sections, out defaultBodyOpt) &&
+                            nextStatement is IReturnOperation { ReturnedValue: not null } or IThrowOperation { Exception: not null })
                         {
                             defaultBodyOpt = nextStatement;
                         }
@@ -117,14 +132,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                     return true;
                 }
-
-                if (operations.Length > 0)
-                {
-                    return ParseIfStatement(operations[0], sections, out defaultBodyOpt);
-                }
-
-                defaultBodyOpt = null;
-                return false;
             }
 
             // Tree to parse:
@@ -215,9 +222,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var guards);
                 var pattern = ParsePattern(operation, guards);
                 if (pattern is null)
-                {
                     return null;
-                }
 
                 return new AnalyzedSwitchLabel(pattern, guards.ToImmutable());
             }
@@ -242,8 +247,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return (op.LeftOperand, op.RightOperand) switch
                 {
-                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
-                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
+                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Right,
+                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -266,11 +271,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 switch (operation)
                 {
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node:
-                        guards.Add(node);
-                        return ParsePattern(op.LeftOperand, guards);
-
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
                         when Supports(Feature.RangePattern) && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
                         return new AnalyzedPattern.Range(lower, higher);
 
@@ -284,19 +284,45 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
+                    case IBinaryOperation { OperatorKind: NotEquals } op
+                        when Supports(Feature.InequalityPattern):
+                        return ParseRelationalPattern(op);
+
                     case IBinaryOperation op
-                        when Supports(Feature.RelationalPattern) && IsComparisonOperator(op.OperatorKind):
-                        return DetermineConstant(op) switch
+                        when Supports(Feature.RelationalPattern) && IsRelationalOperator(op.OperatorKind):
+                        return ParseRelationalPattern(op);
+
+                    // Check this below the cases that produce Relational/Ranges.  We would prefer to use those if
+                    // available before utilizing a CaseGuard.
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when Supports(Feature.AndPattern | Feature.CaseGuard):
                         {
-                            ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
-                                => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
-                            ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
-                                => new AnalyzedPattern.Relational(op.OperatorKind, right),
-                            _ => null
-                        };
+                            var leftPattern = ParsePattern(op.LeftOperand, guards);
+                            if (leftPattern == null)
+                                return null;
+
+                            if (Supports(Feature.AndPattern))
+                            {
+                                var guardCount = guards.Count;
+                                var rightPattern = ParsePattern(op.RightOperand, guards);
+                                if (rightPattern != null)
+                                    return new AnalyzedPattern.And(leftPattern, rightPattern);
+
+                                // Making a pattern out of the RHS didn't work.  Reset the guards back to where we started.
+                                guards.Count = guardCount;
+                            }
+
+                            if (Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node)
+                            {
+                                guards.Add(node);
+                                return leftPattern;
+                            }
+
+                            return null;
+                        }
 
                     case IIsTypeOperation op
-                        when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
                         return new AnalyzedPattern.Type(node);
 
                     case IIsPatternOperation op
@@ -308,6 +334,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 return null;
+            }
+
+            private AnalyzedPattern? ParseRelationalPattern(IBinaryOperation op)
+            {
+                return DetermineConstant(op) switch
+                {
+                    ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
+                        => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
+                    ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
+                        => new AnalyzedPattern.Relational(op.OperatorKind, right),
+                    _ => null
+                };
             }
 
             private enum BoundKind
@@ -328,7 +366,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
             {
-                if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
+                if (op is not
+                    { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right })
                 {
                     return default;
                 }
@@ -378,7 +417,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
-            private static bool IsComparisonOperator(BinaryOperatorKind operatorKind)
+            private static bool IsRelationalOperator(BinaryOperatorKind operatorKind)
             {
                 switch (operatorKind)
                 {
@@ -386,7 +425,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     case LessThanOrEqual:
                     case GreaterThanOrEqual:
                     case GreaterThan:
-                    case NotEquals:
                         return true;
                     default:
                         return false;
@@ -396,29 +434,36 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private static bool IsConstant(IOperation operation)
             {
                 // Constants do not propagate to conversions
-                return operation is IConversionOperation op
+                return operation is IConversionOperation { Conversion.IsUserDefined: false } op
                     ? IsConstant(op.Operand)
                     : operation.ConstantValue.HasValue;
             }
 
             private bool CheckTargetExpression(IOperation operation)
             {
-                if (operation is IConversionOperation { IsImplicit: false } op)
-                {
-                    // Unwrap explicit casts because switch will emit those anyways
-                    operation = op.Operand;
-                }
+                operation = operation.WalkDownConversion();
 
                 var expression = operation.Syntax;
                 // If we have not figured the switch expression yet,
                 // we will assume that the first expression is the one.
                 if (_switchTargetExpression is null)
                 {
+                    RoslynDebug.Assert(_switchTargetType is null);
+
                     _switchTargetExpression = expression;
+                    _switchTargetType = operation.Type;
                     return true;
                 }
 
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
+            }
+
+            private bool CheckConstantType(IOperation operation)
+            {
+                RoslynDebug.AssertNotNull(operation.SemanticModel);
+                RoslynDebug.AssertNotNull(_switchTargetType);
+
+                return CanImplicitlyConvert(operation.SemanticModel, operation.Syntax, _switchTargetType);
             }
         }
 
@@ -426,15 +471,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         internal enum Feature
         {
             None = 0,
-            // VB features
+            // VB/C# 9.0 features
             RelationalPattern = 1,
-            RangePattern = 1 << 1,
+            // VB features
+            InequalityPattern = 1 << 1,
+            RangePattern = 1 << 2,
             // C# 7.0 features
-            SourcePattern = 1 << 2,
-            TypePattern = 1 << 3,
-            CaseGuard = 1 << 4,
+            SourcePattern = 1 << 3,
+            IsTypePattern = 1 << 4,
+            CaseGuard = 1 << 5,
             // C# 8.0 features
-            SwitchExpression = 1 << 5,
+            SwitchExpression = 1 << 6,
+            // C# 9.0 features
+            OrPattern = 1 << 7,
+            AndPattern = 1 << 8,
+            TypePattern = 1 << 9,
         }
     }
 }

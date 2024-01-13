@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -22,9 +24,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         Prefix,
 
         /// <summary>
-        /// The pattern was a substring of the candidate string, but in a way that wasn't a CamelCase match.
+        /// The pattern was a substring of the candidate string, but in a way that wasn't a CamelCase match.  The
+        /// pattern had to have at least one non lowercase letter in it, and the match needs to be case sensitive.
+        /// This will match 'savedWork' against 'FindUnsavedWork'.
         /// </summary>
-        Substring,
+        NonLowercaseSubstring,
+
+        /// <summary>
+        /// The pattern was a substring of the candidate string, starting at a word within that candidate.  The pattern
+        /// can be all lowercase here.  This will match 'save' or 'Save' in 'FindSavedWork'
+        /// </summary>
+        StartOfWordSubstring,
 
         // Note: CamelCased matches are ordered from best to worst.
 
@@ -87,6 +97,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
         /// more details.
         /// </summary>
-        Fuzzy
+        Fuzzy,
+
+        /// <summary>
+        /// The pattern was a substring of the candidate and wasn't either <see cref="NonLowercaseSubstring"/> or <see
+        /// cref="StartOfWordSubstring"/>.  This can happen when the pattern is allow lowercases and matches some non
+        /// word portion of the candidate.  For example, finding 'save' in 'GetUnsavedWork'.  This will not match across
+        /// word boundaries.  i.e. it will not match 'save' to 'VisaVerify' even though 'saVe' is in that candidate.
+        /// </summary>
+        LowercaseSubstring,
     }
 }

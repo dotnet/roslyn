@@ -23,23 +23,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static readonly Comparison<IndentBlockOperation> IndentBlockOperationComparer = (o1, o2) =>
         {
             // smaller one goes left
-            var s = o1.TextSpan.Start - o2.TextSpan.Start;
-            if (s != 0)
-            {
-                return s;
-            }
+            var d = o1.TextSpan.Start - o2.TextSpan.Start;
+            if (d != 0)
+                return d;
 
             // bigger one goes left
-            var e = o2.TextSpan.End - o1.TextSpan.End;
-            if (e != 0)
+            d = o2.TextSpan.End - o1.TextSpan.End;
+            if (d != 0)
+                return d;
+
+            if (o1.IsRelativeIndentation && o2.IsRelativeIndentation)
             {
-                return e;
+                // if they're at the same location, but indenting separate amounts, have the bigger delta go first.
+                d = o2.IndentationDeltaOrPosition - o1.IndentationDeltaOrPosition;
+                if (d != 0)
+                    return d;
             }
 
             return 0;
         };
 
-        public static IEnumerable<ValueTuple<SyntaxToken, SyntaxToken>> ConvertToTokenPairs(this SyntaxNode root, IList<TextSpan> spans)
+        public static IEnumerable<(SyntaxToken, SyntaxToken)> ConvertToTokenPairs(this SyntaxNode root, IReadOnlyList<TextSpan> spans)
         {
             Contract.ThrowIfNull(root);
             Contract.ThrowIfFalse(spans.Count > 0);
@@ -51,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 yield break;
             }
 
-            var pairs = new List<ValueTuple<SyntaxToken, SyntaxToken>>();
             var previousOne = root.ConvertToTokenPair(spans[0]);
 
             // iterate through each spans and make sure each one doesn't overlap each other
@@ -178,8 +181,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 AppendTrailingTriviaText(token1, builder);
                 return;
             }
-
-            var token1PartOftoken2LeadingTrivia = token1.FullSpan.Start > token2.FullSpan.Start;
 
             if (token1.FullSpan.End == token2.FullSpan.Start)
             {
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return previousToken.Span.End;
         }
 
-        private static SyntaxNode GetParentThatContainsGivenSpan(SyntaxNode node, int position, bool forward)
+        private static SyntaxNode? GetParentThatContainsGivenSpan(SyntaxNode? node, int position, bool forward)
         {
             while (node != null)
             {

@@ -3,32 +3,34 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class CompilationUnitSyntaxExtensions
+    internal static partial class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
+            if (usingDirectiveAncestor?.Parent is CompilationUnitSyntax)
             {
                 // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
                 return false;
             }
 
-            if (contextNode.SyntaxTree.HasHiddenRegions())
+            if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
             {
                 var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-                var root = contextNode.GetAncestorOrThis<CompilationUnitSyntax>();
+                var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
                 var span = GetUsingsSpan(root, namespaceDeclaration);
 
                 if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDeclaration)
+        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax? namespaceDeclaration)
         {
             if (namespaceDeclaration != null)
             {
@@ -97,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var firstOuterNamespaceWithUsings = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-
             if (firstOuterNamespaceWithUsings == null)
             {
                 return root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
@@ -125,18 +126,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Keep usings sorted if they were originally sorted.
             usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
 
+            var addBlankLine = false;
             if (root.Externs.Count == 0)
             {
-                root = AddImportHelpers.MoveTrivia(
+                (root, addBlankLine) = AddImportHelpers.MoveTrivia(
                     CSharpSyntaxFacts.Instance, root, root.Usings, usings);
             }
 
-            return root.WithUsings(
+            var rootWithNewUsings = root.WithUsings(
                 usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
-        }
+            if (addBlankLine)
+            {
+                var lastUsing = rootWithNewUsings.Usings.Last();
+                var nextToken = lastUsing.GetLastToken(includeZeroWidth: true, includeSkipped: true).GetNextTokenOrEndOfFile(includeZeroWidth: true, includeSkipped: true);
+                var endOfLine = lastUsing.GetTrailingTrivia().LastOrDefault(CSharpSyntaxFacts.Instance.IsEndOfLineTrivia);
+                Debug.Assert(!endOfLine.IsKind(SyntaxKind.None));
+                if (!endOfLine.IsKind(SyntaxKind.None))
+                {
+                    rootWithNewUsings = rootWithNewUsings.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(endOfLine));
+                }
+            }
 
-        private static bool IsDocCommentOrElastic(SyntaxTrivia t)
-            => t.IsDocComment() || t.IsElastic();
+            return rootWithNewUsings;
+        }
 
         private static List<UsingDirectiveSyntax> AddUsingDirectives(
             CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)

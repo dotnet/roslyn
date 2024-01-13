@@ -15,13 +15,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
 
-        private readonly string _featureName;
-        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new();
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
-        private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = new();
         private int _counter;
         private bool _trackActiveTokens;
 
@@ -32,29 +31,65 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
-            _featureName = featureName;
+            FeatureName = featureName;
             _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
-        public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
-        {
-            var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+        public string FeatureName { get; }
 
-            try
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/pull/58646",
+            Constraint = "Cannot use async/await because it produces large numbers of first-chance cancellation exceptions.")]
+        public Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromCanceled<bool>(cancellationToken);
+
+            var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            if (expeditedDelayCancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
-                return true;
+                // The operation is already being expedited
+                return SpecializedTasks.False;
             }
-            catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+
+            var delayTask = Task.Delay(delay, cancellationTokenSource.Token);
+            if (delayTask.IsCompleted)
             {
-                // The cancellation only occurred due to a request to expedite the operation
-                return false;
+                cancellationTokenSource.Dispose();
+                if (delayTask.Status == TaskStatus.RanToCompletion)
+                    return SpecializedTasks.True;
+                else if (cancellationToken.IsCancellationRequested)
+                    return Task.FromCanceled<bool>(cancellationToken);
+                else
+                    return SpecializedTasks.False;
+            }
+
+            // Handle continuation in a local function to avoid capturing arguments when this path is avoided
+            return DelaySlowAsync(delayTask, cancellationTokenSource, cancellationToken);
+
+            static Task<bool> DelaySlowAsync(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
+            {
+                return delayTask.ContinueWith(
+                    task =>
+                    {
+                        cancellationTokenSourceToDispose.Dispose();
+                        if (task.Status == TaskStatus.RanToCompletion)
+                            return SpecializedTasks.True;
+                        else if (cancellationToken.IsCancellationRequested)
+                            return Task.FromCanceled<bool>(cancellationToken);
+                        else
+                            return SpecializedTasks.False;
+                    },
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).Unwrap();
             }
         }
 
-        public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        public IAsyncToken BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
@@ -173,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-                    _diagnosticTokenList = _trackActiveTokens ? new List<DiagnosticAsyncToken>() : null;
+                    _diagnosticTokenList = new List<DiagnosticAsyncToken>();
                 }
             }
         }

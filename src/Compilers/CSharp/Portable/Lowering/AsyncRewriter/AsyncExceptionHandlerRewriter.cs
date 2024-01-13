@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly SyntheticBoundNodeFactory _F;
-        private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
 
         private AwaitCatchFrame _currentAwaitCatchFrame;
@@ -30,13 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
             Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
-            _diagnostics = diagnostics;
             _analysis = analysis;
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
@@ -136,12 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tryStatementSyntax = node.Syntax;
             // If you add a syntax kind to the assertion below, please also ensure
             // that the scenario has been tested with Edit-and-Continue.
-            Debug.Assert(
-                tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement));
+            Debug.Assert(SyntaxBindingUtilities.BindsToTryStatement(tryStatementSyntax));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -201,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnpendException(pendingExceptionLocal),
                 UnpendBranches(
                     frame,
-                    pendingBranchVar,
-                    pendingExceptionLocal));
+                    pendingBranchVar));
 
             BoundStatement syntheticFinally = syntheticFinallyBlock;
             if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
@@ -289,8 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement UnpendBranches(
             AwaitFinallyFrame frame,
-            SynthesizedLocal pendingBranchVar,
-            SynthesizedLocal pendingException)
+            SynthesizedLocal pendingBranchVar)
         {
             var parent = frame.ParentOpt;
 
@@ -327,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (returnLabel == null)
                 {
-                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue);
+                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue, @checked: false);
                 }
                 else
                 {
@@ -466,7 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = this.VisitList(node.CatchBlocks);
+            var rewrittenCatches = node.CatchBlocks.SelectAsArray(static (catchBlock, arg) =>
+            {
+                var (@this, origAwaitCatchFrame) = arg;
+                return (BoundCatchBlock)@this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame);
+            },
+            (this, origAwaitCatchFrame));
+
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
@@ -509,10 +508,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private BoundNode VisitCatchBlock(BoundCatchBlock node, AwaitCatchFrame parentAwaitCatchFrame)
+        {
             if (!_analysis.CatchContainsAwait(node))
             {
                 var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
-                _currentAwaitCatchFrame = null;
+                _currentAwaitCatchFrame = parentAwaitCatchFrame;
 
                 var result = base.VisitCatchBlock(node);
                 _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;
@@ -525,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Syntax.IsKind(SyntaxKind.CatchClause));
                 var tryStatementSyntax = (TryStatementSyntax)node.Syntax.Parent;
 
-                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax);
+                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax, parentAwaitCatchFrame);
             }
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
@@ -548,15 +552,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCatchBlock catchAndPend;
             ImmutableArray<LocalSymbol> handlerLocals;
 
+            var filterPrologueOpt = node.ExceptionFilterPrologueOpt;
             var filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
             {
+                Debug.Assert(filterPrologueOpt is null);
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
+                    exceptionFilterPrologueOpt: filterPrologueOpt,
                     exceptionFilterOpt: null,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),
@@ -579,23 +586,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // store pending exception 
-                // as the first expression in a filter
+                // as the first expression in a filter prologue
+                var rewrittenPrologue = (BoundStatementList)this.Visit(filterPrologueOpt);
+
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var sourceOpt = node.ExceptionSourceOpt;
+                prologueBuilder.Add(_F.ExpressionStatement(storePending));
+                if (sourceOpt is not null)
+                {
+                    prologueBuilder.Add(_F.ExpressionStatement(AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame)));
+                }
+
+                if (rewrittenPrologue != null)
+                {
+                    prologueBuilder.Add(rewrittenPrologue);
+                }
+                var newPrologue = _F.StatementList(prologueBuilder.ToImmutableAndFree());
+
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
-                var newFilter = sourceOpt == null ?
-                                _F.MakeSequence(
-                                    storePending,
-                                    rewrittenFilter) :
-                                _F.MakeSequence(
-                                    storePending,
-                                    AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame),
-                                    rewrittenFilter);
 
                 catchAndPend = node.Update(
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
-                    exceptionFilterOpt: newFilter,
+                    exceptionFilterPrologueOpt: newPrologue,
+                    exceptionFilterOpt: rewrittenFilter,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),
                         setPendingCatchNum),
@@ -700,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AwaitFinallyFrame PushFrame(BoundTryStatement statement)
         {
-            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (StatementSyntax)statement.Syntax);
+            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), statement.Syntax);
             _currentAwaitFinallyFrame = newFrame;
             return newFrame;
         }
@@ -879,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<LabelSymbol> LabelsOpt;
 
             // the try or using-await statement the frame is associated with
-            private readonly StatementSyntax _statementSyntaxOpt;
+            private readonly SyntaxNode _syntaxOpt;
 
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
@@ -898,20 +913,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // root frame
             }
 
-            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, StatementSyntax statementSyntax)
+            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, SyntaxNode syntax)
             {
                 Debug.Assert(parent != null);
-                Debug.Assert(statementSyntax != null);
+                Debug.Assert(syntax != null);
 
-                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
-                    (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)statementSyntax).AwaitKeyword != default));
+                Debug.Assert(SyntaxBindingUtilities.BindsToTryStatement(syntax));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;
-                _statementSyntaxOpt = statementSyntax;
+                _syntaxOpt = syntax;
             }
 
             public bool IsRoot()
@@ -972,8 +983,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnValue = this.returnValue;
                     if (returnValue == null)
                     {
-                        Debug.Assert(_statementSyntaxOpt != null);
-                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _statementSyntaxOpt);
+                        Debug.Assert(_syntaxOpt != null);
+                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _syntaxOpt);
                     }
                 }
 
@@ -996,6 +1007,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // they will become switch sections when pending exception is dispatched.
             public readonly List<BoundBlock> handlers;
 
+            private readonly AwaitCatchFrame _parentOpt;
+
             // when catch local must be used from a filter
             // we need to "hoist" it up to ensure that both the filter 
             // and the catch access the same variable.
@@ -1005,12 +1018,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Dictionary<LocalSymbol, LocalSymbol> _hoistedLocals;
             private readonly List<LocalSymbol> _orderedHoistedLocals;
 
-            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax)
+            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax, AwaitCatchFrame parentOpt)
             {
                 this.pendingCaughtException = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Object)), SynthesizedLocalKind.TryAwaitPendingCaughtException, tryStatementSyntax);
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
 
                 this.handlers = new List<BoundBlock>();
+                this._parentOpt = parentOpt;
                 _hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
                 _orderedHoistedLocals = new List<LocalSymbol>();
             }
@@ -1043,7 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool TryGetHoistedLocal(LocalSymbol originalLocal, out LocalSymbol hoistedLocal)
             {
-                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal);
+                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal) ||
+                    (_parentOpt?.TryGetHoistedLocal(originalLocal, out hoistedLocal) == true);
             }
         }
     }

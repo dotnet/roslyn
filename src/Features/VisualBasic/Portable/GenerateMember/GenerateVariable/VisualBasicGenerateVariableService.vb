@@ -90,8 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
                 simpleNameOrMemberAccessExpression = identifierName
             End If
 
-
-            Dim semanticModel = DirectCast(document.SemanticModel, SemanticModel)
+            Dim semanticModel = document.SemanticModel
             If Not IsLegal(semanticModel, simpleNameOrMemberAccessExpression, cancellationToken) AndAlso
                Not simpleNameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.NameOfExpression, SyntaxKind.NamedFieldInitializer) Then
                 identifierToken = Nothing
@@ -106,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return True
         End Function
 
-        Private Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
             Dim tree = semanticModel.SyntaxTree
             Dim position = expression.SpanStart
 
@@ -118,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return expression.CanReplaceWithLValue(semanticModel, cancellationToken)
         End Function
 
-        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, options As OptionSet, semanticModel As SemanticModel, cancellationToken As CancellationToken, ByRef newRoot As SyntaxNode) As Boolean
+        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken, ByRef newRoot As SyntaxNode) As Boolean
             Return False
         End Function
     End Class

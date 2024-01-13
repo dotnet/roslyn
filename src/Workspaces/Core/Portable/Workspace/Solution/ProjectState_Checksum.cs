@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -21,11 +22,22 @@ namespace Microsoft.CodeAnalysis
         public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
-            var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+                static (projectStateChecksums, _) => projectStateChecksums.Checksum,
+                _lazyChecksums,
+                cancellationToken).AsTask();
         }
+
+        public Checksum GetParseOptionsChecksum()
+            => GetParseOptionsChecksum(LanguageServices.SolutionServices.GetService<ISerializerService>());
+
+        private Checksum GetParseOptionsChecksum(ISerializerService serializer)
+            => this.SupportsCompilation
+                ? ChecksumCache.GetOrCreate(this.ParseOptions, static (options, serializer) => serializer.CreateParseOptionsChecksum(options), serializer)
+                : Checksum.Null;
 
         private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
         {
@@ -33,43 +45,45 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    // Here, we use the _documentStates and _additionalDocumentStates and visit them in order; we ensure that those are
-                    // sorted by ID so we have a consistent sort.
-                    var documentChecksumsTasks = _documentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var additionalDocumentChecksumTasks = _additionalDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var analyzerConfigDocumentChecksumTasks = _analyzerConfigDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
+                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
 
-                    var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
+                    var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
 
-                    var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
+                    var infoChecksum = this.ProjectInfo.Attributes.Checksum;
 
                     // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
-                    var compilationOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(CompilationOptions, _ => serializer.CreateChecksum(CompilationOptions, cancellationToken)) : Checksum.Null;
-                    var parseOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(ParseOptions, _ => serializer.CreateChecksum(ParseOptions, cancellationToken)) : Checksum.Null;
+                    var compilationOptionsChecksum = SupportsCompilation
+                        ? ChecksumCache.GetOrCreate(CompilationOptions, static (options, tuple) => tuple.serializer.CreateChecksum(options, tuple.cancellationToken), (serializer, cancellationToken))
+                        : Checksum.Null;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var parseOptionsChecksum = GetParseOptionsChecksum(serializer);
 
-                    var projectReferenceChecksums = ChecksumCache.GetOrCreate<ProjectReferenceChecksumCollection>(ProjectReferences, _ => new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var metadataReferenceChecksums = ChecksumCache.GetOrCreate<MetadataReferenceChecksumCollection>(MetadataReferences, _ => new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<AnalyzerReferenceChecksumCollection>(AnalyzerReferences, _ => new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                    var projectReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(ProjectReferences, serializer, cancellationToken);
+                    var metadataReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(MetadataReferences, serializer, cancellationToken);
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
 
-                    var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
-                    var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
-                    var analyzerConfigDocumentChecksums = await Task.WhenAll(analyzerConfigDocumentChecksumTasks).ConfigureAwait(false);
+                    var documentChecksums = new ChecksumCollection(await documentChecksumsTasks.WhenAll().ConfigureAwait(false));
+                    var additionalDocumentChecksums = new ChecksumCollection(await additionalDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
+                    var analyzerConfigDocumentChecksums = new ChecksumCollection(await analyzerConfigDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
 
                     return new ProjectStateChecksums(
+                        this.Id,
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,
-                        new DocumentChecksumCollection(documentChecksums),
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        new TextDocumentChecksumCollection(additionalChecksums),
-                        new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
+                        new(documentChecksums, DocumentStates.SelectAsArray(static s => s.Id)),
+                        new(additionalDocumentChecksums, AdditionalDocumentStates.SelectAsArray(static s => s.Id)),
+                        new(analyzerConfigDocumentChecksums, AnalyzerConfigDocumentStates.SelectAsArray(static s => s.Id)));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

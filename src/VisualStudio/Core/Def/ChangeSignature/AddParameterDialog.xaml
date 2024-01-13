@@ -1,0 +1,163 @@
+﻿<vs:DialogWindow 
+    x:Uid="AddParameterDialog"
+    x:Name="dialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.AddParameterDialog"
+    x:ClassModifier="internal"         
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    Width="600"
+    MinWidth="600"
+    SizeToContent="Height"
+    Title="{Binding ElementName=dialog, Path=AddParameterDialogTitle}"
+    HasHelpButton="False"
+    ResizeMode="CanResizeWithGrip"
+    ShowInTaskbar="False"
+    HasDialogFrame="True"
+    WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+    </Window.Resources>
+    <Grid Name="ContentGrid" Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Name="Table">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <GroupBox Grid.Row="0" Header="{Binding ElementName=dialog, Path=ParameterInformation}" Margin="3">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Label x:Name="TypeNameLabelName" Grid.Row="0" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
+                    <TextBox x:Name="TypeContentControl" 
+                     Grid.Row="1" 
+                     Margin="0,5,0,5" 
+                     MinHeight="17"
+                     Text="{Binding VerbatimTypeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,5">
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusInformation}" Visibility="{Binding TypeIsEmptyImage, Mode=OneWay}"/>
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusError}" Visibility="{Binding TypeDoesNotParseOrInvalidTypeImage, Mode=OneWay}"/>
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusOK}" Visibility="{Binding TypeBindsImage, Mode=OneWay}"/>
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" Visibility="{Binding TypeDoesNotBindImage, Mode=OneWay}"/>
+                        <vs:LiveTextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
+                       Text="{Binding Path=TypeBindsDynamicStatus, Mode=OneWay}"/>
+                    </StackPanel>
+                    <Label x:Name="ParameterNameLabelName" Grid.Row="3" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+                    <TextBox x:Name="NameContentControl"
+                     Grid.Row="4" 
+                     Margin="0,5,0,5"
+                     Text="{Binding ParameterName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.Row="1" Header="{Binding ElementName=dialog, Path=ParameterKind}" Margin="3">
+                <StackPanel Orientation="Vertical" Margin="0,3,0,3">
+                    <RadioButton x:Name="RequiredParameterRadioButton" 
+                         Margin="5" 
+                         GroupName="ParameterKind" 
+                         IsChecked="{Binding IsRequired, Mode=TwoWay}" 
+                         Content="{Binding ElementName=dialog, Path=Required}" />
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="OptionalParameterRadioButton" 
+                             Grid.Column="0" 
+                             GroupName="ParameterKind" 
+                             VerticalContentAlignment="Center" 
+                             IsChecked="{Binding IsOptional, Mode=TwoWay}"
+                             Content="{Binding ElementName=dialog, Path=OptionalWithDefaultValue}" />
+                        <TextBox x:Name="DefaultValue" 
+                         Grid.Column="1" 
+                         Margin="5,0,0,0" 
+                         AutomationProperties.LabeledBy="{Binding ElementName=OptionalParameterRadioButton}"
+                         Text="{Binding DefaultValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}"/>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Grid.Row="2" Header="{Binding ElementName=dialog, Path=ValueToInjectAtCallsites}" Margin="3">
+                <StackPanel Orientation="Vertical" Margin="0,0,0,9">
+                    <Label Grid.Column="0" Margin="0,0,0,0" Grid.ColumnSpan="2" />
+                    <Grid Margin="5,1,5,5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="CallsiteValueRadioButton" Grid.Row="0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" IsChecked="{Binding IsCallsiteRegularValue, Mode=TwoWay}" Content="{Binding ElementName=dialog, Path=Value}" />
+                        <TextBox x:Name="CallsiteValueTextBox" 
+                         Grid.Column="1"
+                         Grid.Row="0"
+                         Margin="5,0,0,0"
+                         IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}"
+                         AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueRadioButton}"
+                         Text="{Binding CallSiteValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                        <CheckBox x:Name="UseNamedArgumentButton" 
+                          Grid.Row="1" 
+                          Grid.ColumnSpan="2" 
+                          Margin="25,5,0,0" 
+                          IsChecked="{Binding UseNamedArguments, Mode=TwoWay}"
+                          Content="{Binding ElementName=dialog, Path=UseNamedArgument}" />
+                    </Grid>
+                    <RadioButton x:Name="IntroduceErrorRadioButton" 
+                         Margin="5,5,0,0" 
+                         Grid.Column="0" 
+                         GroupName="CallsiteKind" 
+                         VerticalContentAlignment="Center" 
+                         IsChecked="{Binding IsCallsiteTodo, Mode=TwoWay}"
+                         Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
+                    <RadioButton x:Name="InferArgumentRadioButton" 
+                         Margin="5,10,0,0" 
+                         GroupName="CallsiteKind"
+                         IsChecked="{Binding IsCallsiteInferred, Mode=TwoWay}"
+                         Content="{Binding ElementName=dialog, Path=InferFromContext}" />
+                    <RadioButton x:Name="OmitArgumentRadioButton" 
+                         Margin="5,10,0,0" 
+                         GroupName="CallsiteKind" 
+                         IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}" 
+                         IsChecked="{Binding IsCallsiteOmitted, Mode=TwoWay}"
+                         Content="{Binding ElementName=dialog, Path=OmitOnlyForOptionalParameters}" />
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <vs:DialogButton x:Uid="OKButton" x:Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <vs:DialogButton x:Uid="CancelButton" x:Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}" 
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

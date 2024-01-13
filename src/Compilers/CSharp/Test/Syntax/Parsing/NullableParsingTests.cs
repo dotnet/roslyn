@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +27,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"class C
 {
     privat C[]? F;
-}");
+}",
+                // (3,13): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[]").WithLocation(3, 13),
+                // (3,15): error CS1003: Syntax error, ',' expected
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(3, 15),
+                // (3,17): error CS1002: ; expected
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "F").WithLocation(3, 17),
+                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18),
+                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     privat C[]? F;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -538,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 9),
                 // (1,12): error CS1003: Syntax error, ':' expected
                 // x as T??? y
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 12),
                 // (1,12): error CS1733: Expected expression
                 // x as T??? y
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 12));
@@ -669,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 25),
                 // (1,25): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":").WithLocation(1, 25));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -716,18 +734,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void DeclarationPattern_NullableArray()
+        public void DeclarationPattern_Array()
         {
-            UsingStatement("switch (e) { case T[]? t: break; }",
-                // (1,21): error CS0443: Syntax error; value expected
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 21),
-                // (1,27): error CS1525: Invalid expression term 'break'
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 27),
-                // (1,27): error CS1003: Syntax error, ':' expected
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 27));
+            var test = "switch (e) { case T[] t: break; }";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "switch (e) { case T[] t: break; }").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,9): error CS0103: The name 'e' does not exist in the current context
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
+                // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19));
+
+            UsingStatement(test, options: TestOptions.Regular8);
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -740,47 +762,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CaseSwitchLabel);
+                    N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.ConditionalExpression);
+                        N(SyntaxKind.DeclarationPattern);
                         {
-                            N(SyntaxKind.ElementAccessExpression);
+                            N(SyntaxKind.ArrayType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "T");
                                 }
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.ArrayRankSpecifier);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    M(SyntaxKind.Argument);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
                                     {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.SingleVariableDesignation);
                             {
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
-                            N(SyntaxKind.ColonToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
                         }
-                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
                         N(SyntaxKind.BreakKeyword);
                         N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DeclarationPattern_NullableArray()
+        {
+            var test = "switch (e) { case T[]? t: break; }";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "switch (e) { case T[]? t: break; }").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,9): error CS0103: The name 'e' does not exist in the current context
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
+                // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
+                // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19),
+                // (1,22): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22),
+                // (1,24): warning CS0164: This label has not been referenced
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(1, 24));
+
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,22): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "T");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.LabeledStatement);
+                    {
+                        N(SyntaxKind.IdentifierToken, "t");
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -1278,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
                 // (1,17): error CS1003: Syntax error, ':' expected
                 // new object[,][]?
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 17),
                 // (1,17): error CS1733: Expected expression
                 // new object[,][]?
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17)

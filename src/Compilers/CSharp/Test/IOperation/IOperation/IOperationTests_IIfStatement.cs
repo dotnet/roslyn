@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IIfStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -703,7 +705,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Value: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, DeclaredSymbol: System.Int32 i, MatchesNull: False)
+                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 i, MatchesNull: False)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -745,7 +747,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
       Value: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, DeclaredSymbol: System.String str, MatchesNull: False)
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, NarrowedType: System.String, DeclaredSymbol: System.String str, MatchesNull: False)
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')
@@ -856,7 +858,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Value: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, DeclaredSymbol: System.Int32 i, MatchesNull: False)
+                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 i, MatchesNull: False)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -929,7 +931,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
                 // file.cs(7,6): error CS1003: Syntax error, '(' expected
                 //     {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(7, 6),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(7, 6),
                 // file.cs(7,6): error CS1525: Invalid expression term 'else'
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
@@ -1034,7 +1036,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
                 // file.cs(20,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(20, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(20, 14),
                 // file.cs(20,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
@@ -1106,7 +1108,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
                 // file.cs(12,28): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (flag)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 28),
                 // file.cs(12,28): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (flag)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
@@ -1188,7 +1190,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
                 // file.cs(12,20): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/{
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 20),
                 // file.cs(12,20): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/{
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
@@ -1206,7 +1208,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
                 // file.cs(15,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(15, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(15, 14),
                 // file.cs(15,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
@@ -1252,7 +1254,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
       Value: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, DeclaredSymbol: System.String str, MatchesNull: False)
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, NarrowedType: System.String, DeclaredSymbol: System.String str, MatchesNull: False)
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')
@@ -1393,7 +1395,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
                 // file.cs(10,30): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (a == 1)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 30),
                 // file.cs(10,30): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),

@@ -7,16 +7,20 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Peek
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Peek)>
     Public Class PeekTests
-        <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706"), Trait(Traits.Feature, Traits.Features.Peek)>
+
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706")>
         Public Sub TestInvokeInEmptyFile()
             Dim result = GetPeekResultCollection(<Workspace>
                                                      <Project Language="C#" CommonReferences="true">
@@ -27,19 +31,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             Assert.Null(result)
         End Sub
 
-        <WpfFact, WorkItem(827025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827025"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827025")>
         Public Sub TestWorksAcrossLanguages()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="C#" AssemblyName="Reference" CommonReferences="true">
-                                                           <Document>public class {|Identifier:TestClass|} { }</Document>
-                                                       </Project>
-                                                       <Project Language="Visual Basic" CommonReferences="true">
-                                                           <ProjectReference>Reference</ProjectReference>
-                                                           <Document>
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" AssemblyName="Reference" CommonReferences="true">
+                                                          <Document>public class {|Identifier:TestClass|} { }</Document>
+                                                      </Project>
+                                                      <Project Language="Visual Basic" CommonReferences="true">
+                                                          <ProjectReference>Reference</ProjectReference>
+                                                          <Document>
                                                                                 Public Class Blah : Inherits $$TestClass : End Class
                                                                           </Document>
-                                                       </Project>
-                                                   </Workspace>)
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
@@ -47,73 +51,72 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <WpfFact, WorkItem(824336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824336"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824336")>
         Public Sub TestPeekDefinitionWhenInvokedOnLiteral()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="C#" CommonReferences="true">
-                                                           <Document>class C { string s = $$"Goo"; }</Document>
-                                                       </Project>
-                                                   </Workspace>)
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document>class C { string s = $$"Goo"; }</Document>
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"String [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"String [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
 
-        <WpfFact, WorkItem(824331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824331"), WorkItem(820289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820289"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824331"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820289")>
         Public Sub TestPeekDefinitionWhenExtensionMethodFromMetadata()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="C#" CommonReferences="true">
-                                                           <Document>
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document>
                                                                                using System.Linq;
                                                                                class C { void M() { int[] a; a.$$Distinct(); }</Document>
-                                                       </Project>
-                                                   </Workspace>)
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct", StringComparison.Ordinal))
             End Using
         End Sub
 
-        <WpfFact, WorkItem(819660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819660"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819660")>
         Public Sub TestPeekDefinitionFromVisualBasicMetadataAsSource()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="Visual Basic" CommonReferences="true">
-                                                           <Document><![CDATA[<System.$$Serializable()>
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="Visual Basic" CommonReferences="true">
+                                                          <Document><![CDATA[<System.$$Serializable()>
 Class AA
 End Class
 </Document>
                                                           ]]></Document>
-                                                       </Project>
-                                                   </Workspace>)
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
             End Using
         End Sub
 
-        <WpfFact, WorkItem(819602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819602"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819602")>
         Public Sub TestPeekDefinitionOnParamNameXmlDocComment()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="Visual Basic" CommonReferences="true">
-                                                           <Document><![CDATA[
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="Visual Basic" CommonReferences="true">
+                                                          <Document><![CDATA[
 Class C
 ''' <param name="$$exePath"></param>
 Public Sub ddd(ByVal {|Identifier:exePath|} As String)
 End Sub
 End Class
                                                           ]]></Document>
-                                                       </Project>
-                                                   </Workspace>)
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
@@ -121,12 +124,11 @@ End Class
             End Using
         End Sub
 
-
-        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363")>
         Public Sub TestPeekDefinitionOnLinqVariable()
-            Using workspace = TestWorkspace.Create(<Workspace>
-                                                       <Project Language="Visual Basic" CommonReferences="true">
-                                                           <Document><![CDATA[
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="Visual Basic" CommonReferences="true">
+                                                          <Document><![CDATA[
 Module M
     Sub S()
         Dim arr = {3, 4, 5}
@@ -134,8 +136,8 @@ Module M
     End Sub
 End Module
                                                           ]]></Document>
-                                                       </Project>
-                                                   </Workspace>)
+                                                      </Project>
+                                                  </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
@@ -143,9 +145,7 @@ End Module
             End Using
         End Sub
 
-
-        <WpfFact>
-        <WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
         Public Sub TestPeekAcrossProjectsInvolvingPortableReferences()
             Dim workspaceDefinition =
 <Workspace>
@@ -175,22 +175,94 @@ End Module
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = CreateTestWorkspace(workspaceDefinition)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
                 result.AssertNavigatesToIdentifier(0, "Identifier")
             End Using
-
         End Sub
 
-        Private Function GetPeekResultCollection(element As XElement) As PeekResultCollection
-            Using workspace = TestWorkspace.Create(element)
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363")>
+        Public Sub TestFileMapping()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document><![CDATA[
+public class D
+{
+    public void M()
+    {
+        new Component().$$M();
+    }
+}
+                                                          ]]></Document>
+                                                          <Document FilePath="Test.razor"><![CDATA[
+@code
+{
+    public void {|Identifier:M|}()
+    {
+    }
+}
+                                                          ]]></Document>
+                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+public class Component
+{
+#line 4 "Test.razor"
+    public void M()
+    {
+    }
+}
+                                                          ]]></Document>
+                                                      </Project>
+                                                  </Workspace>)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64615")>
+        Public Sub TestPartialMethods()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document><![CDATA[
+public partial class D
+{
+    public void M()
+    {
+        $$PartialMethod();
+    }
+
+    partial void PartialMethod();
+}
+                                                          ]]></Document>
+                                                          <Document><![CDATA[
+public partial class D
+{
+    partial void {|Identifier:PartialMethod|}() { }
+}
+                                                          ]]></Document>
+                                                      </Project>
+                                                  </Workspace>)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+        End Sub
+
+        Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+        End Function
+
+        Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
+            Using workspace = CreateTestWorkspace(element)
                 Return GetPeekResultCollection(workspace)
             End Using
         End Function
 
-        Private Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As EditorTestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
@@ -203,7 +275,8 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IWaitIndicator))
+                                                             workspace.GetService(Of IThreadingContext),
+                                                             workspace.GetService(Of IUIThreadOperationExecutor))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)
@@ -221,11 +294,14 @@ End Module
             Dim item = items.SingleOrDefault()
 
             If item IsNot Nothing Then
+                Dim callbackMock = New Mock(Of IFindPeekResultsCallback)(MockBehavior.Strict)
+                callbackMock.Setup(Sub(s) s.ReportProgress(It.IsAny(Of Integer)))
+
                 Dim resultSource = item.GetOrCreateResultSource(PredefinedPeekRelationships.Definitions.Name)
                 resultSource.FindResults(PredefinedPeekRelationships.Definitions.Name,
                                          peekResult,
                                          CancellationToken.None,
-                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Loose).Object)
+                                         callbackMock.Object)
             End If
 
             Return peekResult
@@ -286,9 +362,9 @@ End Module
 
             Public ReadOnly Items As New List(Of IPeekResult)
 
-            Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _workspace As EditorTestWorkspace
 
-            Public Sub New(workspace As TestWorkspace)
+            Public Sub New(workspace As EditorTestWorkspace)
                 _workspace = workspace
             End Sub
 
@@ -337,6 +413,14 @@ End Module
 
             Private Function Remove(item As IPeekResult) As Boolean Implements IPeekResultCollection.Remove
                 Throw New NotImplementedException()
+            End Function
+
+            Friend Function GetText() As String
+                Dim documentResult = DirectCast(Items(0), IDocumentPeekResult)
+                Dim textBufferService = _workspace.GetService(Of ITextBufferFactoryService)
+                Dim buffer = textBufferService.CreateTextBuffer(New StreamReader(documentResult.FilePath), textBufferService.InertContentType)
+
+                Return buffer.CurrentSnapshot.GetText()
             End Function
 
             ''' <summary>

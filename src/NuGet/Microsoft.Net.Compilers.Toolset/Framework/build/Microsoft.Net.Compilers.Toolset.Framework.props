@@ -1,0 +1,12 @@
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <!-- 
+    This package is meant to override the compiler when running on .NET Framework MSBuild. When running
+    inside of dotnet build it should be a no-op.
+  -->
+  <Import
+    Project="$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.Toolset.Framework.Core.props"
+    Condition="'$(MSBuildRuntimeType)' == 'Full'" />
+
+</Project>

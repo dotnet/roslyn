@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System.Collections.ObjectModel;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         inspectionContext,
                         proxyTypeAndInfo.ClrType,
                         proxyTypeAndInfo.Info,
-                        new[] { childFullNamePrefix });
+                        [childFullNamePrefix]);
                 }
                 _proxyItem = new EvalResult(
                     ExpansionKind.Default,
@@ -175,10 +177,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if (_proxyItem != null)
-            {
-                _proxyItem.Expansion.GetRows(resultProvider, rows, inspectionContext, _proxyItem.ToDataItem(), _proxyItem.Value, startIndex, count, visitAll, ref index);
-            }
+            _proxyItem?.Expansion.GetRows(resultProvider, rows, inspectionContext, _proxyItem.ToDataItem(), _proxyItem.Value, startIndex, count, visitAll, ref index);
 
             if (InRange(startIndex, count, index))
             {

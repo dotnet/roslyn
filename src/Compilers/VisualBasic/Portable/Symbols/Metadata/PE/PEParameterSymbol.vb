@@ -2,17 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -50,6 +48,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyHasCallerLineNumberAttribute As ThreeState = ThreeState.Unknown
         Private _lazyHasCallerMemberNameAttribute As ThreeState = ThreeState.Unknown
         Private _lazyHasCallerFilePathAttribute As ThreeState = ThreeState.Unknown
+
+        Private Const UninitializedCallerArgumentExpressionParameterIndex As Integer = Integer.MinValue
+
+        ''' <summary>
+        ''' The index of a CallerArgumentExpression. The value <see cref="UninitializedCallerArgumentExpressionParameterIndex"/> means uninitialized, -1 means
+        ''' Not found. Otherwise, the index of the CallerArgumentExpression.
+        ''' </summary>
+        Private _lazyCallerArgumentExpressionParameterIndex As Integer = UninitializedCallerArgumentExpressionParameterIndex
 
         Private _lazyIsParamArray As ThreeState
 
@@ -174,6 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 _lazyHasCallerLineNumberAttribute = ThreeState.False
                 _lazyHasCallerMemberNameAttribute = ThreeState.False
                 _lazyHasCallerFilePathAttribute = ThreeState.False
+                _lazyCallerArgumentExpressionParameterIndex = -1
                 _lazyIsParamArray = ThreeState.False
             Else
                 Try
@@ -275,6 +282,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property MetadataName As String
             Get
                 Return If(HasNameInMetadata, _name, String.Empty)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -405,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             For Each attribute In GetAttributes()
                 Yield attribute
             Next
@@ -605,6 +618,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                If _lazyCallerArgumentExpressionParameterIndex = UninitializedCallerArgumentExpressionParameterIndex Then
+                    Debug.Assert(Not _handle.IsNil)
+
+                    Dim attribute = PEModule.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute)
+                    Dim parameterName As String = Nothing
+                    If attribute.HasValue AndAlso PEModule.TryExtractStringValueFromAttribute(attribute.Handle, parameterName) Then
+                        Dim parameters = ContainingSymbol.GetParameters()
+                        For i = 0 To parameters.Length - 1
+                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
+                                _lazyCallerArgumentExpressionParameterIndex = i
+                                Exit For
+                            End If
+                        Next
+                    Else
+                        _lazyCallerArgumentExpressionParameterIndex = -1
+                    End If
+                End If
+
+                Return _lazyCallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
@@ -617,6 +654,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly Property PEModule As PEModule
             Get
                 Return DirectCast(_containingSymbol.ContainingModule, PEModuleSymbol).Module
+            End Get
+        End Property
+
+        Friend Function DeriveCompilerFeatureRequiredDiagnostic(decoder As MetadataDecoder) As DiagnosticInfo
+            Return DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(Me.ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim containingModule = DirectCast(Me.ContainingModule, PEModuleSymbol)
+                Dim containingMethod = TryCast(Me.ContainingSymbol, PEMethodSymbol)
+                Dim decoder = If(containingMethod IsNot Nothing,
+                    New MetadataDecoder(containingModule, containingMethod),
+                    New MetadataDecoder(containingModule, DirectCast(ContainingType, PENamedTypeSymbol)))
+
+                Dim info = DeriveCompilerFeatureRequiredDiagnostic(decoder)
+
+                Return (info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)) OrElse MyBase.HasUnsupportedMetadata
             End Get
         End Property
     End Class

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -552,8 +554,7 @@ class B : A<int> { }
                 EvalResult("b", "Type={B}", "B", "b", DkmEvaluationResultFlags.None));
         }
 
-        [WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
         public void RootVersusInternal()
         {
             var source = @"

@@ -3,217 +3,303 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
-
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForConstructorsAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        UseExpressionBodyDiagnosticAnalyzer,
+        UseExpressionBodyCodeFixProvider>;
+
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+    public class UseExpressionBodyForConstructorsAnalyzerTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
+        private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = version,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ExpressionBodyPreference.WhenPossible } }
+            }.RunAsync();
+        }
 
-        private IOptionsCollection UseExpressionBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+        private static async Task TestWithUseBlockBody(string code, string fixedCode)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ExpressionBodyPreference.Never } }
+            }.RunAsync();
+        }
 
-        private IOptionsCollection UseBlockBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody1()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C()
-    {
-        [|Bar|]();
-    }
-}",
-@"class C
-{
-    public C() => Bar();
-}", options: UseExpressionBody);
+            var code = """
+                class C
+                {
+                    void Bar() { }
+
+                    {|IDE0021:public C()
+                    {
+                        Bar();
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                class C
+                {
+                    void Bar() { }
+
+                    public C() => Bar();
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C()
-    {
-        a = [|Bar|]();
-    }
-}",
-@"class C
-{
-    public C() => a = Bar();
-}", options: UseExpressionBody);
+            var code = """
+                class C
+                {
+                    int a;
+
+                    {|IDE0021:public C()
+                    {
+                        a = Bar();
+                    }|}
+
+                    int Bar() { return 0; }
+                }
+                """;
+            var fixedCode = """
+                class C
+                {
+                    int a;
+
+                    public C() => a = Bar();
+
+                    int Bar() { return 0; }
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody3()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C()
-    {
-        [|throw|] new NotImplementedException();
-    }
-}",
-@"class C
-{
-    public C() => throw new NotImplementedException();
-}", options: UseExpressionBody);
+            var code = """
+                using System;
+
+                class C
+                {
+                    {|IDE0021:public C()
+                    {
+                        throw new NotImplementedException();
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                using System;
+
+                class C
+                {
+                    public C() => throw new NotImplementedException();
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseExpressionBody4()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C()
-    {
-        [|throw|] new NotImplementedException(); // comment
-    }
-}",
-@"class C
-{
-    public C() => throw new NotImplementedException(); // comment
-}", options: UseExpressionBody);
+            var code = """
+                using System;
+
+                class C
+                {
+                    {|IDE0021:public C()
+                    {
+                        throw new NotImplementedException(); // comment
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                using System;
+
+                class C
+                {
+                    public C() => throw new NotImplementedException(); // comment
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody1()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C() [|=>|] Bar();
-}",
-@"class C
-{
-    public C()
-    {
-        Bar();
-    }
-}", options: UseBlockBody);
+            var code = """
+                class C
+                {
+                    {|IDE0021:public C() => Bar();|}
+
+                    void Bar() { }
+                }
+                """;
+            var fixedCode = """
+                class C
+                {
+                    public C()
+                    {
+                        Bar();
+                    }
+
+                    void Bar() { }
+                }
+                """;
+            await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C() [|=>|] a = Bar();
-}",
-@"class C
-{
-    public C()
-    {
-        a = Bar();
-    }
-}", options: UseBlockBody);
+            var code = """
+                class C
+                {
+                    int a;
+
+                    {|IDE0021:public C() => a = Bar();|}
+
+                    int Bar() { return 0; }
+                }
+                """;
+            var fixedCode = """
+                class C
+                {
+                    int a;
+
+                    public C()
+                    {
+                        a = Bar();
+                    }
+
+                    int Bar() { return 0; }
+                }
+                """;
+            await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody3()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C() [|=>|] throw new NotImplementedException();
-}",
-@"class C
-{
-    public C()
-    {
-        throw new NotImplementedException();
-    }
-}", options: UseBlockBody);
+            var code = """
+                using System;
+
+                class C
+                {
+                    {|IDE0021:public C() => throw new NotImplementedException();|}
+                }
+                """;
+            var fixedCode = """
+                using System;
+
+                class C
+                {
+                    public C()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+            await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestUseBlockBody4()
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C() [|=>|] throw new NotImplementedException(); // comment
-}",
-@"class C
-{
-    public C()
-    {
-        throw new NotImplementedException(); // comment
-    }
-}", options: UseBlockBody);
+            var code = """
+                using System;
+
+                class C
+                {
+                    {|IDE0021:public C() => throw new NotImplementedException();|} // comment
+                }
+                """;
+            var fixedCode = """
+                using System;
+
+                class C
+                {
+                    public C()
+                    {
+                        throw new NotImplementedException(); // comment
+                    }
+                }
+                """;
+            await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
         {
-            await TestAsync(
-@"
-using System;
-class C
-{
-    public C() [|=>|] throw new NotImplementedException();
-}",
-@"
-using System;
-class C
-{
-    public C()
-    {
-        throw new NotImplementedException();
-    }
-}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            var code = """
+                using System;
+                class C
+                {
+                    {|IDE0021:public C() {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
+                }
+                """;
+            var fixedCode = """
+                using System;
+                class C
+                {
+                    public C()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
         {
-            await TestAsync(
-@"
-using System;
-class C
-{
-    public C() {|FixAllInDocument:=>|} throw new NotImplementedException();
-    public C(int i) => throw new NotImplementedException();
-}",
-@"
-using System;
-class C
-{
-    public C()
-    {
-        throw new NotImplementedException();
-    }
+            var code = """
+                using System;
+                class C
+                {
+                    {|IDE0021:public C() {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
+                    {|IDE0021:public C(int i) {|CS8059:=>|} {|CS8059:throw|} new NotImplementedException();|}
+                }
+                """;
+            var fixedCode = """
+                using System;
+                class C
+                {
+                    public C()
+                    {
+                        throw new NotImplementedException();
+                    }
 
-    public C(int i)
-    {
-        throw new NotImplementedException();
-    }
-}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+                    public C(int i)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
     }
 }

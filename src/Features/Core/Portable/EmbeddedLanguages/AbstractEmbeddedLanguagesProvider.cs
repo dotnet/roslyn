@@ -3,25 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
-    internal abstract class AbstractEmbeddedLanguageFeaturesProvider : AbstractEmbeddedLanguagesProvider
+    internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
-        public override ImmutableArray<IEmbeddedLanguage> Languages { get; }
+        public EmbeddedLanguageInfo EmbeddedLanguageInfo { get; }
+        public ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
+        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
+            EmbeddedLanguageInfo = info;
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new DateAndTimeEmbeddedLanguageFeatures(info),
-                new RegexEmbeddedLanguageFeatures(this, info),
-                new FallbackEmbeddedLanguage(info));
+                new DateAndTimeEmbeddedLanguage(info),
+                new RegexEmbeddedLanguage(this, info),
+                new JsonEmbeddedLanguage());
         }
 
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 
@@ -31,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// </summary>
         /// <param name="token">The original string token that <paramref name="text"/> is being
         /// inserted into.</param>
-        internal abstract string EscapeText(string text, SyntaxToken token);
+        public abstract string EscapeText(string text, SyntaxToken token);
     }
 }

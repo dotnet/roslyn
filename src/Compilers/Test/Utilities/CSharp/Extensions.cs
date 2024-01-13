@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -161,24 +163,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public static Symbol GetMember(this CSharpCompilation compilation, string qualifiedName)
-        {
-            return compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static ISymbol GetMember(this Compilation compilation, string qualifiedName)
-        {
-            return compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static T GetMember<T>(this CSharpCompilation compilation, string qualifiedName) where T : Symbol
-        {
-            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => (T)compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static T GetMember<T>(this Compilation compilation, string qualifiedName) where T : ISymbol
+            => (T)compilation.GlobalNamespace.GetMember(qualifiedName);
+
+        public static IMethodSymbol GetCopyConstructor(this Compilation compilation, string qualifiedTypeName)
         {
-            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            if (!type.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have copy-constructor");
+            }
+
+            return type.InstanceConstructors.Single(c => c.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
         }
+
+        public static IMethodSymbol GetPrimaryConstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.InstanceConstructors.Single(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is TypeDeclarationSyntax));
+        }
+
+        public static IMethodSymbol GetParameterlessConstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.InstanceConstructors.Single(c => c.Parameters is []);
+        }
+
+        public static IMethodSymbol GetSpecializedEqualsOverload(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.GetMembers("Equals").OfType<IMethodSymbol>().Single(m => m.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
+        }
+
+        public static IMethodSymbol GetPrimaryDeconstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var primaryConstructor = compilation.GetPrimaryConstructor(qualifiedTypeName);
+            if (!primaryConstructor.ContainingType.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have primary deconstructor");
+            }
+
+            return primaryConstructor.ContainingType.GetMembers("Deconstruct").OfType<IMethodSymbol>().Single(
+                m => m.Parameters.Length == primaryConstructor.Parameters.Length &&
+                     m.Parameters.All(p => p.RefKind == RefKind.Out && p.Type.Equals(primaryConstructor.Parameters[p.Ordinal].Type, SymbolEqualityComparer.Default)));
+        }
+
+        public static ImmutableArray<T> GetMembers<T>(this Compilation compilation, string qualifiedName) where T : ISymbol
+            => GetMembers(compilation, qualifiedName).SelectAsArray(s => (T)s.ISymbol);
 
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
         {
@@ -334,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, AttributeDescription description)
         {
-            return @this.GetAttributes().Where(a => a.IsTargetAttribute(@this, description));
+            return @this.GetAttributes().Where(a => a.IsTargetAttribute(description));
         }
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, NamedTypeSymbol c)
@@ -352,6 +391,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (from a in @this.GetAttributes()
                     where a.AttributeConstructor.Equals(m)
                     select a).ToList().First();
+        }
+
+        public static bool HasAttribute(this Symbol @this, MethodSymbol m)
+        {
+            return (from a in @this.GetAttributes()
+                    where a.AttributeConstructor.Equals(m)
+                    select a).ToList().FirstOrDefault() != null;
         }
 
         public static void VerifyValue<T>(this CSharpAttributeData attr, int i, TypedConstantKind kind, T v)
@@ -602,7 +648,7 @@ internal static class Extensions
             declaration is JoinIntoClauseSyntax ||
             declaration is LabeledStatementSyntax ||
             declaration is MemberDeclarationSyntax ||
-            declaration is NamespaceDeclarationSyntax ||
+            declaration is BaseNamespaceDeclarationSyntax ||
             declaration is ParameterSyntax ||
             declaration is QueryClauseSyntax ||
             declaration is QueryContinuationSyntax ||
@@ -828,5 +874,89 @@ internal static class Extensions
     public static IEnumerable<Microsoft.CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations(this IMethodSymbol method)
     {
         return method.TypeArguments.Select(t => t.NullableAnnotation);
+    }
+
+    public static DiagnosticInfo GetUseSiteDiagnostic(this Symbol @this)
+    {
+        return @this.GetUseSiteInfo().DiagnosticInfo;
+    }
+
+    public static Conversion ClassifyConversionFromType(this ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        Conversion result = conversions.ClassifyConversionFromType(source, destination, isChecked: false, ref useSiteInfo, forCast);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+        return result;
+    }
+
+    private static void AddDiagnosticInfos(ref HashSet<DiagnosticInfo> useSiteDiagnostics, CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+    {
+        if (useSiteInfo.Diagnostics is object)
+        {
+            if (useSiteDiagnostics is null)
+            {
+                useSiteDiagnostics = (HashSet<DiagnosticInfo>)useSiteInfo.Diagnostics;
+            }
+            else
+            {
+                useSiteDiagnostics.AddAll(useSiteInfo.Diagnostics);
+            }
+        }
+    }
+
+    public static Conversion ClassifyConversionFromExpression(this Conversions conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        Conversion result = conversions.ClassifyConversionFromExpression(sourceExpression, destination, isChecked: false, ref useSiteInfo, forCast);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+        return result;
+    }
+
+    public static void LookupSymbolsSimpleName(
+        this Microsoft.CodeAnalysis.CSharp.Binder binder,
+        LookupResult result,
+        NamespaceOrTypeSymbol qualifierOpt,
+        string plainName,
+        int arity,
+        ConsList<TypeSymbol> basesBeingResolved,
+        LookupOptions options,
+        bool diagnose,
+        ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        binder.LookupSymbolsSimpleName(result, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+    }
+
+    public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
+    {
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindCref(syntax, out ambiguityWinner, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
+    }
+
+    public static BoundBlock BindEmbeddedBlock(this Microsoft.CodeAnalysis.CSharp.Binder binder, BlockSyntax node, DiagnosticBag diagnostics)
+    {
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindEmbeddedBlock(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
+    }
+
+    public static BoundExpression BindExpression(this Microsoft.CodeAnalysis.CSharp.Binder binder, ExpressionSyntax node, DiagnosticBag diagnostics)
+    {
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindExpression(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
+    }
+
+    public static void Verify(this ReadOnlyBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
+    {
+        actual.Diagnostics.Verify(expected);
     }
 }

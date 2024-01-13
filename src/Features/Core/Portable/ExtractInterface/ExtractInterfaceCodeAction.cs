@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,17 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal class ExtractInterfaceCodeAction : CodeActionWithOptions
+    internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
     {
-        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService _extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
-
-        public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
-        {
-            _extractInterfaceService = extractInterfaceService;
-            _typeAnalysisResult = typeAnalysisResult;
-        }
+        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
+        private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
@@ -30,15 +22,17 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 ? string.Empty
                 : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
+            return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
                 _typeAnalysisResult.DocumentToExtractFrom,
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,
                 containingNamespaceDisplay,
+                _typeAnalysisResult.FallbackOptions,
                 cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 

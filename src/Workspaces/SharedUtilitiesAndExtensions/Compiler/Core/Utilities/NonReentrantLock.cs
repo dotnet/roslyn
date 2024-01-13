@@ -215,14 +215,15 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Action object passed to a cancellation token registration.
         /// </summary>
-        private static readonly Action<object> s_cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
+        private static readonly Action<object?> s_cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
 
         /// <summary>
         /// Callback executed when a cancellation token is canceled during a Wait.
         /// </summary>
         /// <param name="obj">The syncLock that protects a <see cref="NonReentrantLock"/> instance.</param>
-        private static void CancellationTokenCanceledEventHandler(object obj)
+        private static void CancellationTokenCanceledEventHandler(object? obj)
         {
+            RoslynDebug.AssertNotNull(obj);
             lock (obj)
             {
                 // Release all waiters to check their cancellation tokens.
@@ -239,15 +240,10 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Since we want to avoid boxing the return from <see cref="NonReentrantLock.DisposableWait"/>, this type must be public.
         /// </summary>
-        public struct SemaphoreDisposer : IDisposable
+        public readonly struct SemaphoreDisposer(NonReentrantLock semaphore) : IDisposable
         {
-            private readonly NonReentrantLock _semaphore;
-
-            public SemaphoreDisposer(NonReentrantLock semaphore)
-                => _semaphore = semaphore;
-
             public void Dispose()
-                => _semaphore.Release();
+                => semaphore.Release();
         }
     }
 }

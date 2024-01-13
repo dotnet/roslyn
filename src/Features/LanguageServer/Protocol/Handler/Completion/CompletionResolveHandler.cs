@@ -2,108 +2,109 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Newtonsoft.Json.Linq;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    /// <remarks>
+    /// This isn't a <see cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}" /> because it could return null.
+    /// </remarks>
+    [Method(LSP.Methods.TextDocumentCompletionResolveName)]
+    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        private readonly CompletionListCache _completionListCache;
+        private readonly IGlobalOptionService _globalOptions;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
         {
+            _globalOptions = globalOptions;
+            _completionListCache = completionListCache;
         }
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
+            => GetCompletionListCacheEntry(request)?.TextDocument;
+
+        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            CompletionResolveData data;
-            if (completionItem.Data is CompletionResolveData)
+            var cacheEntry = GetCompletionListCacheEntry(completionItem);
+            if (cacheEntry == null)
             {
-                data = (CompletionResolveData)completionItem.Data;
-            }
-            else
-            {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
-            }
-
-            var request = data.CompletionParams;
-
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
-            if (document == null)
-            {
+                // Don't have a cache associated with this completion item, cannot resolve.
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var document = context.GetRequiredDocument();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (list == null)
+            // Find the matching completion item in the completion list
+            var selectedItem = cacheEntry.CompletionList.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
+
+            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
+            var symbolDescriptionOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+
+            if (selectedItem is not null)
             {
-                return completionItem;
+                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
+                await creationService.ResolveAsync(
+                    completionItem,
+                    selectedItem,
+                    cacheEntry.TextDocument,
+                    document,
+                    new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
+                    completionService,
+                    completionOptions,
+                    symbolDescriptionOptions,
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            var selectedItem = list.Items.FirstOrDefault(i => i.DisplayText == data.DisplayText);
-            if (selectedItem == null)
-            {
-                return completionItem;
-            }
-
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
-
-            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
-            LSP.CompletionItem resolvedCompletionItem;
-            if (lspVSClientCapability)
-            {
-                resolvedCompletionItem = CloneVSCompletionItem(completionItem);
-                ((LSP.VSCompletionItem)resolvedCompletionItem).Description = new ClassifiedTextElement(description.TaggedParts
-                    .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
-            }
-            else
-            {
-                resolvedCompletionItem = RoslynCompletionItem.From(completionItem);
-                ((RoslynCompletionItem)resolvedCompletionItem).Description = description.TaggedParts.Select(
-                    tp => new RoslynTaggedText { Tag = tp.Tag, Text = tp.Text }).ToArray();
-            }
-
-            resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
-            return resolvedCompletionItem;
+            return completionItem;
         }
 
-        private LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
+        private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
-            return new LSP.VSCompletionItem
+            // We want to make sure we are resolving the same unimported item in case we have multiple with same name
+            // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
+            // compare SortText instead when it's set (which is when label != SortText)
+            return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
+                && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
+        }
+
+        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
+            if (resolveData?.ResultId == null)
             {
-                AdditionalTextEdits = completionItem.AdditionalTextEdits,
-                Command = completionItem.Command,
-                CommitCharacters = completionItem.CommitCharacters,
-                Data = completionItem.Data,
-                Detail = completionItem.Detail,
-                Documentation = completionItem.Documentation,
-                FilterText = completionItem.FilterText,
-                InsertText = completionItem.InsertText,
-                InsertTextFormat = completionItem.InsertTextFormat,
-                Kind = completionItem.Kind,
-                Label = completionItem.Label,
-                SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
-            };
+                Contract.Fail("Result id should always be provided when resolving a completion item we returned.");
+                return null;
+            }
+
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
+            if (cacheEntry == null)
+            {
+                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
+                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
+            }
+
+            return cacheEntry;
         }
     }
 }

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class ArrayTypeSymbol
         Inherits TypeSymbol
-        Implements IArrayTypeSymbol
+        Implements IArrayTypeSymbol, IArrayTypeSymbolInternal
 
         ''' <summary>
         ''' Create a new ArrayTypeSymbol.
@@ -315,20 +316,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return IsSameType(obj, TypeCompareKind.ConsiderEverything)
+        Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, ArrayTypeSymbol), comparison)
         End Function
 
-        Friend Function IsSameType(obj As Object, compareKind As TypeCompareKind) As Boolean
-            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
-
-            If (Me Is obj) Then
+        Public Overloads Function Equals(other As ArrayTypeSymbol, compareKind As TypeCompareKind) As Boolean
+            If (Me Is other) Then
                 Return True
             End If
 
-            Dim other = TryCast(obj, ArrayTypeSymbol)
-
-            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.IsSameType(ElementType, compareKind)) Then
+            If other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.Equals(ElementType, compareKind) Then
                 Return False
             End If
 
@@ -348,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Public Overrides Function GetHashCode() As Integer
+        Public NotOverridable Overrides Function GetHashCode() As Integer
             ' Following the C# implementation to avoid recursion
             ' We don't want to blow the stack if we have a type like T[][][][][][][][]....[][],
             ' so we do not recurse until we have a non-array. Rather, hash all the ranks together
@@ -369,18 +366,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Use-Site Diagnostics"
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             ' Check type.
-            Dim elementErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ElementType)
+            Dim elementUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.ElementType)
 
-            If elementErrorInfo IsNot Nothing AndAlso elementErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                Return elementErrorInfo
+            If elementUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(elementUseSiteInfo.DiagnosticInfo.Code) Then
+                Return elementUseSiteInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            Return MergeUseSiteErrorInfo(elementErrorInfo, modifiersErrorInfo)
+            MergeUseSiteInfo(elementUseSiteInfo, modifiersUseSiteInfo)
+            Return elementUseSiteInfo
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
@@ -401,6 +399,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IArrayTypeSymbolInternal_ElementType As ITypeSymbolInternal Implements IArrayTypeSymbolInternal.ElementType
+            Get
+                Return Me.ElementType
+            End Get
+        End Property
+
         Private ReadOnly Property IArrayTypeSymbol_ElementNullableAnnotation As NullableAnnotation Implements IArrayTypeSymbol.ElementNullableAnnotation
             Get
                 Return NullableAnnotation.None
@@ -413,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IArrayTypeSymbol_IsSZArray As Boolean Implements IArrayTypeSymbol.IsSZArray
+        Private ReadOnly Property IArrayTypeSymbol_IsSZArray As Boolean Implements IArrayTypeSymbol.IsSZArray, IArrayTypeSymbolInternal.IsSZArray
             Get
                 Return Me.IsSZArray
             End Get
@@ -447,6 +451,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitArrayType(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitArrayType(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

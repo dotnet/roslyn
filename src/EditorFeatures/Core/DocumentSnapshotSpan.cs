@@ -7,27 +7,22 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
-    /// Represents an editor <see cref="VisualStudio.Text.SnapshotSpan"/> and the <see cref="CodeAnalysis.Document"/> the span was produced from.
+    /// Represents an editor <see cref="VisualStudio.Text.SnapshotSpan"/> and the <see cref="CodeAnalysis.Document"/>
+    /// the span was produced from.
     /// </summary>
-    internal struct DocumentSnapshotSpan
+    /// <remarks>
+    /// Creates a new <see cref="DocumentSnapshotSpan"/>.
+    /// </remarks>
+    internal readonly struct DocumentSnapshotSpan(Document? document, SnapshotSpan snapshotSpan)
     {
         /// <summary>
         /// The <see cref="CodeAnalysis.Document"/> the span was produced from.
         /// </summary>
-        public Document Document { get; }
+        public Document? Document { get; } = document;
 
         /// <summary>
         /// The editor <see cref="VisualStudio.Text.SnapshotSpan"/>.
         /// </summary>
-        public SnapshotSpan SnapshotSpan { get; }
-
-        /// <summary>
-        /// Creates a new <see cref="DocumentSnapshotSpan"/>.
-        /// </summary>
-        public DocumentSnapshotSpan(Document document, SnapshotSpan snapshotSpan) : this()
-        {
-            this.Document = document;
-            this.SnapshotSpan = snapshotSpan;
-        }
+        public SnapshotSpan SnapshotSpan { get; } = snapshotSpan;
     }
 }

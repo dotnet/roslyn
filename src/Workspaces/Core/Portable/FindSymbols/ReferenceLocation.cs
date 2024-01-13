@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// Information about a reference to a symbol.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public readonly struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
+    public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
     {
         /// <summary>
         /// The document that the reference was found in.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// If the symbol was bound through an alias, then this is the alias that was used.
         /// </summary>
-        public IAliasSymbol Alias { get; }
+        public IAliasSymbol? Alias { get; }
 
         /// <summary>
         /// The actual source location for a given symbol.
@@ -54,10 +54,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal ImmutableDictionary<string, string> AdditionalProperties { get; }
 
+        /// <summary>
+        /// If this reference location is within a string literal, then this property
+        /// indicates the location of the containing string literal token.
+        /// Otherwise, <see cref="Location.None"/>.
+        /// </summary>
+        internal Location ContainingStringLocation { get; }
+
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
-            : this()
+        private ReferenceLocation(
+            Document document,
+            IAliasSymbol? alias,
+            Location location,
+            bool isImplicit,
+            SymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            CandidateReason candidateReason,
+            Location containingStringLocation)
         {
             this.Document = document;
             this.Alias = alias;
@@ -66,6 +80,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.SymbolUsageInfo = symbolUsageInfo;
             this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
             this.CandidateReason = candidateReason;
+            this.ContainingStringLocation = containingStringLocation;
+        }
+
+        /// <summary>
+        /// Creates a reference location with the given properties.
+        /// </summary>
+        internal ReferenceLocation(Document document, IAliasSymbol? alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
+            : this(document, alias, location, isImplicit, symbolUsageInfo, additionalProperties, candidateReason, containingStringLocation: Location.None)
+        {
+        }
+
+        /// <summary>
+        /// Creates a reference location within a string literal.
+        /// For example, location inside the target string of a global SuppressMessageAttribute.
+        /// </summary>
+        internal ReferenceLocation(Document document, Location location, Location containingStringLocation)
+            : this(document, alias: null, location, isImplicit: false,
+                   SymbolUsageInfo.None, additionalProperties: ImmutableDictionary<string, string>.Empty,
+                   CandidateReason.None, containingStringLocation)
+        {
         }
 
         /// <summary>
@@ -75,18 +109,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// actual "Goo()" method existed.
         /// </summary>
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
-
-        public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
-            => left.Equals(right);
-
-        public static bool operator !=(ReferenceLocation left, ReferenceLocation right)
-            => !(left == right);
-
-        public override bool Equals(object obj)
-        {
-            return obj is ReferenceLocation &&
-                Equals((ReferenceLocation)obj);
-        }
 
         public bool Equals(ReferenceLocation other)
         {
@@ -111,8 +133,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             int compare;
 
-            var thisPath = this.Location.SourceTree.FilePath;
-            var otherPath = other.Location.SourceTree.FilePath;
+            var thisPath = this.Location.SourceTree?.FilePath;
+            var otherPath = other.Location.SourceTree?.FilePath;
 
             if ((compare = StringComparer.OrdinalIgnoreCase.Compare(thisPath, otherPath)) != 0 ||
                 (compare = this.Location.SourceSpan.CompareTo(other.Location.SourceSpan)) != 0)

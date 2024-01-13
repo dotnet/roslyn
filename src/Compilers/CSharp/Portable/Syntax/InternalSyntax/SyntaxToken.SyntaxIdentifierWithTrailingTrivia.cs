@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Roslyn.Utilities;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -31,28 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AdjustFlagsAndWidth(trailing);
                     _trailing = trailing;
                 }
-            }
-
-            internal SyntaxIdentifierWithTrailingTrivia(ObjectReader reader)
-                : base(reader)
-            {
-                var trailing = (GreenNode)reader.ReadValue();
-                if (trailing != null)
-                {
-                    this.AdjustFlagsAndWidth(trailing);
-                    _trailing = trailing;
-                }
-            }
-
-            static SyntaxIdentifierWithTrailingTrivia()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifierWithTrailingTrivia), r => new SyntaxIdentifierWithTrailingTrivia(r));
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteValue(_trailing);
             }
 
             public override GreenNode GetTrailingTrivia()

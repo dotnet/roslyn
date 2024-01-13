@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -28,6 +26,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
+        public static int? GetLastNonWhitespaceOffset(this string line)
+        {
+            Contract.ThrowIfNull(line);
+
+            for (var i = line.Length - 1; i >= 0; i--)
+            {
+                if (!char.IsWhiteSpace(line[i]))
+                {
+                    return i;
+                }
+            }
+
+            return null;
+        }
+
         public static string GetLeadingWhitespace(this string lineText)
         {
             Contract.ThrowIfNull(lineText);
@@ -35,8 +48,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var firstOffset = lineText.GetFirstNonWhitespaceOffset();
 
             return firstOffset.HasValue
-                ? lineText.Substring(0, firstOffset.Value)
+                ? lineText[..firstOffset.Value]
                 : lineText;
+        }
+
+        public static string GetTrailingWhitespace(this string lineText)
+        {
+            Contract.ThrowIfNull(lineText);
+
+            var lastOffset = lineText.GetLastNonWhitespaceOffset();
+
+            return lastOffset.HasValue && lastOffset.Value < lineText.Length
+                ? lineText[(lastOffset.Value + 1)..]
+                : string.Empty;
         }
 
         public static int GetTextColumn(this string text, int tabSize, int initialColumn)
@@ -99,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return text;
             }
 
-            return text.Substring(0, lineBreak + 1);
+            return text[..(lineBreak + 1)];
         }
 
         public static string GetLastLineText(this string text)
@@ -110,14 +134,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return text;
             }
 
-            return text.Substring(lineBreak + 1);
+            return text[(lineBreak + 1)..];
         }
 
         public static bool ContainsLineBreak(this string text)
         {
             foreach (var ch in text)
             {
-                if (ch == '\n' || ch == '\r')
+                if (ch is '\n' or '\r')
                 {
                     return true;
                 }

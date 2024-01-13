@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -15,16 +17,11 @@ using Microsoft.CodeAnalysis.Organizing.Organizers;
 namespace Microsoft.CodeAnalysis.CSharp.Organizing
 {
     [ExportLanguageService(typeof(IOrganizingService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpOrganizingService : AbstractOrganizingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class CSharpOrganizingService(
+        [ImportMany] IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers) : AbstractOrganizingService(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpOrganizingService(
-            [ImportMany]IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers)
-            : base(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
-        {
-        }
-
         protected override async Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

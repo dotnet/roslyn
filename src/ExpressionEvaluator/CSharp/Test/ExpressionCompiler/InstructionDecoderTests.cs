@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -101,7 +103,7 @@ class Class1
                 GetName(source, "System.Collections.Generic.Comparer.Create", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { serializedTypeArgumentName }));
         }
 
-        [Fact, WorkItem(1107977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107977")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107977")]
         public void GetNameGenericAsync()
         {
             var source = @"
@@ -235,7 +237,7 @@ static class C
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
 
-        [Fact, WorkItem(1107978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107978")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107978")]
         public void GetNameRefAndOutParameters()
         {
             var source = @"
@@ -253,7 +255,7 @@ class C
 
             Assert.Equal(
                 "C.M(1, 2)",
-                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: new[] { "1", "2" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: ["1", "2"]));
 
             Assert.Equal(
                 "C.M(ref int, out int)",
@@ -284,7 +286,7 @@ class C
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
 
-        [Fact, WorkItem(1154945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154945")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154945")]
         public void GetNameIncorrectNumberOfArgumentValues()
         {
             var source = @"
@@ -297,16 +299,16 @@ class C
             var expected = "C.M(int x, int y)";
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: []));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1"]));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1", "2", "3" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1", "2", "3"]));
         }
 
-        [Fact, WorkItem(1134081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134081")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134081")]
         public void GetFileNameWithoutExtension()
         {
             Assert.Equal(".", MetadataUtilities.GetFileNameWithoutExtension("."));
@@ -397,7 +399,7 @@ class C
     Action<Func<T>> M1<T>() { return null; }
 }";
 
-            Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", new[] { typeof(object) }));
+            Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", [typeof(object)]));
         }
 
         private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, Type[] typeArguments = null, string[] argumentValues = null)
@@ -424,10 +426,7 @@ class C
             }
 
             var name = instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
-            if (builder != null)
-            {
-                builder.Free();
-            }
+            builder?.Free();
 
             return name;
         }
@@ -435,7 +434,7 @@ class C
         private string GetReturnTypeName(string source, string methodName, Type[] typeArguments = null)
         {
             var instructionDecoder = CSharpInstructionDecoder.Instance;
-            var serializedTypeArgumentNames = typeArguments?.Select(t => (t != null) ? t.AssemblyQualifiedName : null).ToArray();
+            var serializedTypeArgumentNames = typeArguments?.Select(t => t?.AssemblyQualifiedName).ToArray();
             var method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder);
 
             return instructionDecoder.GetReturnTypeName(method);

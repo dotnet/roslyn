@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks,
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 var firstPeriod = chunks[0][0];
 
                 _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
+                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
                     GetSmartIndentationAfter(firstPeriod)));
@@ -92,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var actions);
 
                 await AddWrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
 
-                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutableAndFree()));
+                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutable()));
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
@@ -114,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
             {
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
             }
 
             private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 // First, normalize the first chunk.
                 var firstChunk = _chunks[0];
@@ -160,22 +163,22 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     position += NormalizedWidth(chunk);
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
-            private int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
+            private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
                 => chunk.Sum(s => s.IsNode ? s.AsNode().Width() : s.AsToken().Width());
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 // Flatten all the chunks into one long list.  Then delete all the spaces
                 // between each piece in that full list.
-                var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
+                var flattened = _chunks.SelectManyAsArray(c => c);
                 DeleteAllSpacesInChunk(result, flattened);
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private static void DeleteAllSpacesInChunk(

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitPredefinedType(node),
                     simplifier: s_simplifyName);
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitAliasQualifiedName(node),
                     simplifier: s_simplifyName);
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitQualifiedName(node),
                     simplifier: s_simplifyName);
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitMemberAccessExpression(node),
                     simplifier: s_simplifyName);
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitIdentifierName(node),
                     simplifier: s_simplifyName);
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitGenericName(node),
                     simplifier: s_simplifyName);
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitQualifiedCref(node),
                     simplifier: s_simplifyName);
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitArrayType(node),
                     simplifier: s_simplifyName);
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitNullableType(node),
                     simplifier: s_simplifyName);
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitTupleType(node),
                     simplifier: s_simplifyName);
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
-                var isOrAsNode = node.Kind() == SyntaxKind.AsExpression || node.Kind() == SyntaxKind.IsExpression;
+                var isOrAsNode = node.Kind() is SyntaxKind.AsExpression or SyntaxKind.IsExpression;
 
                 var result = (ExpressionSyntax)base.VisitBinaryExpression(node);
 

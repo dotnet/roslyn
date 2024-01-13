@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // dispatch to the switch sections
-            var (initialState, afterSwitchState) = VisitSwitchStatementDispatch(node);
+            var afterSwitchState = VisitSwitchStatementDispatch(node);
 
             // visit switch sections
             var switchSections = node.SwitchSections;
@@ -34,20 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual (TLocalState initialState, TLocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // visit switch header
             VisitRvalue(node.Expression);
 
             TLocalState initialState = this.State.Clone();
 
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
                     if (reachableLabels.Contains(label.Label) || label.HasErrors ||
-                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
+                        label == node.DefaultLabel && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }
@@ -69,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TLocalState afterSwitchState = UnreachableState();
-            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            if (node.ReachabilityDecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);
             }
 
-            return (initialState, afterSwitchState);
+            return afterSwitchState;
         }
 
         /// <summary>
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());

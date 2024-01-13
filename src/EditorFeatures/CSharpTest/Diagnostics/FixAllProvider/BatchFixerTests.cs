@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,11 +14,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTypeNames
 {
     public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public BatchFixerTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
 
@@ -60,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 }
             }
 
-            public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+            public override async Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                 if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)
@@ -90,61 +98,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
         #region "Fix all occurrences tests"
 
-        [Fact, WorkItem(320, "https://github.com/dotnet/roslyn/issues/320")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/320")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument_QualifyWithThis()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    int Sign;
-    void F()
-    {
-        string x = @""namespace Namespace
-    {
-        class Type
-        {
-            void Goo()
-            {
-                int x = 1 "" + {|FixAllInDocument:Sign|} + @"" "" + Sign + @""3;
-            }
-        }
-    }
-"";
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    int Sign;
+                    void F()
+                    {
+                        string x = @"namespace Namespace
+                    {
+                        class Type
+                        {
+                            void Goo()
+                            {
+                                int x = 1 " + {|FixAllInDocument:Sign|} + @" " + Sign + @"3;
+                            }
+                        }
+                    }
+                ";
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    int Sign;
-    void F()
-    {
-        string x = @""namespace Namespace
-    {
-        class Type
-        {
-            void Goo()
-            {
-                int x = 1 "" + this.Sign + @"" "" + this.Sign + @""3;
-            }
-        }
-    }
-"";
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    int Sign;
+                    void F()
+                    {
+                        string x = @"namespace Namespace
+                    {
+                        class Type
+                        {
+                            void Goo()
+                            {
+                                int x = 1 " + this.Sign + @" " + this.Sign + @"3;
+                            }
+                        }
+                    }
+                ";
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected);
         }

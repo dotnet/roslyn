@@ -13,7 +13,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         ' The strategy of this rewrite is to do rewrite "locally".
         ' We analyze arguments of the concat in a shallow fashion assuming that 
@@ -104,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return RewriteStringConcatenationManyExprs(node, factory, leftFlattened.ToImmutableAndFree())
             End Select
         End Function
-
 
         ''' <summary>
         ''' digs into known concat operators and unwraps their arguments

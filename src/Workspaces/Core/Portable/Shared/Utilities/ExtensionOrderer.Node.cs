@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -9,13 +11,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class ExtensionOrderer
     {
-        private class Node<TExtension, TMetadata>
+        private class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
         {
-            public readonly Lazy<TExtension, TMetadata> Extension;
-            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new HashSet<Node<TExtension, TMetadata>>();
-
-            public Node(Lazy<TExtension, TMetadata> extension)
-                => this.Extension = extension;
+            public readonly Lazy<TExtension, TMetadata> Extension = extension;
+            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new();
 
             public void CheckForCycles()
                 => this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());

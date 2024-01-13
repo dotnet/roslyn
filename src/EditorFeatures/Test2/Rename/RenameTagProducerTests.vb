@@ -3,12 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
-Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -19,22 +19,27 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class RenameTagProducerTests
-        Private Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Function CreateCommandHandler(workspace As EditorTestWorkspace) As RenameCommandHandler
+            Return workspace.ExportProvider.GetCommandHandler(Of RenameCommandHandler)(PredefinedCommandHandlerNames.Rename)
+        End Function
+
+        Private Shared Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
         End Function
 
-        Private Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             Dim expectedSpans = actualWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As EditorTestWorkspace) As Task
             Dim expectedSpans = expectedTaggedWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Async Function VerifyAnnotatedTaggedSpans(tagType As TextMarkerTag, annotationString As String, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyAnnotatedTaggedSpans(tagType As TextMarkerTag, annotationString As String, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As EditorTestWorkspace) As Task
             Dim annotatedDocument = expectedTaggedWorkspace.Documents.SingleOrDefault(Function(d) d.AnnotatedSpans.Any())
 
             Dim expectedSpans As IEnumerable(Of Span)
@@ -52,11 +57,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                                                    If kvp.Key = annotationString Then
                                                                        Return kvp.Value.Select(Function(ts) ts.ToSpan())
                                                                    End If
+
                                                                    Return SpecializedCollections.EmptyEnumerable(Of Span)
                                                                End Function)
         End Function
 
-        Private Async Function VerifySpansBeforeConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifySpansBeforeConflictResolution(actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             ' Verify no fixup/resolved non-reference conflict span.
             Await VerifyEmptyTaggedSpans(HighlightTags.RenameFixupTag.Instance, actualWorkspace, renameService)
 
@@ -64,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService)
         End Function
 
-        Private Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As TestWorkspace,
+        Private Shared Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As EditorTestWorkspace,
                                                                 session As IInlineRenameSession, Optional sessionCommit As Boolean = False, Optional sessionCancel As Boolean = False) As System.Threading.Tasks.Task
             Await WaitForRename(actualWorkspace)
 
@@ -83,18 +89,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    session.Commit()
+                    Await session.CommitAsync(previewChanges:=False, CancellationToken.None)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
         End Function
 
-        Private Async Function VerifyTaggedSpansCore(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
+        Private Shared Async Function VerifyTaggedSpansCore(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
             Dim taggedSpans = Await GetTagsOfType(tagType, actualWorkspace, renameService)
             Assert.Equal(expectedSpans, taggedSpans)
         End Function
 
-        Private Sub VerifyBufferContentsInWorkspace(actualWorkspace As TestWorkspace, expectedWorkspace As TestWorkspace)
+        Private Shared Sub VerifyBufferContentsInWorkspace(actualWorkspace As EditorTestWorkspace, expectedWorkspace As EditorTestWorkspace)
             Dim actualDocs = actualWorkspace.Documents
             Dim expectedDocs = expectedWorkspace.Documents
             Assert.Equal(expectedDocs.Count, actualDocs.Count)
@@ -108,9 +114,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ValidTagsDuringSimpleRename() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function ValidTagsDuringSimpleRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -124,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -134,10 +140,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function UnresolvableConflictInModifiedDocument() As System.Threading.Tasks.Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
+        <CombinatorialData>
+        Public Async Function UnresolvableConflictInModifiedDocument(host As RenameTestHost) As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -155,7 +160,7 @@ class Program
 }
                                 </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim document = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
@@ -182,7 +187,7 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Dim renamedDocument = renamedWorkspace.Documents.Single()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
@@ -192,9 +197,9 @@ class Program
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_InterleavedResolvedConflicts() As System.Threading.Tasks.Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VerifyLinkedFiles_InterleavedResolvedConflicts(host As RenameTestHost) As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
                          <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -234,7 +239,7 @@ public class Class1
                              <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                  <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                              </Project>
-                         </Workspace>)
+                         </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim document = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -283,8 +288,7 @@ public class Class1
                             <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                 <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             </Project>
-                        </Workspace>
-                )
+                        </Workspace>, host)
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("resolved", renamedDocument)
@@ -302,9 +306,9 @@ public class Class1
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_UnresolvableConflictComments() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VerifyLinkedFiles_UnresolvableConflictComments(host As RenameTestHost) As Task
             Dim originalDocument = "
 public class Class1
 {
@@ -327,7 +331,7 @@ public class Class1
                              <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                  <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                              </Project>
-                         </Workspace>)
+                         </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim document = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -365,8 +369,7 @@ public class Class1
                             <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                 <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             </Project>
-                        </Workspace>
-                )
+                        </Workspace>, host)
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
@@ -376,10 +379,9 @@ public class Class1
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function UnresolvableConflictInUnmodifiedDocument() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
+        <CombinatorialData>
+        Public Async Function UnresolvableConflictInUnmodifiedDocument(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -395,7 +397,7 @@ public class Class1
                                     }
                                 </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -412,10 +414,9 @@ public class Class1
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(847467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
+        <CombinatorialData>
+        Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -425,7 +426,7 @@ public class Class1
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -444,7 +445,7 @@ public class Class1
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -462,7 +463,7 @@ public class Class1
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                     VerifyBufferContentsInWorkspace(workspace, resolvedConflictWorkspace)
                 End Using
@@ -477,17 +478,17 @@ public class Class1
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                     VerifyBufferContentsInWorkspace(workspace, resolvedConflictWorkspace)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
-        Public Async Function RenamingEscapedIdentifiers() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
+        Public Async Function RenamingEscapedIdentifiers(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -498,7 +499,7 @@ class C
 }
                                 </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -516,7 +517,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -534,17 +535,16 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(812795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
+        <CombinatorialData>
+        Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -561,16 +561,14 @@ class C
 
                             </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
                 textBuffer.Replace(New Span(location, 3), "Goo")
@@ -590,7 +588,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -617,16 +615,16 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -642,7 +640,7 @@ class C
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -670,7 +668,7 @@ class C
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -694,16 +692,16 @@ class C
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -717,7 +715,7 @@ class C
                                 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -743,7 +741,7 @@ class C
                                 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -765,16 +763,16 @@ class C
                                 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -789,7 +787,7 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -816,7 +814,7 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -837,16 +835,16 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCancel:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -859,7 +857,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -884,7 +882,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -904,16 +902,16 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCancel:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -929,7 +927,7 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -957,7 +955,7 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -981,16 +979,16 @@ class Goo
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NeedsEscaping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1004,7 +1002,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1030,7 +1028,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -1052,16 +1050,16 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function FixupSpanDuringResolvableConflict_VerifyCaret() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function FixupSpanDuringResolvableConflict_VerifyCaret(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1072,15 +1070,13 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
-                Dim textViewService = New TextBufferAssociatedViewService()
+                Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
                 DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
@@ -1108,7 +1104,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                     Dim location = view.Caret.Position.BufferPosition.Position
@@ -1132,7 +1128,7 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                     Dim location = view.Caret.Position.BufferPosition.Position
@@ -1142,10 +1138,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(771743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyNoSelectionAfterCommit() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
+        <CombinatorialData>
+        Public Async Function VerifyNoSelectionAfterCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1156,15 +1151,13 @@ Class Goo
 End Class
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
-                Dim textViewService = New TextBufferAssociatedViewService()
+                Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
                 DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
@@ -1188,9 +1181,9 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationOutsideConflict() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationOutsideConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1214,7 +1207,7 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1250,7 +1243,7 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
@@ -1281,16 +1274,16 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ContainedComplexifiedSpan() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ContainedComplexifiedSpan(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1314,7 +1307,7 @@ namespace N
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1350,17 +1343,17 @@ namespace N
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8334")>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1379,7 +1372,7 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1410,16 +1403,16 @@ class C
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_WithinCrefs() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_WithinCrefs(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1452,7 +1445,7 @@ class C
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1497,16 +1490,16 @@ class C
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_OverLoadResolutionChangesInEnclosingInvocations() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_OverLoadResolutionChangesInEnclosingInvocations(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1538,7 +1531,7 @@ static class E
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1582,17 +1575,16 @@ static class E
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                     Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharpShowDeclarationConflictsImmediately() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
+        <CombinatorialData>
+        Public Async Function CSharpShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -1607,7 +1599,7 @@ static class E
                                 }
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1625,10 +1617,9 @@ static class E
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VBShowDeclarationConflictsImmediately() As Task
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
+        <CombinatorialData>
+        Public Async Function VBShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="Visual Basic" CommonReferences="true">
@@ -1641,7 +1632,7 @@ static class E
                                 End Class
                             </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
@@ -1659,9 +1650,9 @@ static class E
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ActiveSpanInSecondaryView() As Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function ActiveSpanInSecondaryView(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="Visual Basic" CommonReferences="true">
@@ -1673,16 +1664,17 @@ static class E
                                     ' [|Goo|]
                                 </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, host)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents(0).GetTextBuffer()
                 Dim session = StartSession(workspace)
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=True)
+
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
                 Await WaitForRename(workspace)
 
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=False)
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions())
                 Await WaitForRename(workspace)
 
                 textBuffer.Replace(New Span(location, 3), "Bar")
@@ -1690,7 +1682,7 @@ static class E
             End Using
         End Function
 
-        Private Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As TestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
+        Private Shared Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As EditorTestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
             Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
             Await WaitForRename(workspace)
 

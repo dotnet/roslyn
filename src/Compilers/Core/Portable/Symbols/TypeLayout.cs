@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Type layout information.
     /// </summary>
-    internal struct TypeLayout : IEquatable<TypeLayout>
+    internal readonly struct TypeLayout : IEquatable<TypeLayout>
     {
         private readonly byte _kind;
         private readonly short _alignment;

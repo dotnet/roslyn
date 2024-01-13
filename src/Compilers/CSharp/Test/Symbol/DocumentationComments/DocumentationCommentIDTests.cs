@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -393,6 +395,46 @@ class A<TA1, TA2>
             var comp = CreateCompilation(source);
             var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<NamedTypeSymbol>("B").GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             Assert.Equal("M:A`2.B`2.C`2.M``2(`0,`1,`2,`3,`4,`5,``0,``1)", method.GetDocumentationCommentId());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Generic(NullableContextOptions nullableContextOptions)
+        {
+            var source = @"
+internal class Test<T> : ICloneable<Test<T>>
+{
+    public Test<T> Clone() => new();
+}
+
+internal interface ICloneable<T>
+{
+    T Clone();
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(nullableContextOptions));
+            var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<MethodSymbol>("Clone").ReturnType;
+            Assert.Equal("T:Test`1", method.GetDocumentationCommentId());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Generic2(NullableContextOptions nullableContextOptions)
+        {
+            var source = @"
+internal class Test<T> : ICloneable<Test<T?>>
+{
+    public Test<T?> Clone() => new();
+}
+
+internal interface ICloneable<T>
+{
+    T Clone();
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(nullableContextOptions));
+            var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<MethodSymbol>("Clone").ReturnType;
+            Assert.Equal("T:Test`1", method.GetDocumentationCommentId());
         }
     }
 }

@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
-        private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
+        private static readonly TestCSharpObjectFormatter s_formatter = new TestCSharpObjectFormatter();
 
         [Fact]
         public void Objects()
@@ -65,6 +69,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 80).FormatObject(sort, SingleLineOptions);
             Assert.Equal(@"Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str);
+        }
+
+        [Fact]
+        public void TupleType()
+        {
+            var tup = new Tuple<int, int>(1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ValueTupleType()
+        {
+            (int, int) tup = (1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ArrayMethodParameters()
+        {
+            var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
         }
 
         [Fact]
@@ -331,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 };
 
                 var actual = s_formatter.FormatObject(obj, printOptions);
-                var expected = output.Substring(0, i) + "...";
+                var expected = output[..i] + "...";
                 Assert.Equal(expected, actual);
             }
         }
@@ -414,23 +439,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Core()
         {
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10);
+            obj = Range_Core(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
 
-            // the implementation differs between .NET Core and .NET FX
-            if (str.StartsWith("Enumerable"))
-            {
-                Assert.Equal("Enumerable.RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
-            }
-            else
-            {
-                Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
-            }
+            Assert.Equal("ObjectFormatterTests.CoreRangeIterator(Count = 10)", str);
+        }
+
+        // This method and the class below emulate the behaviour of Enumerable.Range
+        // in .NET Core. We use a custom type since not all runtime implementations
+        // (e.g. Mono) apply precisely the same attributes, but we want to test behavior
+        // under a specific set of attributes.
+        private static IEnumerable<int> Range_Core(int start, int count)
+            => new CoreRangeIterator(start, count);
+
+        [DebuggerDisplay("Count = {CountForDebugger}")]
+        private class CoreRangeIterator : IEnumerable<int>
+        {
+            private readonly int _start;
+            private readonly int _end;
+
+            private int CountForDebugger => _end - _start;
+
+            public CoreRangeIterator(int start, int count)
+                => (_start, _end) = (start, start + count);
+
+            public IEnumerator<int> GetEnumerator() => null;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Framework()
+        {
+            string str;
+            object obj;
+
+            obj = Range_Framework(0, 10);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
+
+            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+        }
+
+        // These methods emulate the .NET Framework Enumerable.Range method
+        private static IEnumerable<int> Range_Framework(int start, int count)
+            => RangeIterator(start, count);
+
+        private static IEnumerable<int> RangeIterator(int start, int count)
+        {
+            for (var i = 0; i < count; i++)
+                yield return start + i;
         }
 
         [Fact]
@@ -439,7 +500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10).Where(i => { if (i == 5) throw new Exception("xxx"); return i < 7; });
+            obj = Enumerable.Range(0, 10).Where(i =>
+            {
+                if (i == 5)
+                    throw new Exception("xxx");
+                return i < 7;
+            });
             str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
         }
@@ -714,39 +780,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem("https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
-            var obj = new System.Threading.Tasks.Task(TaskMethod);
+            var obj = new MockDesktopTask(TaskMethod);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(
-                @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"") { AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=*, Status=Created }",
-                FilterDisplayString(str));
+                "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\") " +
+                "{ AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=1234, Status=Created }",
+                str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(FilterDisplayString(str), @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"")",
+            AssertMembers(str, "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\")",
                 "AsyncState: null",
                 "CancellationPending: false",
                 "CreationOptions: None",
                 "Exception: null",
-                "Id: *",
+                "Id: 1234",
                 "Status: Created"
             );
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_SpinLock()
+        public void DebuggerProxy_FrameworkTypes_SpinLock1()
         {
-            var obj = new SpinLock();
+            var obj = new MockDesktopSpinLock(false);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("SpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=false, OwnerThreadID=0 }", str);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=!<InvalidOperationException>, OwnerThreadID=null }", str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(str, "SpinLock(IsHeld = false)",
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
                 "IsHeld: false",
-                "IsHeldByCurrentThread: false",
+                "IsHeldByCurrentThread: !<InvalidOperationException>",
+                "OwnerThreadID: null"
+            );
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_SpinLock2()
+        {
+            var obj = new MockDesktopSpinLock(true);
+
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=true, OwnerThreadID=0 }", str);
+
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
+                "IsHeld: false",
+                "IsHeldByCurrentThread: true",
                 "OwnerThreadID: 0"
             );
         }
@@ -790,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
-        [Fact]
+        [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
         public void FormatConstructorSignature()
         {
             var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();
@@ -838,8 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -861,8 +943,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -885,8 +967,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -909,8 +991,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -941,8 +1023,8 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -981,8 +1063,8 @@ $@"'object' does not contain a definition for 'x'
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -1006,8 +1088,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try

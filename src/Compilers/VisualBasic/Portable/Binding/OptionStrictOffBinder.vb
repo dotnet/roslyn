@@ -10,7 +10,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
 
         ''' <summary>
         ''' Makes it look like Option Strict is Off, all other operations

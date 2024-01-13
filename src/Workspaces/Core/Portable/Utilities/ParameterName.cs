@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -9,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-    internal struct ParameterName : IEquatable<ParameterName>
+    internal readonly struct ParameterName : IEquatable<ParameterName>
     {
         /// <summary>
         /// The name the underlying naming system came up with based on the argument itself.

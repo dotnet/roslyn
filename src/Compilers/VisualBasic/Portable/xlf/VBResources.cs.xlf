@@ -2,9 +2,24 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">Vlastnost init-only {0} může být přiřazena jen inicializátorem člena objektu, nebo pro Me, MyClass nebo MyBase v konstruktoru instance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Nelze získat přístup ke sdílenému abstraktnímu nebo virtuálnímu členu rozhraní.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Z {0} nelze dědit, protože obsahuje požadované členy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -17,14 +32,54 @@
         <target state="translated">Typ {0} nemůže být vložený, protože má neabstraktní člen. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Atribut System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute je vyhrazen pouze pro použití kompilátorem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Atribut System.Runtime.CompilerServices.RequiredMemberAttribute je vyhrazen pouze pro použití kompilátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">{2} nemůže splňovat omezení New u parametru {1} v obecném typu nebo metodě {0}, protože {2} má požadované členy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">{0} nemůže přepsat init-only {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Init-only {0} se nedá implementovat.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Typ {0} nemůže být vložený, protože má reabstrakci člena ze základního rozhraní. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">V inicializátoru objektu nebo argumentech atributu musí být nastaven požadovaný člen {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">Seznam požadovaných členů pro {0} má chybný formát a nelze ho interpretovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -37,9 +92,49 @@
         <target state="translated">Cílový modul runtime nepodporuje přístupnost Protected, Protected Friend nebo Private Protected pro člena rozhraní.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">{0} je definováno v sestavení {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní nebo virtuální {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Atribut UnmanagedCallersOnly se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru Visual Basic nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Volání metody nebo vlastnosti, které vrací odkaz, nelze použít jako výraz příkazu With v asynchronní nebo iterační metodě, nebo v případě, že je odkazováno implicitně ve výrazu lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">výraz argumentu volajícího</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">komentáře po pokračování řádku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">přiřazování do vlastností ByRef nebo jejich předávání pomocí metod setter init-only</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -127,6 +222,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -175,6 +271,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -199,11 +297,14 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -211,174 +312,185 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Parametry kompilátoru Visual Basic
+        <target state="translated">                  Možnosti kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
--out:&lt;soubor&gt;                     Určuje název výstupního souboru.
--target:exe                       Vytvoří konzolovou aplikaci (výchozí).
+-out:&lt;file&gt;                       Určuje název výstupního souboru.
+-target:exe                       Vytvoří aplikaci konzole (výchozí).
                                   (Krátký tvar: -t)
--target:winexe                    Vytvoří aplikaci Windows.
+-target:winexe                    Vytvoří aplikaci systému Windows.
 -target:library                   Vytvoří sestavení knihovny.
--target:module                    Vytvoří modul, který jde přidat
-                                  do sestavení.
--target:appcontainerexe           Vytvoří aplikaci Windows, která bude běžet
-                                  v kontejneru AppContainer.
--target:winmdobj                  Vytvoří pomocný soubor metadat Windows.
+-target:module                    Vytvoří modul, který se dá přidat k
+                                  sestavení.
+-target:appcontainerexe           Vytvoří aplikaci systému Windows, která běží v
+                                  AppContainer.
+-target:winmdobj                  Vytvoří pomocný soubor metadat systému Windows
 -doc[+|-]                         Generuje soubor dokumentace XML.
--doc:&lt;soubor&gt;                     Generuje soubor dokumentace XML s určeným názvem.
--refout:&lt;file&gt;                    Výstup referenčního sestavení, který se bude generovat
+-doc:&lt;file&gt;                       Generuje soubor dokumentace XML do souboru &lt;file&gt;.
+-refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat
 
                                   - VSTUPNÍ SOUBORY -
--addmodule:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaných modulů.
--link:&lt;seznam_souborů&gt;            Vloží metadata ze zadaného definičního
+-addmodule:&lt;file_list&gt;            Odkazuje na metadata ze zadaných modulů
+-link:&lt;file_list&gt;                 Vloží metadata ze zadaného definičního
                                   sestavení. (Krátký tvar: -l)
--recurse:&lt;zástupný_znak&gt;          Zahrne všechny soubory v aktuálním adresáři
-                                  a podadresářích podle zadaného
-                                  zástupného znaku.
--reference:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaného
+-recurse:&lt;wildcard&gt;               Zahrne všechny soubory v aktuálním adresáři
+                                  a podadresářích podle
+                                  specifikace zástupných znaků.
+-reference:&lt;file_list&gt;            Odkazuje na metadata ze zadaného
                                   sestavení. (Krátký tvar: -r)
--analyzer:&lt;seznam_souborů&gt;        Spustí analyzátory z tohoto sestavení.
+-analyzer:&lt;file_list&gt;             Spustí analyzátory z tohoto sestavení
                                   (Krátký tvar: -a)
--additionalfile:&lt;seznam_souborů&gt;  Další soubory, které přímo neovlivňují generování
-                                  kódu, ale analyzátory můžou jejich pomocí
-                                  produkovat chyby nebo upozornění.
+-additionalfile:&lt;file list&gt;       Další soubory, které nemají přímý vliv na generování
+                                  kódu, ale můžou je používat analyzátory k vytváření
+                                  chyb nebo upozornění.
 
                                   - PROSTŘEDKY -
--linkresource:&lt;prostředek&gt;        Připojí zadaný soubor jako externí prostředek
-                                  sestavení.
-                                  prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+-linkresource:&lt;resinfo&gt;           Propojuje zadaný soubor jako externí
+                                  prostředek sestavení.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
                                   (Krátký tvar: -linkres)
--nowin32manifest                  Výchozí manifest by se neměl vkládat
-                                  do oddílu manifestu výstupního PE.
--resource:&lt;prostředek&gt;            Přidá zadaný soubor jako vložený prostředek
-                                  sestavení.
-                                  prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+-nowin32manifest                  Výchozí manifest by neměl být vložený
+                                  v oddílu manifestu výstupních dat PE.
+-resource:&lt;resinfo&gt;               Přidá zadaný soubor jako vložený
+                                  prostředek sestavení.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
                                   (Krátký tvar: -res)
--win32icon:&lt;soubor&gt;               Určuje soubor ikony Win32 (.ico) pro
+-win32icon:&lt;file&gt;                 Určuje soubor ikony Win32 (.ico) pro
                                   výchozí prostředky Win32.
--win32manifest:&lt;soubor&gt;           Zadaný soubor se vloží do oddílu
-                                  manifestu výstupního PE.
--win32resource:&lt;soubor&gt;           Určuje soubor prostředků Win32 (.res).
+-win32manifest:&lt;file&gt;             Zadaný soubor je vložený do oddílu
+                                  manifestu výstupních dat PE.
+-win32resource:&lt;file&gt;             Určuje soubor prostředku Win32 (.res).
 
                                   - GENEROVÁNÍ KÓDU -
 -optimize[+|-]                    Povolí optimalizace.
--removeintchecks[+|-]             Odebere kontroly celých čísel. Standardně vypnuté.
+-removeintchecks[+|-]             Odebere kontroly dat typu integer. Výchozí hodnota je vypnutá.
 -debug[+|-]                       Generuje ladicí informace.
 -debug:full                       Generuje úplné ladicí informace (výchozí).
 -debug:pdbonly                    Generuje úplné ladicí informace.
--debug:portable                   Generuje ladicí informace napříč platformami.
--debug:embedded                   Generuje ladicí informace napříč platformami
-                                  do cílového souboru .dll nebo .exe.
+-debug:portable                   Generuje ladicí informace pro různé platformy.
+-debug:embedded                   Generuje ladicí informace pro různé platformy do
+                                  cílového souboru .dll nebo .exe.
 -deterministic                    Vytvoří deterministické sestavení
-                                  (včetně GUID verze modulu a časového razítka).
--refonly                          Vytvoří referenční sestavení na místě hlavního výstupu.
--instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování informací
-                                  o pokrytí.
--sourcelink:&lt;soubor&gt;              Informace o zdrojovém odkazu vkládané do přenosného PDB.
+                                  (včetně verze modulu GUID a časového razítka)
+-refonly                          Vytvoří referenční sestavení místo hlavního výstupu
+-instrument:TestCoverage          Vytvoří sestavení instrumentované ke shromažďování
+                                  informací o pokrytí
+-sourcelink:&lt;file&gt;                Informace o odkazu na zdroj, který se má vložit do souboru PDB.
 
-                                  - CHYBY A UPOZORNĚNÍ -
+                                  – CHYBY A UPOZORNĚNÍ -
 -nowarn                           Zakáže všechna upozornění.
--nowarn:&lt;seznam_čísel&gt;            Zakáže upozornění ze seznamu.
--warnaserror[+|-]                 Zpracuje všechna upozornění jako chyby.
--warnaserror[+|-]:&lt;seznam_čísel&gt;  Zpracuje zadaná upozornění jako chyby.
--ruleset:&lt;soubor&gt;                 Určuje soubor sady pravidel, která zakazuje
-                                  specifickou diagnostiku.
--errorlog:&lt;soubor&gt;[,version=&lt;verze_sarif&gt;]         
-                                  Určuje soubor pro protokolování veškeré diagnostiky
-                                  kompilátoru a analyzátoru ve formátu SARIF.
-                                  verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
-                                  Obě hodnoty znamenají SARIF verze 2.1.0.
--reportanalyzer                   Oznamuje další informace analyzátoru, jako třeba
-                                  dobu zpracování.
+-nowarn:&lt;number_list&gt;             Zakáže seznam jednotlivých upozornění.
+-warnaserror[+|-]                 Považuje všechna upozornění za chyby.
+-warnaserror[+|-]:&lt;number_list&gt;   Považuje seznam upozornění za chyby.
+-ruleset:&lt;file&gt;                   Určuje soubor sady pravidel, který zakáže konkrétní
+                                  diagnostiku.
+-errorlog:&lt;file&gt;[,verze=&lt;sarif_version&gt;]         
+                                  Určuje soubor k protokolování veškeré diagnostiky kompilátorů
+                                  a analyzátorů ve formátu SARIF.
+                                  sarif_version:{1|2|2.1} Výchozí hodnota je 1. 2 a 2.1
+                                  obě znamenají SARIF verze 2.1.0.
+-reportanalyzer                   Oznámí další informace o analyzátoru, například
+                                  čas spuštění.
+-skipanalyzers[+|-]               Přeskočí spuštění diagnostických analyzátorů.
 
                                   - JAZYK -
--define:&lt;seznam_symbolů&gt;          Deklaruje globální symboly podmíněné
-                                  kompilace. seznam_symbolů: název=hodnota,...
+-define:&lt;symbol_list&gt;             Deklaruje globální podmíněnou kompilaci
+                                  symbol(y). symbol_list:name=value,...
                                   (Krátký tvar: -d)
--imports:&lt;seznam_importů&gt;         Deklaruje globální importy pro obory názvů
-                                  v odkazovaných souborech metadat.
-                                  seznam_importů: obor_názvů,...
--langversion:?                    Zobrazí povolené hodnoty jazykové verze.
--langversion:&lt;číslo&gt;              Určuje jazykovou verzi, například
-                                  default (nejnovější hlavní verze) nebo
-                                  latest (nejnovější verze včetně podverzí) nebo
-                                  konkrétní verze, například 14 nebo 15.3.
--optionexplicit[+|-]              Vyžaduje explicitní deklarování proměnných.
--optioninfer[+|-]                 Povoluje odvození typu proměnných.
--rootnamespace:&lt;řetězec&gt;          Určuje kořenový obor názvů pro všechny
-                                  deklarace typů.
--optionstrict[+|-]                Vynucuje striktní sémantiku jazyka.
--optionstrict:custom              Upozorňuje na nedodržování striktní
-                                  sémantiky jazyka.
--optioncompare:binary             Určuje binární styl porovnávání řetězců.
-                                  Jde o výchozí možnost.
--optioncompare:text               Určuje textový styl porovnávání řetězců.
+-imports:&lt;import_list&gt;            Deklaruje globální importy pro obory názvů
+                                  v odkazovaných souborech metadat.
+                                  import_list:namespace,...
+-langversion:?                    Zobrazí povolené hodnoty pro verzi jazyka
+-langversion:&lt;string&gt;             Určuje verzi jazyka, například
+                                  výchozí (nejnovější hlavní verze) nebo
+                                  nejnovější (nejnovější verze včetně podverzí),
+                                  nebo konkrétní verze jako 14 nebo 15.3.
+-optionexplicit[+|-]              Vyžaduje explicitní deklaraci proměnných.
+-optioninfer[+|-]                 Povolí odvozování typů proměnných.
+-rootnamespace:&lt;string&gt;           Určuje kořenový obor názvů pro všechny deklarace
+                                  typů.
+-optionstrict[+|-]                Vynutí striktní sémantiku jazyka.
+-optionstrict:custom              Zobrazí upozornění, pokud se nerespektuje striktní sémantika
+                                  jazyka.
+-optioncompare:binary             Určuje binární porovnávání řetězců.
+                                  Toto nastavení je výchozí.
+-optioncompare:text               Určuje textové porovnávání řetězců.
 
                                   - RŮZNÉ -
--help                             Zobrazí tuto zprávu o použití. (Krátký tvar: -?)
--noconfig                         Nezahrnuje automaticky soubor VBC.RSP.
--nologo                           Nezobrazí zprávu o autorských právech kompilátoru.
--quiet                            Určuje tichý výstupní režim.
+-help                             Zobrazí tuto zprávu o využití. (Krátký tvar: -?)
+-noconfig                         Nezahrne automaticky soubor VBC.RSP.
+-nologo                           Nezobrazí hlavičku kompilátoru s uvedením autorských práv.
+-quiet                            Bezobslužný režim výstupu.
 -verbose                          Zobrazí podrobné zprávy.
--parallel[+|-]                    Souběžné sestavení
--version                          Zobrazí číslo verze kompilátoru a ukončí se.
+-parallel[+|-]                    Souběžné sestavení.
+-version                          Zobrazí číslo verze kompilátoru a ukončí se.
 
-                                  - POKROČILÉ -
--baseaddress:&lt;číslo&gt;              Určuje základní adresu pro knihovnu nebo
-                                  modul (hex).
+                                  - ROZŠÍŘENÉ -
+-baseaddress:&lt;number&gt;             Základní adresa knihovny nebo modulu
+                                  (hex).
 -checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
-                                  zdrojového souboru uloženého v PDB. Podporované
-                                  hodnoty jsou SHA1 nebo SHA256 (výchozí).
--codepage:&lt;číslo&gt;                 Určuje znakovou stránku, která se má použít
-                                  při otevírání zdrojových souborů.
--delaysign[+|-]                   Vytvoří zpožděný podpis sestavení s využitím
-                                  veřejné části klíče silného názvu.
--publicsign[+|-]                  Vytvoří veřejný podpis sestavení s využitím jenom veřejné
-                                  části klíče silného názvu.
--errorreport:&lt;řetězec&gt;            Určuje způsob zpracování interních chyb
-                                  kompilátoru: prompt, send, none nebo queue
+                                  zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
+                                  SHA1 nebo SHA256 (výchozí).
+-codepage:&lt;number&gt;                Určuje znakovou stránku, která se má použít při otevírání
+                                  zdrojových souborů.
+-delaysign[+|-]                   Zpožděné podepsání sestavení pouze pomocí veřejné
+                                  část klíče silného názvu.
+-delaysign[+|-]                   Veřejné podepsání sestavení pouze pomocí veřejné
+                                  část klíče silného názvu.
+-errorreport:&lt;string&gt;             Určuje, jak zpracovávat interní chyby
+                                  kompilátoru; musí to být výzva, odeslání, žádné nebo fronta
                                   (výchozí).
--filealign:&lt;číslo&gt;                Určuje zarovnání použité pro oddíly výstupního
+-generatedfilesout:&lt;dir&gt;          Umístí soubory vygenerované během kompilace
+                                  do zadaného adresáře.
+-filealign:&lt;number&gt;               Určuje zarovnání použité pro oddíly výstupního
                                   souboru.
--highentropyva[+|-]               Povoluje ASLR s vysokou entropií.
--keycontainer:&lt;řetězec&gt;           Určuje kontejner klíče se silným názvem.
--keyfile:&lt;soubor&gt;                 Určuje soubor klíče se silným názvem.
--libpath:&lt;seznam_cest&gt;            Seznam adresářů, kde se mají hledat odkazy
-                                  na metadata (oddělený středníky)
--main:&lt;třída&gt;                     Určuje třídu nebo modul obsahující
-                                  Sub Main. Může to být taky třída, která
-                                  dědí od System.Windows.Forms.Form.
+-highentropyva[+|-]               Povolí technologii ASLR s vysokou entropií.
+-keycontainer:&lt;string&gt;            Určuje kontejner klíče se silným názvem.
+-keyfile:&lt;file&gt;                   Určuje soubor klíče se silným názvem.
+-libpath:&lt;path_list&gt;              Seznam adresářů pro hledání odkazů
+                                  na metadata. (Položky oddělené středníkem.)
+-main:&lt;class&gt;                     Určuje třídu nebo modul, který obsahuje
+                                  proceduru Sub Main. Může to být také třída, která
+                                  dědí z System.Windows.Forms.Form.
                                   (Krátký tvar: -m)
--moduleassemblyname:&lt;řetězec&gt;     Určuje název sestavení, jehož součástí bude
+-moduleassemblyname:&lt;string&gt;      Název sestavení, jehož součástí bude
                                   tento modul.
--netcf                            Cílí na .NET Compact Framework.
+-netcf                            Cílem je platforma .NET Compact Framework.
 -nostdlib                         Neodkazuje na standardní knihovny
-                                  (system.dll a VBC.RSP).
+                                  (system.dll a soubor VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Určuje mapování pro výstup zdrojových názvů cest
-                                  kompilátorem.
--platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
-                                  spustit: x86, x64, Itanium, arm, arm64,
+                                  Určuje mapování pro výstup názvů zdrojových cest podle
+                                  kompilátoru.
+-platform:&lt;string&gt;                Omezuje platformy, na kterých se může tento kód spouštět;
+                                  musí to být x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred nebo anycpu (výchozí).
--preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
--nosdkpath                        Zakáže hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
--sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK
+-preferreduilang                  Určuje preferovaný název výstupního jazyka.
+-nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
+-reportivts[+|-]                  Výstupní informace o všech IVT udělených tomuto
+                                  sestavení podle všech závislostí a opatřit poznámkami cizí sestavení
+                                  chyby přístupnosti s tím, z jakého sestavení pocházejí.
+-sdkpath:&lt;path&gt;                   Umístění adresáře sady SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;verze&gt;         Určuje verzi subsystému výstupního PE.
-                                  verze: &lt;číslo&gt;[.&lt;číslo&gt;]
--utf8output[+|-]                  Generuje výstup kompilátoru v kódování
+-subsystemversion:&lt;version&gt;       Určuje verzi subsystému výstupních dat PE.
+                                  verze:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Generuje výstup kompilátoru ve znaku UTF-8
                                   UTF-8.
-@&lt;soubor&gt;                         Vloží nastavení příkazového řádku ze souboru.
--vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime nebo bez něj
-                                  Visual Basicu.
--vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
-                                  Visual Basicu určeným parametrem &lt;soubor&gt;.
+@&lt;file&gt;                           Vloží nastavení příkazového řádku z textového souboru
+-vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime Visual Basic nebo
+                                  bez něj.
+-vbruntime:&lt;file&gt;                 Kompiluje s alternativním modulem runtime Visual Basic
+                                  v souboru &lt;file&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Ve VB nejsou žádné typy ukazatelů na funkci.</target>
         <note />
       </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">Ve VB nejsou žádné nativní typy celých čísel.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -454,6 +566,86 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">Argument typu nemůže být Nothing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Sestavení analyzátoru {0} odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">Sestavení analyzátoru odkazuje na novější verzi kompilátoru, než je aktuálně spuštěná verze.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Atribut CallerArgumentExpressionAttribute použitý u parametru {0} nebude mít žádný účinek. Argument je použitý s neplatným názvem parametru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný účinek. Používá se s neplatným názvem parametru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute použitý u parametru {0} nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">Generátoru se nepovedlo vygenerovat zdroj</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Generátor se nepovedlo inicializovat</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -608,7 +800,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyName">
         <source>'{0}' is not a valid value for /moduleassemblyname</source>
-        <target state="translated">'{0} není platný pro /moduleassemblyname.</target>
+        <target state="translated">{0} není platný pro /moduleassemblyname.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingManifestSwitches">
@@ -783,7 +975,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Zadal se argument stdin -, ale vstup se nepřesměroval na stream standardního vstupu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -1053,12 +1245,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
         <source>'{0}' is a type and cannot be used as an expression.</source>
-        <target state="translated">'{0} je typ a nejde ho použít jako výraz.</target>
+        <target state="translated">{0} je typ a nejde ho použít jako výraz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassNotExpression1">
         <source>'{0}' is a class type and cannot be used as an expression.</source>
-        <target state="translated">'{0} je typ třídy a nejde ho použít jako výraz.</target>
+        <target state="translated">{0} je typ třídy a nejde ho použít jako výraz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNotExpression1">
@@ -1068,12 +1260,12 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotExpression1">
         <source>'{0}' is an interface type and cannot be used as an expression.</source>
-        <target state="translated">'{0} je typ rozhraní a nejde ho použít jako výraz.</target>
+        <target state="translated">{0} je typ rozhraní a nejde ho použít jako výraz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceNotExpression1">
         <source>'{0}' is a namespace and cannot be used as an expression.</source>
-        <target state="translated">'{0} je obor názvů a nedá se použít jako výraz.</target>
+        <target state="translated">{0} je obor názvů a nedá se použít jako výraz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamespaceName1">
@@ -1083,7 +1275,7 @@
       </trans-unit>
       <trans-unit id="ERR_XmlPrefixNotExpression">
         <source>'{0}' is an XML prefix and cannot be used as an expression.  Use the GetXmlNamespace operator to create a namespace object.</source>
-        <target state="translated">'{0} je předpona jazyka XML, kterou nejde použít jako výraz. K vytvoření objektu oboru názvů použijte operátor GetXmlNamespace.</target>
+        <target state="translated">{0} je předpona jazyka XML, kterou nejde použít jako výraz. K vytvoření objektu oboru názvů použijte operátor GetXmlNamespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleExtends">
@@ -1343,17 +1535,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadConstFlags1">
         <source>'{0}' is not valid on a constant declaration.</source>
-        <target state="translated">'{0} není platná deklarace konstanty.</target>
+        <target state="translated">{0} není platná deklarace konstanty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWithEventsFlags1">
         <source>'{0}' is not valid on a WithEvents declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci WithEvents.</target>
+        <target state="translated">{0} není platný v deklaraci WithEvents.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDimFlags1">
         <source>'{0}' is not valid on a member variable declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci členské proměnné.</target>
+        <target state="translated">{0} není platný v deklaraci členské proměnné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateParamName1">
@@ -1393,27 +1585,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadMethodFlags1">
         <source>'{0}' is not valid on a method declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci metody.</target>
+        <target state="translated">{0} není platný v deklaraci metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventFlags1">
         <source>'{0}' is not valid on an event declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci události.</target>
+        <target state="translated">{0} není platný v deklaraci události.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDeclareFlags1">
         <source>'{0}' is not valid on a Declare.</source>
-        <target state="translated">'{0} není platný v příkazu Declare.</target>
+        <target state="translated">{0} není platný v příkazu Declare.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalConstFlags1">
         <source>'{0}' is not valid on a local constant declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci lokální konstanty.</target>
+        <target state="translated">{0} není platný v deklaraci lokální konstanty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalDimFlags1">
         <source>'{0}' is not valid on a local variable declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci lokální proměnné.</target>
+        <target state="translated">{0} není platný v deklaraci lokální proměnné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedConditionalDirective">
@@ -1477,32 +1669,32 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNotOverridable2">
         <source>'{0}' cannot override '{1}' because it is declared 'NotOverridable'.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože je deklarovaná jako NotOverridable.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože je deklarovaná jako NotOverridable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDef1">
         <source>'{0}' has multiple definitions with identical signatures.</source>
-        <target state="translated">'{0} má několik definic s identickými podpisy.</target>
+        <target state="translated">{0} má několik definic s identickými podpisy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDefWithDifferentTupleNames2">
         <source>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</source>
-        <target state="translated">'{0} má více definicí s identickými podpisy s různými názvy elementů řazené kolekce členů, včetně {1}.</target>
+        <target state="translated">{0} má více definicí s identickými podpisy s různými názvy elementů řazené kolekce členů, včetně {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceMethodFlags1">
         <source>'{0}' is not valid on an interface method declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci metody rozhraní.</target>
+        <target state="translated">{0} není platný v deklaraci metody rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound2">
         <source>'{0}' is not a parameter of '{1}'.</source>
-        <target state="translated">'{0} není parametr pro {1}.</target>
+        <target state="translated">{0} není parametr pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfacePropertyFlags1">
         <source>'{0}' is not valid on an interface property declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci vlastnosti rozhraní.</target>
+        <target state="translated">{0} není platný v deklaraci vlastnosti rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice2">
@@ -1512,7 +1704,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceCantUseEventSpecifier1">
         <source>'{0}' is not valid on an interface event declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci události rozhraní.</target>
+        <target state="translated">{0} není platný v deklaraci události rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNoMatch2">
@@ -1611,17 +1803,17 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsFromCantInherit3">
         <source>'{0}' cannot inherit from {2} '{1}' because '{1}' is declared 'NotInheritable'.</source>
-        <target state="translated">'{0} nemůže dědit z {2} {1}, protože {1} se deklaruje jako NotInheritable.</target>
+        <target state="translated">{0} nemůže dědit z {2} {1}, protože {1} se deklaruje jako NotInheritable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithOptional2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by optional parameters.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom nepovinnými parametry.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom nepovinnými parametry.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithReturnType2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by return types.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom typy vrácených hodnot.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom typy vrácených hodnot.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharWithType1">
@@ -1636,7 +1828,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithDefault2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by the default values of optional parameters.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom výchozími hodnotami nepovinných parametrů.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom výchozími hodnotami nepovinných parametrů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingSubscript">
@@ -1646,12 +1838,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithDefault2">
         <source>'{0}' cannot override '{1}' because they differ by the default values of optional parameters.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší výchozími hodnotami nepovinných parametrů.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší výchozími hodnotami nepovinných parametrů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptional2">
         <source>'{0}' cannot override '{1}' because they differ by optional parameters.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší nepovinnými parametry.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší nepovinnými parametry.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
@@ -1686,7 +1878,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom parametry deklarovanými jako ByRef nebo ByVal.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom parametry deklarovanými jako ByRef nebo ByVal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromNonInterface">
@@ -1706,12 +1898,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultMissingFromProperty2">
         <source>'{0}' and '{1}' cannot overload each other because only one is declared 'Default'.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože jenom v jedné deklaraci je uvedené klíčové slovo Default.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože jenom v jedné deklaraci je uvedené klíčové slovo Default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší příznakem ReadOnly nebo WriteOnly.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší příznakem ReadOnly nebo WriteOnly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -1726,7 +1918,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom příznakem ReadOnly nebo WriteOnly.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom příznakem ReadOnly nebo WriteOnly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">
@@ -1736,7 +1928,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom parametry s deklarací ParamArray.</target>
+        <target state="translated">{0} a {1} se nemůžou vzájemně přetěžovat, protože se liší jenom parametry s deklarací ParamArray.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -1791,7 +1983,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDelegateFlags1">
         <source>'{0}' is not valid on a Delegate declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci delegáta.</target>
+        <target state="translated">{0} není platný v deklaraci delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
@@ -1821,22 +2013,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordFlags1">
         <source>'{0}' is not valid on a Structure declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci struktury.</target>
+        <target state="translated">{0} není platný v deklaraci struktury.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci výčtu.</target>
+        <target state="translated">{0} není platný v deklaraci výčtu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
         <source>'{0}' is not valid on an Interface declaration.</source>
-        <target state="translated">'{0} není platný v deklaraci rozhraní.</target>
+        <target state="translated">{0} není platný v deklaraci rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithByref2">
         <source>'{0}' cannot override '{1}' because they differ by a parameter that is marked as 'ByRef' versus 'ByVal'.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší parametrem, který je označený jednou jako ByRef a podruhé jako ByVal.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší parametrem, který je označený jednou jako ByRef a podruhé jako ByVal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MyBaseAbstractCall1">
@@ -1851,7 +2043,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplementingInterfaceWithDifferentTupleNames5">
         <source>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</source>
-        <target state="translated">'{0} nemůže implementovat {1} {2} v rozhraní {3}, protože názvy elementů řazené kolekce členů v {4} neodpovídá názvům elementů v {5}.</target>
+        <target state="translated">{0} nemůže implementovat {1} {2} v rozhraní {3}, protože názvy elementů řazené kolekce členů v {4} neodpovídá názvům elementů v {5}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WithEventsRequiresClass">
@@ -1916,12 +2108,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidOverrideDueToReturn2">
         <source>'{0}' cannot override '{1}' because they differ by their return types.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší typy vrácených hodnot.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší typy vrácených hodnot.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2">
         <source>'{0}' cannot override '{1}' because they differ by their tuple element names.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší v názvech elementů řazené kolekce členů.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší v názvech elementů řazené kolekce členů.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2_Title">
@@ -1951,7 +2143,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotDeclared1">
         <source>'{0}' is not declared. It may be inaccessible due to its protection level.</source>
-        <target state="translated">'{0} není deklarované. Může být z důvodu úrovně ochrany nepřístupné.</target>
+        <target state="translated">{0} není deklarované. Může být z důvodu úrovně ochrany nepřístupné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryOperands3">
@@ -1971,7 +2163,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMember2">
         <source>'{0}' is not a member of '{1}'.</source>
-        <target state="translated">'{0} není člen u {1}.</target>
+        <target state="translated">{0} není člen u {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndClassNoClass">
@@ -1991,7 +2183,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNamespaceOrClassOnImport2">
         <source>'{1}' for the Imports '{0}' does not refer to a Namespace, Class, Structure, Enum or Module.</source>
-        <target state="translated">'{1} importů {0} neodkazuje na obor názvů, třídu, strukturu, výčet ani modul.</target>
+        <target state="translated">{1} importů {0} neodkazuje na obor názvů, třídu, strukturu, výčet ani modul.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNotallowed">
@@ -2096,7 +2288,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatch5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} to {3} '{4}'.</source>
-        <target state="translated">'{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup základní třídy {1} na {3} - {4}.</target>
+        <target state="translated">{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup základní třídy {1} na {3} - {4}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NarrowingConversionDisallowed2">
@@ -2198,7 +2390,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceNoDefault1">
         <source>'{0}' cannot be indexed because it has no default property.</source>
-        <target state="translated">'{0} se nedá indexovat, protože nemá žádnou výchozí vlastnost.</target>
+        <target state="translated">{0} se nedá indexovat, protože nemá žádnou výchozí vlastnost.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyAttribute1">
@@ -2213,7 +2405,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInUnnamedNamespace1">
         <source>'{0}' is ambiguous.</source>
-        <target state="translated">'{0} je nejednoznačný.</target>
+        <target state="translated">{0} je nejednoznačný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberNotProperty1">
@@ -2313,12 +2505,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodAlreadyImplemented2">
         <source>'{0}.{1}' cannot be implemented more than once.</source>
-        <target state="translated">'{0}.{1} nejde implementovat víc než jednou.</target>
+        <target state="translated">{0}.{1} nejde implementovat víc než jednou.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInInherits1">
         <source>'{0}' cannot be inherited more than once.</source>
-        <target state="translated">'{0} nejde dědit víc než jednou.</target>
+        <target state="translated">{0} nejde dědit víc než jednou.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamArrayArgument">
@@ -2383,7 +2575,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustInheritEventNotOverridden">
         <source>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</source>
-        <target state="translated">'{0} je událost třídy MustOverride v základní třídě {1}. Visual Basic nepodporuje přepisování událostí. Buď musíte zadat implementaci události v základní třídě, nebo vytvořit třídu {2} MustInherit.</target>
+        <target state="translated">{0} je událost třídy MustOverride v základní třídě {1}. Visual Basic nepodporuje přepisování událostí. Buď musíte zadat implementaci události v základní třídě, nebo vytvořit třídu {2} MustInherit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -2563,7 +2755,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedType1">
         <source>'{0}' is an unsupported type.</source>
-        <target state="translated">'{0} je nepodporovaný typ.</target>
+        <target state="translated">{0} je nepodporovaný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
@@ -2710,7 +2902,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotEvent2">
         <source>'{0}' is not an event of '{1}'.</source>
-        <target state="translated">'{0} není událost v {1}.</target>
+        <target state="translated">{0} není událost v {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddOrRemoveHandlerEvent">
@@ -2775,7 +2967,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptionalTypes2">
         <source>'{0}' cannot override '{1}' because they differ by the types of optional parameters.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší typy nepovinných parametrů.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší typy nepovinných parametrů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndOfExpression">
@@ -2795,7 +2987,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParam1">
         <source>'{0}' is already declared as a parameter of this method.</source>
-        <target state="translated">'{0} už je deklarovaný jako parametr této metody.</target>
+        <target state="translated">{0} už je deklarovaný jako parametr této metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParamInLambda1">
@@ -3020,7 +3212,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithArrayVsParamArray2">
         <source>'{0}' cannot override '{1}' because they differ by parameters declared 'ParamArray'.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší parametry deklarovanými jako ParamArray.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší parametry deklarovanými jako ParamArray.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBaseDependencies4">
@@ -3035,12 +3227,12 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchOutsideAssembly4">
         <source>'{0}' cannot expose type '{1}' outside the project through {2} '{3}'.</source>
-        <target state="translated">'{0} nemůže vystavovat typ {1} mimo projekt prostřednictvím {2} - {3}.</target>
+        <target state="translated">{0} nemůže vystavovat typ {1} mimo projekt prostřednictvím {2} - {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatchOutside3">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} outside the assembly.</source>
-        <target state="translated">'{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup základní třídy {1} mimo sestavení.</target>
+        <target state="translated">{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup základní třídy {1} mimo sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor3">
@@ -3055,12 +3247,12 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent6">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing to {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'{0} nemůže vystavovat nadřazený typ delegáta {1} události, kterou implementuje do {2} - {3} prostřednictvím {4} - {5}.</target>
+        <target state="translated">{0} nemůže vystavovat nadřazený typ delegáta {1} události, kterou implementuje do {2} - {3} prostřednictvím {4} - {5}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent4">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing outside the project through {2} '{3}'.</source>
-        <target state="translated">'{0} nemůže vystavovat nadřazený typ delegáta {1} události, kterou implementuje mimo projekt prostřednictvím {2} - {3}.</target>
+        <target state="translated">{0} nemůže vystavovat nadřazený typ delegáta {1} události, kterou implementuje mimo projekt prostřednictvím {2} - {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceCycleInImportedType1">
@@ -3090,12 +3282,12 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' to {4} '{5}'.</source>
-        <target state="translated">'{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup typu {3} na {4} - {5}.</target>
+        <target state="translated">{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup typu {3} na {4} - {5}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatchOutside5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' outside the assembly.</source>
-        <target state="translated">'{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup typu {3} mimo sestavení.</target>
+        <target state="translated">{0} nemůže dědit z {1} - {2}, protože rozšiřuje přístup typu {3} mimo sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
@@ -3206,7 +3398,7 @@
       </trans-unit>
       <trans-unit id="ERR_InAccessibleOverridingMethod5">
         <source>'{0}' in class '{1}' cannot override '{2}' in class '{3}' because an intermediate class '{4}' overrides '{2}' in class '{3}' but is not accessible.</source>
-        <target state="translated">'{0} ve třídě {1} nemůže potlačovat {2} ve třídě {3}, protože zprostředkující třída {4} potlačuje {2} ve třídě {3}, ale není dostupná.</target>
+        <target state="translated">{0} ve třídě {1} nemůže potlačovat {2} ve třídě {3}, protože zprostředkující třída {4} potlačuje {2} ve třídě {3}, ale není dostupná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuitableWidestType1">
@@ -3506,12 +3698,12 @@
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotAssembly">
         <source>'{0}' is a module and cannot be referenced as an assembly.</source>
-        <target state="translated">'{0} je modul a nejde na něho odkazovat jako na sestavení.</target>
+        <target state="translated">{0} je modul a nejde na něho odkazovat jako na sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotModule">
         <source>'{0}' is an assembly and cannot be referenced as a module.</source>
-        <target state="translated">'{0} je sestavení a nejde na něho odkazovat jako na modul.</target>
+        <target state="translated">{0} je sestavení a nejde na něho odkazovat jako na modul.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReferenceComparison3">
@@ -3521,7 +3713,7 @@
       </trans-unit>
       <trans-unit id="ERR_CatchVariableNotLocal1">
         <source>'{0}' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.</source>
-        <target state="translated">'{0} není lokální proměnná ani parametr, a proto se nedá použít jako proměnná Catch.</target>
+        <target state="translated">{0} není lokální proměnná ani parametr, a proto se nedá použít jako proměnná Catch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleMemberCantImplement">
@@ -3541,7 +3733,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverride4">
         <source>'{0}' cannot override '{1}' because it is not declared 'Overridable'.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože není deklarovaná jako Overridable.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože není deklarovaná jako Overridable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArraysOnBoth">
@@ -3781,7 +3973,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantReferToMyGroupInsideGroupType1">
         <source>'{0}' cannot refer to itself through its default instance; use 'Me' instead.</source>
-        <target state="translated">'{0} nemůže odkazovat sama na sebe prostřednictvím výchozí instance; místo toho použijte možnost Me.</target>
+        <target state="translated">{0} nemůže odkazovat sama na sebe prostřednictvím výchozí instance; místo toho použijte možnost Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidUseOfCustomModifier">
@@ -3796,7 +3988,7 @@
       </trans-unit>
       <trans-unit id="ERR_ObsoleteInvalidOnEventMember">
         <source>'{0}' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.</source>
-        <target state="translated">'{0} nejde použít pro definice AddHandler, RemoveHandler nebo RaiseEvent. V případě potřeby použijte atribut přímo pro událost.</target>
+        <target state="translated">{0} nejde použít pro definice AddHandler, RemoveHandler nebo RaiseEvent. V případě potřeby použijte atribut přímo pro událost.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible2">
@@ -3876,7 +4068,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ]]&gt;.</target>
+        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -3891,7 +4083,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">Očekával se úvodní znak &lt; značky XML.</target>
+        <target state="translated">Očekával se úvodní znak '&lt;' značky XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">
@@ -4106,7 +4298,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantShadowAMustOverride1">
         <source>'{0}' cannot shadow a method declared 'MustOverride'.</source>
-        <target state="translated">'{0} nemůže zastiňovat metodu s deklarací MustOverride.</target>
+        <target state="translated">{0} nemůže zastiňovat metodu s deklarací MustOverride.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEventImplMismatch3">
@@ -4116,7 +4308,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecifierCombo2">
         <source>'{0}' and '{1}' cannot be combined.</source>
-        <target state="translated">'{0} a {1} nejde kombinovat.</target>
+        <target state="translated">{0} a {1} nejde kombinovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustBeOverloads2">
@@ -4136,12 +4328,12 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'{0}, implicitně deklarovaný pro {1} - {2}, nemůže zastiňovat metodu MustOverride v základní třídě {3} – {4}.</target>
+        <target state="translated">{0}, implicitně deklarovaný pro {1} - {2}, nemůže zastiňovat metodu MustOverride v základní třídě {3} – {4}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
         <source>'{0}' cannot override '{1}' because it is not accessible in this context.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože není v tomto kontextu k dispozici.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože není v tomto kontextu k dispozici.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInModule">
@@ -4156,7 +4348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'{0} je v konfliktu s vyhrazeným členem podle tohoto názvu, který je implicitně deklarovaný ve všech výčtech.</target>
+        <target state="translated">{0} je v konfliktu s vyhrazeným členem podle tohoto názvu, který je implicitně deklarovaný ve všech výčtech.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
@@ -4181,7 +4373,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeFwdCycle2">
         <source>'{0}' in assembly '{1}' has been forwarded to itself and so is an unsupported type.</source>
-        <target state="translated">'{0} v sestavení {1} se předal sám sobě, jedná se proto o nepodporovaný typ.</target>
+        <target state="translated">{0} v sestavení {1} se předal sám sobě, jedná se proto o nepodporovaný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeInCCExpression">
@@ -4476,7 +4668,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
         <source>'{0}' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.</source>
-        <target state="translated">'{0} je událost a nejde ji vyvolat přímo. K vyvolání události použijte příkaz RaiseEvent.</target>
+        <target state="translated">{0} je událost a nejde ji vyvolat přímo. K vyvolání události použijte příkaz RaiseEvent.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachCollectionDesignPattern1">
@@ -4561,7 +4753,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOrMemberNotGeneric1">
         <source>'{0}' has no type parameters and so cannot have type arguments.</source>
-        <target state="translated">'{0} nemá žádné parametry typu, nemůže proto mít argumenty typu.</target>
+        <target state="translated">{0} nemá žádné parametry typu, nemůže proto mít argumenty typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewIfNullOnGenericParam">
@@ -4601,7 +4793,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingGenericParamWithMember1">
         <source>'{0}' has the same name as a type parameter.</source>
-        <target state="translated">'{0} má stejný název jako parametr typu.</target>
+        <target state="translated">{0} má stejný název jako parametr typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamBase2">
@@ -4626,7 +4818,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsRestrictedType1">
         <source>'{0}' cannot be used as a type constraint.</source>
-        <target state="translated">'{0} nejde použít jako omezení typu.</target>
+        <target state="translated">{0} nejde použít jako omezení typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamsOnInvalidMember">
@@ -4681,12 +4873,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraintMismatch2">
         <source>'{0}' cannot override '{1}' because they differ by type parameter constraints.</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože se liší v omezeních parametrů typu.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože se liší v omezeních parametrů typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsWithConstraintMismatch3">
         <source>'{0}' cannot implement '{1}.{2}' because they differ by type parameter constraints.</source>
-        <target state="translated">'{0} nemůže implementovat {1}.{2}, protože se liší v omezeních parametrů typu.</target>
+        <target state="translated">{0} nemůže implementovat {1}.{2}, protože se liší v omezeních parametrů typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OpenTypeDisallowed">
@@ -4741,7 +4933,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameSameAsMethodTypeParam1">
         <source>'{0}' is already declared as a type parameter of this method.</source>
-        <target state="translated">'{0} je už deklarovaný jako parametr typu této metody.</target>
+        <target state="translated">{0} je už deklarovaný jako parametr typu této metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParamNameFunctionNameCollision">
@@ -5333,7 +5525,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyNameConflictInMyCollection">
         <source>'{0}' has the same name as a member used for type '{1}' exposed in a 'My' group. Rename the type or its enclosing namespace.</source>
-        <target state="translated">'{0} má stejný název, jako jiný člen použil pro typ {1} vystavený ve skupině My. Přejmenujte typ nebo obor názvů, v němž je obsažený.</target>
+        <target state="translated">{0} má stejný název, jako jiný člen použil pro typ {1} vystavený ve skupině My. Přejmenujte typ nebo obor názvů, v němž je obsažený.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidImplicitVar">
@@ -5433,7 +5625,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMemberOfAnonymousType2">
         <source>'{0}' is not a member of '{1}'; it does not exist in the current context.</source>
-        <target state="translated">'{0} není členem {1} a v aktuálním kontextu neexistuje.</target>
+        <target state="translated">{0} není členem {1} a v aktuálním kontextu neexistuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttributeInvalid">
@@ -5505,7 +5697,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound1">
         <source>'{0}' is not a method parameter.</source>
-        <target state="translated">'{0} není parametr metody.</target>
+        <target state="translated">{0} není parametr metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument1">
@@ -5557,7 +5749,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound3">
         <source>'{0}' is not a parameter of extension method '{1}' defined in '{2}'.</source>
-        <target state="translated">'{0} není parametr metody rozšíření {1} definované v {2}.</target>
+        <target state="translated">{0} není parametr metody rozšíření {1} definované v {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument3">
@@ -5602,7 +5794,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotGotoNonScopeBlocksWithClosure">
         <source>'{0}{1}' is not valid because '{2}' is inside a scope that defines a variable that is used in a lambda or query expression.</source>
-        <target state="translated">'{0}{1} je neplatný, protože {2} se nachází v oboru definujícím proměnnou, která se používá v lambda výrazu nebo ve výrazu dotazu.</target>
+        <target state="translated">{0}{1} je neplatný, protože {2} se nachází v oboru definujícím proměnnou, která se používá v lambda výrazu nebo ve výrazu dotazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeQuery">
@@ -6129,7 +6321,7 @@
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because it derives from '{1}', which is not CLS-compliant.</source>
-        <target state="translated">'{0} není kompatibilní se specifikací CLS, protože se odvozuje z {1}, které není kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0} není kompatibilní se specifikací CLS, protože se odvozuje z {1}, které není kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2_Title">
@@ -6159,7 +6351,7 @@
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because the interface '{1}' it inherits from is not CLS-compliant.</source>
-        <target state="translated">'{0} není kompatibilní se specifikací CLS, protože rozhraní {1}, ze kterého se dědí, není kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0} není kompatibilní se specifikací CLS, protože rozhraní {1}, ze kterého se dědí, není kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2_Title">
@@ -6219,7 +6411,7 @@
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2">
         <source>'{0}' is not CLS-compliant because it overloads '{1}' which differs from it only by array of array parameter types or by the rank of the array parameter types.</source>
-        <target state="translated">'{0} není kompatibilní se specifikací CLS, protože přetěžuje {1}. Navzájem se liší jenom polem typů parametrů polí nebo rozměrem typů parametru pole.</target>
+        <target state="translated">{0} není kompatibilní se specifikací CLS, protože přetěžuje {1}. Navzájem se liší jenom polem typů parametrů polí nebo rozměrem typů parametru pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2_Title">
@@ -6359,7 +6551,7 @@
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2">
         <source>'{0}' in designer-generated type '{1}' should call InitializeComponent method.</source>
-        <target state="translated">'{0} v typu {1} vygenerovaném prvkem návrhu musí volat metodu InitializeComponent.</target>
+        <target state="translated">{0} v typu {1} vygenerovaném prvkem návrhu musí volat metodu InitializeComponent.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2_Title">
@@ -7279,7 +7471,7 @@
       </trans-unit>
       <trans-unit id="ERR_XmlEndCDataNotAllowedInContent">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadsModifierInModule">
@@ -7354,7 +7546,7 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatch6">
         <source>'{0}' cannot expose type '{1}' in {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'{0} nemůže vystavovat typ {1} v {2} - {3} prostřednictvím {4} - {5}.</target>
+        <target state="translated">{0} nemůže vystavovat typ {1} v {2} - {3} prostřednictvím {4} - {5}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadMetaDataReference1">
@@ -7364,7 +7556,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementAllAccessors">
         <source>'{0}' cannot be implemented by a {1} property.</source>
-        <target state="translated">'{0} nejde implementovat vlastností {1}.</target>
+        <target state="translated">{0} nejde implementovat vlastností {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMustOverride">
@@ -7656,12 +7848,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'{0} není možno převést na {1}. Místo toho zvažte použití {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Místo toho zvažte použití {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'{0} není možno převést na {1}. Místo toho zvažte použití {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Místo toho zvažte použití {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3_Title">
@@ -7671,12 +7863,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedIn6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'In' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'{4} není možno převést na {5}, protože {0} není odvozené z {1}, jak se vyžaduje pro obecný parametr In {2} v {3}.</target>
+        <target state="translated">{4} není možno převést na {5}, protože {0} není odvozené z {1}, jak se vyžaduje pro obecný parametr In {2} v {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedOut6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'Out' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'{4} není možno převést na {5}, protože {0} není odvozené z {1}, jak se vyžaduje pro obecný parametr Out {2} v {3}.</target>
+        <target state="translated">{4} není možno převést na {5}, protože {0} není odvozené z {1}, jak se vyžaduje pro obecný parametr Out {2} v {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedIn6">
@@ -7701,17 +7893,17 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu In: In {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu In: In {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu Out: Out {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu Out: Out {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu In: In {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu In: In {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4_Title">
@@ -7721,7 +7913,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu Out: Out {2}.</target>
+        <target state="translated">{0} není možno převést na {1}. Zvažte změnu {2} v definici {3} na parametr typu Out: Out {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4_Title">
@@ -7991,7 +8183,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface2">
         <source>'{0}' does not implement '{1}'.</source>
-        <target state="translated">'{0} neimplementuje {1}.</target>
+        <target state="translated">{0} neimplementuje {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitNothing">
@@ -8086,7 +8278,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedResumableType1">
         <source>'{0}' cannot be used as a parameter type for an Iterator or Async method.</source>
-        <target state="translated">'{0} nejde použít jako typ parametru pro metodu iterátoru nebo asynchronní metodu.</target>
+        <target state="translated">{0} nejde použít jako typ parametru pro metodu iterátoru nebo asynchronní metodu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorAsync">
@@ -8211,12 +8403,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'{0}.{1} z klauzule implements {2} je už implementované základní třídou {3}. Opětovná implementace rozhraní Windows Runtime {4} není povolená.</target>
+        <target state="translated">{0}.{1} z klauzule implements {2} je už implementované základní třídou {3}. Opětovná implementace rozhraní Windows Runtime {4} není povolená.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'{0}.{1} je už implementované základní třídou {2}. Opětovná implementace rozhraní modulu Windows Runtime {3} není povolená.</target>
+        <target state="translated">{0}.{1} je už implementované základní třídou {2}. Opětovná implementace rozhraní modulu Windows Runtime {3} není povolená.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -8441,12 +8633,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedModule1">
         <source>'{0}' is an unsupported .NET module.</source>
-        <target state="translated">'{0} je nepodporovaný modul .NET.</target>
+        <target state="translated">{0} je nepodporovaný modul .NET.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedEvent1">
         <source>'{0}' is an unsupported event.</source>
-        <target state="translated">'{0} je nepodporovaná událost.</target>
+        <target state="translated">{0} je nepodporovaná událost.</target>
         <note />
       </trans-unit>
       <trans-unit id="PropertiesCanNotHaveTypeArguments">
@@ -8711,7 +8903,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0} není platným specifikátorem formátu.</target>
+        <target state="translated">{0} není platným specifikátorem formátu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -8726,7 +8918,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable1">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="translated">'{0} nejde nastavit tak, aby se povolovala hodnota null.</target>
+        <target state="translated">{0} nejde nastavit tak, aby se povolovala hodnota null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConditionalWithRef">
@@ -9096,7 +9288,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
+        <target state="translated">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

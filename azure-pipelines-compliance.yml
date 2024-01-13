@@ -1,0 +1,124 @@
+# Name: DotNet-Roslyn-Compliance
+# URL: https://devdiv.visualstudio.com/DevDiv/_build?definitionId=16722
+#
+# Responsible for running compliance checks.
+
+#
+# NOTE: triggers for this build are defined in the Web UI instead of here in the YAML file so they
+#       apply to all branches.
+
+queue:
+  name: VSEngSS-MicroBuild2022-1ES
+  demands: Cmd
+  timeoutInMinutes: 90
+variables:
+  - group: DotNet-Roslyn-ApiScan
+  - name: BuildConfiguration
+    value: Release
+  - name: TeamName
+    value: DotNet-Roslyn
+  - name: SignType
+    value: test
+  - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+    value: true
+  - name: _DevDivDropAccessToken
+    value: $(System.AccessToken)
+
+steps:
+- template: eng/pipelines/checkout-windows-task.yml
+
+- powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+  displayName: Setting SourceBranchName variable
+
+- powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
+  displayName: Setting VisualStudio.DropName variable
+
+- task: PowerShell@2
+  displayName: Build
+  inputs:
+    filePath: eng/build.ps1
+    arguments: -ci
+               -prepareMachine
+               -restore
+               -build
+               -configuration $(BuildConfiguration)
+               -officialBuildId $(Build.BuildNumber)
+               -officialSkipTests true
+               -officialSkipApplyOptimizationData true
+               -officialSourceBranchName $(SourceBranchName)
+               -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
+               /p:RepositoryName=$(Build.Repository.Name)
+               /p:VisualStudioDropName=$(VisualStudio.DropName)
+
+- task: CopyFiles@2
+  # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
+  # in an effort to limit what it needs to work on.
+  displayName: Copy Roslyn assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\Roslyn.VisualStudio.Setup\$(BuildConfiguration)\net472'  # Limit to (mostly) product binaries
+    Contents: |
+      Microsoft.CodeAnalysis*.dll
+      Microsoft.CodeAnalysis*.pdb
+      Microsoft.VisualStudio.LanguageServices*.dll
+      Microsoft.VisualStudio.LanguageServices*.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy csc assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\csc\$(BuildConfiguration)\net472'
+    Contents: |
+      csc.dll
+      csc.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy vbc assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\vbc\$(BuildConfiguration)\net472'
+    Contents: |
+      vbc.dll
+      vbc.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: CopyFiles@2
+  displayName: Copy VBCSCompiler assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\VBCSCompiler\$(BuildConfiguration)\net472'
+    Contents: |
+      VBCSCompiler.dll
+      VBCSCompiler.pdb
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: APIScan@2
+  # Scan for the use of undocumented APIs.
+  displayName: Run APIScan
+  inputs:
+    softwareFolder: '$(Agent.TempDirectory)\APIScanFiles' # Only examine the product binaries we previously copied.
+    softwareName: 'Dotnet-Roslyn'
+    softwareVersionNum: '17.0'
+    softwareBuildNum: '$(Build.BuildId)'
+    symbolsFolder: 'SRV*http://symweb'
+  env:
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(RoslynApiScanClientId);TenantId=$(RoslynApiScanTenant);AppKey=$(RoslynApiScanSecret)
+  continueOnError: true
+
+- task: TSAUpload@2
+  # Scan the output of previous steps and create bugs for any problems.
+  displayName: Upload results and create bugs
+  inputs:
+    GdnPublishTsaOnboard: true
+    GdnPublishTsaConfigFile: '$(Build.SourcesDirectory)\eng\TSAConfig.gdntsa'  # All relevant settings are in this file.
+  continueOnError: true
+
+- task: PublishSecurityAnalysisLogs@3
+  displayName: Publishing analysis artifacts
+  inputs:
+    ArtifactName: 'CodeAnalysisLogs'
+    ArtifactType: 'Container'           # Associate the artifacts with the build.
+    AllTools: true                      # Look for logs from all tools.
+    ToolLogsNotFoundAction: 'Standard'  # If a log is not found just output a message to that effect.

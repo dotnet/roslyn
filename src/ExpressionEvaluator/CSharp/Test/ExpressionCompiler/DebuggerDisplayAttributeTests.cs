@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -266,6 +268,52 @@ namespace N
                 context = CreateTypeContext(runtime, "N.C");
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(A.C) ?? typeof(B) ?? typeof(C)", out error, testData);
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
+                testData = new CompilationTestData();
+                result = context.CompileExpression("typeof(B) ?? typeof(C)", out error, testData);
+                Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
+            });
+        }
+
+        [Fact]
+        public void Usings2()
+        {
+            var source =
+@"using System.Diagnostics;
+using A = int;
+using B = (int, int);
+using C = int[];
+namespace N
+{
+    [DebuggerDisplay(""{typeof(A) ?? typeof(B) ?? typeof(C)}"")]
+    class D
+    {
+        void M()
+        {
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            compilation0.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using A = int;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = int;").WithLocation(2, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using B = (int, int);
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B = (int, int);").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using C = int[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using C = int[];").WithLocation(4, 1));
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateTypeContext(runtime, "N.D");
+                string error;
+                var testData = new CompilationTestData();
+                // Expression compilation should fail using imports since there are no symbols.
+                var result = context.CompileExpression("typeof(A) ?? typeof(B)", out error, testData);
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
+                testData = new CompilationTestData();
+                result = context.CompileExpression("typeof(A) ?? typeof(B) ?? typeof(C)", out error, testData);
                 Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(B) ?? typeof(C)", out error, testData);

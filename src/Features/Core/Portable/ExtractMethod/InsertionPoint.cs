@@ -4,9 +4,6 @@
 
 using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -14,17 +11,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal class InsertionPoint
     {
         private readonly SyntaxAnnotation _annotation;
-        private readonly Lazy<SyntaxNode> _context;
+        private readonly Lazy<SyntaxNode?> _context;
 
-        public static async Task<InsertionPoint> CreateAsync(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var root = document.Root;
-            var annotation = new SyntaxAnnotation();
-            var newRoot = root.AddAnnotations(SpecializedCollections.SingletonEnumerable(Tuple.Create(node, annotation)));
-            return new InsertionPoint(await document.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false), annotation);
-        }
-
-        private InsertionPoint(SemanticDocument document, SyntaxAnnotation annotation)
+        public InsertionPoint(SemanticDocument document, SyntaxAnnotation annotation)
         {
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(annotation);
@@ -39,19 +28,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SyntaxNode GetRoot()
             => SemanticDocument.Root;
 
-        public SyntaxNode GetContext()
+        public SyntaxNode? GetContext()
             => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-            => new InsertionPoint(document, _annotation);
+            => new(document, _annotation);
 
-        private Lazy<SyntaxNode> CreateLazyContextNode()
-            => new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
+        private Lazy<SyntaxNode?> CreateLazyContextNode()
+            => new(ComputeContextNode, isThreadSafe: true);
 
-        private SyntaxNode ComputeContextNode()
+        private SyntaxNode? ComputeContextNode()
         {
             var root = SemanticDocument.Root;
-            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode();
+            return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
         }
     }
 }

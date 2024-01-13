@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -70,51 +72,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             Contract.ThrowIfNull(typeNode);
 
-            var baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
-
-            var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
-            if (isPartialType)
+            if (typeNode.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
-                var typeSymbol = model.GetDeclaredSymbol(typeNode, cancellationToken);
-                if (typeSymbol != null)
+                var typeSymbol = model.GetRequiredDeclaredSymbol(typeNode, cancellationToken);
+                if (typeSymbol.DeclaringSyntaxReferences.Length >= 2)
                 {
+                    using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
+
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                     {
-                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDecl && typeDecl.BaseList != null)
-                        {
-                            baseListTypes = baseListTypes.Concat(typeDecl.BaseList.Types);
-                        }
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
+                            baseListTypes.AddRange(baseTypes);
                     }
+
+                    return baseListTypes.ToImmutable();
                 }
             }
-            else if (typeNode.BaseList != null)
-            {
-                return typeNode.BaseList.Types;
-            }
 
-            return baseListTypes;
+            if (typeNode.BaseList != null)
+                return typeNode.BaseList.Types;
+
+            return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
         }
 
-        private static SyntaxToken EnsureToken(SyntaxToken token, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
+        private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
         {
-            if (token.IsMissing)
+            if (token.IsMissing || token.IsKind(SyntaxKind.None))
             {
                 var leadingTrivia = prependNewLineIfMissing ? token.LeadingTrivia.Insert(0, SyntaxFactory.ElasticCarriageReturnLineFeed) : token.LeadingTrivia;
                 var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.ElasticCarriageReturnLineFeed) : token.TrailingTrivia;
-                return SyntaxFactory.Token(leadingTrivia, token.Kind(), trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
+                return SyntaxFactory.Token(leadingTrivia, kind, trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             return token;
         }
 
-        private static void EnsureAndGetBraceTokens(
-            BaseTypeDeclarationSyntax typeDeclaration,
-            bool hasMembers,
-            out SyntaxToken openBrace,
-            out SyntaxToken closeBrace)
+        private static BaseTypeDeclarationSyntax EnsureHasBraces(BaseTypeDeclarationSyntax typeDeclaration, bool hasMembers)
         {
-            openBrace = EnsureToken(typeDeclaration.OpenBraceToken);
-            closeBrace = EnsureToken(typeDeclaration.CloseBraceToken, appendNewLineIfMissing: true);
+            var openBrace = EnsureToken(typeDeclaration.OpenBraceToken, SyntaxKind.OpenBraceToken);
+            var closeBrace = EnsureToken(typeDeclaration.CloseBraceToken, SyntaxKind.CloseBraceToken, appendNewLineIfMissing: true);
+
+            // If we are adding braces, then remove any semicolon to we convert something like `record class X();` to
+            // `record class X { }`
+            var addedBraces = openBrace != typeDeclaration.OpenBraceToken || closeBrace != typeDeclaration.CloseBraceToken;
+            if (addedBraces && typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
+                typeDeclaration = typeDeclaration.WithSemicolonToken(default).WithTrailingTrivia(typeDeclaration.SemicolonToken.TrailingTrivia);
 
             if (!hasMembers)
             {
@@ -139,20 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         closeBrace.LeadingTrivia.Skip(index + 1));
                 }
             }
-        }
 
-        public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(
-            this TypeDeclarationSyntax typeDeclaration)
-        {
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
             return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
 
-        public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(
-            this EnumDeclarationSyntax typeDeclaration)
+        public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(this TypeDeclarationSyntax typeDeclaration)
         {
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
-            return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
+            return (TypeDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
+        }
+
+        public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(this EnumDeclarationSyntax typeDeclaration)
+        {
+            return (EnumDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
         }
     }
 }

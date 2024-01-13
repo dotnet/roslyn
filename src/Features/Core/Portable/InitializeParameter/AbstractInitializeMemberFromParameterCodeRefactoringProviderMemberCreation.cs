@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,8 +15,9 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -27,6 +27,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
+    using static InitializeParameterHelpersCore;
+
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TTypeDeclarationSyntax,
         TParameterSyntax,
@@ -41,22 +43,30 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation? blockStatementOpt);
-
+        protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
-
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+        protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
+        protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
+        protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
-        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+        protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
-            ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
+            ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
+            CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode constructorDeclaration, IMethodSymbol method,
-            IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+        protected sealed override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+            Document document,
+            TParameterSyntax parameterSyntax,
+            IParameterSymbol parameter,
+            SyntaxNode constructorDeclaration,
+            IMethodSymbol method,
+            IBlockOperation? blockStatement,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)
@@ -68,7 +78,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
-            var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt);
+            var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
             if (assignmentStatement != null)
                 return ImmutableArray<CodeAction>.Empty;
 
@@ -76,24 +86,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // to an existing matching field/prop if we can find one, or add a new field/prop
             // if we can't.
 
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
                 return ImmutableArray<CodeAction>.Empty;
 
-            var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-                document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
+            var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
+                document, parameter, blockStatement, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty != null)
             {
                 return HandleExistingFieldOrProperty(
-                    document, parameter, constructorDeclaration,
-                    method, blockStatementOpt, fieldOrProperty);
+                    document, parameter, constructorDeclaration, blockStatement, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions);
             }
 
             return await HandleNoExistingFieldOrPropertyAsync(
                 document, parameter, constructorDeclaration,
-                method, blockStatementOpt, rules, cancellationToken).ConfigureAwait(false);
+                method, blockStatement, rules, fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
@@ -101,22 +110,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IParameterSymbol parameter,
             SyntaxNode constructorDeclaration,
             IMethodSymbol method,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // Didn't find a field/prop that this parameter could be assigned to.
             // Offer to create new one and assign to that.
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
-                document, parameter, constructorDeclaration, blockStatementOpt, rules, options);
+                document, parameter, constructorDeclaration, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
 
             // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
             // make this parameter into a field as well.  Otherwise, default to generating a property
-            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatementOpt);
+            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatement);
             if (siblingFieldOrProperty is IFieldSymbol)
             {
                 allActions.Add(fieldAction);
@@ -129,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(
-                document, constructorDeclaration, method, blockStatementOpt, rules, options);
+                document, constructorDeclaration, method, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
 
             if (allFieldsAction != null && allPropertiesAction != null)
             {
@@ -152,29 +162,32 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             SyntaxNode constructorDeclaration,
             IMethodSymbol method,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
-            DocumentOptionSet options)
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
+            CodeGenerationOptionsProvider fallbackOptions)
         {
-            if (blockStatementOpt == null)
+            if (blockStatement == null)
                 return default;
 
-            var parameters = GetParametersWithoutAssociatedMembers(blockStatementOpt, rules, method);
+            var parameters = GetParametersWithoutAssociatedMembers(blockStatement, rules, method);
 
             if (parameters.Length < 2)
                 return default;
 
-            var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, options, rules));
-            var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, options, rules));
+            var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, accessibilityModifiersRequired, rules));
+            var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, accessibilityModifiersRequired, rules));
 
-            var allFieldsAction = new MyCodeAction(
+            var allFieldsAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_fields,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatementOpt, parameters, fields, c));
-            var allPropertiesAction = new MyCodeAction(
+                    document, constructorDeclaration, blockStatement, parameters, fields, fallbackOptions, c),
+                nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
+            var allPropertiesAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_properties,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatementOpt, parameters, properties, c));
+                    document, constructorDeclaration, blockStatement, parameters, properties, fallbackOptions, c),
+                nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
             return (allFieldsAction, allPropertiesAction);
         }
@@ -183,24 +196,31 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             IParameterSymbol parameter,
             SyntaxNode constructorDeclaration,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
-            DocumentOptionSet options)
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
+            CodeGenerationOptionsProvider fallbackOptions)
         {
-            var field = CreateField(parameter, options, rules);
-            var property = CreateProperty(parameter, options, rules);
-            var fieldAction = new MyCodeAction(
+            var field = CreateField(parameter, accessibilityModifiersRequired, rules);
+            var property = CreateProperty(parameter, accessibilityModifiersRequired, rules);
+
+            // we're generating the field or property, so we don't have to handle throwing versions of them.
+            var isThrowNotImplementedProperty = false;
+
+            var fieldAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, field, c));
-            var propertyAction = new MyCodeAction(
+                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
+                nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
+            var propertyAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, property, c));
+                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
+                nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
             return (fieldAction, propertyAction);
         }
 
-        private ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
-            IBlockOperation? blockStatementOpt,
+        private static ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
+            IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
             IMethodSymbol method)
         {
@@ -212,7 +232,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (parameterNameParts.BaseName == "")
                     continue;
 
-                var assignmentOp = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt);
+                var assignmentOp = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
                 if (assignmentOp != null)
                     continue;
 
@@ -222,7 +242,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return result.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
+        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
+            Document document,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IBlockOperation? blockStatement,
+            ISymbol fieldOrProperty,
+            bool isThrowNotImplementedProperty,
+            CodeGenerationOptionsProvider fallbackOptions)
         {
             // Found a field/property that this parameter should be assigned to.
             // Just offer the simple assignment to it.
@@ -233,17 +260,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var title = string.Format(resource, fieldOrProperty.Name);
 
-            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+            return ImmutableArray.Create(CodeAction.Create(
                 title,
                 c => AddSingleSymbolInitializationAsync(
-                    document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c)));
+                    document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, c),
+                title));
         }
 
-        private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static ISymbol? TryFindSiblingFieldOrProperty(
+            IParameterSymbol parameter, IBlockOperation? blockStatement)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
-                TryFindFieldOrPropertyAssignmentStatement(siblingParam, blockStatementOpt, out var sibling);
+                TryFindFieldOrPropertyAssignmentStatement(siblingParam, blockStatement, out var sibling);
                 if (sibling != null)
                     return sibling;
             }
@@ -253,10 +282,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private IFieldSymbol CreateField(
             IParameterSymbol parameter,
-            DocumentOptionSet options,
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
             ImmutableArray<NamingRule> rules)
         {
-            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
             foreach (var rule in rules)
@@ -266,7 +294,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var accessibilityLevel = Accessibility.Private;
-                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    if (accessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault)
                     {
                         var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
                         if (defaultAccessibility == Accessibility.Private)
@@ -285,28 +313,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // We place a special rule in s_builtInRules that matches all fields.  So we should 
             // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
-        {
-            // Determine an appropriate name to call the new field.
-            var containingType = parameter.ContainingType;
-            var baseName = rule.NamingStyle.CreateName(parameterNameParts);
-
-            // Ensure that the name is unique in the containing type so we
-            // don't stomp on an existing member.
-            var uniqueName = NameGenerator.GenerateUniqueName(
-                baseName, n => containingType.GetMembers(n).IsEmpty);
-            return uniqueName;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IPropertySymbol CreateProperty(
             IParameterSymbol parameter,
-            DocumentOptionSet options,
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
             ImmutableArray<NamingRule> rules)
         {
-            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
             foreach (var rule in rules)
@@ -316,7 +330,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var accessibilityLevel = Accessibility.Public;
-                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    if (accessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault)
                     {
                         var defaultAccessibility = DetermineDefaultPropertyAccessibility();
                         if (defaultAccessibility == Accessibility.Public)
@@ -346,15 +360,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // We place a special rule in s_builtInRules that matches all properties.  So we should 
             // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        private async Task<Document> AddAllSymbolInitializationsAsync(
+        private async Task<Solution> AddAllSymbolInitializationsAsync(
             Document document,
             SyntaxNode constructorDeclaration,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<ISymbol> fieldsOrProperties,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Debug.Assert(parameters.Length >= 2);
@@ -366,17 +381,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodesToTrack = new List<SyntaxNode> { constructorDeclaration };
-            if (blockStatementOpt != null)
-                nodesToTrack.Add(blockStatementOpt.Syntax);
+            if (blockStatement != null)
+                nodesToTrack.Add(blockStatement.Syntax);
 
             var trackedRoot = root.TrackNodes(nodesToTrack);
-            var currentDocument = document.WithSyntaxRoot(trackedRoot);
+            var currentSolution = document.WithSyntaxRoot(trackedRoot).Project.Solution;
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
                 var fieldOrProperty = fieldsOrProperties[i];
 
+                var currentDocument = currentSolution.GetRequiredDocument(document.Id);
                 var currentSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var currentCompilation = currentSemanticModel.Compilation;
                 var currentRoot = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -385,11 +401,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (currentConstructorDeclaration == null)
                     continue;
 
-                IBlockOperation? currentBlockStatementOpt = null;
-                if (blockStatementOpt != null)
+                IBlockOperation? currentBlockStatement = null;
+                if (blockStatement != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax));
-                    if (currentBlockStatementOpt == null)
+                    currentBlockStatement = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatement.Syntax)!, cancellationToken);
+                    if (currentBlockStatement == null)
                         continue;
                 }
 
@@ -399,30 +415,36 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // fieldOrProperty is a new member.  So we don't have to track it to this edit we're making.
 
-                currentDocument = await AddSingleSymbolInitializationAsync(
+                currentSolution = await AddSingleSymbolInitializationAsync(
                     currentDocument,
                     currentConstructorDeclaration,
-                    currentBlockStatementOpt,
+                    currentBlockStatement,
                     currentParameter,
                     fieldOrProperty,
+                    isThrowNotImplementedProperty: false,
+                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
             }
 
-            return currentDocument;
+            return currentSolution;
         }
 
-        private async Task<Document> AddSingleSymbolInitializationAsync(
+        private async Task<Solution> AddSingleSymbolInitializationAsync(
             Document document,
             SyntaxNode constructorDeclaration,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
+            bool isThrowNotImplementedProperty,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, workspace);
+            var services = document.Project.Solution.Services;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -446,22 +468,68 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     {
                         if (fieldOrProperty is IPropertySymbol property)
                         {
-                            return CodeGenerator.AddPropertyDeclaration(
-                                currentTypeDecl, property, workspace,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                            return codeGenerator.AddProperty(
+                                currentTypeDecl, property,
+                                codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                                cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
-                            return CodeGenerator.AddFieldDeclaration(
-                                currentTypeDecl, field, workspace,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                            return codeGenerator.AddField(
+                                currentTypeDecl, field,
+                                codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                                cancellationToken);
                         }
                         else
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     });
             }
+
+            AddAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
+
+            // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
+            var currentSolution = document.Project.Solution;
+            if (isThrowNotImplementedProperty)
+            {
+                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+
+                if (propertySyntax.SyntaxTree == root.SyntaxTree)
+                {
+                    // Edit to the same file, just update this editor.
+                    editor.ReplaceNode(propertySyntax, withoutThrowNotImplemented);
+                }
+                else
+                {
+                    // edit to a different file.  Just replace things directly in there.
+                    var otherDocument = currentSolution.GetDocument(propertySyntax.SyntaxTree);
+                    if (otherDocument != null)
+                    {
+                        var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                        currentSolution = currentSolution.WithDocumentSyntaxRoot(
+                            otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
+                    }
+                }
+            }
+
+            return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
+        }
+
+        private void AddAssignment(
+            SyntaxNode constructorDeclaration,
+            IBlockOperation? blockStatement,
+            IParameterSymbol parameter,
+            ISymbol fieldOrProperty,
+            SyntaxEditor editor)
+        {
+            // First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
+            if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
+                return;
+
+            var generator = editor.Generator;
 
             // Now that we've added any potential members, create an assignment between it
             // and the parameter.
@@ -475,22 +543,20 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Attempt to place the initialization in a good location in the constructor
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
-            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
+            var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
 
-            InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfterOpt, initializationStatement);
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
+            InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
         }
 
-        private CodeGenerationOptions? GetAddOptions<TSymbol>(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
+        private static CodeGenerationContext GetAddContext<TSymbol>(
+            IParameterSymbol parameter, IBlockOperation? blockStatement,
             SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
                 var statement = TryFindFieldOrPropertyAssignmentStatement(
-                    sibling, blockStatementOpt, out var fieldOrProperty);
+                    sibling, blockStatement, out var fieldOrProperty);
 
                 if (statement != null &&
                     fieldOrProperty is TSymbol symbol)
@@ -502,51 +568,29 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation());
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation());
                         }
                     }
                 }
             }
 
-            return null;
-        }
-
-        private ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
-        {
-            using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
-
-            if (parameter.ContainingSymbol is IMethodSymbol method)
-            {
-                var parameterIndex = method.Parameters.IndexOf(parameter);
-
-                // look for an existing assignment for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex - 1; i >= 0; i--)
-                    siblings.Add((method.Parameters[i], before: true));
-
-                // look for an existing check for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex + 1; i < method.Parameters.Length; i++)
-                    siblings.Add((method.Parameters[i], before: false));
-            }
-
-            return siblings.ToImmutable();
+            return CodeGenerationContext.Default;
         }
 
         private SyntaxNode? TryGetStatementToAddInitializationAfter(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+            IParameterSymbol parameter, IBlockOperation? blockStatement)
         {
             // look for an existing assignment for a parameter that comes before/after us.
             // If we find one, we'll add ourselves before/after that parameter check.
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
-                var statement = TryFindFieldOrPropertyAssignmentStatement(sibling, blockStatementOpt);
+                var statement = TryFindFieldOrPropertyAssignmentStatement(sibling, blockStatement);
                 if (statement != null)
                 {
                     if (before)
@@ -555,33 +599,76 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                     else
                     {
-                        var statementIndex = blockStatementOpt!.Operations.IndexOf(statement);
-                        return statementIndex > 0 ? blockStatementOpt.Operations[statementIndex - 1].Syntax : null;
+                        var statementIndex = blockStatement!.Operations.IndexOf(statement);
+                        return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
+                            ? priorSyntax
+                            : null;
                     }
                 }
             }
 
             // We couldn't find a reasonable location for the new initialization statement.
             // Just place ourselves after the last statement in the constructor.
-            return TryGetLastStatement(blockStatementOpt);
+            return TryGetLastStatement(blockStatement);
         }
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
-            => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out _);
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatement)
+            => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out _);
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt, out ISymbol? fieldOrProperty)
+        protected static bool TryGetPartsOfTupleAssignmentOperation(
+            IOperation operation,
+            [NotNullWhen(true)] out ITupleOperation? targetTuple,
+            [NotNullWhen(true)] out ITupleOperation? valueTuple)
         {
-            if (blockStatementOpt != null)
+            if (operation is IExpressionStatementOperation
+                {
+                    Operation: IDeconstructionAssignmentOperation
+                    {
+                        Target: ITupleOperation targetTupleTemp,
+                        Value: IConversionOperation { Operand: ITupleOperation valueTupleTemp },
+                    }
+                } &&
+                targetTupleTemp.Elements.Length == valueTupleTemp.Elements.Length)
+            {
+                targetTuple = targetTupleTemp;
+                valueTuple = valueTupleTemp;
+                return true;
+            }
+
+            targetTuple = null;
+            valueTuple = null;
+            return false;
+        }
+
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
+            IParameterSymbol parameter, IBlockOperation? blockStatement, out ISymbol? fieldOrProperty)
+        {
+            if (blockStatement != null)
             {
                 var containingType = parameter.ContainingType;
-                foreach (var statement in blockStatementOpt.Operations)
+                foreach (var statement in blockStatement.Operations)
                 {
                     // look for something of the form:  "this.s = s" or "this.s = s ?? ..."
                     if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression, out fieldOrProperty) &&
                         IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression, parameter))
                     {
                         return statement;
+                    }
+
+                    // look inside the form `(this.s, this.t) = (s, t)`
+                    if (TryGetPartsOfTupleAssignmentOperation(statement, out var targetTuple, out var valueTuple))
+                    {
+                        for (int i = 0, n = targetTuple.Elements.Length; i < n; i++)
+                        {
+                            var target = targetTuple.Elements[i];
+                            var value = valueTuple.Elements[i];
+
+                            if (IsFieldOrPropertyReference(target, containingType, out fieldOrProperty) &&
+                                IsParameterReference(value, parameter))
+                            {
+                                return statement;
+                            }
+                        }
                     }
                 }
             }
@@ -591,28 +678,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsParameterReferenceOrCoalesceOfParameterReference(
-           IAssignmentOperation assignmentExpression, IParameterSymbol parameter)
-        {
-            if (IsParameterReference(assignmentExpression.Value, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter
-                return true;
-            }
+            IAssignmentOperation assignmentExpression, IParameterSymbol parameter)
+            => InitializeParameterHelpersCore.IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression.Value, parameter);
 
-            if (UnwrapImplicitConversion(assignmentExpression.Value) is ICoalesceOperation coalesceExpression &&
-                IsParameterReference(coalesceExpression.Value, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter ?? ...
-                return true;
-            }
-
-            return false;
-        }
-
-        private async Task<ISymbol?> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-            Document document, IParameterSymbol parameter, IBlockOperation? blockStatementOpt, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
+        private async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
+            Document document, IParameterSymbol parameter, IBlockOperation? blockStatement, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
         {
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
@@ -638,46 +708,81 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     if (memberWithName is IFieldSymbol field &&
                         !field.IsConst &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                        !ContainsMemberAssignment(blockStatementOpt, field))
+                        !ContainsMemberAssignment(blockStatement, field))
                     {
-                        return field;
+                        return (field, isThrowNotImplementedProperty: false);
                     }
 
                     // If it's a writable property that we could assign this parameter to, and it's
                     // not already been assigned to, then this property is a good candidate for us to
                     // hook up to.
                     if (memberWithName is IPropertySymbol property &&
-                        property.IsWritableInConstructor() &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
-                        !ContainsMemberAssignment(blockStatementOpt, property))
+                        !ContainsMemberAssignment(blockStatement, property))
                     {
-                        return property;
+                        // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
+                        // That way users can easily spit out those methods, but then convert them to be normal
+                        // properties with ease.
+                        if (IsThrowNotImplementedProperty(property))
+                            return (property, isThrowNotImplementedProperty: true);
+
+                        if (property.IsWritableInConstructor())
+                            return (property, isThrowNotImplementedProperty: false);
                     }
                 }
             }
 
             // Couldn't find any existing member.  Just return nothing so we can offer to
             // create a member for them.
-            return null;
-        }
+            return default;
 
-        private bool ContainsMemberAssignment(
-            IBlockOperation? blockStatementOpt, ISymbol member)
-        {
-            if (blockStatementOpt != null)
+            static bool ContainsMemberAssignment(IBlockOperation? blockStatement, ISymbol member)
             {
-                foreach (var statement in blockStatementOpt.Operations)
+                if (blockStatement != null)
                 {
-                    if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
-                        UnwrapImplicitConversion(assignmentExpression.Target) is IMemberReferenceOperation memberReference &&
-                        member.Equals(memberReference.Member))
+                    foreach (var statement in blockStatement.Operations)
                     {
-                        return true;
+                        if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
+                            assignmentExpression.Target.UnwrapImplicitConversion() is IMemberReferenceOperation memberReference &&
+                            member.Equals(memberReference.Member))
+                        {
+                            return true;
+                        }
                     }
                 }
+
+                return false;
             }
 
-            return false;
+            bool IsThrowNotImplementedProperty(IPropertySymbol property)
+            {
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
+
+                if (property.GetMethod != null)
+                    accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
+
+                if (property.SetMethod != null)
+                    accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
+
+                if (accessors.Count == 0)
+                    return false;
+
+                foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
+                {
+                    var semanticModel = compilation.GetSemanticModel(group.Key);
+                    foreach (var accessorBody in accessors)
+                    {
+                        var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
+                        if (operation is null)
+                            return false;
+
+                        if (!operation.IsSingleThrowNotImplementedOperation())
+                            return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

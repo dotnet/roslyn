@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -307,7 +310,6 @@ class C3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void UsingPatternExtensionMethodTest()
         {
@@ -404,7 +406,6 @@ class C2
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
-
 
         [Fact]
         public void UsingPatternAmbiguousExtensionMethodTest()
@@ -1127,7 +1128,7 @@ class C2
     }
 }";
             var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
-                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or lambda expressions.
+                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or async lambda expressions.
                 //         await using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)
                 );
@@ -1156,10 +1157,10 @@ class C2
 ";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (11,16): error CS8370: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,16): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("using declarations", "8.0").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("pattern-based disposal", "8.0").WithLocation(11, 16)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
@@ -1770,9 +1771,6 @@ class C
 }";
 
             CreateEmptyCompilation(source).VerifyDiagnostics(
-                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
-                //         using (var v = null) ;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
                 // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),
@@ -1781,6 +1779,32 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 30));
         }
 
+        [Fact]
+        public void MissingIDisposable_NoLocal()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public class Void { }
+}
+class C
+{
+    void M()
+    {
+        using (null);
+    }
+}";
+
+            CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
+                // (11,21): warning CS0642: Possible mistaken empty statement
+                //         using (null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 21)
+                );
+        }
 
         [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]
@@ -1801,16 +1825,36 @@ class C
                 );
         }
 
-
-        #region help method
-
-        private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
+        [Fact]
+        public void SemanticModel_02()
         {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.IDisposable i = null;
+
+        using (i)
+        {
+            int x;
+            x = 1;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
-            return usingStatements[index - 1];
+
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(node).Type.SpecialType);
         }
+
+        #region help method
 
         private IEnumerable<ILocalSymbol> VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
         {

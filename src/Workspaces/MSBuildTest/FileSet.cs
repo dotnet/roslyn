@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -32,10 +35,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public IEnumerator<(string fileName, object content)> GetEnumerator()
         {
-            foreach (var kvp in _fileMap)
-            {
-                yield return (kvp.Key, kvp.Value);
-            }
+            foreach (var (fileName, content) in _fileMap)
+                yield return (fileName, content);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             var endTagStart = textContent.IndexOf(elementEndTag, startTagEnd + 1, StringComparison.Ordinal);
                             if (endTagStart >= startTagEnd)
                             {
-                                var newContent = textContent.Substring(0, startTagEnd + 1) + elementValue + textContent.Substring(endTagStart);
+                                var newContent = textContent[..(startTagEnd + 1)] + elementValue + textContent[endTagStart..];
                                 return this.WithFile(fileName, newContent);
                             }
                         }

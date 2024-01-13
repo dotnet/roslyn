@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -30,7 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nullableOption">Whether Nullable Reference Types feature is enabled globally</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, NullableContextOptions nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        internal static Diagnostic? Filter(
+            Diagnostic d,
+            int warningLevelOption,
+            NullableContextOptions nullableOption,
+            ReportDiagnostic generalDiagnosticOption,
+            IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            SyntaxTreeOptionsProvider? syntaxTreeOptions,
+            CancellationToken cancellationToken)
         {
             if (d == null)
             {
@@ -69,20 +78,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
                     d.IsEnabledByDefault,
+                    d.Code,
                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
-                    d.Location as Location,
-                    d.Category,
+                    d.Location,
+                    d.CustomTags,
                     warningLevelOption,
                     nullableOption,
                     generalDiagnosticOption,
                     specificDiagnosticOptions,
+                    syntaxTreeOptions,
+                    cancellationToken,
                     out hasPragmaSuppression);
             }
             else
             {
-                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location,
-                    d.Category, warningLevelOption, nullableOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
+                reportAction = GetDiagnosticReport(d.Severity,
+                    d.IsEnabledByDefault,
+                    d.Code,
+                    d.Id,
+                    d.WarningLevel,
+                    d.Location,
+                    d.CustomTags,
+                    warningLevelOption,
+                    nullableOption,
+                    generalDiagnosticOption,
+                    specificDiagnosticOptions,
+                    syntaxTreeOptions,
+                    cancellationToken,
+                    out hasPragmaSuppression);
             }
 
             if (hasPragmaSuppression)
@@ -98,9 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// based on both command line options and pragmas. The diagnostic options
         /// have precedence in the following order:
         ///     1. Warning level
-        ///     2. Syntax tree level
-        ///     3. Compilation level
-        ///     4. Global warning level
+        ///     2. Command line options (/nowarn, /warnaserror)
+        ///     3. Custom severity configuration applied by analyzer
+        ///     4. Editor config options (syntax tree level)
+        ///     5. Global analyzer config options (compilation level)
+        ///     6. Global warning level
         ///
         /// Pragmas are considered separately. If a diagnostic would not otherwise
         /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
@@ -109,20 +135,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ReportDiagnostic GetDiagnosticReport(
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
+            int errorCode,
             string id,
             int diagnosticWarningLevel,
             Location location,
-            string category,
+            ImmutableArray<string> customTags,
             int warningLevelOption,
             NullableContextOptions nullableOption,
             ReportDiagnostic generalDiagnosticOption,
             IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            SyntaxTreeOptionsProvider? syntaxTreeOptions,
+            CancellationToken cancellationToken,
             out bool hasPragmaSuppression)
         {
             hasPragmaSuppression = false;
 
-            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
-            var tree = location?.SourceTree as CSharpSyntaxTree;
+            Debug.Assert(location.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
+            var tree = location.SourceTree as CSharpSyntaxTree;
             var position = location.SourceSpan.Start;
 
             bool isNullableFlowAnalysisWarning = ErrorFacts.NullableWarnings.Contains(id);
@@ -133,7 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Syntax.NullableContextState.State.Enabled => true,
                     Syntax.NullableContextState.State.Disabled => false,
-                    _ => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings
+                    Syntax.NullableContextState.State.ExplicitlyRestored => nullableOption.WarningsEnabled(),
+                    Syntax.NullableContextState.State.Unknown =>
+                        // IsGeneratedCode may be slow, check the option first:
+                        nullableOption.WarningsEnabled() && tree?.IsGeneratedCode(syntaxTreeOptions, cancellationToken) != true,
+                    null => nullableOption.WarningsEnabled(),
+                    _ => throw ExceptionUtilities.UnexpectedValue(warningsState)
                 };
 
                 if (!nullableWarningsEnabled)
@@ -150,20 +184,66 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnostic report;
             bool isSpecified = false;
+            bool specifiedWarnAsErrorMinus = false;
 
-            if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
+            if (specificDiagnosticOptions.TryGetValue(id, out report))
             {
-                // 2. Syntax tree level
-                report = treeReport;
+                // 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = true;
+
+                // 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                if (report == ReportDiagnostic.Default)
+                {
+                    specifiedWarnAsErrorMinus = true;
+                }
             }
-            else if (specificDiagnosticOptions.TryGetValue(id, out var specificReport))
+
+            var isCustomConfigured = false;
+            if (AnalyzerManager.HasCustomSeverityConfigurableTag(customTags))
             {
-                // 3. Compilation level
-                report = specificReport;
-                isSpecified = true;
+                // 3. Custom severity configuration applied by the analyzer
+                //    See https://github.com/dotnet/roslyn/issues/52991 for details.
+                isCustomConfigured = true;
+
+                // Respect the custom analyzer configured severity, unless it was already configured with command line switch.
+                // However, if just "/warnaserror-:DiagnosticId" was specified on the command line, we do respect the custom configured severity.
+                if (!isSpecified || specifiedWarnAsErrorMinus)
+                {
+                    isSpecified = true;
+                    report = DiagnosticDescriptor.MapSeverityToReport(severity);
+
+                    // Handle /warnaserror to bump warning to an error
+                    if (report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error && !specifiedWarnAsErrorMinus)
+                    {
+                        report = ReportDiagnostic.Error;
+                    }
+                }
             }
-            else
+
+            // Apply syntax tree options, if applicable.
+            if (syntaxTreeOptions != null &&
+                !isCustomConfigured &&
+                (!isSpecified || specifiedWarnAsErrorMinus))
+            {
+                // 4. Editor config options (syntax tree level)
+                // 5. Global analyzer config options (compilation level)
+                // Do not apply config options if it is bumping a warning to an error and "/warnaserror-:DiagnosticId" was specified on the command line.
+                if ((tree != null && syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, out var reportFromSyntaxTreeOptions) ||
+                    syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, out reportFromSyntaxTreeOptions)) &&
+                    !(specifiedWarnAsErrorMinus && severity == DiagnosticSeverity.Warning && reportFromSyntaxTreeOptions == ReportDiagnostic.Error))
+                {
+                    isSpecified = true;
+                    report = reportFromSyntaxTreeOptions;
+
+                    // '/warnaserror' should promote warnings configured in analyzer config to error.
+                    if (!specifiedWarnAsErrorMinus && report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
+                    {
+                        report = ReportDiagnostic.Error;
+                    }
+                }
+            }
+
+            if (!isSpecified)
             {
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
@@ -213,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            // 4. Global options
+            // 5. Global options
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
@@ -233,9 +313,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
                             report = ReportDiagnostic.Suppress;
+                            isSpecified = true;
                         }
                         break;
                 }
+            }
+
+            if (!isSpecified && errorCode == (int)ErrorCode.WRN_Experimental)
+            {
+                // Special handling for [Experimental] warning (treat as error severity by default)
+                Debug.Assert(isEnabledByDefault);
+                Debug.Assert(!specifiedWarnAsErrorMinus);
+                report = ReportDiagnostic.Error;
             }
 
             return report;

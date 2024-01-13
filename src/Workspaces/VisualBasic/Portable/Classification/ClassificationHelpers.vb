@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
             ElseIf token.Kind = SyntaxKind.IdentifierToken Then
-                Return ClassifyIdentifierSyntax(token)
+                Return GetSyntacticClassificationForIdentifier(token)
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
             ElseIf token.Kind = SyntaxKind.XmlNameToken Then
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                throw ExceptionUtilities.UnexpectedValue(token.Kind())
+                Throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -107,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword,
+                SyntaxKind.ThrowKeyword,
                 SyntaxKind.ToKeyword
                     Return True
                 Case Else
@@ -184,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Public Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
@@ -313,18 +315,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 
-        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim text2 = text.ToString(textSpan)
             Dim tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition:=textSpan.Start)
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - TODO: Do we need to do the same work here that we do in C#?
         Friend Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
-            ' TODO: Do we need to do the same work here that we do in C#?
+#Enable Warning IDE0060 ' Remove unused parameter
             Return classifiedSpan
         End Function
     End Module

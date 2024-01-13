@@ -564,7 +564,6 @@ End Module]]>
 
 #Region "TryGetSpeculativeSemanticModel"
 
-
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -721,6 +720,7 @@ End Class
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim typeInfo = speculativeModel.GetTypeInfo(expression)
             Assert.Equal("System.Int16", typeInfo.Type.ToTestDisplayString())
@@ -728,6 +728,10 @@ End Class
             Dim constantInfo = speculativeModel.GetConstantValue(expression)
             Assert.True(constantInfo.HasValue, "must be a constant")
             Assert.Equal(CType(0, System.Int16), constantInfo.Value)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel))
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1082,12 +1086,18 @@ End Module
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim upperBound = speculatedRangeArgument.UpperBound
             Dim symbolInfo = speculativeModel.GetSymbolInfo(upperBound)
             Assert.NotNull(symbolInfo.Symbol)
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
             Assert.Equal("NewMethod", symbolInfo.Symbol.Name)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel))
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1710,6 +1720,7 @@ End Class
             Dim success = model.TryGetSpeculativeSemanticModel(position, speculatedTypeSyntax, speculativeModel, bindingOption)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Assert.True(speculativeModel.IsSpeculativeSemanticModel)
             Assert.Equal(model, speculativeModel.ParentModel)
@@ -1816,6 +1827,13 @@ End Namespace
             Dim implementsClause = typeBlock.Implements(0)
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsClause.Types.First.Position,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "N.I")
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Dim speculativeModel As SemanticModel = Nothing
+            Dim success = model.TryGetSpeculativeSemanticModel(inheritsClause.Types.First.Position, speculatedTypeExpression, speculativeModel, SpeculativeBindingOption.BindAsExpression)
+            Assert.True(success)
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact>
@@ -2424,7 +2442,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2552,7 +2569,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2638,7 +2654,6 @@ End Enum
             CompilationUtils.AssertNoErrors(compilation)
 
         End Sub
-
 
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>
@@ -4534,7 +4549,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
     ]]></file>
-</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+</compilation>, {TestMetadata.Net40.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
 
@@ -4571,6 +4586,45 @@ End Module
             For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
                 Assert.False(model.GetConstantValue(interp).HasValue)
             Next
+        End Sub
+
+        <Fact>
+        <WorkItem(49952, "https://github.com/dotnet/roslyn/issues/49952")>
+        Public Sub Issue49952()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Class CTest
+    Public ReadOnly Property P As MyStructure
+
+    Class CTest2
+        Function Test() As P.F
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+Structure MyStructure
+    Public F As Integer
+End Structure
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim node = root.DescendantNodes().OfType(Of QualifiedNameSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("MyStructure.F As System.Int32", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo.CandidateReason)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30002: Type 'P.F' is not defined.
+        Function Test() As P.F
+                           ~~~
+</expected>)
         End Sub
 
     End Class

@@ -15,6 +15,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_WellKnownAttributes
         Inherits BasicTestBase
@@ -140,7 +142,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Assert.Equal(1, attrSym.CommonConstructorArguments.Length)
                         Assert.Equal(TypeLibFuncFlags.FDefaultBind, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibFuncFlags)) ' 32
                     End Sub
-
 
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
@@ -276,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                                      End Sub
 
-
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
@@ -341,7 +341,6 @@ End Class
                                          Dim sigSym = interopNS.GetTypeMember("PreserveSigAttribute")
                                          Dim offSym = interopNS.GetTypeMember("FieldOffsetAttribute")
                                          Dim mshSym = interopNS.GetTypeMember("MarshalAsAttribute")
-
 
                                          Dim optSym = interopNS.GetTypeMember("OptionalAttribute")
                                          Dim inSym = interopNS.GetTypeMember("InAttribute")
@@ -435,6 +434,270 @@ End Class
 
             ' Verify attributes from source .
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_01()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter '' of 'Public Shared Sub Evil( As Object)'.
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+                                                  ~~~~
+BC30203: Identifier expected.
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+                                                        ~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_02()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30491: Expression does not produce a value.
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+                                                  ~~~~
+BC37226: The parameter has multiple distinct default values.
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+                                                                                ~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_03()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = nameof(Evil))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="Evil").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_04()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = "evil")
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = "evil")
+                                                                                        ~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_05()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(AscW("A"))> Optional x as Integer = AscW("A"))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_06()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(AscW("A"c))> Optional x as Integer = AscW("A"c))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_07()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Asc("A"))> Optional x as Integer = Asc("A"))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_08()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Asc("A"c))> Optional x as Integer = Asc("A"c))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_09()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(microsoft.visualbasic.strings.ChrW(65))> Optional x as Char = ChrW(65))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="A").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_10()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Chr(65))> Optional x as Char = Chr(65))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="A").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -553,7 +816,8 @@ End Class
                     Assert.Equal(ParameterAttributes.None, theParameter.ParamFlags)
 
                     ' let's find the attribute in the PE metadata
-                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
+                    Dim foundAttributeType = False
+                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute, foundAttributeType)
                     Assert.True(attributeInfo.HasValue)
 
                     Dim attributeValue As Long
@@ -1093,6 +1357,37 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub DllImport_InvalidArgs2()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class DllImportAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional dllName As String = Nothing)
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    <DllImport>
+    Public Shared Sub F1()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            CreateCompilationWithMscorlib40AndVBRuntime(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'DllImportAttribute' is not valid: Incorrect argument value.
+    <DllImport>
+     ~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub DllImport_SpecialCharactersInName()
             Dim source =
     <compilation>
@@ -1585,35 +1880,35 @@ End Class
                 New With {.n = 3, .attr = MakeDllImport(cc:=CallingConvention.StdCall), .expected = MethodImportAttributes.CallingConventionStdCall},
                 New With {.n = 4, .attr = MakeDllImport(cc:=CallingConvention.ThisCall), .expected = MethodImportAttributes.CallingConventionThisCall},
                 New With {.n = 5, .attr = MakeDllImport(cc:=CallingConvention.Winapi), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                                   _
                 New With {.n = 6, .attr = MakeDllImport(), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 7, .attr = MakeDllImport(charSet:=CharSet.None), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 8, .attr = MakeDllImport(charSet:=CharSet.Ansi), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 9, .attr = MakeDllImport(charSet:=CharSet.Unicode), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 10, .attr = MakeDllImport(charSet:=CharSet.Auto), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAuto},
- _
+                                                                                                                                                                                   _
                 New With {.n = 11, .attr = MakeDllImport(exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling},
                 New With {.n = 12, .attr = MakeDllImport(exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                            _
                 New With {.n = 13, .attr = MakeDllImport(charSet:=CharSet.Ansi, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 14, .attr = MakeDllImport(charSet:=CharSet.Ansi, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 15, .attr = MakeDllImport(charSet:=CharSet.Unicode, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 16, .attr = MakeDllImport(charSet:=CharSet.Unicode, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 17, .attr = MakeDllImport(charSet:=CharSet.Auto, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetAuto},
                 New With {.n = 18, .attr = MakeDllImport(charSet:=CharSet.Auto, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAuto},
- _
+                                                                                                                                                                                                         _
                 New With {.n = 19, .attr = MakeDllImport(preserveSig:=True), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 20, .attr = MakeDllImport(preserveSig:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                          _
                 New With {.n = 21, .attr = MakeDllImport(setLastError:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError},
                 New With {.n = 22, .attr = MakeDllImport(setLastError:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                           _
                 New With {.n = 23, .attr = MakeDllImport(bestFitMapping:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.BestFitMappingEnable},
                 New With {.n = 24, .attr = MakeDllImport(bestFitMapping:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.BestFitMappingDisable},
- _
+                                                                                                                                                                                             _
                 New With {.n = 25, .attr = MakeDllImport(throwOnUnmappableChar:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ThrowOnUnmappableCharEnable},
                 New With {.n = 26, .attr = MakeDllImport(throwOnUnmappableChar:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ThrowOnUnmappableCharDisable},
- _
+                                                                                                                                                                                                           _
                 New With {.n = 27, .attr = "<DllImport(""bar"", CharSet:=CType(15, CharSet), SetLastError:=True)>", .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError},
                 New With {.n = 28, .attr = "<DllImport(""bar"", CallingConvention:=CType(15, CallingConvention), SetLastError:=True)>", .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError}
             }
@@ -1925,7 +2220,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -2275,7 +2570,6 @@ End Class
                 End Sub)
         End Sub
 
-
         <Fact>
         Public Sub DllImport_DefaultCharSet_Errors()
             Dim source =
@@ -2293,6 +2587,34 @@ Imports System.Runtime.InteropServices
 BC30127: Attribute 'DefaultCharSetAttribute' is not valid: Incorrect argument value.
 <Module:DefaultCharSet(DirectCast(Integer.MaxValue, CharSet))>
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub DllImport_DefaultCharSet_Errors2()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<Module:DefaultCharSet>
+
+Namespace System.Runtime.InteropServices
+    Public Class DefaultCharSetAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional charSet As CharSet = Integer.MaxValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'DefaultCharSetAttribute' is not valid: Incorrect argument value.
+<Module:DefaultCharSet>
+ ~~~~~~~~~~~~~~~~~~~~~
 ]]>)
         End Sub
 
@@ -3077,7 +3399,8 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 ]]></expected>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestIsSerializableProperty()
             Dim missing =
@@ -3404,7 +3727,6 @@ End Namespace
 
                                                                 End Sub
 
-
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
@@ -3550,11 +3872,11 @@ end structure
 
                     ' Get System.Security.Permissions.HostProtection
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute")
-                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
-                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor"), Microsoft.Cci.ITypeDefinition)
+                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
                     Debug.Assert(type.HasDeclarativeSecurity)
                     Dim typeSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = type.SecurityAttributes
 
@@ -3761,14 +4083,102 @@ end class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "FileIOPermission").WithArguments("action", "Public Overloads Sub New(action As System.Security.Permissions.SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(-1, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(-1, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_InvalidAttributeUsage2, "FileIOPermission").WithArguments("FileIOPermissionAttribute", "Field"))
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31214: SecurityAction value 'DirectCast(0, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(0, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(11, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(11, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(-1, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(-1, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(0, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(0, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(11, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(11, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(-1, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(-1, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30455: Argument not specified for parameter 'action' of 'Public Overloads Sub New(action As SecurityAction)'.
+    <FileIOPermission()>
+     ~~~~~~~~~~~~~~~~
+BC30662: Attribute 'FileIOPermissionAttribute' cannot be applied to 'Field' because the attribute is not valid on this declaration type.
+        <FileIOPermission(SecurityAction.Demand)>
+         ~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionErrors_UserDefinedWithOptionalParameterInCtor_PermissionsRequestAction()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Public Class MySecurityAttribute
+    Inherits SecurityAttribute
+
+#Disable Warning BC40000 ' RequestMinimum is obsolete
+    Public Sub New(Optional action As SecurityAction = SecurityAction.RequestMinimum)
+#Enable Warning BC40000
+        MyBase.New(action)
+    End Sub
+
+    Public Overrides Function CreatePermission() As System.Security.IPermission
+        Return Nothing
+    End Function
+End Class
+
+<MySecurityAttribute>
+Class A
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31214: SecurityAction value '8' is invalid for security attributes applied to a type or a method.
+<MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionErrors_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Public Class MySecurityAttribute
+	Inherits SecurityAttribute
+
+	Public Sub New(Optional action As SecurityAction = 0)
+		MyBase.New(action)
+	End Sub
+
+	Public Overrides Function CreatePermission() As System.Security.IPermission
+		Return Nothing
+	End Function
+End Class
+
+<MySecurityAttribute>
+Class A
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31214: SecurityAction value '0' is invalid for security attributes applied to a type or a method.
+<MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -3810,14 +4220,26 @@ end class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
-            comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute")
-                )
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute()>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Field := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Field := true, Prop := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Prop := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Prop := true, Field := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(0, SecurityAction.Assert)>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -3892,6 +4314,40 @@ end class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.InheritanceDemand").WithArguments("SecurityAction.InheritanceDemand"),
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"),
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.PermitOnly").WithArguments("SecurityAction.PermitOnly"))
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionsForAssemblyErrors_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security
+Imports System.Security.Permissions
+
+<assembly: MySecurityAttribute>
+
+Class MySecurityAttribute 
+    Inherits SecurityAttribute
+
+    Public Sub New (Optional a As SecurityAction = 1)
+        MyBase.New(a)
+    End Sub
+
+    Public Overrides Function CreatePermission() As IPermission 
+        Return Nothing
+    End Function
+End Class
+
+]]>
+                             </file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC31213: SecurityAction value '1' is invalid for security attributes applied to an assembly.
+<assembly: MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -4039,6 +4495,45 @@ End Class
             CreateCompilationWithMscorlib40(source).VerifyDiagnostics(Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.InheritanceDemand").WithArguments("SecurityAction.InheritanceDemand"),
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
+        End Sub
+
+        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
+        <Fact>
+        Public Sub PrincipalPermissionAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Namespace System.Security.Permissions
+    Public Class PrincipalPermissionAttribute
+        Inherits SecurityAttribute
+
+        Public Sub New(Optional action As SecurityAction = SecurityAction.InheritanceDemand)
+            MyBase.New(action)
+        End Sub
+
+        Public Overrides Function CreatePermission() As IPermission
+            Throw New NotImplementedException()
+        End Function
+    End Class
+End Namespace
+
+Class Program
+    <PrincipalPermission>
+    Public Shared Sub Main()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31215: SecurityAction value '7' is invalid for PrincipalPermission attribute.
+    <PrincipalPermission>
+     ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
@@ -4267,6 +4762,36 @@ BC30662: Attribute 'ClassInterfaceAttribute' cannot be applied to 'InvalidTarget
 ]]></expected>)
         End Sub
 
+        <Fact>
+        Public Sub TestClassInterfaceAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class ClassInterfaceAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional classInterfaceType As ClassInterfaceType = -1)
+        End Sub
+    End Class
+End Namespace
+
+<ClassInterface>
+Public Class InvalidClass
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
+<ClassInterface>
+ ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
 #End Region
 
 #Region "InterfaceTypeAttribute, TypeLibTypeAttribute"
@@ -4365,6 +4890,37 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
  ~~~~~~~~~~~~~
 BC30662: Attribute 'InterfaceTypeAttribute' cannot be applied to 'InvalidTarget' because the attribute is not valid on this declaration type.
 <InterfaceType(ComInterfaceType.InterfaceIsDual)>
+ ~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInterfaceTypeAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class InterfaceTypeAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional interfaceType As ComInterfaceType = -1)
+        End Sub
+    End Class
+End Namespace
+
+<InterfaceType>
+Public Interface InvalidInterface1
+End Interface
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
+<InterfaceType>
  ~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
@@ -4709,6 +5265,214 @@ BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expres
 <Assembly: TypeLibVersionAttribute("str", 0)>
                                    ~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_03()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_04()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1)> ' Not valid. minor is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(1)> ' Not valid. minor is negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_05()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+                                   ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_06()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+                                   ~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+                                       ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_07()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1, 1)> ' Not valid. major is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, 1)> ' Not valid. major is negative.
+                                   ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_08()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. minor is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. minor is negative.
+                                      ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Valid_UserDefinedAttribute()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1, 1)>
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics()
         End Sub
 
 #End Region
@@ -5152,7 +5916,6 @@ Class C
     End Function
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5184,7 +5947,6 @@ End Namespace
 Class C
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5221,7 +5983,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5259,7 +6020,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5289,7 +6049,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5316,7 +6075,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5346,7 +6104,6 @@ Enum E
     Member
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5378,7 +6135,6 @@ Enum E
     Member2
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5411,7 +6167,6 @@ Class C
     Event E(ByVal i As Integer)
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5441,7 +6196,6 @@ Class C
     Delegate Sub D()
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5470,7 +6224,6 @@ End Namespace
 Interface I
 End Interface
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5499,7 +6252,6 @@ End Namespace
 Structure S
 End Structure
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5530,7 +6282,6 @@ Class C
     End Function
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5560,7 +6311,6 @@ Class C
     End Sub
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5590,7 +6340,6 @@ Class C
     Dim i As Integer
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5810,6 +6559,399 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
         r.sc1_method()
           ~~~~~~~~~~
 ]]></expected>)
+        End Sub
+
+#End Region
+
+#Region "ModuleInitializerAttribute"
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnMethod()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Namespace System.Runtime.CompilerServices
+    Public Class ModuleInitializerAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+
+Class Program
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Sub S()
+    End Sub
+
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Function F() As Integer
+        Return 1
+    End Function
+End Class
+]]>
+                </file>
+            </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40(source)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnClass()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnProperty()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnAccessors()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Property P As Integer
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+        Get
+            Return 1
+        End Get
+
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnModule()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Module: System.Runtime.CompilerServices.ModuleInitializerAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnAssembly()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Assembly: System.Runtime.CompilerServices.ModuleInitializerAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEnum()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Enum E
+    Member
+End Enum
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEnumMember()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Enum E
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Member1
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Member2
+End Enum
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEvent()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Event E(ByVal i As Integer)
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnDelegate()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Delegate Sub D()
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnInterface()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Interface I
+End Interface
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnStructure()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Structure S
+End Structure
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnReturnValue()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Function F() As <System.Runtime.CompilerServices.ModuleInitializerAttribute> Integer
+        Return 1
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnParameter()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Sub M(<System.Runtime.CompilerServices.ModuleInitializerAttribute> ByVal i As Integer)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnField()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Dim i As Integer
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
 #End Region
@@ -6184,6 +7326,120 @@ second",
                         Assert.Equal([module].ContainingAssembly, attribute.AttributeClass.ContainingAssembly)
                         Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
                     End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_01()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_02()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub ErrorInPropertyValue_03()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<StructLayout(CharSet:=0)>
+public structure S1
+end structure
+
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+public structure S2
+end structure
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+<StructLayout(CharSet:=0)>
+ ~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+                                     ~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub TestGuidAttribute()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class GuidAttribute
+        Inherits Attribute
+
+    Public Sub New(Optional guid As String = Nothing)
+    End Sub
+    End Class
+End Namespace
+
+<Guid>
+Public Class AClass
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothing' is not correct.
+<Guid>
+ ~~~~
+]]></errors>)
         End Sub
     End Class
 End Namespace

@@ -2,29 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaListExtensions
     {
-        public static bool Any(this SyntaxTriviaList triviaList, params SyntaxKind[] kinds)
-        {
-            foreach (var trivia in triviaList)
-            {
-                if (trivia.MatchesKind(kinds))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
         {
             return triviaList
@@ -41,8 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
+            if (triviaList.Count == 0)
+                return null;
+
             return triviaList
-                .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
+                .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
                 .LastOrNull();
         }
 
@@ -51,27 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
         {
-            var result = ArrayBuilder<ImmutableArray<SyntaxTrivia>>.GetInstance();
-            var currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            using var result = TemporaryArray<ImmutableArray<SyntaxTrivia>>.Empty;
+            using var currentLine = TemporaryArray<SyntaxTrivia>.Empty;
             foreach (var trivia in triviaList)
             {
                 currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    var currentLineIsBlank = currentLine.All(t =>
-                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                    var currentLineIsBlank = currentLine.All(static t =>
+                        t.Kind() is SyntaxKind.EndOfLineTrivia or
+                        SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)
                     {
                         break;
                     }
 
-                    result.Add(currentLine.ToImmutableAndFree());
-                    currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
+                    result.Add(currentLine.ToImmutableAndClear());
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)

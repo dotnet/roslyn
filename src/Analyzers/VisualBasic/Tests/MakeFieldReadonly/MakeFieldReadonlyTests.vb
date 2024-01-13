@@ -5,19 +5,20 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
     Public Class MakeFieldReadonlyTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+
+        Private Shared ReadOnly s_strictFeatureFlag As ParseOptions = VisualBasicParseOptions.Default.WithFeatures({New KeyValuePair(Of String, String)("strict", "true")})
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New MakeFieldReadonlyDiagnosticAnalyzer(),
-                New VisualBasicMakeFieldReadonlyCodeFixProvider())
+            Return (New VisualBasicMakeFieldReadonlyDiagnosticAnalyzer(), New VisualBasicMakeFieldReadonlyCodeFixProvider())
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Theory>
         <InlineData("Public")>
         <InlineData("Friend")>
         <InlineData("Protected")>
@@ -29,7 +30,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldIsEvent() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -37,7 +38,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldIsReadonly() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -45,7 +46,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldIsConst() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -53,9 +54,9 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer
 End Class",
@@ -64,9 +65,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_PartialClass1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Partial Class C
     Private [|_goo|] As Integer
 End Class",
@@ -75,9 +76,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_PartialClass2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer
 End Class
@@ -92,7 +93,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_PartialClass3() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -122,10 +123,10 @@ End Class
 </Document>
                     </Project>
                 </Workspace>.ToString()
-            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssigned_PartialClass1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Partial Class C
@@ -137,7 +138,7 @@ End Class
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssigned_PartialClass2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -151,7 +152,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssigned_PartialClass3() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -173,9 +174,9 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_Struct() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Structure C
     Private [|_goo|] As Integer
 End Structure",
@@ -184,9 +185,9 @@ End Structure",
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_Module() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Module C
     Private [|_goo|] As Integer
 End Module",
@@ -195,9 +196,9 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldNotAssigned_FieldDeclaredWithDim() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|_goo|] As Integer
 End Class",
@@ -206,9 +207,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInline() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
 End Class",
@@ -217,9 +218,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0, _bar As Integer = 0
 End Class",
@@ -229,9 +230,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly_MultipleNamesInDeclarator() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|], _bar As Integer, _fizz As String = """"
 End Class",
@@ -242,9 +243,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private _goo As Integer = 0, [|_bar|] As Integer = 0, _fizz As Integer = 0
 End Class",
@@ -255,9 +256,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms01() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|x|] As Integer, y As String
 End Class",
@@ -267,9 +268,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms02() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x As Integer, [|y|] As String
 End Class",
@@ -279,9 +280,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms03() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|x|], y As Integer, z, w As String
 End Class",
@@ -293,9 +294,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms04() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, [|y|] As Integer, z, w As String
 End Class",
@@ -307,9 +308,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms05() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, y As Integer, [|z|], w As String
 End Class",
@@ -321,9 +322,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms06() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, y As Integer, z, [|w|] As String
 End Class",
@@ -335,9 +336,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms07() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|x|], y() As Integer, z(), w As String
 End Class",
@@ -349,9 +350,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms08() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, [|y|]() As Integer, z(), w As String
 End Class",
@@ -363,9 +364,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms09() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, y() As Integer, [|z|](), w As String
 End Class",
@@ -377,9 +378,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms10() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, y() As Integer, z(), [|w|] As String
 End Class",
@@ -391,9 +392,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms11() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|x|] As New String("""".ToCharArray)
 End Class",
@@ -402,9 +403,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms12() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|x|], y As New String("""".ToCharArray)
 End Class",
@@ -414,9 +415,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms13() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim x, [|y|] As New String("""".ToCharArray)
 End Class",
@@ -426,9 +427,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_VBSpecialForms14() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim {|FixAllInDocument:x|}, y As New String("""".ToCharArray)
 End Class",
@@ -437,9 +438,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_OneAssignedInMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private _goo As Integer = 0, [|_bar|] As Integer = 0
     Private Sub Goo()
@@ -455,9 +456,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function MultipleFieldsAssignedInline_NoInitializer() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer, _bar As Integer = 0
 End Class",
@@ -467,12 +468,12 @@ End Class",
 End Class")
         End Function
 
-        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Theory>
         <InlineData("")>
         <InlineData("\r\n")>
         <InlineData("\r\n\r\n")>
         Public Async Function MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(leadingTrivia As String) As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 $"Class C
     'Comment{leadingTrivia}
     Private _goo As Integer = 0, [|_bar|] As Integer = 0
@@ -484,9 +485,9 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInCtor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Public Sub New()
@@ -501,7 +502,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInMultilineLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -517,7 +518,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -531,7 +532,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInCtor_DifferentInstance() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -543,7 +544,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInCtor_DifferentInstance_QualifiedWithObjectInitializer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -556,9 +557,9 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInCtor_QualifiedWithMe() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Public Sub New()
@@ -573,9 +574,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldReturnedInProperty() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     ReadOnly Property Goo As Integer
@@ -594,10 +595,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReturnedInMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_s|] As String
     Sub New(s As String)
@@ -618,10 +618,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29746")>
         Public Async Function FieldReadInMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_s|] As String
     Sub New(s As String)
@@ -642,7 +641,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -658,7 +657,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -669,7 +668,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInNestedTypeConstructor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -684,7 +683,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInNestedTypeMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -699,9 +698,9 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function VariableAssignedToFieldInMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo
@@ -716,7 +715,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldAssignedInMethodWithCompoundOperator() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -727,7 +726,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function AssignedInPartialClass() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Partial Class C
@@ -741,7 +740,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function PassedAsByRefParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -754,10 +753,9 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26262")>
         Public Async Function CopyPassedAsByRefParameter() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo()
@@ -778,9 +776,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function PassedAsByRefParameterInCtor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub New()
@@ -799,9 +797,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function PassedAsByValParameter() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo|] As Integer = 0
     Sub Goo()
@@ -820,9 +818,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function SharedFieldAssignedInSharedCtor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private Shared [|_goo|] As Integer = 0
     Shared Sub New()
@@ -837,7 +835,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function SharedFieldAssignedInNonSharedCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -848,7 +846,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldIsMutableStructure() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Structure S
@@ -859,9 +857,9 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FieldIsCustomImmutableStructure() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Structure S
     Private readonly _goo As Integer
     Private Const _bar As Integer = 0
@@ -880,9 +878,9 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FixAll() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private {|FixAllInDocument:_goo|} As Integer = 0, _bar As Integer = 0
     Dim a, b(), c As Integer, x, y As String
@@ -895,9 +893,9 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact>
         Public Async Function FixAll_MultipleFieldsAssignedInline_TwoCanBeReadonly_MultipleNamesInDeclarator() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private _goo, {|FixAllInDocument:_bar|} As Integer, _fizz As String = """"
     Sub Goo()
@@ -914,10 +912,9 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(26850, "https://github.com/dotnet/roslyn/issues/26850")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26850")>
         Public Async Function FieldNotAssigned_FieldPartiallyDeclaredWithDim() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Dim [|_goo|]
 End Class",
@@ -926,8 +923,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsReDimOperand() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -938,8 +934,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsReDimPreserveOperand() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -950,10 +945,9 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29373")>
         Public Async Function FieldIsRedimIndex() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Private [|_goo()|] As Integer
     Private Sub M(a() As Integer)
@@ -966,6 +960,232 @@ End Class",
         Redim a(_goo)
     End Sub
 End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42760")>
+        Public Async Function WithThreadStaticAttribute_NoDiagnostic() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+
+Class C
+    <ThreadStatic>
+    Private Shared [|t_obj|] As Object
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldNotWarnForDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldWarnForDataMemberFieldsInNonDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private ReadOnly id As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private id As String
+
+    Private [|id2|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private id As String
+
+    Private ReadOnly id2 As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    Public [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59720")>
+        Public Async Function TestForToLoop() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    Dim [|i|] As Integer
+    Sub Main()
+        For i = 1 To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59720")>
+        Public Async Function TestForToLoop_ReadAsInitialValue() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    Dim [|x|] As Integer = 5
+    Sub Main()
+        For i = x To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    ReadOnly x As Integer = 5
+    Sub Main()
+        For i = x To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
+        Public Async Function StrictFeatureFlagAssignment1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+imports System
+imports System.Collections.Generic
+
+class C(Of T)
+    private shared [|s_value|] as IEqualityComparer(Of T)
+
+    shared sub new()
+        C(Of T).s_value = nothing
+    end sub
+end class
+",
+"
+imports System
+imports System.Collections.Generic
+
+class C(Of T)
+    private shared ReadOnly s_value as IEqualityComparer(Of T)
+
+    shared sub new()
+        C(Of T).s_value = nothing
+    end sub
+end class
+", parseOptions:=s_strictFeatureFlag)
+        End Function
+
+        <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
+        Public Async Function StrictFeatureFlagAssignment2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+imports System
+imports System.Collections.Generic
+
+class C(Of T)
+    private shared [|s_value|] as IEqualityComparer(Of T)
+
+    shared sub new()
+        C(Of string).s_value = nothing
+    end sub
+end class
+", New TestParameters(parseOptions:=s_strictFeatureFlag))
+        End Function
+
+        <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
+        Public Async Function StrictFeatureFlagAssignment3() As Task
+            Await TestMissingAsync(
+"
+imports System
+imports System.Collections.Generic
+
+class C(Of T)
+    private shared [|s_value|] as IEqualityComparer(Of T)
+
+    shared sub new()
+        C(Of string).s_value = nothing
+    end sub
+end class
+")
         End Function
     End Class
 End Namespace

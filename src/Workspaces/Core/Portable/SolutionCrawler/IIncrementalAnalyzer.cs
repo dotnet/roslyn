@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Resets all the document state cached by the analyzer.
@@ -27,6 +30,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
-        bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
+        Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
+        Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Resets all the document state cached by the analyzer.
+        /// </summary>
+        Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
+
+        Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
+
+        void LogAnalyzerCountSummary();
+        int Priority { get; }
+        void Shutdown();
     }
 }

@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -25,15 +28,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _project = project;
             }
 
-            protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected sealed override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSuppressionDocument = await GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return new CodeActionOperation[]
-                {
+                return ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0)
-                };
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0));
             }
 
             protected abstract Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                             var t = await document.GetSyntaxTreeAsync(c).ConfigureAwait(false);
                             var r = await t.GetRootAsync(c).ConfigureAwait(false);
-                            var syntaxFacts = _project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                            var syntaxFacts = _project.Services.GetRequiredService<ISyntaxFactsService>();
 
                             if (r.ChildNodes().All(n => syntaxFacts.IsUsingOrExternOrImport(n) || Fixer.IsAttributeListWithAssemblyAttributes(n)))
                             {

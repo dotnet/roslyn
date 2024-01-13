@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 {
     internal abstract class AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<
         TLanguageKindEnum,
-        TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TCastExpression> : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TCastExpression : SyntaxNode
     {
         protected AbstractRemoveUnnecessaryCastDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnnecessaryCast,
                    option: null,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Remove_Unnecessary_Cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)))
         {
@@ -40,6 +39,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var diagnostic = TryRemoveCastExpression(
                 context.SemanticModel,
                 (TCastExpression)context.Node,
@@ -66,9 +68,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
                 return null;
             }
 
-            RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
             return Diagnostic.Create(
-                UnnecessaryWithSuggestionDescriptor,
+                Descriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),
                 ImmutableArray.Create(node.GetLocation()));
         }

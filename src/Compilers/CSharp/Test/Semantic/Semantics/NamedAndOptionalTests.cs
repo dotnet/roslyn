@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -43,7 +45,6 @@ class Program
                 //                   decimal d = new decimal(5),
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
         }
-
 
         [Fact]
         public void Test13861()
@@ -223,13 +224,13 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'
+                // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'fg' of 'C.F'
                 //         f(0, fz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'my' of 'C.M(int, int, int)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'my' of 'C.M(int, int, int)'
                 //         M(0, mz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
-                // (12,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'cy' of 'C.C(int, int, int)'
+                // (12,13): error CS7036: There is no argument given that corresponds to the required parameter 'cy' of 'C.C(int, int, int)'
                 //         new C(0, cz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
         }
@@ -737,9 +738,12 @@ partial class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-// (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
-//         PartialMethod(y:123);
-Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y")
+                // (9,25): warning CS8826: Partial method declarations 'void C.PartialMethod(int x)' and 'void C.PartialMethod(int y)' have signature differences.
+                //     static partial void PartialMethod(int y) { Console.WriteLine(y); }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "PartialMethod").WithArguments("void C.PartialMethod(int x)", "void C.PartialMethod(int y)").WithLocation(9, 25),
+                // (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
+                //         PartialMethod(y:123);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y").WithLocation(13, 23)
                 );
         }
 
@@ -767,7 +771,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -884,7 +888,6 @@ public struct Vector3
 }";
             CreateCompilation(source).VerifyDiagnostics();
         }
-
 
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
@@ -1008,7 +1011,7 @@ public class Parent
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
- // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
+ // (8,10): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Parent.Goo(ref int)'
  //          Goo();
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
         }
@@ -1348,6 +1351,47 @@ System.Runtime.InteropServices.UnknownWrapper
             }
         }
 
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void IUnknownConstant_MissingType()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static void M0([Optional, MarshalAs(UnmanagedType.Interface)] object param) { }
+    static void M1([Optional, IUnknownConstant] object param) { }
+    static void M2([Optional, IDispatchConstant] object param) { }
+    static void M3([Optional] object param) { }
+
+    static void M()
+    {
+        M0();
+        M1();
+        M2();
+        M3();
+    }
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Type__Missing);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.UnknownWrapper..ctor'
+                //         M1();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M1()").WithArguments("System.Runtime.InteropServices.UnknownWrapper", ".ctor").WithLocation(15, 9),
+                // (16,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.DispatchWrapper..ctor'
+                //         M2();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M2()").WithArguments("System.Runtime.InteropServices.DispatchWrapper", ".ctor").WithLocation(16, 9),
+                // (17,9): error CS0656: Missing compiler required member 'System.Type.Missing'
+                //         M3();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3()").WithArguments("System.Type", "Missing").WithLocation(17, 9));
+        }
+
         [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
         [Fact()]
         public void ComOptionalRefParameter()
@@ -1381,7 +1425,7 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
+                // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
@@ -1680,7 +1724,6 @@ one
 }");
         }
 
-
         [Fact]
         public void OmittedComOutParameter()
         {
@@ -1702,7 +1745,7 @@ class P
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-// (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
+// (11,26): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "I.M(out object)")
                 );
@@ -2351,6 +2394,151 @@ public class C
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
             CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        public void InvalidConversionForDefaultArgument_InIL()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig instance int32  M1([opt] int32 s) cil managed
+  {
+    .param [1] = ""abc""
+    // Code size 2 (0x2)
+    .maxstack 8
+
+    IL_0000: ldarg.1
+    IL_0001: ret
+  } // end of method P::M1
+} // end of class P
+";
+
+            var csharp = @"
+class C
+{
+    public static void Main()
+    {
+         P p = new P();
+         System.Console.Write(p.M1());
+    }
+}
+";
+            var comp = CreateCompilationWithIL(csharp, il, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //          System.Console.Write(p.M1());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.M1()").WithArguments("string", "int").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void DefaultArgument_LoopInUsage()
+        {
+            var csharp = @"
+class C
+{
+    static object F(object param = F()) => param; // 1
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS1736: Default parameter value for 'param' must be a compile-time constant
+                //     static object F(object param = F()) => param; // 1
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("param").WithLocation(4, 36));
+
+            var method = comp.GetMember<MethodSymbol>("C.F");
+            var param = method.Parameters.Single();
+            Assert.Equal(ConstantValue.Bad, param.ExplicitDefaultConstantValue);
+        }
+
+        [Fact]
+        public void DefaultValue_Boxing()
+        {
+            var csharp = @"
+class C
+{
+    void M1(object obj = 1) // 1
+    {
+    }
+
+    C(object obj = System.DayOfWeek.Monday) // 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M1(object obj = 1) // 1
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(4, 20),
+                // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     C(object obj = System.DayOfWeek.Monday) // 2
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
+        }
+
+        [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
+        public void DefaultValue_NonNullConvertedString()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    const IEnumerable<char> y = ""world""; // 1
+    const string y2 = ""world"";
+    const object y3 = ""world""; // 2
+    const dynamic y4 = ""world""; // 3
+
+    void M(IEnumerable<char> x = ""hello"") // 4
+    {
+    }
+
+    void M2(string x = ""hello"")
+    {
+    }
+
+    void M3(object x = ""hello"") // 5
+    {
+    }
+
+    void M4(dynamic x = ""hello"") // 6
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0134: 'C.y' is of type 'IEnumerable<char>'. A const field of a reference type other than string can only be initialized with null.
+                //     const IEnumerable<char> y = "world"; // 1
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y", "System.Collections.Generic.IEnumerable<char>").WithLocation(6, 33),
+                // (8,23): error CS0134: 'C.y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //     const object y3 = "world"; // 2
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y3", "object").WithLocation(8, 23),
+                // (9,24): error CS0134: 'C.y4' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
+                //     const dynamic y4 = "world"; // 3
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y4", "dynamic").WithLocation(9, 24),
+                // (11,30): error CS1763: 'x' is of type 'IEnumerable<char>'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M(IEnumerable<char> x = "hello") // 4
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "System.Collections.Generic.IEnumerable<char>").WithLocation(11, 30),
+                // (19,20): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M3(object x = "hello") // 5
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(19, 20),
+                // (23,21): error CS1763: 'x' is of type 'dynamic'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M4(dynamic x = "hello") // 6
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "dynamic").WithLocation(23, 21)
+                );
         }
     }
 }

@@ -29,73 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
 
-        public static bool IsInInactiveRegion(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(syntaxTree);
-
-            // cases:
-            // $ is EOF
-
-            // #if false
-            //    |
-
-            // #if false
-            //    |$
-
-            // #if false
-            // |
-
-            // #if false
-            // |$
-
-            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
-            {
-                return false;
-            }
-
-            // The latter two are the hard cases we don't actually have an 
-            // DisabledTextTrivia yet. 
-            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
-            {
-                return true;
-            }
-
-            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
-            {
-                var triviaList = token.LeadingTrivia;
-                foreach (var triviaTok in triviaList.Reverse())
-                {
-                    if (triviaTok.Span.Contains(position))
-                    {
-                        return false;
-                    }
-
-                    if (triviaTok.Span.End < position)
-                    {
-                        if (!triviaTok.HasStructure)
-                        {
-                            return false;
-                        }
-
-                        var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax branch)
-                        {
-                            return !branch.IsActive || !branch.BranchTaken;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var genericIdentifier, out var lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out _, out _);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -104,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier)
         {
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out var lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out _);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -173,13 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             break;
                         }
 
-                    case SyntaxKind.GreaterThanGreaterThanToken:
-                        stack++;
-                        goto case SyntaxKind.GreaterThanToken;
-
                     // fall through
                     case SyntaxKind.GreaterThanToken:
-                        stack++;
+                    case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+
+                        // FindTokenOnLeftOfPosition returns the token that we are contained in. This means in cases like
+                        // G<G<G<int>>$$> the compiler might have parsed that final >> as a shift operator. We want to only count the
+                        // number of >s to the left of where we actually are.
+                        if (token.Span.End <= position)
+                            stack += token.Span.Length;
+                        else
+                            stack += (position - token.Span.Start);
+
                         break;
 
                     case SyntaxKind.AsteriskToken:      // for int*

@@ -28,12 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
                        stateMachineType As AsyncStateMachine,
+                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag)
+                       diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
             Me._lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
@@ -71,9 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
+                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  <Out> ByRef stateMachineType As AsyncStateMachine) As BoundBlock
 
             If body.HasErrors Then
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
+            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -214,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             bodyBuilder.Add(
                 Me.F.Assignment(
                     stateFieldAsLValue,
-                    Me.F.Literal(StateMachineStates.NotStartedStateMachine)))
+                    Me.F.Literal(StateMachineState.NotStartedOrRunningState)))
 
             ' STAT:   localStateMachine.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of typeArgs).Create()
             Dim constructedBuilderField As FieldSymbol = Me._builderField.AsMember(frameType)
@@ -250,19 +252,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub GenerateMoveNext(moveNextMethod As MethodSymbol)
-            Dim rewriter = New AsyncMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          builder:=Me._builderField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          nonReusableLocalProxies:=Me.nonReusableLocalProxies,
-                                                          synthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          owner:=Me,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New AsyncMethodToClassRewriter(
+                method:=Method,
+                F:=F,
+                state:=StateField,
+                builder:=_builderField,
+                hoistedVariables:=hoistedVariables,
+                nonReusableLocalProxies:=nonReusableLocalProxies,
+                StateDebugInfoBuilder,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                owner:=Me,
+                diagnostics:=Diagnostics)
 
-            rewriter.GenerateMoveNext(Me.Body, moveNextMethod)
+            rewriter.GenerateMoveNext(Body, moveNextMethod)
         End Sub
 
         Friend Overrides Function RewriteBodyIfNeeded(body As BoundStatement, topMethod As MethodSymbol, currentMethod As MethodSymbol) As BoundStatement
@@ -304,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = DiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             EnsureSpecialType(SpecialType.System_Object, bag)
             EnsureSpecialType(SpecialType.System_Void, bag)
@@ -461,7 +463,7 @@ lCaptureRValue:
                                     Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
-                                        StringConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
+                                        GeneratedNameConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
                                         Accessibility.Friend),
                                     expression)
             End Select
@@ -542,9 +544,9 @@ lCaptureRValue:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
+            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
@@ -601,9 +603,9 @@ lCaptureRValue:
             Dim group As BoundPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
+            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)

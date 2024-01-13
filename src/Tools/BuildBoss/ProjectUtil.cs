@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,8 +23,6 @@ namespace BuildBoss
         internal XmlNamespaceManager Manager { get; }
         internal XNamespace Namespace { get; }
         internal string OutputType { get; }
-
-        public bool IsNewSdk => GetTargetFramework() != null || GetTargetFrameworks() != null;
 
         internal bool IsTestProject => IsUnitTestProject || IsIntegrationTestProject;
         internal bool IsUnitTestProject => Path.GetFileNameWithoutExtension(Key.FilePath).EndsWith(".UnitTests");
@@ -44,11 +44,22 @@ namespace BuildBoss
             OutputType = FindSingleProperty("OutputType")?.Value.Trim().ToLowerInvariant();
         }
 
-        internal bool IsDeploymentProject => IsTestProject || OutputType switch { "exe" => true, "winexe" => true, _ => false };
-
         internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
 
         internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
+
+        public bool IsNewSdk()
+        {
+            if (GetTargetFramework() != null || GetTargetFrameworks() != null)
+            {
+                return true;
+            }
+
+            // If a project has a 'Project' element with an 'Sdk' attribute, then it's an SDK-style project.
+            // https://github.com/dotnet/project-system/blob/main/docs/opening-with-new-project-system.md#sdks
+            var hasProjectWithSdkAttribute = Document.XPathSelectElements("//mb:Project", Manager).FirstOrDefault()?.Attribute("Sdk") != null;
+            return hasProjectWithSdkAttribute;
+        }
 
         internal IEnumerable<string> GetAllTargetFrameworks()
         {
@@ -65,7 +76,7 @@ namespace BuildBoss
                 return all;
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Project {Key.FilePath} does not have a TargetFramework(s) element.");
         }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
@@ -97,14 +108,9 @@ namespace BuildBoss
                 .Where(x => !string.IsNullOrEmpty(x));
         }
 
-        internal IEnumerable<XElement> GetItemGroup()
-        {
-            return Document.XPathSelectElements("//mb:ItemGroup", Manager);
-        }
-
         internal List<ProjectReferenceEntry> GetDeclaredProjectReferences()
         {
-            var references = Document.XPathSelectElements("//mb:ProjectReference", Manager);
+            var references = Document.XPathSelectElements("//mb:ItemGroup/mb:ProjectReference", Manager);
             var list = new List<ProjectReferenceEntry>();
             var directory = Path.GetDirectoryName(Key.FilePath);
             foreach (var r in references)
@@ -135,11 +141,10 @@ namespace BuildBoss
             return list;
         }
 
-
         internal List<PackageReference> GetPackageReferences()
         {
             var list = new List<PackageReference>();
-            foreach (var packageRef in Document.XPathSelectElements("//mb:PackageReference", Manager))
+            foreach (var packageRef in Document.XPathSelectElements("//mb:ItemGroup/mb:PackageReference", Manager))
             {
                 list.Add(GetPackageReference(packageRef));
             }
@@ -149,7 +154,7 @@ namespace BuildBoss
 
         internal PackageReference GetPackageReference(XElement element)
         {
-            var name = element.Attribute("Include")?.Value ?? "";
+            var name = element.Attribute("Include")?.Value ?? element.Attribute("Update")?.Value ?? "";
             var version = element.Attribute("Version");
             if (version != null)
             {

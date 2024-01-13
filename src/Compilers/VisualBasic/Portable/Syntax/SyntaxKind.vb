@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Represents part of a single line If statement, consisting of a beginning
         ''' if-statement, followed by a body of statement controlled by that beginning
-        ''' statement. The Kind property returns if this is an SingleLineIf.
+        ''' statement. The Kind property returns if this is a SingleLineIf.
         ''' </summary>
         SingleLineIfPart = 171                   ' SingleLineIfPartSyntax
         ''' <summary>
@@ -700,13 +700,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' TryPart = 186                            ' This node was removed.
 
         ''' <summary>
-        ''' Represents a Catch part of an Try...Catch...Finally...End Try statement,
+        ''' Represents a Catch part of a Try...Catch...Finally...End Try statement,
         ''' consisting of a Catch statement, followed by a body of statements controlled by
         ''' that Catch statement. The Kind property returns which kind of part this is.
         ''' </summary>
         CatchBlock = 187                          ' CatchBlockSyntax
         ''' <summary>
-        ''' Represents the Finally part of an Try...Catch...Finally...End Try statement,
+        ''' Represents the Finally part of a Try...Catch...Finally...End Try statement,
         ''' consisting of a Finally statement, followed by a body of statements controlled
         ''' by the Finally.
         ''' </summary>
@@ -964,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         MidExpression = 260                      ' MidExpressionSyntax : ExpressionSyntax
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         CallStatement = 261                      ' CallStatementSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
@@ -2914,7 +2914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         IntegerLiteralToken = 701                ' IntegerLiteralTokenSyntax : SyntaxToken
         ''' <summary>
-        ''' Represents an floating literal token.
+        ''' Represents a floating literal token.
         ''' </summary>
         FloatingLiteralToken = 702               ' FloatingLiteralTokenSyntax : SyntaxToken
         ''' <summary>
@@ -2922,15 +2922,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         DecimalLiteralToken = 703                ' DecimalLiteralTokenSyntax : SyntaxToken
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         DateLiteralToken = 704                   ' DateLiteralTokenSyntax : SyntaxToken
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         StringLiteralToken = 705                 ' StringLiteralTokenSyntax : SyntaxToken
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         CharacterLiteralToken = 706              ' CharacterLiteralTokenSyntax : SyntaxToken
         ''' <summary>

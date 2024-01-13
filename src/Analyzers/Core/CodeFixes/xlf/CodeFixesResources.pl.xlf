@@ -2,39 +2,164 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Dodaj pusty wiersz po bloku</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_both">
         <source>Add both</source>
-        <target state="new">Add both</target>
+        <target state="translated">Dodaj oba</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_default_case">
         <source>Add default case</source>
-        <target state="new">Add default case</target>
+        <target state="translated">Dodaj przypadek domyślny</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Dodaj transparent pliku</target>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Dodaj rzutowanie jawne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="new">Fix Name Violation: {0}</target>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
+        <target state="translated">Dodaj nagłówek pliku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="translated">Dodaj nazwę składowej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="translated">Dodaj brakujące węzły parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="translated">Dodaj parametr do elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">Dodaj parametr do elementu „{0}” (oraz przesłonięć/implementacji)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">Dodaj do elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">Niejednoznaczny typ aliasu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">Konwertuj typ na „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Popraw wszystkie wystąpienia w</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">Rozwiąż problem z naruszeniem nazwy: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Ustaw specyfikator „abstract” dla klasy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">Ustaw jako statyczne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">Ustaw metodę jako synchroniczną</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">Ustaw typ jako częściowy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">Sygnatury powiązanych metod znalezione w metadanych nie zostaną zaktualizowane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="translated">Usuń modyfikator „async”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Usuń dodatkowe puste wiersze</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="new">Remove redundant assignment</target>
+        <target state="translated">Usuń nadmiarowe przypisanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="translated">Usuń tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="translated">Problemy z pomijaniem lub konfigurowaniem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="translated">Przyjmij „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="translated">Przyjmij oba</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="translated">Przyjmij dół</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="translated">Przyjmij górę</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="translated">Aktualizuj format pomijania</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
-        <target state="new">Use discard '_'</target>
+        <target state="translated">Użyj odrzucenia „_”</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
-        <target state="new">Use discarded local</target>
+        <target state="translated">Użyj odrzuconej zmiennej lokalnej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="translated">{0} (może zmienić semantykę)</target>
         <note />
       </trans-unit>
     </body>

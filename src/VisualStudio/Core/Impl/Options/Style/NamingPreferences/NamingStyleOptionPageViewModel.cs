@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -20,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
         public string ManageStylesButtonText => ServicesVSResources.Manage_naming_styles;
 
-        private readonly NotificationOptionViewModel[] _notifications = new[]
-        {
-            new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
-            new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
-            new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
-            new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
-        };
+        private readonly NotificationOptionViewModel[] _notifications =
+        [
+            new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
+            new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
+            new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
+        ];
 
         public string CodeStyleMembersAutomationText => ServicesVSResources.Naming_rules;
 

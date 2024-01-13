@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   EnforceOnBuildValues.NamingRule,
                    option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
@@ -42,12 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
+        protected abstract bool ShouldIgnore(ISymbol symbol);
+
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
-            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>>(
+            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>>(
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(SymbolAction, _symbolKinds);
@@ -58,9 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             void SymbolAction(SymbolAnalysisContext symbolContext)
             {
+                var sourceTree = symbolContext.Symbol.Locations.FirstOrDefault()?.SourceTree;
+                if (sourceTree == null
+                    || ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
+                {
+                    return;
+                }
+
                 var diagnostic = TryGetDiagnostic(
                     symbolContext.Compilation,
                     symbolContext.Symbol,
+                    sourceTree,
                     symbolContext.Options,
                     idToCachedResult,
                     symbolContext.CancellationToken);
@@ -73,8 +85,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
             {
+                if (ShouldSkipAnalysis(syntaxContext, notification: null))
+                {
+                    return;
+                }
+
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken);
-                if (symbol == null)
+                if (symbol?.Locations.FirstOrDefault()?.SourceTree is not { } sourceTree)
                 {
                     // Catch clauses don't need to have a declaration.
                     return;
@@ -83,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 var diagnostic = TryGetDiagnostic(
                     syntaxContext.Compilation,
                     symbol,
+                    sourceTree,
                     syntaxContext.Options,
                     idToCachedResult,
                     syntaxContext.CancellationToken);
@@ -94,14 +112,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
-            _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
+        private static readonly Func<Guid, ConcurrentDictionary<string, string?>> s_createCache =
+            _ => new ConcurrentDictionary<string, string?>(concurrencyLevel: 2, capacity: 0);
 
-        private Diagnostic TryGetDiagnostic(
+        private Diagnostic? TryGetDiagnostic(
             Compilation compilation,
             ISymbol symbol,
+            SyntaxTree sourceTree,
             AnalyzerOptions options,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult,
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(symbol.Name))
@@ -109,12 +128,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var namingPreferences = GetNamingStylePreferences(compilation, symbol, options, cancellationToken);
-            if (namingPreferences == null)
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
             {
                 return null;
             }
 
+            if (ShouldIgnore(symbol))
+            {
+                return null;
+            }
+
+            if (symbol.IsSymbolWithSpecialDiscardName())
+            {
+                return null;
+            }
+
+            var namingPreferences = options.GetAnalyzerOptions(sourceTree).NamingPreferences;
             var namingStyleRules = namingPreferences.Rules;
 
             if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||
@@ -140,27 +169,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder[nameof(NamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
-        }
-
-        private static NamingStylePreferences GetNamingStylePreferences(
-            Compilation compilation,
-            ISymbol symbol,
-            AnalyzerOptions options,
-            CancellationToken cancellationToken)
-        {
-            var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
-            if (sourceTree == null)
-            {
-                return null;
-            }
-
-            return options.GetOption(NamingStyleOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken);
+            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), NotificationOption2.ForSeverity(applicableRule.EnforcementLevel), additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

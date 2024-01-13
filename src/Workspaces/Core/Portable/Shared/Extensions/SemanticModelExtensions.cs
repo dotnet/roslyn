@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -18,27 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticMap.From(semanticModel, node, cancellationToken);
 
-        /// <summary>
-        /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If
-        /// expression is a type, that's returned; otherwise this will see if it's something like a method group and then choose an appropriate delegate.
-        /// </summary>
-        public static ITypeSymbol GetType(
-            this SemanticModel semanticModel,
-            SyntaxNode expression,
-            CancellationToken cancellationToken)
-        {
-            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
-
-            if (typeInfo.Type != null)
-            {
-                return typeInfo.Type;
-            }
-
-            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
-        }
-
-        private static ISymbol? MapSymbol(ISymbol symbol, ITypeSymbol? type)
+        private static ISymbol? MapSymbol(ISymbol? symbol, ITypeSymbol? type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
             {
@@ -54,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsFunctionValue() &&
                 symbol.ContainingSymbol is IMethodSymbol method)
             {
-                if (method?.AssociatedSymbol != null)
+                if (method.AssociatedSymbol != null)
                 {
                     return method.AssociatedSymbol;
                 }
@@ -89,43 +69,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            Workspace workspace,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var languageServices = services.GetLanguageServices(token.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
+
             if (!syntaxFacts.IsBindableToken(token))
-            {
                 return TokenSemanticInfo.Empty;
-            }
 
             var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
-
-            IAliasSymbol? aliasSymbol;
-            ITypeSymbol? type;
-            ITypeSymbol? convertedType;
-            ISymbol? declaredSymbol;
-            ImmutableArray<ISymbol?> allSymbols;
-
             var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
-            if (overriddingIdentifier.HasValue)
+
+            IAliasSymbol? aliasSymbol = null;
+            ITypeSymbol? type = null;
+            ITypeSymbol? convertedType = null;
+            ISymbol? declaredSymbol = null;
+            var allSymbols = ImmutableArray<ISymbol?>.Empty;
+
+            if (token.RawKind == syntaxKinds.UsingKeyword &&
+                (token.Parent?.RawKind == syntaxKinds.UsingStatement || token.Parent?.RawKind == syntaxKinds.LocalDeclarationStatement))
+            {
+                var usingStatement = token.Parent;
+                declaredSymbol = semanticFacts.TryGetDisposeMethod(semanticModel, token.Parent, cancellationToken);
+            }
+            else if (overriddingIdentifier.HasValue)
             {
                 // on an "override" token, we'll find the overridden symbol
-                aliasSymbol = null;
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-                // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
-                type = null;
-                convertedType = null;
-                declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
             }
             else
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
-                var bindableParent = syntaxFacts.GetBindableParent(token);
-                var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+                var bindableParent = syntaxFacts.TryGetBindableParent(token);
+                var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
                 type = typeInfo.Type;
                 convertedType = typeInfo.ConvertedType;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);

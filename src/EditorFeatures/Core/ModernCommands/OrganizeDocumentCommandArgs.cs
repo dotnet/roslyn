@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,11 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
     /// Arguments for the Organize Document command being invoked.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    internal class OrganizeDocumentCommandArgs : EditorCommandArgs
+    internal class OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
     {
-        public OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
-            : base(textView, subjectBuffer)
-        {
-        }
     }
 }

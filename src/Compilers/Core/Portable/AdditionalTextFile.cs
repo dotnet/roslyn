@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             _text = new Lazy<SourceText?>(ReadText);
         }
 
-        private SourceText ReadText()
+        private SourceText? ReadText()
         {
             var diagnostics = new List<DiagnosticInfo>();
             var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);

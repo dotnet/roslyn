@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -24,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
     public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
+        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace);
 
-        abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
+        internal abstract EditorTestWorkspace GetWorkspace(string markup, TestComposition composition);
 
         protected void ToggleComment(string markup, string expected)
-            => ToggleCommentMultiple(markup, new string[] { expected });
+            => ToggleCommentMultiple(markup, [expected]);
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
-            using (var workspace = GetWorkspace(markup, GetExportProvider()))
+            using (var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures))
             {
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
         {
-            using (var workspace = GetWorkspace(subjectBufferMarkup, GetExportProvider()))
+            using (var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures))
             {
                 var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
                 SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
@@ -66,17 +67,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
             }
         }
 
-        private static ExportProvider GetExportProvider()
-            => ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-                .CreateExportProvider();
-
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
             => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();
 
         private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
         {
-            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
 
             Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
 

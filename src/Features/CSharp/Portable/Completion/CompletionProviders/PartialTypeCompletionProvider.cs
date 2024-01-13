@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -24,13 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(PartialTypeCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(PartialMethodCompletionProvider))]
     [Shared]
-    internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider
+    internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider<CSharpSyntaxContext>
     {
         private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
 
         private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |
@@ -48,53 +46,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var ch = text[characterPosition];
-            return ch == ' ' ||
-                (CompletionUtilities.IsStartingNewWord(text, characterPosition) &&
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
-        }
+        internal override string Language => LanguageNames.CSharp;
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] == ' ' ||
+               options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
 
-        protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+
+        protected override SyntaxNode? GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
             => tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
 
-        protected override Task<SyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
-
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
-            INamedTypeSymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, CSharpSyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
             return (displayAndInsertionText, "", displayAndInsertionText);
         }
 
-        protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected override IEnumerable<INamedTypeSymbol>? LookupCandidateSymbols(CSharpSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             var candidates = base.LookupCandidateSymbols(context, declaredSymbol, cancellationToken);
 
             // The base class applies a broad filter when finding candidates, but since C# requires
             // that all parts have the "partial" modifier, the results can be trimmed further here.
-            return candidates?.Where(symbol => symbol.DeclaringSyntaxReferences.Any(reference => IsPartialTypeDeclaration(reference.GetSyntax(cancellationToken))));
+            return candidates?.Where(symbol => symbol.DeclaringSyntaxReferences.Any(static (reference, cancellationToken) => IsPartialTypeDeclaration(reference.GetSyntax(cancellationToken)), cancellationToken));
         }
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
-            => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
+            => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
-        protected override ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context)
-        {
-            return ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
-        }
+        protected override ImmutableArray<KeyValuePair<string, string>> GetProperties(INamedTypeSymbol symbol, CSharpSyntaxContext context)
+            => ImmutableArray.Create(new KeyValuePair<string, string>(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier()));
 
-        public async override Task<TextChange?> GetTextChangeAsync(
+        public override async Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '<')
             {
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out var insertionText))
+                if (selectedItem.TryGetProperty(InsertionTextOnLessThan, out var insertionText))
                 {
                     return new TextChange(selectedItem.Span, insertionText);
                 }

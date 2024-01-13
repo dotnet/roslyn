@@ -6,60 +6,62 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.LineSeparators)>
     Public Class LineSeparatorTests
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestNoLinesInEmptyFile() As Task
             Await AssertTagsAsync(Array.Empty(Of TextSpan)(), "")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyClass() As Task
             Await AssertTagsAsync({New TextSpan(9, 9)},
                        "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyModule() As Task
             Await AssertTagsAsync({New TextSpan(10, 10)},
                        "Module C
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyStructure() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Structure S
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyInterface() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyEnum() As Task
             Await AssertTagsAsync({New TextSpan(8, 8)},
                        "Enum E
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyNamespace() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Namespace N
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestClassWithOneMethod() As Task
             Await AssertTagsAsync({New TextSpan(40, 9)},
                        "Class C
@@ -68,7 +70,7 @@ End Namespace")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestClassWithTwoMethods() As Task
             Await AssertTagsAsync({
                            New TextSpan(32, 7),
@@ -83,7 +85,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestClassWithTwoNonEmptyMethods() As Task
             Await AssertTagsAsync({
                             New TextSpan(45, 7),
@@ -100,7 +102,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestClassWithMethodAndField() As Task
             Await AssertTagsAsync({
                             New TextSpan(32, 7),
@@ -114,7 +116,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestClassWithFieldAndMethod() As Task
             Await AssertTagsAsync({
                            New TextSpan(17, 12),
@@ -128,7 +130,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestEmptyClassInNamespace() As Task
             Await AssertTagsAsync({New TextSpan(41, 13)},
                        "Namespace N
@@ -137,7 +139,7 @@ End Class")
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestNamespaceAndTwoClasses() As Task
             Await AssertTagsAsync({
                            New TextSpan(31, 9),
@@ -152,7 +154,7 @@ End Namespace")
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestNamespaceAndTwoClassesAndDelegate() As Task
             Await AssertTagsAsync({
                            New TextSpan(31, 9),
@@ -170,7 +172,7 @@ End Namespace")
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestNestedClass() As Task
             Await AssertTagsAsync({New TextSpan(37, 9)},
                        "Class C
@@ -179,7 +181,7 @@ End Namespace")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestTwoNestedClasses() As Task
             Await AssertTagsAsync({
                            New TextSpan(27, 9),
@@ -194,8 +196,7 @@ End Class")
 End Class")
         End Function
 
-
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestProperty() As Task
             Await AssertTagsAsync({New TextSpan(164, 9)},
                        "Class C
@@ -209,7 +210,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestPropertyAndField() As Task
             Await AssertTagsAsync({
                            New TextSpan(150, 12),
@@ -228,7 +229,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestImports() As Task
             Await AssertTagsAsync({
                             New TextSpan(8, 6),
@@ -240,7 +241,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestCustomEvent() As Task
             Await AssertTagsAsync({
                             New TextSpan(235, 9),
@@ -261,7 +262,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact>
         Public Async Function TestConstructor() As Task
             Await AssertTagsAsync({
                             New TextSpan(26, 7),
@@ -275,7 +276,7 @@ End Class")
 End Class")
         End Function
 
-        Private Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
+        Private Shared Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
             Dim tags = Await GetSpansForAsync(content)
             Assert.Equal(spans.Count(), tags.Count())
 
@@ -286,11 +287,12 @@ End Class")
             Next
         End Function
 
-        Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
+        Private Shared Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                Dim service = Assert.IsType(Of VisualBasicLineSeparatorService)(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ILineSeparatorService)())
+                Dim spans = Await service.GetLineSeparatorsAsync(document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan, Nothing)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function

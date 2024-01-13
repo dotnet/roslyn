@@ -12,6 +12,8 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Debug",
+  [switch]$enableDumps = $false,
+  [string]$bootstrapToolset = "",
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -33,38 +35,48 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    New-Item -Path $key -ErrorAction SilentlyContinue
+    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+  }
+
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -bootstrapToolset:$bootstrapToolset -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+
+  Subst-TempDir
 
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
-  Exec-Console $buildBossPath "-r `"$RepoRoot`" -c $configuration" -p Roslyn.sln
+  Write-Host "$buildBossPath -r `"$RepoRoot/`" -c $configuration -p Roslyn.sln"
+  Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
   Write-Host ""
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
-  
-  # Verify the state of creating run settings for OptProf
-  Write-Host "Checking OptProf run settings generation"
 
-  # create a fake BootstrapperInfo.json file
-  $bootstrapperInfoPath = Join-Path $TempDir "BootstrapperInfo.json"
-  $bootstrapperInfoContent = "[{""BuildDrop"": ""https://vsdrop.corp.microsoft.com/file/v1/Products/42.42.42.42/42.42.42.42""}]"
-  $bootstrapperInfoContent | Set-Content $bootstrapperInfoPath
-
-  # generate run settings
-  Exec-Block { & (Join-Path $PSScriptRoot "common\sdk-task.ps1") -configuration:$configuration -task VisualStudio.BuildIbcTrainingSettings /p:VisualStudioDropName="Products/DummyDrop" /p:BootstrapperInfoPath=$bootstrapperInfoPath }
-  
   exit 0
 }
 catch [exception] {
   Write-Host $_
   Write-Host $_.Exception
+  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
   exit 1
 }
 finally {
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    Remove-ItemProperty -Path $key -Name 'DumpType'
+    Remove-ItemProperty -Path $key -Name 'DumpCount'
+    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+  }
+
+  Unsubst-TempDir
   Pop-Location
 }

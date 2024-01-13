@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-#pragma warning disable CS0618 // Type or member is obsolete
-
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -14,35 +12,71 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
-    internal struct VSTypeScriptContainedLanguageWrapper
+    internal readonly struct VSTypeScriptContainedLanguageWrapper
     {
         private readonly ContainedLanguage _underlyingObject;
+
+        [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            VSTypeScriptVisualStudioProjectWrapper project,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            Guid languageServiceGuid) : this(bufferCoordinator, componentModel, project, languageServiceGuid)
+        {
+        }
+
+        [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            Workspace workspace,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            Guid languageServiceGuid) : this(bufferCoordinator, componentModel, workspace, languageServiceGuid)
+        {
+        }
 
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
+            VSTypeScriptVisualStudioProjectWrapper project,
             Guid languageServiceGuid)
         {
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
+            _underlyingObject = new ContainedLanguage(
+                bufferCoordinator,
+                componentModel,
+                componentModel.GetService<VisualStudioWorkspace>(),
+                project.Project.Id,
+                project.Project,
+                languageServiceGuid,
+                vbHelperFormattingRule: null);
+        }
+
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            Workspace workspace,
+            Guid languageServiceGuid)
+        {
+            var projectId = ProjectId.CreateNewId();
 
             _underlyingObject = new ContainedLanguage(
                 bufferCoordinator,
                 componentModel,
                 workspace,
-                project.Id,
-                project.VisualStudioProject,
-                filePath,
+                projectId,
+                null,
                 languageServiceGuid,
                 vbHelperFormattingRule: null);
+
+            var filePath = _underlyingObject.GetFilePathFromBuffers();
+            workspace.OnProjectAdded(ProjectInfo.Create(projectId, VersionStamp.Default, filePath, string.Empty, InternalLanguageNames.TypeScript));
         }
 
         public bool IsDefault => _underlyingObject == null;
 
-        public void DisconnectHost()
-            => _underlyingObject.SetHost(null);
+        public void DisconnectHost() => _underlyingObject.SetHost(null);
     }
 }

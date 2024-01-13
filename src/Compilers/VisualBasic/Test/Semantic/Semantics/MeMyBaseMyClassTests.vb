@@ -515,7 +515,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, {SystemCoreRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
             Dim symbol = LookUpSymbolTest(comp, "Sum", expectedCount:=1, expectedString:="Function C1.Sum() As System.Int32")
             GetSymbolInfoTest(comp, "MyClass.Sum", symbol)
             GetTypeInfoTest(comp, "MyClass.Sum", "Integer")

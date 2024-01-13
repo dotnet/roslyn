@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,12 +17,12 @@ namespace Microsoft.CodeAnalysis
     /// change it in the future.
     /// </remarks>
     [InternalImplementationOnly]
-    public interface IOperation
+    public partial interface IOperation
     {
         /// <summary>
-        /// IOperation that has this operation as a child
+        /// IOperation that has this operation as a child. Null for the root.
         /// </summary>
-        IOperation Parent { get; }
+        IOperation? Parent { get; }
 
         /// <summary>
         /// Identifies the kind of the operation.
@@ -36,17 +37,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Result type of the operation, or null if the operation does not produce a result.
         /// </summary>
-        ITypeSymbol Type { get; }
+        ITypeSymbol? Type { get; }
 
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        Optional<object> ConstantValue { get; }
+        Optional<object?> ConstantValue { get; }
 
         /// <summary>
-        /// An array of child operations for this operation.
+        /// An array of child operations for this operation. Deprecated: please use <see cref="ChildOperations"/>.
         /// </summary>
+        [Obsolete($"This API has performance penalties, please use {nameof(ChildOperations)} instead.", error: false)]
         IEnumerable<IOperation> Children { get; }
+
+        /// <summary>
+        /// An enumerable of child operations for this operation.
+        /// </summary>
+        OperationList ChildOperations { get; }
 
         /// <summary>
         /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
         void Accept(OperationVisitor visitor);
 
-        TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
         /// <summary>
         /// Set to True if compiler generated /implicitly computed by compiler code
@@ -68,6 +75,6 @@ namespace Microsoft.CodeAnalysis
         /// and operation callbacks made to analyzers.
         /// Null for operations inside a <see cref="FlowAnalysis.ControlFlowGraph"/>.
         /// </summary>
-        SemanticModel SemanticModel { get; }
+        SemanticModel? SemanticModel { get; }
     }
 }

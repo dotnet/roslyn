@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLabel1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLabel2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -48,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNumericLabel1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -67,8 +69,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNumericLabel2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -81,6 +83,27 @@ label1: GoTo [|200|]
     End Sub
 End Module
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabelInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+        class C
+        {
+            void Goo()
+            {
+            $${|Definition:Goo|}:
+                int Goo;
+                goto [|Goo|];
+            }
+        }
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

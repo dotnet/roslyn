@@ -2,34 +2,41 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Friend Class GoToHelpers
     Friend Shared Async Function TestAsync(
-                                          workspaceDefinition As XElement,
-                                          testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
-                                          Optional shouldSucceed As Boolean = True,
-                                          Optional metadataDefinitions As String() = Nothing) As Task
-        Using workspace = TestWorkspace.Create(workspaceDefinition)
+            workspaceDefinition As XElement,
+            testHost As TestHost,
+            testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
+            Optional shouldSucceed As Boolean = True,
+            Optional metadataDefinitions As String() = Nothing) As Task
+
+        Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 
-            Dim document = workspace.CurrentSolution.GetDocument(documentWithCursor.Id)
+            Dim solution = workspace.CurrentSolution
+            Dim document = Await solution.GetRequiredDocumentAsync(documentWithCursor.Id, includeSourceGenerated:=True)
 
-            Dim context = New SimpleFindUsagesContext(CancellationToken.None)
+            Dim context = New SimpleFindUsagesContext(workspace.GlobalOptions)
             Await testingMethod(document, position, context)
 
             If Not shouldSucceed Then
                 Assert.NotNull(context.Message)
             Else
-                Dim actualDefinitions = context.GetDefinitions().
-                                                SelectMany(Function(d) d.SourceSpans).
-                                                Select(Function(ss) New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan)).
-                                                ToList()
+                Dim actualDefinitions = New List(Of FilePathAndSpan)
+
+                For Each definition In context.GetDefinitions()
+                    For Each sourceSpan In definition.SourceSpans
+                        actualDefinitions.Add(New FilePathAndSpan(sourceSpan.Document.FilePath, sourceSpan.SourceSpan))
+                    Next
+                Next
                 actualDefinitions.Sort()
 
                 Dim expectedDefinitions = workspace.Documents.SelectMany(
@@ -47,13 +54,13 @@ Friend Class GoToHelpers
                                 $"Expected: ({expected}) but got: ({actual})")
                 Next
 
-                Dim actualDefintionsWithoutSpans = context.GetDefinitions() _
-                    .Where(Function(d) d.SourceSpans.IsDefaultOrEmpty) _
-                    .Select(Function(di)
-                                Return String.Format("{0}:{1}",
-                                                     String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
-                                                     String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
-                            End Function).ToList()
+                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
+                    Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
+                    Select(Function(di)
+                               Return String.Format("{0}:{1}",
+                                                    String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                    String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
+                           End Function).ToList()
 
                 actualDefintionsWithoutSpans.Sort()
 
@@ -61,7 +68,7 @@ Friend Class GoToHelpers
                     metadataDefinitions = {}
                 End If
 
-                Assert.Equal(actualDefintionsWithoutSpans, metadataDefinitions)
+                AssertEx.Equal(metadataDefinitions, actualDefintionsWithoutSpans)
             End If
         End Using
     End Function

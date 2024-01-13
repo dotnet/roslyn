@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
@@ -12,17 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     /// <summary>
     /// Provides a conversion to query.Count().
     /// </summary>
-    internal sealed class ToCountConverter : AbstractToMethodConverter
+    internal sealed class ToCountConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        ExpressionSyntax selectExpression,
+        ExpressionSyntax modifyingExpression,
+        SyntaxTrivia[] trivia) : AbstractToMethodConverter(forEachInfo, selectExpression, modifyingExpression, trivia)
     {
-        public ToCountConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression,
-            SyntaxTrivia[] trivia)
-            : base(forEachInfo, selectExpression, modifyingExpression, trivia)
-        {
-        }
-
         protected override string MethodName => nameof(Enumerable.Count);
 
         // Checks that the expression is "0".

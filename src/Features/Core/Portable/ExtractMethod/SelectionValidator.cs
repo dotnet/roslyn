@@ -2,57 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class SelectionValidator
-    {
-        protected static readonly SelectionResult NullSelection = new NullSelectionResult();
-
-        protected readonly SemanticDocument SemanticDocument;
-        protected readonly TextSpan OriginalSpan;
-        protected readonly OptionSet Options;
-
-        protected SelectionValidator(
+    internal abstract partial class SelectionValidator<
+        TSelectionResult,
+        TStatementSyntax>(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options)
-        {
-            Contract.ThrowIfNull(document);
+            ExtractMethodOptions options)
+        where TSelectionResult : SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
+    {
+        protected readonly SemanticDocument SemanticDocument = document;
+        protected readonly TextSpan OriginalSpan = textSpan;
+        protected readonly ExtractMethodOptions Options = options;
 
-            SemanticDocument = document;
-            OriginalSpan = textSpan;
-            Options = options;
-        }
+        public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
-        public bool ContainsValidSelection
-        {
-            get
-            {
-                return !OriginalSpan.IsEmpty;
-            }
-        }
-
-        public abstract Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken);
+        public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken);
         public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
 
         protected bool IsFinalSpanSemanticallyValidSpan(
-            SemanticModel semanticModel, TextSpan textSpan, Tuple<SyntaxNode, SyntaxNode> range, CancellationToken cancellationToken)
+            SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(range);
-
             var controlFlowAnalysisData = semanticModel.AnalyzeControlFlow(range.Item1, range.Item2);
 
             // there must be no control in and out of given span
@@ -95,7 +82,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
+        protected static (T, T)? GetStatementRangeContainingSpan<T>(
+            ISyntaxFacts syntaxFacts,
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find smallest statement range that contains given span.
@@ -134,10 +122,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     spine.Add(stmt);
                 }
 
-                if (textSpan.End <= stmt.Span.End && spine.Any(s => s.Parent == stmt.Parent))
+                if (textSpan.End <= stmt.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt)))
                 {
                     // malformed code or selection can make spine to have more than an elements
-                    firstStatement = spine.First(s => s.Parent == stmt.Parent);
+                    firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt));
                     lastStatement = stmt;
 
                     spine.Clear();
@@ -149,10 +137,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return null;
             }
 
-            return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
+            return (firstStatement, lastStatement);
+
+            static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
+                => syntaxFacts.AreStatementsInSameContainer(existing, current);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
+        protected static (T, T)? GetStatementRangeContainedInSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find largest statement range contained in the given span
@@ -185,7 +176,39 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return null;
             }
 
-            return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
+            return (firstStatement, lastStatement);
+        }
+
+        protected sealed class SelectionInfo
+        {
+            public OperationStatus Status { get; set; }
+
+            public TextSpan OriginalSpan { get; set; }
+            public TextSpan FinalSpan { get; set; }
+
+            public SyntaxNode CommonRootFromOriginalSpan { get; set; }
+
+            public SyntaxToken FirstTokenInOriginalSpan { get; set; }
+            public SyntaxToken LastTokenInOriginalSpan { get; set; }
+
+            public SyntaxToken FirstTokenInFinalSpan { get; set; }
+            public SyntaxToken LastTokenInFinalSpan { get; set; }
+
+            public bool SelectionInExpression { get; set; }
+            public bool SelectionInSingleStatement { get; set; }
+
+            public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
+                => With(s => s.Status = statusGetter(s.Status));
+
+            public SelectionInfo With(Action<SelectionInfo> valueSetter)
+            {
+                var newInfo = Clone();
+                valueSetter(newInfo);
+                return newInfo;
+            }
+
+            public SelectionInfo Clone()
+                => (SelectionInfo)MemberwiseClone();
         }
     }
 }

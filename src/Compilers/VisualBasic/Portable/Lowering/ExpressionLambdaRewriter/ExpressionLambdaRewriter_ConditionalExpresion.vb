@@ -103,9 +103,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' the type of the argument of 'conversion' in case 'parameter' is a nullable and the real 
                 ' conversion argument is not
                 Dim parameterType As TypeSymbol = parameter.Type
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteDiagnostics)
-                Diagnostics.Add(conversion, useSiteDiagnostics)
+                Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Diagnostics)
+                Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteInfo)
+                Diagnostics.Add(conversion, useSiteInfo)
 
                 If (convKind And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
                     ' Convert to non-nullable type first to mimic Dev11
@@ -196,9 +196,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim realParameterType As TypeSymbol = parameter.Type
             Debug.Assert(TypeSymbol.Equals(expectedParameterType.GetNullableUnderlyingTypeOrSelf, realParameterType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim innerConversion As ConversionKind = Conversions.ClassifyConversion(realParameterType, expectedParameterType, useSiteDiagnostics).Key
-            Diagnostics.Add(conversion, useSiteDiagnostics)
+            Dim useSiteInfo = _binder.GetNewCompoundUseSiteInfo(Diagnostics)
+            Dim innerConversion As ConversionKind = Conversions.ClassifyConversion(realParameterType, expectedParameterType, useSiteInfo).Key
+            Diagnostics.Add(conversion, useSiteInfo)
 
             Dim innerConversionApplied As Boolean = Not Conversions.IsIdentityConversion(innerConversion)
             If innerConversionApplied Then

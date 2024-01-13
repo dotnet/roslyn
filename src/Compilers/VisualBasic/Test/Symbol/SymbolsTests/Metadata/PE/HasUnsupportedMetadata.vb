@@ -155,7 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class C3
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
     <compilation name="Test">
         <file name="a.vb">
@@ -365,7 +364,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
     <compilation name="Test">
         <file name="a.vb">
@@ -507,6 +505,42 @@ End Class"
             Assert.Equal("B", type.ToTestDisplayString())
             Assert.False(type.IsErrorType())
             Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.
+        End Sub
+
+        <Fact>
+        Public Sub TestFunctionPointerInMetadata()
+            Dim csharpComp = CreateCSharpCompilation("
+unsafe public class C
+{
+    public delegate*<void> field;
+}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.CSharp9),
+    compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(True))
+
+            Dim vbComp = CreateVisualBasicCompilation(Nothing, "
+Public Module M
+    Public Sub S(c As C)
+        Dim f = c.field
+    End Sub
+End Module
+",
+                referencedCompilations:={csharpComp},
+                referencedAssemblies:=LatestVbReferences,
+                compilationOptions:=TestOptions.DebugDll)
+
+            vbComp.AssertTheseDiagnostics(
+<expected>
+BC30656: Field 'field' is of an unsupported type.
+        Dim f = c.field
+                ~~~~~~~
+</expected>
+            )
+
+            Dim c = vbComp.GetTypeByMetadataName("C")
+            Dim field = c.GetField("field")
+            Assert.True(field.HasUnsupportedMetadata)
+            Assert.True(field.Type.HasUnsupportedMetadata)
+            Assert.True(field.Type.IsErrorType())
+            Assert.NotNull(field.GetUseSiteErrorInfo())
         End Sub
 
         Private Shared Function ReplaceBytes(bytes As ImmutableArray(Of Byte), before As Byte(), after As Byte()) As ImmutableArray(Of Byte)

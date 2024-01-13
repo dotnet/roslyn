@@ -2,25 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal readonly struct SerializableImportCompletionItem
+    [DataContract]
+    internal readonly struct SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace, int additionalOverloadCount, bool includedInTargetTypeCompletion)
     {
-        public readonly string SymbolKeyData;
-        public readonly int Arity;
-        public readonly string Name;
-        public readonly Glyph Glyph;
-        public readonly string ContainingNamespace;
+        [DataMember(Order = 0)]
+        public readonly string SymbolKeyData = symbolKeyData;
 
-        public SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace)
-        {
-            SymbolKeyData = symbolKeyData;
-            Arity = arity;
-            Name = name;
-            Glyph = glyph;
-            ContainingNamespace = containingNamespace;
-        }
+        [DataMember(Order = 1)]
+        public readonly string Name = name;
+
+        [DataMember(Order = 2)]
+        public readonly int Arity = arity;
+
+        [DataMember(Order = 3)]
+        public readonly Glyph Glyph = glyph;
+
+        [DataMember(Order = 4)]
+        public readonly string ContainingNamespace = containingNamespace;
+
+        [DataMember(Order = 5)]
+        public readonly int AdditionalOverloadCount = additionalOverloadCount;
+
+        [DataMember(Order = 6)]
+        public readonly bool IncludedInTargetTypeCompletion = includedInTargetTypeCompletion;
     }
 }

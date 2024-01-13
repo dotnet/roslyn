@@ -3,11 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Options
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
@@ -18,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     ''' Tests for Error List. Since it is language agnostic there are no C# or VB Specific tests
     ''' </summary>
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class DiagnosticProviderTests
         Private Const s_errorElementName As String = "Error"
         Private Const s_projectAttributeName As String = "Project"
@@ -31,7 +36,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_originalFileAttributeName As String = "OriginalFile"
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(MockDiagnosticUpdateSourceRegistrationService))
+
+        <Fact>
         Public Sub TestNoErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -44,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestSingleDeclarationError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -61,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestLineDirective()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -86,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestSingleBindingError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -104,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestMultipleErrorsAndWarnings()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -122,10 +134,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="2" MappedColumn="53" OriginalFile="Test.cs" OriginalLine="2" OriginalColumn="53"
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "as") %>/>
-                                  <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
-                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                                   <Warning Code="1633" Id="CS1633" MappedFile="Test.cs" MappedLine="4" MappedColumn="48" OriginalFile="Test.cs" OriginalLine="4" OriginalColumn="48"
                                       Message=<%= CSharpResources.WRN_IllegalPragma %>/>
+                                  <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
+                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                               </Diagnostics>
 
             ' Note: The below is removed because of bug # 550593.
@@ -135,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestBindingAndDeclarationErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -156,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         ' Diagnostics are ordered by project-id
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub TestDiagnosticsFromMultipleProjects()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -194,36 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestDiagnosticsFromTurnedOff()
-            Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
-                               <Document FilePath="Test.cs">
-                                        class Program
-                                        {
-                                            -
-                                            void Test()
-                                            {
-                                                int a = 5 - "2";
-                                            }
-                                        }
-                               </Document>
-                           </Project>
-                           <Project Language="Visual Basic" CommonReferences="true">
-                               <Document FilePath="Test.vb">
-                                        Class GooClass
-                                            Sub Blah() End Sub
-                                        End Class
-                               </Document>
-                           </Project>
-                       </Workspace>
-
-            Dim diagnostics = <Diagnostics></Diagnostics>
-
-            VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -252,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub DiagnosticsInNoCompilationProjects()
             Dim test =
                 <Workspace>
@@ -274,22 +257,22 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        Private Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True, Optional enabled As Boolean = True)
-            Using workspace = TestWorkspace.CreateWorkspace(test)
-
-                ' turn off diagnostic
-                If Not enabled Then
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                                                  .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
-                End If
+        Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
+            Using workspace = EditorTestWorkspace.CreateWorkspace(test, composition:=s_composition)
+                ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
+                For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
+                    workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
+                Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result
+                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
+                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                     includeLocalDocumentDiagnostics:=True,
+                                                                                     includeNonLocalDocumentDiagnostics:=True,
+                                                                                     CancellationToken.None).Result
 
                 registrationService.Unregister(workspace)
 
@@ -307,22 +290,24 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        Private Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
-            Dim snapshot = workspace.CurrentSolution
-
+        Private Shared Function GetDiagnosticProvider(workspace As EditorTestWorkspace) As DiagnosticAnalyzerService
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
 
-            Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap)
+            Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+            Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+            Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
             ' CollectErrors generates interleaved background and foreground tasks.
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
-            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
+            service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
 
             Return analyzerService
         End Function
 
-        Private Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+        Private Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
             Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String
@@ -346,38 +331,38 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     result.Add(SourceWarning(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 End If
             Next
+
             Return result
         End Function
 
-        Private Function GetProjectId(workspace As TestWorkspace, projectName As String) As ProjectId
+        Private Shared Function GetProjectId(workspace As EditorTestWorkspace, projectName As String) As ProjectId
             Return (From doc In workspace.Documents
                     Where doc.Project.AssemblyName.Equals(projectName)
                     Select doc.Project.Id).Single()
         End Function
 
-        Private Function GetDocumentId(workspace As TestWorkspace, document As String) As DocumentId
+        Private Shared Function GetDocumentId(workspace As EditorTestWorkspace, document As String) As DocumentId
             Return (From doc In workspace.Documents
                     Where doc.FilePath.Equals(document)
                     Select doc.Id).Single()
         End Function
 
-        Private Function SourceError(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+        Private Shared Function SourceError(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
             originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function SourceWarning(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+        Private Shared Function SourceWarning(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
             originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+        Private Shared Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
             originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return New DiagnosticData(
                 id:=id,
                 category:="test",
                 message:=message,
-                enuMessageForBingSearch:=message,
                 severity:=severity,
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
@@ -385,7 +370,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId:=projId,
-                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                location:=New DiagnosticDataLocation(
+                    New FileLinePositionSpan(originalFile, New LinePosition(originalLine, originalColumn), New LinePosition(originalLine, originalColumn)),
+                    docId,
+                    If(mappedFile Is Nothing, Nothing, New FileLinePositionSpan(mappedFile, New LinePosition(mappedLine, mappedColumn), New LinePosition(mappedLine, mappedColumn)))),
                 additionalLocations:=Nothing,
                 language:=LanguageNames.VisualBasic,
                 title:=Nothing)
@@ -400,8 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
-                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
+                       Equals(x.DataLocation.UnmappedFileSpan.StartLinePosition, y.DataLocation.UnmappedFileSpan.StartLinePosition)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -409,8 +396,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
+                       Hash.Combine(obj.DataLocation.UnmappedFileSpan.StartLinePosition.GetHashCode(), obj.Severity)))))
             End Function
         End Class
     End Class

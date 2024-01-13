@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 //#define DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
 
 using System;
@@ -179,5 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
+
+        internal override CSharpCompilation DeclaringCompilation => ContainingSymbol.DeclaringCompilation;
     }
 }

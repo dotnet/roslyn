@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Roslyn.Test.Utilities
@@ -17,8 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
+        Private Shared ReadOnly s_composition As TestComposition = VisualStudioTestCompositions.LanguageServices
 
         <WpfFact>
         Public Sub TestListStructure()
@@ -29,7 +27,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
+}</text>.Value, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -61,7 +59,7 @@ Class C
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestListStructure_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -79,7 +77,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -131,7 +129,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
+}</text>.Value, composition:=s_composition)
                 Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
@@ -165,11 +163,10 @@ Class C
                     Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
                 End Using
 
-
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestCheckedItems_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -188,7 +185,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -272,7 +269,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
@@ -314,11 +311,7 @@ End Class
             End Using
         End Sub
 
-        Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
-            Dim outChangeList As Object = Nothing
-            Dim outCanRecurse As Integer = Nothing
-            Dim outTreeList As Shell.Interop.IVsLiteTreeList = Nothing
-
+        Private Shared Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
             Dim flatteningResult = New List(Of Tuple(Of String, Integer))()
             FlattenTree(topLevelList, flatteningResult, 0)
 
@@ -329,7 +322,7 @@ End Class
             Next
         End Sub
 
-        Private Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
+        Private Shared Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
             For Each change In list.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)
@@ -343,7 +336,7 @@ End Class
 
         ' Check each of the most-nested children whose names appear in checkItems.
         ' Uncheck the rest
-        Private Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
+        Private Shared Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
             For Each change In topLevelList.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)
@@ -364,19 +357,19 @@ End Class
             Next
         End Sub
 
-        Private Sub AssertChildCount(list As ChangeList, count As UInteger)
+        Private Shared Sub AssertChildCount(list As ChangeList, count As UInteger)
             Dim actualCount As UInteger = Nothing
             list.GetItemCount(actualCount)
             Assert.Equal(count, actualCount)
         End Sub
 
-        Private Sub AssertChildText(list As ChangeList, index As UInteger, text As String)
+        Private Shared Sub AssertChildText(list As ChangeList, index As UInteger, text As String)
             Dim actualText As String = Nothing
             list.GetText(index, Nothing, actualText)
             Assert.Equal(text, actualText)
         End Sub
 
-        Private Sub AssertSomeChild(list As ChangeList, text As String)
+        Private Shared Sub AssertSomeChild(list As ChangeList, text As String)
             Dim count As UInteger = Nothing
             list.GetItemCount(count)
             For i As UInteger = 0 To count

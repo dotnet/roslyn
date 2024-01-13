@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -88,6 +90,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifySealed(expected: false);
                 _hasSkipLocalsInitAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasUnscopedRefAttribute;
+        public bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasUnscopedRefAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasUnscopedRefAttribute = value;
                 SetDataStored();
             }
         }

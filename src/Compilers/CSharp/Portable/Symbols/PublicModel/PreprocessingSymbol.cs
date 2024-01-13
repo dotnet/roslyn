@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ISymbol ISymbol.OriginalDefinition => this;
 
-        ISymbol ISymbol.ContainingSymbol => null;
+        ISymbol? ISymbol.ContainingSymbol => null;
 
-        INamedTypeSymbol ISymbol.ContainingType => null;
+        INamedTypeSymbol? ISymbol.ContainingType => null;
 
         public sealed override int GetHashCode()
         {
             return this._name.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -41,18 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 return false;
             }
 
-            PreprocessingSymbol other = obj as PreprocessingSymbol;
+            PreprocessingSymbol? other = obj as PreprocessingSymbol;
 
-            return (object)other != null &&
+            return (object?)other != null &&
                 this._name.Equals(other._name);
         }
 
-        bool IEquatable<ISymbol>.Equals(ISymbol other)
+        bool IEquatable<ISymbol?>.Equals(ISymbol? other)
         {
             return this.Equals(other);
         }
 
-        bool ISymbol.Equals(ISymbol other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
+        bool ISymbol.Equals(ISymbol? other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
         {
             return this.Equals(other);
         }
@@ -69,26 +69,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new System.NotSupportedException();
 
-        string ISymbol.GetDocumentationCommentId() => null;
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new System.NotSupportedException();
 
-        string ISymbol.GetDocumentationCommentXml(CultureInfo preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => null;
+        string? ISymbol.GetDocumentationCommentId() => null;
 
-        string ISymbol.ToDisplayString(SymbolDisplayFormat format)
+        string? ISymbol.GetDocumentationCommentXml(CultureInfo? preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => null;
+
+        string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToDisplayString(this, format);
         }
 
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat format)
+        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToDisplayParts(this, format);
         }
 
-        string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+        string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToMinimalDisplayString(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
         }
 
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+        ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToMinimalDisplayParts(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
         }
@@ -101,11 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         string ISymbol.MetadataName => _name;
 
-        IAssemblySymbol ISymbol.ContainingAssembly => null;
+        int ISymbol.MetadataToken => 0;
 
-        IModuleSymbol ISymbol.ContainingModule => null;
+        IAssemblySymbol? ISymbol.ContainingAssembly => null;
 
-        INamespaceSymbol ISymbol.ContainingNamespace => null;
+        IModuleSymbol? ISymbol.ContainingModule => null;
+
+        INamespaceSymbol? ISymbol.ContainingNamespace => null;
 
         bool ISymbol.IsDefinition => true;
 

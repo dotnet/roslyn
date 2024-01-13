@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         internal static bool CanSimplifyTupleElementName(ArgumentSyntax node, CSharpParseOptions parseOptions)
         {
             // Tuple elements are arguments in a tuple expression
-            if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
+            if (node.NameColon == null || !node.Parent.IsKind(SyntaxKind.TupleExpression))
             {
                 return false;
             }
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            if (RemovalCausesAmbiguity(((AnonymousObjectCreationExpressionSyntax)node.Parent).Initializers, node))
+            if (RemovalCausesAmbiguity(((AnonymousObjectCreationExpressionSyntax)node.Parent!).Initializers, node))
             {
                 return false;
             }
@@ -60,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // An explicit name cannot be removed if some other position would produce it as inferred name
         private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<ArgumentSyntax> arguments, ArgumentSyntax toRemove)
         {
+            Contract.ThrowIfNull(toRemove.NameColon);
+
             var name = toRemove.NameColon.Name.Identifier.ValueText;
             foreach (var argument in arguments)
             {
@@ -80,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // An explicit name cannot be removed if some other position would produce it as inferred name
         private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, AnonymousObjectMemberDeclaratorSyntax toRemove)
         {
+            Contract.ThrowIfNull(toRemove.NameEquals);
+
             var name = toRemove.NameEquals.Name.Identifier.ValueText;
             foreach (var initializer in initializers)
             {

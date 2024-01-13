@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,34 +18,26 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// the lightbulb.  It will have children to 'Install Latest', 
     /// 'Install Version 'X' ..., and 'Install with package manager'.
     /// </summary>
-    internal class InstallPackageParentCodeAction : CodeAction.CodeActionWithNestedActions
+    /// <remarks>
+    /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
+    /// We want to the experience of having the top level item the user has to see and
+    /// navigate through, and we don't want our child items confusingly being added to the
+    /// top level light-bulb where it's not clear what effect they would have if invoked.
+    /// </remarks>
+    internal class InstallPackageParentCodeAction(
+        IPackageInstallerService installerService,
+        string source,
+        string packageName,
+        bool includePrerelease,
+        Document document) : CodeAction.CodeActionWithNestedActions(string.Format(FeaturesResources.Install_package_0, packageName),
+               CreateNestedActions(installerService, source, packageName, includePrerelease, document),
+               isInlinable: false)
     {
-        private readonly IPackageInstallerService _installerService;
-        private readonly string _source;
-        private readonly string _packageName;
-
-        public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
-
         /// <summary>
-        /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
-        /// We want to the experience of having the top level item the user has to see and
-        /// navigate through, and we don't want our child items confusingly being added to the
-        /// top level light-bulb where it's not clear what effect they would have if invoked.
+        /// This code action only works by installing a package.  As such, it requires a non document change (and is
+        /// thus restricted in which hosts it can run).
         /// </summary>
-        public InstallPackageParentCodeAction(
-            IPackageInstallerService installerService,
-            string source,
-            string packageName,
-            bool includePrerelease,
-            Document document)
-            : base(string.Format(FeaturesResources.Install_package_0, packageName),
-                   CreateNestedActions(installerService, source, packageName, includePrerelease, document),
-                   isInlinable: false)
-        {
-            _installerService = installerService;
-            _source = source;
-            _packageName = packageName;
-        }
+        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
         private static ImmutableArray<CodeAction> CreateNestedActions(
             IPackageInstallerService installerService,

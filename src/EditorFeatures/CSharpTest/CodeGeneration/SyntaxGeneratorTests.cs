@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,14 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeGeneration
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp(@"
-class C
-{
-    string M()
-    {
-        return ""a"";
-    }
-}");
+            using var workspace = EditorTestWorkspace.CreateCSharp("""
+                class C
+                {
+                    string M()
+                    {
+                        return "a";
+                    }
+                }
+                """);
 
             var solution = workspace.CurrentSolution;
             var document = solution.Projects.Single().Documents.Single();
@@ -54,14 +57,15 @@ class C
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp(@"
-class C
-{
-    string M()
-    {
-        return ""a"";
-    }
-}");
+            using var workspace = EditorTestWorkspace.CreateCSharp("""
+                class C
+                {
+                    string M()
+                    {
+                        return "a";
+                    }
+                }
+                """);
 
             var solution = workspace.CurrentSolution;
             var document = solution.Projects.Single().Documents.Single();

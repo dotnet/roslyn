@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -9,24 +11,23 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// <summary>
     /// Gives information about an identifier span that was affected by Rename (Reference or Non reference)
     /// </summary>
-    internal sealed class RelatedLocation
+    /// <param name="ConflictCheckSpan">
+    /// The Span of the original identifier if it was in source, otherwise the span to check for implicit
+    /// references.
+    /// </param>
+    /// <param name="ComplexifiedTargetSpan">
+    /// If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses
+    /// ComplexifiedTargetSpan span to be expanded to resolve the conflict.
+    /// </param>
+    [DataContract]
+    internal readonly record struct RelatedLocation(
+        [property: DataMember(Order = 0)] TextSpan ConflictCheckSpan,
+        [property: DataMember(Order = 1)] DocumentId DocumentId,
+        [property: DataMember(Order = 2)] RelatedLocationType Type,
+        [property: DataMember(Order = 3)] bool IsReference = false,
+        [property: DataMember(Order = 4)] TextSpan ComplexifiedTargetSpan = default)
     {
-        // The Span of the original identifier if it was in source, otherwise the span to check for implicit references
-        public TextSpan ConflictCheckSpan { get; }
-        public RelatedLocationType Type { get; set; }
-        public bool IsReference { get; }
-        public DocumentId DocumentId { get; }
-
-        // If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses ComplexifiedTargetSpan span to be expanded to resolve the conflict
-        public TextSpan ComplexifiedTargetSpan { get; }
-
-        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
-        {
-            this.ConflictCheckSpan = location;
-            this.Type = type;
-            this.IsReference = isReference;
-            this.DocumentId = documentId;
-            this.ComplexifiedTargetSpan = complexifiedTargetSpan;
-        }
+        public RelatedLocation WithType(RelatedLocationType type)
+            => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
     }
 }

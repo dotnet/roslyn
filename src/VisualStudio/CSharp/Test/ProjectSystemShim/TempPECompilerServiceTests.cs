@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -32,7 +34,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 fileNames: Array.Empty<string>(),
                 fileContents: Array.Empty<string>(),
                 optionCount: 1,
-                optionNames: new[] { "r" },
+                optionNames: ["r"],
                 optionValues: new[] { Path.Combine(directory.Path, "MissingReference.dll") });
 
             Assert.Equal(VSConstants.S_FALSE, hr);

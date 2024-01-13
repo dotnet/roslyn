@@ -2,24 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
-        [Fact]
-        public async Task TestProjectsAsync()
+        public ProjectsHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
-            using var workspace = CreateTestWorkspace(string.Empty, out var _);
-            var solution = workspace.CurrentSolution;
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestProjectsAsync(bool mutatingLspWorkspace)
+        {
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+            var solution = testLspServer.GetCurrentSolution();
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
-            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null);
+            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null, CustomProtocol.RoslynMethods.ProjectsName);
             AssertJsonEquals(expected, results);
         }
 

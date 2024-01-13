@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -15,20 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaExtensions
     {
-        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
-            => trivia.Kind() == kind;
-
-        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            var triviaKind = trivia.Kind();
-            return triviaKind == kind1 || triviaKind == kind2;
-        }
-
-        public static bool MatchesKind(this SyntaxTrivia trivia, params SyntaxKind[] kinds)
-            => kinds.Contains(trivia.Kind());
+        public static void Deconstruct(this SyntaxTrivia trivia, out SyntaxKind kind)
+            => kind = trivia.Kind();
 
         public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
             => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
@@ -51,14 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {
             if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
-            {
                 return false;
-            }
 
             var text = trivia.ToFullString();
-            return text.Length >= 4
-                && text[text.Length - 1] == '/'
-                && text[text.Length - 2] == '*';
+            return text is [.., _, _, '*', '/'];
         }
 
         public static bool IsDocComment(this SyntaxTrivia trivia)
@@ -77,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 return commentText.TrimStart(null);
@@ -88,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(0, commentText.Length - 2);
+                    commentText = commentText[..^2];
                 }
 
                 if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 commentText = commentText.Trim();
@@ -207,5 +197,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return trivia.FullSpan.Length;
         }
 #endif
+
+        public static bool IsPragmaDirective(this SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+        {
+            if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
+            {
+                var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
+                isDisable = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
+                isActive = pragmaWarning.IsActive;
+                errorCodes = pragmaWarning.ErrorCodes;
+                return true;
+            }
+
+            isDisable = false;
+            isActive = false;
+            errorCodes = default;
+            return false;
+        }
     }
 }

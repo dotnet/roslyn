@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -16,21 +17,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Private Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
-            Using workspace = TestWorkspace.Create(definition)
-                Dim finalWorkspace = workspace
-
-                If csharpParseOptions IsNot Nothing Then
-                    For Each project In workspace.CurrentSolution.Projects
-                        finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
-                    Next
-                End If
-
-                Await TestAsync(finalWorkspace, expected, options).ConfigureAwait(False)
+        Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As OptionsCollection = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
+            Using workspace = Await CreateTestWorkspaceAsync(definition, csharpParseOptions)
+                Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
+                Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
 
-        Private Protected Async Function TestAsync(workspace As TestWorkspace, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing) As System.Threading.Tasks.Task
+        Protected Shared Async Function CreateTestWorkspaceAsync(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As Task(Of EditorTestWorkspace)
+            Dim workspace = EditorTestWorkspace.Create(definition)
+
+            If csharpParseOptions IsNot Nothing Then
+                For Each project In workspace.CurrentSolution.Projects
+                    Await workspace.ChangeSolutionAsync(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
+                Next
+            End If
+
+            Return workspace
+        End Function
+
+        Protected Shared Function SimplifyAsync(workspace As EditorTestWorkspace) As Task(Of Document)
+            Return SimplifyAsync(workspace, Nothing)
+        End Function
+
+        Private Shared Async Function SimplifyAsync(workspace As EditorTestWorkspace, options As OptionsCollection) As Task(Of Document)
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -48,16 +58,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                                                     explicitSpanToSimplifyAnnotatedSpans.Single().Value,
                                                     Nothing)
 
-            Await TestAsync(
-                workspace, spansToAddSimplifierAnnotation,
-                explicitSpansToSimplifyWithin, expected, options)
+            Return Await SimplifyAsync(workspace, spansToAddSimplifierAnnotation, explicitSpansToSimplifyWithin, options)
         End Function
 
-        Private Async Function TestAsync(workspace As Workspace,
-                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
-                         explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
-                         expected As XElement,
-                         options As Dictionary(Of OptionKey2, Object)) As System.Threading.Tasks.Task
+        Private Shared Async Function SimplifyAsync(
+            workspace As EditorTestWorkspace,
+            listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
+            explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
+            options As OptionsCollection) As Task(Of Document)
+
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()
@@ -99,33 +108,36 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 End Select
             Next
 
-            Dim optionSet = workspace.Options
-            If options IsNot Nothing Then
-                For Each entry In options
-                    optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                Next
-            End If
+            options?.SetGlobalOptions(workspace.GlobalOptions)
 
             document = document.WithSyntaxRoot(root)
 
+#Disable Warning RS0030 ' Do Not used banned APIs
+            Dim optionSet = options?.ToOptionSet()
             Dim simplifiedDocument As Document
             If Not explicitSpansToSimplifyWithin.IsDefaultOrEmpty Then
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, explicitSpansToSimplifyWithin, optionSet)
             Else
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet)
             End If
+#Enable Warning RS0030
 
+            Return simplifiedDocument
+        End Function
+
+        Protected Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
             Dim actualText = (Await simplifiedDocument.GetTextAsync()).ToString()
             Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
         End Function
 
-        Private Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
+        Private Shared Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
             While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
                 node = node.Parent
                 If node.Span.End = spanEnd Then
                     Exit While
                 End If
             End While
+
             Return node
         End Function
 

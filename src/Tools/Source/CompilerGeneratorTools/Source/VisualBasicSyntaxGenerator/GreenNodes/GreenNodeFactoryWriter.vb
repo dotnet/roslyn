@@ -45,7 +45,6 @@ Friend Class GreenNodeFactoryWriter
             GenerateConstructor()
         Else
             _writer.WriteLine("    Friend Partial Class {0}", Ident(_parseTree.FactoryClassName))
-            GenerateSpecialMembers()
         End If
 
         _writer.WriteLine()
@@ -58,11 +57,6 @@ Friend Class GreenNodeFactoryWriter
         End If
     End Sub
 
-    ' Generate special members, that aren't the factories, but are used by the factories
-    Private Sub GenerateSpecialMembers()
-        GenerateNodeTypes()
-    End Sub
-
     ' Generator all factory methods for all node structures.
     Private Sub GenerateAllFactoryMethods(contextual As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values
@@ -70,27 +64,6 @@ Friend Class GreenNodeFactoryWriter
                 GenerateFactoryMethodsForStructure(nodeStructure, contextual)
             End If
         Next
-    End Sub
-
-    Private Sub GenerateNodeTypes()
-
-        _writer.WriteLine()
-        _writer.WriteLine("        Friend Shared Function GetNodeTypes() As IEnumerable(Of Object)")
-        _writer.WriteLine("            Return New Object() {")
-
-        Dim structures = _parseTree.NodeStructures.Values.ToArray()
-        For i As Integer = 0 To structures.Length - 1
-            Dim node = structures(i)
-            _writer.Write("              GetType({0})", node.Name)
-            If i < structures.Length - 1 Then
-                _writer.Write(",")
-            End If
-            _writer.WriteLine()
-        Next
-        _writer.WriteLine("            }")
-
-        _writer.WriteLine("        End Function")
-
     End Sub
 
     ' Generator all factory methods for a node structure.
@@ -164,7 +137,6 @@ Friend Class GreenNodeFactoryWriter
         End If
     End Sub
 
-
     ' Generate the factory method for a node structure, possibly customized to a particular kind.
     ' If kind is Nothing, generate a factory method that takes a Kind parameter, and can create any kind.
     ' If kind is not Nothing, generator a factory method customized to that particular kind.
@@ -196,7 +168,6 @@ Friend Class GreenNodeFactoryWriter
         '------------------------------
         Dim needComma = False  ' do we need a comma before the next parameter?
 
-
         _writer.WriteLine()
         GenerateSummaryXmlComment(_writer, nodeStructure.Description)
 
@@ -204,7 +175,7 @@ Friend Class GreenNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -403,30 +374,6 @@ Friend Class GreenNodeFactoryWriter
         _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildFactoryTypeRef(node, child, True, True))
     End Sub
 
-    ' Given a node structure, return the default trailing trivia for that node structure as 
-    ' one of the strings "Nothing", "SingleSpaceTrivia", "NewlineTrivia".
-    Private Function GetDefaultTrailingTrivia(nodeStructure As ParseNodeStructure) As String
-        ' Go through parent chain, looking for non-empty value of trailing trivia.
-        While nodeStructure IsNot Nothing
-            If nodeStructure.DefaultTrailingTrivia <> "" Then
-                Select Case nodeStructure.DefaultTrailingTrivia
-                    Case "none"
-                        Return "Nothing"
-                    Case "space"
-                        Return "SingleSpaceTrivia"
-                    Case "newline"
-                        Return "NewlineTrivia"
-                    Case Else
-                        _parseTree.ReportError(nodeStructure.Element, "ERROR: Invalid value for default-trailing-trivia; must be 'none', 'space', or 'newline'")
-                End Select
-            End If
-
-            nodeStructure = nodeStructure.ParentStructure
-        End While
-
-        Return "Nothing"
-    End Function
-
     Private Sub GenerateConstructor()
         _writer.WriteLine()
         _writer.WriteLine("        Private ReadOnly _factoryContext As ISyntaxFactoryContext")
@@ -435,8 +382,6 @@ Friend Class GreenNodeFactoryWriter
         _writer.WriteLine("            _factoryContext = factoryContext")
         _writer.WriteLine("        End Sub")
     End Sub
-
-
 
 End Class
 

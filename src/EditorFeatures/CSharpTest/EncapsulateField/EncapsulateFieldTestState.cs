@@ -2,42 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.Shared;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     internal class EncapsulateFieldTestState : IDisposable
     {
-        private readonly TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
+        private readonly EditorTestHostDocument _testDocument;
+        public EditorTestWorkspace Workspace { get; }
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
-        private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    typeof(CSharpEncapsulateFieldService),
-                    typeof(EditorNotificationServiceFactory),
-                    typeof(DefaultTextBufferSupportsFeatureService)));
-
-        public EncapsulateFieldTestState(TestWorkspace workspace)
+        public EncapsulateFieldTestState(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue || d.SelectedSpans.Any());
@@ -50,41 +40,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static EncapsulateFieldTestState Create(string markup)
         {
-            var exportProvider = s_exportProviderFactory.CreateExportProvider();
-            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
+            var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+            workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+
             return new EncapsulateFieldTestState(workspace);
         }
 
-        public void Encapsulate()
+        public async Task EncapsulateAsync()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(
-                Workspace.GetService<IThreadingContext>(),
-                Workspace.GetService<ITextBufferUndoManagerProvider>(),
-                Workspace.GetService<IAsynchronousOperationListenerProvider>());
+            var commandHandler = Workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
+            var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.EncapsulateField);
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
+            await waiter.ExpeditedWaitAsync();
         }
 
         public void Dispose()
-        {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
-        }
+            => Workspace?.Dispose();
 
-        public void AssertEncapsulateAs(string expected)
+        public async Task AssertEncapsulateAsAsync(string expected)
         {
-            Encapsulate();
+            await EncapsulateAsync();
             Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString());
         }
 
-        public void AssertError()
+        public async Task AssertErrorAsync()
         {
-            Encapsulate();
+            await EncapsulateAsync();
             Assert.NotNull(NotificationMessage);
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -126,6 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // methods on classes are never 'readonly'
             internal sealed override bool IsDeclaredReadOnly => false;
 
+            internal sealed override bool IsInitOnly => false;
+
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
@@ -200,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -216,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 F.CurrentFunction = this;
@@ -225,8 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
+
+            protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         }
     }
 }

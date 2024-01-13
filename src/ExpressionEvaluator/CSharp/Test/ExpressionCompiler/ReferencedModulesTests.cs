@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -455,8 +457,7 @@ IL_0005:  ret
             ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds);
         }
 
-        [WorkItem(26159, "https://github.com/dotnet/roslyn/issues/26159")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26159")]
         public void TypeOutsideAssemblyReferences()
         {
             var sourceA =
@@ -506,8 +507,7 @@ class B : A
             }
         }
 
-        [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
         public void AssemblyDuplicateReferences()
         {
             var sourceA =
@@ -912,7 +912,7 @@ public class B
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal($"error CS0121: { string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)") }", errorMessage);
+            Assert.Equal($"error CS0121: {string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)")}", errorMessage);
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
@@ -970,8 +970,7 @@ IL_0006:  ret
         /// mscorlib.dll is not directly referenced from an assembly
         /// compiled against portable framework assemblies.
         /// </summary>
-        [WorkItem(1150981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
         public void MissingMscorlib()
         {
             var sourceA =
@@ -1046,8 +1045,7 @@ IL_0005:  ret
 }");
         }
 
-        [WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
         public void DuplicateTypesInMscorlib()
         {
             var sourceConsole =
@@ -1150,7 +1148,7 @@ IL_0005:  ret
         /// <summary>
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
-        [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/4140")]
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
@@ -1248,9 +1246,8 @@ IL_0030:  ret
 
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
-        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30030")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13275")]
         public void CorLibWithAssemblyReferences()
         {
             string sourceLib =
@@ -1260,7 +1257,8 @@ IL_0030:  ret
 public class Private2
 {
 }";
-            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library", parseOptions: parseOptions);
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -1279,7 +1277,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib }, parseOptions: parseOptions);
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -1289,7 +1287,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 null,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
 
@@ -1315,7 +1313,7 @@ namespace System
     {
     }
 }";
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -1366,8 +1364,7 @@ namespace System
         }
 
         // References to missing assembly from PDB custom debug info.
-        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/13275")]
         [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
         public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {
@@ -1409,7 +1406,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 pdbPath,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
             var symReader = SymReaderFactory.CreateReader(pdbBytes);
@@ -1544,7 +1541,8 @@ namespace System
                 }
             }
 
-            public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
+            public override SymbolChanges EncSymbolChanges => _builder.EncSymbolChanges;
+            public override EmitBaseline PreviousGeneration => _builder.PreviousGeneration;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
 

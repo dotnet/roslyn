@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../RemoteWorkspacesResources.resx">
+    <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">資產同步</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">非同步作業接聽程式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CodeLensReferences">
+        <source>CodeLens references</source>
+        <target state="translated">CodeLens 參考</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">專案語意學可用性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
+        <source>Convert tuple to struct refactoring</source>
+        <target state="translated">將元組轉換為結構重構</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DependentTypeFinder">
+        <source>Dependent type finder</source>
+        <target state="translated">相依類型尋找工具</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
+        <source>DesignerAttribute discovery</source>
+        <target state="translated">DesignerAttribute 探索</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticAnalyzer">
+        <source>Diagnostic analyzer runner</source>
+        <target state="translated">診斷分析器執行器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DocumentHighlights">
+        <source>Document highlights</source>
+        <target state="translated">文件重點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">編輯並繼續</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EncapsulateField">
+        <source>Encapsulate field refactoring</source>
+        <target state="translated">封裝欄位重構</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
+        <source>Extension method import completion</source>
+        <target state="translated">擴充方法匯入完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FindUsages">
+        <source>Find usages</source>
+        <target state="translated">尋找使用方式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">完全符合資格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_GlobalNotificationDelivery">
+        <source>Global notification delivery</source>
+        <target state="translated">全域通知傳遞</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">繼承邊界</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">保持運作服務</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">解决方案事件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">缺少匯入探索</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigateToSearch">
+        <source>Navigate to</source>
+        <target state="translated">導覽至</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">導覽列</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">流程遙測</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProjectTelemetry">
+        <source>Project telemetry collection</source>
+        <target state="translated">專案遙測集合</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Renamer">
+        <source>Rename</source>
+        <target state="translated">重新命名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticClassification">
+        <source>Semantic classification</source>
+        <target state="translated">語意分類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">資產提供者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">來源產生</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">堆疊追蹤總管</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolFinder">
+        <source>Symbol finder</source>
+        <target state="translated">符號尋找工具</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolSearchUpdate">
+        <source>Symbol search</source>
+        <target state="translated">符號搜尋</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">工作清單</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">單元測試搜尋</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">未使用的參考分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">值追蹤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
+        <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
+        <target state="translated">因為發生間歇性錯誤，所以 '{0}' 功能目前無法使用，請稍後再試: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
+        <source>Feature '{0}' is currently unavailable due to an internal error.</source>
+        <target state="translated">因為發生內部錯誤，所以 '{0}' 功能目前無法使用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
+        <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
+        <target state="translated">因為 {1} 正在關閉，所以 '{0}' 功能目前無法使用。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

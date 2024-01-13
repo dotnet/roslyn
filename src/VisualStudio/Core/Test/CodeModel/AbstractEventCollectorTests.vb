@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    End Sub
         End Function
 
-        Private Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
+        Private Shared Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
             If node IsNot Nothing Then
                 Assert.NotNull(codeModelEvent.Node)
                 Assert.Equal(node, codeModelService.GetName(codeModelEvent.Node))
@@ -100,9 +100,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim project = workspace.CurrentSolution.Projects.First()
-                Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
+                Dim codeModelService = project.Services.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
 
                 Dim codeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(0).Id)

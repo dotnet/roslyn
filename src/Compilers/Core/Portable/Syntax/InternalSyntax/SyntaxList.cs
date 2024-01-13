@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -18,11 +16,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal SyntaxList(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
             : base(GreenNode.ListKind, diagnostics, annotations)
-        {
-        }
-
-        internal SyntaxList(ObjectReader reader)
-            : base(reader)
         {
         }
 
@@ -152,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -160,18 +153,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
         public sealed override SyntaxNode GetStructure(SyntaxTrivia parentTrivia)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override bool IsTriviaWithEndOfLine()

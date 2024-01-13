@@ -102,17 +102,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            expressionPlaceholder As BoundValuePlaceholderBase,
                            draftSubstitute As BoundExpression,
                            draftInitializers As ImmutableArray(Of BoundExpression),
-                           diagnostics As DiagnosticBag)
+                           capturedLvalueByRefCallOrProperty As BoundExpression,
+                           diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol))
 
                 Debug.Assert(originalExpression IsNot Nothing)
                 Debug.Assert(expressionPlaceholder IsNot Nothing AndAlso (expressionPlaceholder.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse expressionPlaceholder.Kind = BoundKind.WithRValueExpressionPlaceholder))
                 Debug.Assert(draftSubstitute IsNot Nothing)
                 Debug.Assert(Not draftInitializers.IsDefault)
-                Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.OriginalExpression = originalExpression
                 Me.ExpressionPlaceholder = expressionPlaceholder
                 Me.DraftSubstitute = draftSubstitute
+                Me.CapturedLvalueByRefCallOrProperty = capturedLvalueByRefCallOrProperty
                 Me.DraftInitializers = draftInitializers
                 Me.Diagnostics = diagnostics
             End Sub
@@ -124,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly ExpressionPlaceholder As BoundValuePlaceholderBase
 
             ''' <summary> Diagnostics produced while binding the expression </summary>
-            Public ReadOnly Diagnostics As DiagnosticBag
+            Public ReadOnly Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             ''' <summary> 
             ''' Draft initializers for With statement, is based on initial binding tree 
@@ -140,6 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in lowering
             ''' </summary>
             Public ReadOnly DraftSubstitute As BoundExpression
+
+            Public ReadOnly CapturedLvalueByRefCallOrProperty As BoundExpression
 
             Public ReadOnly Property ExpressionIsAccessedFromNestedLambda As Boolean
                 Get
@@ -203,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me._withBlockInfo Is Nothing Then
                 ' Because we cannot guarantee that diagnostics will be freed we 
                 ' don't allocate this diagnostics bag from a pool
-                Dim diagnostics As New DiagnosticBag()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
                 ' Bind the expression as a value
                 Dim boundExpression As BoundExpression = Me.ContainingBinder.BindValue(Me.Expression, diagnostics)
@@ -211,6 +214,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: If the expression is not an l-value we should make an r-value of it
                 If Not boundExpression.IsLValue Then
                     boundExpression = Me.MakeRValue(boundExpression, diagnostics)
+                Else
+                    Dim propertyAccess = TryCast(boundExpression, BoundPropertyAccess)
+
+                    If propertyAccess IsNot Nothing Then
+                        WarnOnRecursiveAccess(propertyAccess, PropertyAccessKind.Get, diagnostics)
+                        boundExpression = propertyAccess.SetAccessKind(PropertyAccessKind.Get)
+                    End If
                 End If
 
                 ' Prepare draft substitute/initializers for expression placeholder;
@@ -219,6 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As WithExpressionRewriter.Result =
                     (New WithExpressionRewriter(Me._withBlockSyntax.WithStatement)).AnalyzeWithExpression(Me.ContainingMember, boundExpression,
                                                                  doNotUseByRefLocal:=True,
+                                                                 isDraftRewrite:=True,
                                                                  binder:=Me.ContainingBinder,
                                                                  preserveIdentityOfLValues:=True)
 
@@ -235,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' so if the following call fails we can just drop the bound node and diagnostics on the floor
                 Interlocked.CompareExchange(Me._withBlockInfo,
                                             New WithBlockInfo(boundExpression, placeholder,
-                                                              result.Expression, result.Initializers, diagnostics),
+                                                              result.Expression, result.Initializers, result.CapturedLvalueByRefCallOrProperty, diagnostics.ToReadOnlyAndFree()),
                                             Nothing)
             End If
 
@@ -291,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "With block binding"
 
-        Protected Overrides Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement
+        Protected Overrides Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node Is Me._withBlockSyntax)
 
             ' Bind With statement expression
@@ -301,12 +312,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' by EnsureExpressionAndPlaceholder call, note that this call might have
             ' been before in which case the diagnostics were stored in '_withBlockInfo'
             ' See also comment in PrepareBindingOfOmittedLeft(...)
-            diagnostics.AddRange(Me._withBlockInfo.Diagnostics)
+            diagnostics.AddRange(Me._withBlockInfo.Diagnostics, allowMismatchInDependencyAccumulation:=True)
 
-            Return New BoundWithStatement(node,
-                                          Me._withBlockInfo.OriginalExpression,
-                                          boundBlockBinder.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated(),
-                                          Me)
+            Dim result = New BoundWithStatement(node,
+                                                Me._withBlockInfo.OriginalExpression,
+                                                boundBlockBinder.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated(),
+                                                Me)
+            If Me._withBlockInfo.CapturedLvalueByRefCallOrProperty IsNot Nothing Then
+                Dim containingMethod = TryCast(ContainingMember, MethodSymbol)
+
+                If (containingMethod IsNot Nothing AndAlso (containingMethod.IsIterator OrElse containingMethod.IsAsync)) OrElse
+                   result.Binder.ExpressionIsAccessedFromNestedLambda Then
+                    ReportDiagnostic(diagnostics, Me._withBlockInfo.CapturedLvalueByRefCallOrProperty.Syntax, ERRID.ERR_UnsupportedRefReturningCallInWithStatement)
+                End If
+            End If
+
+            Return result
         End Function
 
 #End Region
@@ -324,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
 
-        Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             AssertExpressionIsNotFromStatementExpression(node)
             Return MyBase.BindStatement(node, diagnostics)
         End Function
@@ -336,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End If
 
-        Private Sub PrepareBindingOfOmittedLeft(node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, accessingBinder As Binder)
+        Private Sub PrepareBindingOfOmittedLeft(node As VisualBasicSyntaxNode, diagnostics As BindingDiagnosticBag, accessingBinder As Binder)
             AssertExpressionIsNotFromStatementExpression(node)
             Debug.Assert((node.Kind = SyntaxKind.SimpleMemberAccessExpression) OrElse
                          (node.Kind = SyntaxKind.DictionaryAccessExpression) OrElse
@@ -359,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Friend Overrides Function TryBindOmittedLeftForMemberAccess(node As MemberAccessExpressionSyntax,
-                                                                              diagnostics As DiagnosticBag,
+                                                                              diagnostics As BindingDiagnosticBag,
                                                                               accessingBinder As Binder,
                                                                               <Out> ByRef wholeMemberAccessExpressionBound As Boolean) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
@@ -370,18 +391,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax,
                                                                            accessingBinder As Binder,
-                                                                           diagnostics As DiagnosticBag) As BoundExpression
+                                                                           diagnostics As BindingDiagnosticBag) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
             Return Me._withBlockInfo.ExpressionPlaceholder
         End Function
 
-        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
             Return Me._withBlockInfo.ExpressionPlaceholder
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax,
-                                                                                 diagnostics As DiagnosticBag,
+                                                                                 diagnostics As BindingDiagnosticBag,
                                                                                  accessingBinder As Binder) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
             Return Me._withBlockInfo.ExpressionPlaceholder

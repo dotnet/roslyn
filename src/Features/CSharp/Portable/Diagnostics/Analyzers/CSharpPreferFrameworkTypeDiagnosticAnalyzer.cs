@@ -12,10 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
-        PreferFrameworkTypeDiagnosticAnalyzerBase<SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax>
+        PreferFrameworkTypeDiagnosticAnalyzerBase<
+            SyntaxKind,
+            ExpressionSyntax,
+            TypeSyntax,
+            IdentifierNameSyntax,
+            PredefinedTypeSyntax>
     {
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
-            ImmutableArray.Create(SyntaxKind.PredefinedType);
+            ImmutableArray.Create(SyntaxKind.PredefinedType, SyntaxKind.IdentifierName);
 
         ///<remarks>
         /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
@@ -23,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node)
             => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
 
+        // Only offer to change nint->System.IntPtr when it would preserve semantics exactly.
+        protected override bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, IdentifierNameSyntax node)
+            => (node.IsNint || node.IsNuint) &&
+               semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9 &&
+               semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
+
         protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
             => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();
-
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
     }
 }

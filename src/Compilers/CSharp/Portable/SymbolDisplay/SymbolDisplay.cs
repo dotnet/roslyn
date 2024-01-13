@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol symbol,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, format).ToDisplayString();
+            // null indicates the default format
+            format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayString(symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableFlowState nullableFlowState,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, nullableFlowState, format).ToDisplayString();
+            return ToDisplayString(symbol, nullableFlowState.ToAnnotation(), format);
         }
 
         public static string ToDisplayString(
@@ -50,8 +50,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableAnnotation nullableAnnotation,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, nullableAnnotation, format).ToDisplayString();
+            // null indicates the default format
+            format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
+            symbol = symbol.WithNullableAnnotation(nullableAnnotation);
+            return ToDisplayString(symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
+
+        private static string ToDisplayString(
+            ISymbol symbol,
+            SemanticModel? semanticModelOpt,
+            int positionOpt,
+            SymbolDisplayFormat format,
+            bool minimal)
+        {
+            var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+
+            PopulateDisplayParts(builder, symbol, semanticModelOpt, positionOpt, format, minimal);
+
+            var result = builder.ToDisplayString();
+            builder.Free();
+
+            return result;
+        }
+
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
@@ -73,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayString(symbol, semanticModel, position, format, minimal: true);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -84,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, nullableFlowState, semanticModel, position, format).ToDisplayString();
+            return ToMinimalDisplayString(symbol, nullableFlowState.ToAnnotation(), semanticModel, position, format);
         }
 
         public static string ToMinimalDisplayString(
@@ -94,7 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, nullableAnnotation, semanticModel, position, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            symbol = symbol.WithNullableAnnotation(nullableAnnotation);
+            return ToDisplayString(symbol, semanticModel, position, format, minimal: true);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -208,6 +232,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
+            ArrayBuilder<SymbolDisplayPart> builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+
+            PopulateDisplayParts(builder, symbol, semanticModelOpt, positionOpt, format, minimal);
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private static ArrayBuilder<SymbolDisplayPart> PopulateDisplayParts(
+            ArrayBuilder<SymbolDisplayPart> builder,
+            ISymbol symbol,
+            SemanticModel? semanticModelOpt,
+            int positionOpt,
+            SymbolDisplayFormat format,
+            bool minimal)
+        {
             if (symbol == null)
             {
                 throw new ArgumentNullException(nameof(symbol));
@@ -230,11 +269,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(positionOpt < 0);
             }
 
-            var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
-            symbol.Accept(visitor);
+            // Do not leak unspeakable name of a Simple Program entry point through diagnostics,
+            // and, for consistency, with other display options.
+            if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<top-level-statements-entry-point>"));
+            }
+            else
+            {
+                var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
+                symbol.Accept(visitor);
+                visitor.Free();
+            }
 
-            return builder.ToImmutableAndFree();
+            return builder;
         }
 
         /// <summary>

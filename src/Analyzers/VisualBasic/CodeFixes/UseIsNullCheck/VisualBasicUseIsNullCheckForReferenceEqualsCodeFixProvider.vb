@@ -9,32 +9,28 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseIsNullCheck), [Shared]>
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
-        Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
+        Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider(Of ExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetIsNullTitle() As String
-            Return VisualBasicAnalyzersResources.Use_Is_Nothing_check
+        Protected Overrides Function GetTitle(negate As Boolean, options As ParseOptions) As String
+            Return If(negate, VisualBasicAnalyzersResources.Use_IsNot_Nothing_check, VisualBasicAnalyzersResources.Use_Is_Nothing_check)
         End Function
 
-        Protected Overrides Function GetIsNotNullTitle() As String
-            Return VisualBasicAnalyzersResources.Use_IsNot_Nothing_check
-        End Function
-
-        Protected Overrides Function CreateNullCheck(argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
+        Protected Overrides Function CreateNullCheck(argument As ExpressionSyntax, isUnconstrainedGeneric As Boolean) As SyntaxNode
             Return SyntaxFactory.IsExpression(
-                DirectCast(argument, ExpressionSyntax).Parenthesize(),
+                argument.Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
 
-        Protected Overrides Function CreateNotNullCheck(argument As SyntaxNode) As SyntaxNode
+        Protected Overrides Function CreateNotNullCheck(argument As ExpressionSyntax) As SyntaxNode
             Return SyntaxFactory.IsNotExpression(
-                DirectCast(argument, ExpressionSyntax).Parenthesize(),
+                argument.Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
     End Class

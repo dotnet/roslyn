@@ -4,47 +4,40 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Xunit;
-using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     public class EditorConfigOptionParserTests
     {
-        [Theory,
-        InlineData("expressions", SpacingWithinParenthesesOption.Expressions),
-        InlineData("type_casts", SpacingWithinParenthesesOption.TypeCasts),
-        InlineData("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
-        InlineData("expressions, type_casts", SpacingWithinParenthesesOption.Expressions),
-        InlineData("type_casts, expressions, , ", SpacingWithinParenthesesOption.TypeCasts),
-        InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
-        InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.Expressions),
-        InlineData(",  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements)]
-        static void TestParseParenthesesSpaceOptionsTrue(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
+        [Theory]
+        [InlineData("expressions", SpacePlacementWithinParentheses.Expressions, "expressions")]
+        [InlineData("type_casts", SpacePlacementWithinParentheses.TypeCasts, "type_casts")]
+        [InlineData("control_flow_statements", SpacePlacementWithinParentheses.ControlFlowStatements, "control_flow_statements")]
+        [InlineData("false", SpacePlacementWithinParentheses.None, "false")]
+        [InlineData("", SpacePlacementWithinParentheses.None, "false")]
+        [InlineData(",,,", SpacePlacementWithinParentheses.None, "false")]
+        [InlineData("*", SpacePlacementWithinParentheses.None, "false")]
+        [InlineData("expressions, type_casts", SpacePlacementWithinParentheses.Expressions | SpacePlacementWithinParentheses.TypeCasts, "expressions,type_casts")]
+        [InlineData("type_casts, expressions, , ", SpacePlacementWithinParentheses.Expressions | SpacePlacementWithinParentheses.TypeCasts, "expressions,type_casts")]
+        [InlineData("expressions ,  ,  , control_flow_statements", SpacePlacementWithinParentheses.Expressions | SpacePlacementWithinParentheses.ControlFlowStatements, "expressions,control_flow_statements")]
+        [InlineData("expressions ,  , type_casts , control_flow_statements, type_casts", SpacePlacementWithinParentheses.Expressions | SpacePlacementWithinParentheses.ControlFlowStatements | SpacePlacementWithinParentheses.TypeCasts, "expressions,type_casts,control_flow_statements")]
+        [InlineData(",  , x , control_flow_statements", SpacePlacementWithinParentheses.ControlFlowStatements, "control_flow_statements")]
+        [InlineData("none,expressions", SpacePlacementWithinParentheses.Expressions, "expressions")]
+        [InlineData("all,expressions", SpacePlacementWithinParentheses.Expressions, "expressions")]
+        [InlineData("false,expressions", SpacePlacementWithinParentheses.Expressions, "expressions")]
+        internal void TestParseSpacingWithinParenthesesList(string list, SpacePlacementWithinParentheses value, string roundtrip)
         {
-            Assert.True(DetermineIfSpaceOptionIsSet(value, parenthesesSpacingOption),
-                        $"Expected option {value} to be parsed as set.");
-        }
-
-        [Theory,
-        InlineData("expressions", SpacingWithinParenthesesOption.ControlFlowStatements),
-        InlineData("type_casts", SpacingWithinParenthesesOption.Expressions),
-        InlineData("control_flow_statements", SpacingWithinParenthesesOption.Expressions),
-        InlineData("", SpacingWithinParenthesesOption.Expressions),
-        InlineData(",,,", SpacingWithinParenthesesOption.Expressions),
-        InlineData("*", SpacingWithinParenthesesOption.Expressions)]
-        static void TestParseParenthesesSpaceOptionsFalse(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
-        {
-            Assert.False(DetermineIfSpaceOptionIsSet(value, parenthesesSpacingOption),
-                        $"Expected option {value} to be parsed as un-set.");
+            Assert.Equal(value, CSharpFormattingOptions2.ParseSpacingWithinParenthesesList(list));
+            Assert.Equal(roundtrip, CSharpFormattingOptions2.ToEditorConfigValue(value));
         }
 
         [Theory,
         InlineData("ignore", BinaryOperatorSpacingOptions.Ignore),
         InlineData("none", BinaryOperatorSpacingOptions.Remove),
         InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
-        static void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
+        public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == expectedResult,
+            Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == expectedResult,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -52,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("ignore,"),
         InlineData("non"),
         InlineData("before_and_after,ignore")]
-        static void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
+        public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptions.Single,
+            Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptions.Single,
                         $"Expected option {value} to be parsed as default option.");
         }
 
@@ -62,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("flush_left", LabelPositionOptions.LeftMost),
         InlineData("no_change", LabelPositionOptions.NoIndent),
         InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
-        static void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
+        public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == expectedValue,
+            Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == expectedValue,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -72,47 +65,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("left_most,"),
         InlineData("*"),
         InlineData("one_less_thancurrent")]
-        static void TestParseEditorConfigLabelPositioningFalse(string value)
+        public void TestParseEditorConfigLabelPositioningFalse(string value)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
+            Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
                         $"Expected option {value} to be parsed default");
         }
 
-        [Theory,
-        InlineData("all", NewLineOption.Types),
-        InlineData("all,none", NewLineOption.Types),
-        InlineData("none,all", NewLineOption.Types),
-        InlineData("types", NewLineOption.Types),
-        InlineData("types,methods", NewLineOption.Types),
-        InlineData(",, types", NewLineOption.Types),
-        InlineData("accessors", NewLineOption.Accessors),
-        InlineData("methods", NewLineOption.Methods),
-        InlineData("properties", NewLineOption.Properties),
-        InlineData("indexers", NewLineOption.Indexers),
-        InlineData("events", NewLineOption.Events),
-        InlineData("anonymous_methods", NewLineOption.AnonymousMethods),
-        InlineData("control_blocks", NewLineOption.ControlBlocks),
-        InlineData("anonymous_types", NewLineOption.AnonymousTypes),
-        InlineData("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
-        InlineData("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
-        InlineData("lambdas", NewLineOption.Lambdas),
-        InlineData("local_functions", NewLineOption.LocalFunction)]
-        static void TestParseNewLineOptionTrue(string value, NewLineOption option)
+        [Theory]
+        [InlineData("all",
+            NewLineBeforeOpenBracePlacement.Types |
+            NewLineBeforeOpenBracePlacement.Methods |
+            NewLineBeforeOpenBracePlacement.Properties |
+            NewLineBeforeOpenBracePlacement.AnonymousMethods |
+            NewLineBeforeOpenBracePlacement.ControlBlocks |
+            NewLineBeforeOpenBracePlacement.AnonymousTypes |
+            NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers |
+            NewLineBeforeOpenBracePlacement.LambdaExpressionBody |
+            NewLineBeforeOpenBracePlacement.Accessors, "all")]
+        [InlineData("all,none", NewLineBeforeOpenBracePlacement.All, "all")]
+        [InlineData("none,all", NewLineBeforeOpenBracePlacement.All, "all")]
+        [InlineData("types", NewLineBeforeOpenBracePlacement.Types, "types")]
+        [InlineData("types,methods", NewLineBeforeOpenBracePlacement.Types | NewLineBeforeOpenBracePlacement.Methods, "types,methods")]
+        [InlineData("methods,types", NewLineBeforeOpenBracePlacement.Types | NewLineBeforeOpenBracePlacement.Methods, "types,methods")]
+        [InlineData("methods, properties", NewLineBeforeOpenBracePlacement.Methods | NewLineBeforeOpenBracePlacement.Properties, "methods,properties")]
+        [InlineData(",, types", NewLineBeforeOpenBracePlacement.Types, "types")]
+        [InlineData("accessors", NewLineBeforeOpenBracePlacement.Accessors, "accessors")]
+        [InlineData("methods", NewLineBeforeOpenBracePlacement.Methods, "methods")]
+        [InlineData("properties", NewLineBeforeOpenBracePlacement.Properties, "properties")]
+        [InlineData("anonymous_methods", NewLineBeforeOpenBracePlacement.AnonymousMethods, "anonymous_methods")]
+        [InlineData("control_blocks", NewLineBeforeOpenBracePlacement.ControlBlocks, "control_blocks")]
+        [InlineData("anonymous_types", NewLineBeforeOpenBracePlacement.AnonymousTypes, "anonymous_types")]
+        [InlineData("object_collection_array_initalizers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, "object_collection_array_initializers")]
+        [InlineData("object_collection_array_initializers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, "object_collection_array_initializers")]
+        [InlineData("lambdas", NewLineBeforeOpenBracePlacement.LambdaExpressionBody, "lambdas")]
+        [InlineData("Accessors", NewLineBeforeOpenBracePlacement.None, "none")]
+        [InlineData("none,types", NewLineBeforeOpenBracePlacement.None, "none")]
+        [InlineData(",,,", NewLineBeforeOpenBracePlacement.None, "none")]
+        internal void TestParseNewLineBeforeOpenBracePlacementList(string list, NewLineBeforeOpenBracePlacement value, string roundtrip)
         {
-            Assert.True(DetermineIfNewLineOptionIsSet(value, option),
-                        $"Expected option {value} to be set");
-        }
-
-        [Theory,
-        InlineData("Accessors", NewLineOption.Accessors),
-        InlineData("none,types", NewLineOption.Types),
-        InlineData("methods", NewLineOption.Types),
-        InlineData("methods, properties", NewLineOption.Types),
-        InlineData(",,,", NewLineOption.Types)]
-        static void TestParseNewLineOptionFalse(string value, NewLineOption option)
-        {
-            Assert.False(DetermineIfNewLineOptionIsSet(value, option),
-                        $"Expected option {value} to be un-set");
+            Assert.Equal(value, CSharpFormattingOptions2.ParseNewLineBeforeOpenBracePlacementList(list));
+            Assert.Equal(roundtrip, CSharpFormattingOptions2.ToEditorConfigValue(value));
         }
 
         [Theory,
@@ -120,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("ignore "),
         InlineData(" ignore"),
         InlineData(" ignore ")]
-        static void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetTrue(string value)
+        public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetTrue(string value)
         {
-            Assert.True(DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+            Assert.True(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
                         $"Expected option {value} to be set");
         }
 
@@ -130,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("do_not_ignore"),
         InlineData(", "),
         InlineData(" ignor ")]
-        static void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetFalse(string value)
+        public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetFalse(string value)
         {
-            Assert.False(DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+            Assert.False(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
                         $"Expected option {value} to be un-set");
         }
     }

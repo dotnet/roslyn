@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +16,7 @@ namespace Microsoft.DiaSymReader
 {
     internal sealed class SymUnmanagedWriterImpl : SymUnmanagedWriter
     {
-        private static object s_zeroInt32 = 0;
+        private static readonly object s_zeroInt32 = 0;
 
         private ISymUnmanagedWriter5 _symWriter;
         private readonly ComMemoryStream _pdbStream;
@@ -355,6 +357,9 @@ namespace Microsoft.DiaSymReader
 
         private unsafe void DefineLocalConstantImpl(ISymUnmanagedWriter5 symWriter, string name, object value, int constantSignatureToken)
         {
+#if NET6_0_OR_GREATER
+            Debug.Assert(OperatingSystem.IsWindows());
+#endif
             VariantStructure variant = new VariantStructure();
 #pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
@@ -369,7 +374,7 @@ namespace Microsoft.DiaSymReader
             int encodedLength;
 
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
-            // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+            // We use the .NET UTF-8 encoder to replace unmatched unicode surrogates with unicode replacement character.
 
             if (!IsValidUnicodeString(value))
             {
@@ -583,7 +588,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceServerData(byte[] data)
+        public override unsafe void SetSourceServerData(byte[] data)
         {
             if (data == null)
             {
@@ -610,7 +615,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceLinkData(byte[] data)
+        public override unsafe void SetSourceLinkData(byte[] data)
         {
             if (data == null)
             {
@@ -690,7 +695,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void GetSignature(out Guid guid, out uint stamp, out int age)
+        public override unsafe void GetSignature(out Guid guid, out uint stamp, out int age)
         {
             var symWriter = GetSymWriter();
 
@@ -735,7 +740,7 @@ namespace Microsoft.DiaSymReader
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
             //     DWORD age;                   // age
-            //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
+            //     char szPDB[0];               // zero-terminated UTF-8 file name passed to the writer
             // };
             const int GuidSize = 16;
             var guidBytes = new byte[GuidSize];
@@ -746,6 +751,29 @@ namespace Microsoft.DiaSymReader
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
             // we need to go through IPdbWriter interface to get it.
             ((IPdbWriter)symWriter).GetSignatureAge(out stamp, out age);
+        }
+
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var symWriter = GetSymWriter();
+            if (symWriter is not ISymUnmanagedCompilerInfoWriter infoWriter)
+            {
+                return;
+            }
+
+            try
+            {
+                infoWriter.AddCompilerInfo(major, minor, build, revision, name);
+            }
+            catch (Exception ex)
+            {
+                throw PdbWritingException(ex);
+            }
         }
     }
 }

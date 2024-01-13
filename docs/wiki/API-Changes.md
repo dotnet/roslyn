@@ -8,6 +8,6 @@ The following are links to PRs where introduced public APIs were promoted from `
 * [API Changes Between VS2015 Update2 and VS2015 Update3](https://github.com/dotnet/roslyn/pull/12351/files)
 
 #Roslyn v1.0 (VS2015 RTM)
-* [API Changes between VS2015 CTP6 and RC](https://github.com/dotnet/roslyn/blob/master/docs/wiki/VS-2015-RC-API-Changes.md)
-* [API Changes between VS2015 CTP5 and CTP6](https://github.com/dotnet/roslyn/blob/master/docs/wiki/VS-2015-CTP-6-API-Changes.md)
-* [API Changes between VS2015 Preview and CTP5](https://github.com/dotnet/roslyn/blob/master/docs/wiki/VS-2015-CTP-5-API-Changes.md)
+* [API Changes between VS2015 CTP6 and RC](https://github.com/dotnet/roslyn/blob/main/docs/wiki/VS-2015-RC-API-Changes.md)
+* [API Changes between VS2015 CTP5 and CTP6](https://github.com/dotnet/roslyn/blob/main/docs/wiki/VS-2015-CTP-6-API-Changes.md)
+* [API Changes between VS2015 Preview and CTP5](https://github.com/dotnet/roslyn/blob/main/docs/wiki/VS-2015-CTP-5-API-Changes.md)

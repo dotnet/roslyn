@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalFunctionStatement(node);
         }
 
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            return node;
+        }
+
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters
@@ -54,6 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GetOrCreateSlot(parameter);
             }
+        }
+
+        protected override void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+        }
+
+        protected override void AfterVisitConversion(BoundConversion node)
+        {
         }
     }
 }

@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -31,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
-        bool OpenFileOnly(OptionSet options);
+        bool OpenFileOnly(SimplifierOptions? options);
+
+        /// <summary>
+        /// If this analyzer is privileged and should run with higher priority than other analyzers.
+        /// </summary>
+        bool IsHighPriority { get; }
     }
 }

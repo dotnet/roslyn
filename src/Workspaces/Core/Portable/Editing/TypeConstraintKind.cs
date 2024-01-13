@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -24,6 +26,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Has the constructor constraint (i.e. 'new' constraint in C#)
         /// </summary>
-        Constructor = 0x0004
+        Constructor = 0x0004,
     }
 }

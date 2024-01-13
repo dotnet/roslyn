@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,15 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     // trying to understand them, e.g. like comments or CDATA, so that they are available
     // to whoever processes these comments and do not produce an error. 
 
-    internal class DocumentationCommentParser : SyntaxParser
+    internal sealed class DocumentationCommentParser : SyntaxParser
     {
         private readonly SyntaxListPool _pool = new SyntaxListPool();
         private bool _isDelimited;
 
-        internal DocumentationCommentParser(Lexer lexer, LexerMode modeflags)
-            : base(lexer, LexerMode.XmlDocComment | LexerMode.XmlDocCommentLocationStart | modeflags, null, null, true)
+        internal DocumentationCommentParser(Lexer lexer)
+            : base(lexer, LexerMode.None, oldTree: null, changes: null, allowModeReset: true)
         {
-            _isDelimited = (modeflags & LexerMode.XmlDocCommentStyleDelimited) != 0;
         }
 
         internal void ReInitialize(LexerMode modeflags)
@@ -328,13 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var attr = this.ParseXmlAttribute(elementName);
                     string attrName = attr.Name.ToString();
-                    if (_attributesSeen.Contains(attrName))
+                    if (!_attributesSeen.Add(attrName))
                     {
                         attr = this.WithXmlParseError(attr, XmlParseErrorCode.XML_DuplicateAttribute, attrName);
-                    }
-                    else
-                    {
-                        _attributesSeen.Add(attrName);
                     }
 
                     attrs.Add(attr);
@@ -769,7 +766,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveMode = this.SetMode(LexerMode.XmlElementTag); //this mode accepts names
             var name = this.ParseXmlName();
 
-
             // NOTE: The XML spec says that name cannot be "xml" (case-insensitive comparison), 
             // but Dev10 does not enforce this.
 
@@ -986,6 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OperatorKeyword);
             SyntaxToken operatorKeyword = EatToken();
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: false, ref operatorKeyword);
 
             SyntaxToken operatorToken;
 
@@ -1013,19 +1010,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
             }
 
-            // Have to fake >> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
+            // Have to fake >>/>>> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
             // Have to fake >= so the lexer doesn't mishandle >>=.
             if (operatorToken.Kind == SyntaxKind.GreaterThanToken && operatorToken.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0)
             {
                 if (CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     var operatorToken2 = this.EatToken();
-                    operatorToken = SyntaxFactory.Token(
-                        operatorToken.GetLeadingTrivia(),
-                        SyntaxKind.GreaterThanGreaterThanToken,
-                        operatorToken.Text + operatorToken2.Text,
-                        operatorToken.ValueText + operatorToken2.ValueText,
-                        operatorToken2.GetTrailingTrivia());
+
+                    if (operatorToken2.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0 &&
+                        CurrentToken.Kind is (SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken))
+                    {
+                        var operatorToken3 = this.EatToken();
+
+                        if (operatorToken3.Kind == SyntaxKind.GreaterThanToken)
+                        {
+                            operatorToken = SyntaxFactory.Token(
+                                operatorToken.GetLeadingTrivia(),
+                                SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
+                                operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
+                                operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
+                                operatorToken3.GetTrailingTrivia());
+
+                            operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUnsignedRightShift, forceWarning: true);
+                        }
+                        else
+                        {
+                            var nonOverloadableOperator = SyntaxFactory.Token(
+                                operatorToken.GetLeadingTrivia(),
+                                SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                                operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
+                                operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
+                                operatorToken3.GetTrailingTrivia());
+
+                            operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
+
+                            // Add non-overloadable operator as skipped token.
+                            operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
+
+                            // Add an appropriate diagnostic.
+                            const int offset = 0;
+                            int width = nonOverloadableOperator.Width;
+                            SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
+                            SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
+                        }
+                    }
+                    else
+                    {
+                        operatorToken = SyntaxFactory.Token(
+                            operatorToken.GetLeadingTrivia(),
+                            SyntaxKind.GreaterThanGreaterThanToken,
+                            operatorToken.Text + operatorToken2.Text,
+                            operatorToken.ValueText + operatorToken2.ValueText,
+                            operatorToken2.GetTrailingTrivia());
+                    }
                 }
                 else if (CurrentToken.Kind == SyntaxKind.EqualsToken)
                 {
@@ -1065,7 +1104,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
-            return SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
+            return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
+        }
+
+        private SyntaxToken TryEatCheckedKeyword(bool isConversion, ref SyntaxToken operatorKeyword)
+        {
+            SyntaxToken checkedKeyword = tryEatCheckedOrHandleUnchecked(ref operatorKeyword);
+
+            if (checkedKeyword is not null &&
+                (isConversion || SyntaxFacts.IsAnyOverloadableOperator(CurrentToken.Kind)))
+            {
+                checkedKeyword = CheckFeatureAvailability(checkedKeyword, MessageID.IDS_FeatureCheckedUserDefinedOperators, forceWarning: true);
+            }
+
+            return checkedKeyword;
+
+            SyntaxToken tryEatCheckedOrHandleUnchecked(ref SyntaxToken operatorKeyword)
+            {
+                if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
+                {
+                    // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_MisplacedUnchecked);
+                    operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
+                    return null;
+                }
+
+                return TryEatToken(SyntaxKind.CheckedKeyword);
+            }
         }
 
         /// <summary>
@@ -1078,12 +1143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken implicitOrExplicit = EatToken();
 
             SyntaxToken operatorKeyword = EatToken(SyntaxKind.OperatorKeyword);
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: true, ref operatorKeyword);
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
 
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
-            return SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicit, operatorKeyword, type, parameters);
+            return SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicit, operatorKeyword, checkedKeyword, type, parameters);
         }
 
         /// <summary>
@@ -1177,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Parse an element of a cref parameter list.
         /// </summary>
         /// <remarks>
-        /// "ref" and "out" work, but "params", "this", and "__arglist" don't.
+        /// "ref", "ref readonly", "in", "out" work, but "params", "this", and "__arglist" don't.
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
@@ -1191,8 +1257,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
+            SyntaxToken readOnlyOpt = null;
+            if (CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && refKindOpt is not null)
+            {
+                if (refKindOpt.Kind != SyntaxKind.RefKeyword)
+                {
+                    // if we encounter `readonly` after `in` or `out`, we place the `readonly` as skipped trivia on the previous keyword
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_RefReadOnlyWrongOrdering);
+                    refKindOpt = AddTrailingSkippedSyntax(refKindOpt, misplacedToken);
+                }
+                else
+                {
+                    readOnlyOpt = EatToken();
+                }
+            }
+
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refKindOpt, type);
+            return SyntaxFactory.CrefParameter(refKindKeyword: refKindOpt, readOnlyKeyword: readOnlyOpt, type);
         }
 
         /// <summary>

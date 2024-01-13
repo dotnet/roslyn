@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+#nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
+
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
         DocumentationCommentTriviaSyntax,

@@ -3,12 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
 
-        <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -29,8 +31,8 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -51,7 +53,7 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -72,7 +74,7 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -93,7 +95,7 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod5(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -114,7 +116,7 @@ interface C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod6(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -135,7 +137,7 @@ interface C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod7(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -156,7 +158,7 @@ interface C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod8(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -177,7 +179,7 @@ interface C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethodAndInheritance(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

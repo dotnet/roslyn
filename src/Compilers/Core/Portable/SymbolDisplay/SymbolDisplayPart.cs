@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <seealso cref="ISymbol.ToDisplayParts"/>
     /// <seealso cref="ISymbol.ToMinimalDisplayParts"/>
     /// <seealso cref="SymbolDisplayPartKind"/>
-    public struct SymbolDisplayPart
+    public readonly struct SymbolDisplayPart
     {
         private readonly SymbolDisplayPartKind _kind;
         private readonly string _text;

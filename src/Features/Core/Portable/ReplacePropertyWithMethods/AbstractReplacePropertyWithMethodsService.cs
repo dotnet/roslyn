@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -27,9 +26,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         where TPropertySyntax : SyntaxNode
     {
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
-        public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
+            Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
-        protected abstract TCrefSyntax TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
+        protected abstract TCrefSyntax? TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             private readonly TIdentifierNameSyntax _identifierName;
             private readonly TExpressionSyntax _expression;
-            private readonly TCrefSyntax _cref;
+            private readonly TCrefSyntax? _cref;
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ISemanticFactsService semanticFacts,
                 SyntaxEditor editor,
                 TIdentifierNameSyntax identifierName,
-                IPropertySymbol property, IFieldSymbol propertyBackingField,
+                IPropertySymbol property,
+                IFieldSymbol propertyBackingField,
                 string desiredGetMethodName,
                 string desiredSetMethodName,
                 CancellationToken cancellationToken)
@@ -114,10 +115,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _expression = _identifierName;
                 _cref = _service.TryGetCrefSyntax(_identifierName);
-                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
+                if (_syntaxFacts.IsNameOfSimpleMemberAccessExpression(_expression) ||
+                    _syntaxFacts.IsNameOfMemberBindingExpression(_expression))
                 {
                     _expression = (TExpressionSyntax)_expression.Parent!;
                 }
+
+                Contract.ThrowIfNull(_expression.Parent, $"Parent of {_expression} is null.");
             }
 
             // To avoid allocating lambdas each time we hit a reference, we instead
@@ -143,13 +147,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // In order to avoid allocating each time we hit a reference, we just
             // create these statically and pass them in.
 
-            private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
+            private static readonly GetWriteValue s_getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
-                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
+                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent)!;
                 };
 
-            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement =
+            private static readonly GetWriteValue s_getWriteValueForIncrementOrDecrement =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
@@ -175,8 +179,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         keepTrivia: false, conflictMessage: null);
 
                     // Convert "Prop *= X" into "Prop * X".
-                    return replacer._service.UnwrapCompoundAssignment(
-                        parent, readExpression);
+                    return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
                 };
 
             private static readonly Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
                     ReplaceWrite(
-                        getWriteValueForLeftSideOfAssignment,
+                        s_getWriteValueForLeftSideOfAssignment,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
                     ReplaceWrite(
-                        getWriteValueForIncrementOrDecrement,
+                        s_getWriteValueForIncrementOrDecrement,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -256,9 +259,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         _identifierName.WithoutTrivia(),
                         readExpression);
 
-                    _editor.ReplaceNode(declarator, newDeclarator);
+                    // We know declarator isn't null due to the earlier call to IsInferredAnonymousObjectMemberDeclarator
+                    _editor.ReplaceNode(declarator!, newDeclarator);
                 }
-                else if (_syntaxFacts.IsRightSideOfQualifiedName(_identifierName))
+                else if (_syntaxFacts.IsRightOfQualifiedName(_identifierName))
                 {
                     // Found a reference in a qualified name.  This happens for VB explicit interface
                     // names.  We don't want to update this.  (The "Implement IGoo.Bar" clause will be
@@ -284,6 +288,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 bool keepTrivia,
                 string? conflictMessage)
             {
+                Contract.ThrowIfNull(_expression.Parent, $"Parent of {_expression} is null.");
+
                 // Call this overload so we can see this node after already replacing any 
                 // references in the writing side of it.
                 _editor.ReplaceNode(
@@ -437,20 +443,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return token;
             }
 
-            private readonly struct ReplaceParentArgs
+            private readonly struct ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string? conflictMessage)
             {
-                public readonly ReferenceReplacer Replacer;
-                public readonly GetWriteValue GetWriteValue;
-                public readonly bool KeepTrivia;
-                public readonly string? ConflictMessage;
-
-                public ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string? conflictMessage)
-                {
-                    Replacer = replacer;
-                    GetWriteValue = getWriteValue;
-                    KeepTrivia = keepTrivia;
-                    ConflictMessage = conflictMessage;
-                }
+                public readonly ReferenceReplacer Replacer = replacer;
+                public readonly GetWriteValue GetWriteValue = getWriteValue;
+                public readonly bool KeepTrivia = keepTrivia;
+                public readonly string? ConflictMessage = conflictMessage;
             }
         }
     }

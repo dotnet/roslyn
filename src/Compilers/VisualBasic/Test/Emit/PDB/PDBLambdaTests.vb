@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
@@ -477,6 +478,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub PartiallyDefinedClass_3()
             Dim source =
 <compilation>
@@ -502,8 +504,8 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="37-E0-06-E1-03-09-97-5A-F5-8F-79-EE-92-BC-7C-63-A6-EB-FF-D4"/>
-        <file id="2" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="D2-29-EA-DE-F7-E6-E9-BC-A0-CE-E4-FB-93-74-05-37-16-D8-89-F1"/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="D2-29-EA-DE-F7-E6-E9-BC-A0-CE-E4-FB-93-74-05-37-16-D8-89-F1"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="37-E0-06-E1-03-09-97-5A-F5-8F-79-EE-92-BC-7C-63-A6-EB-FF-D4"/>
     </files>
     <methods>
         <method containingType="C2" name=".cctor">
@@ -514,14 +516,10 @@ End Class
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="21" document="1"/>
-                <entry offset="0x1" startLine="3" startColumn="19" endLine="3" endColumn="56" document="2"/>
-                <entry offset="0x16" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="21" document="2"/>
+                <entry offset="0x1" startLine="3" startColumn="19" endLine="3" endColumn="56" document="1"/>
+                <entry offset="0x16" startLine="4" startColumn="5" endLine="4" endColumn="12" document="2"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x17">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
         </method>
         <method containingType="C2+_Closure$__" name="_Lambda$__2-0">
             <customDebugInfo>
@@ -530,15 +528,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="44" endLine="3" endColumn="54" document="2"/>
-                <entry offset="0x1" startLine="3" startColumn="55" endLine="3" endColumn="56" document="2"/>
+                <entry offset="0x0" startLine="3" startColumn="44" endLine="3" endColumn="54" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="55" endLine="3" endColumn="56" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="C2" methodName=".cctor"/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
         <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>

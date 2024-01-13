@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                             c => RefactorAsync(document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
                             direction,
                             syntaxFacts.GetText(syntaxKinds.IfKeyword)),
-                        new TextSpan(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
+                        TextSpan.FromBounds(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
                 }
             }
         }
@@ -66,32 +68,39 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var upperIfOrElseIf = root.FindNode(upperIfOrElseIfSpan);
-            var lowerIfOrElseIf = root.FindNode(lowerIfOrElseIfSpan);
+            var upperIfOrElseIf = FindIfOrElseIf(upperIfOrElseIfSpan, ifGenerator, root);
+            var lowerIfOrElseIf = FindIfOrElseIf(lowerIfOrElseIfSpan, ifGenerator, root);
 
             Debug.Assert(ifGenerator.IsIfOrElseIf(upperIfOrElseIf));
             Debug.Assert(ifGenerator.IsIfOrElseIf(lowerIfOrElseIf));
 
             var newRoot = GetChangedRoot(document, root, upperIfOrElseIf, lowerIfOrElseIf);
             return document.WithSyntaxRoot(newRoot);
+
+            static SyntaxNode FindIfOrElseIf(TextSpan span, IIfLikeStatementGenerator ifGenerator, SyntaxNode root)
+            {
+                var innerMatch = root.FindNode(span, getInnermostNodeForTie: true);
+                return innerMatch?.FirstAncestorOrSelf<SyntaxNode>(
+                    node => ifGenerator.IsIfOrElseIf(node) && node.Span == span);
+            }
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkDownScopeBlocks(
-            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+            IBlockFacts blockFacts,
+            IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements only contain a single block, walk down the block and any subsequent nested blocks
             // to get the real statements inside.
 
-            while (statements.Count == 1 && syntaxFacts.IsScopeBlock(statements[0]))
-            {
-                statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
-            }
+            while (statements.Count == 1 && blockFacts.IsScopeBlock(statements[0]))
+                statements = blockFacts.GetExecutableBlockStatements(statements[0]);
 
             return statements;
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkUpScopeBlocks(
-            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+            IBlockFactsService blockFacts,
+            IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements are inside a block, walk up the block and any subsequent nested blocks that contain
             // no other statements to get the topmost block. The last check is necessary to make sure we stop
@@ -103,9 +112,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             //     AnotherStatement();
             // }
 
-            while (statements.Count > 0 && statements[0].Parent is var parent &&
-                   syntaxFacts.IsScopeBlock(parent) &&
-                   syntaxFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
+            while (statements is [{ Parent: var parent }, ..] &&
+                   blockFacts.IsScopeBlock(parent) &&
+                   blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
             {
                 statements = ImmutableArray.Create(parent);
             }

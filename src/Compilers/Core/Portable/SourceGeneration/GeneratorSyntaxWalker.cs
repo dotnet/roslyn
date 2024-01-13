@@ -2,28 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
+using System.Diagnostics;
 
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class GeneratorSyntaxWalker : SyntaxWalker
+    internal sealed class GeneratorSyntaxWalker
     {
-        private readonly ImmutableArray<ISyntaxReceiver> _syntaxReceivers;
+        private readonly ISyntaxContextReceiver _syntaxReceiver;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-        public GeneratorSyntaxWalker(ImmutableArray<ISyntaxReceiver> syntaxReceivers)
+        internal GeneratorSyntaxWalker(
+            ISyntaxContextReceiver syntaxReceiver,
+            ISyntaxHelper syntaxHelper)
         {
-            _syntaxReceivers = syntaxReceivers;
+            _syntaxReceiver = syntaxReceiver;
+            _syntaxHelper = syntaxHelper;
         }
 
-        public override void Visit(SyntaxNode node)
+        public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
         {
-            foreach (var receiver in _syntaxReceivers)
+            Debug.Assert(model is not null
+                         && model.Value.SyntaxTree == node.SyntaxTree);
+
+            foreach (var child in node.DescendantNodesAndSelf())
             {
-                receiver.OnVisitSyntaxNode(node);
+                Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
             }
-            base.Visit(node);
         }
     }
-
 }

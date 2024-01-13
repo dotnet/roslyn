@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SpeculativeSyntaxTreeSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
-            : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree)
+            : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree, parentSemanticModel.IgnoresAccessibility)
         {
             _parentSemanticModel = parentSemanticModel;
             _root = root;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             return _parentSemanticModel.Bind(binder, node, diagnostics);
         }
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((options & SymbolInfoOptions.PreserveAliases) != 0)
             {
                 var aliasSymbol = _parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
-                return new SymbolInfo(aliasSymbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return new SymbolInfo(aliasSymbol);
             }
 
             return _parentSemanticModel.GetSpeculativeSymbolInfo(_position, expression, this.GetSpeculativeBindingOption(expression));

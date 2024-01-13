@@ -6,11 +6,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class NavigationBarItemSelectedEventArgs : EventArgs
+    internal sealed class NavigationBarItemSelectedEventArgs(NavigationBarItem item) : EventArgs
     {
-        public NavigationBarItem Item { get; }
-
-        public NavigationBarItemSelectedEventArgs(NavigationBarItem item)
-            => this.Item = item;
+        public NavigationBarItem Item { get; } = item;
     }
 }

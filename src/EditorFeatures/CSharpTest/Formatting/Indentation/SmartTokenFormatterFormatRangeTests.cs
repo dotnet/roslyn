@@ -2,25 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -28,10 +32,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
+    [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public class SmartTokenFormatterFormatRangeTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task BeginningOfFile()
         {
             var code = @"        using System;$$";
@@ -41,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace1()
         {
             var code = @"using System;
@@ -60,7 +64,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace2()
         {
             var code = @"using System;
@@ -83,7 +86,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace3()
         {
             var code = @"using System;
@@ -96,7 +98,6 @@ namespace NS { }";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace4()
         {
             var code = @"using System;
@@ -112,7 +113,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace5()
         {
             var code = @"using System;
@@ -131,7 +131,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace6()
         {
             var code = @"using System;
@@ -153,7 +152,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace7()
         {
             var code = @"using System;
@@ -179,7 +177,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace8()
         {
             var code = @"using System;
@@ -192,7 +189,6 @@ namespace NS { class Class { } namespace NS2 { } }";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class1()
         {
             var code = @"using System;
@@ -208,7 +204,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class2()
         {
             var code = @"using System;
@@ -230,7 +225,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class3()
         {
             var code = @"using System;
@@ -249,7 +243,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class4()
         {
             var code = @"using System;
@@ -268,7 +261,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class5()
         {
             var code = @"using System;
@@ -293,7 +285,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Interface1()
         {
             var code = @"using System;
@@ -314,7 +305,6 @@ interface II
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Struct1()
         {
             var code = @"using System;
@@ -337,7 +327,6 @@ struct Struct
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Enum1()
         {
             var code = @"using System;
@@ -358,7 +347,6 @@ enum Enum
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList1()
         {
             var code = @"using System;
@@ -375,7 +363,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList2()
         {
             var code = @"using System;
@@ -392,7 +379,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList3()
         {
             var code = @"using System;
@@ -413,7 +399,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList4()
         {
             var code = @"using System;
@@ -434,7 +419,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList5()
         {
             var code = @"using System;
@@ -454,9 +438,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
         public async Task AccessorList5b()
         {
             var code = @"using System;
@@ -483,7 +465,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList6()
         {
             var code = @"using System;
@@ -509,7 +490,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList7()
         {
             var code = @"using System;
@@ -537,9 +517,7 @@ class Class
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
         public async Task AccessorList8()
         {
             var code = @"class C
@@ -567,39 +545,38 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AccessorList9()
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task AccessorList9(string accessor)
         {
-            var code = @"class C
-{
+            var code = $@"class C
+{{
     int Prop
-    {
-set
-        {
+    {{
+{accessor}
+        {{
             ;
-        }$$
-    }
-}";
+        }}$$
+    }}
+}}";
 
-            var expected = @"class C
-{
+            var expected = $@"class C
+{{
     int Prop
-    {
-        set
-        {
+    {{
+        {accessor}
+        {{
             ;
-        }
-    }
-}";
+        }}
+    }}
+}}";
 
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
         public async Task AccessorList10()
         {
             var code = @"class C
@@ -633,9 +610,7 @@ add
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16984")]
         public async Task AccessorList11()
         {
             var code = @"class C
@@ -670,7 +645,6 @@ remove
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block1()
         {
             var code = @"using System;
@@ -689,7 +663,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block2()
         {
             var code = @"using System;
@@ -706,7 +679,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block3()
         {
             var code = @"using System;
@@ -728,7 +700,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block4()
         {
             var code = @"using System;
@@ -750,7 +721,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block5()
         {
             var code = @"using System;
@@ -771,7 +741,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block6()
         {
             var code = @"using System;
@@ -794,7 +763,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block7()
         {
             var code = @"using System;
@@ -815,7 +783,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block8()
         {
             var code = @"using System;
@@ -841,7 +808,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchStatement1()
         {
             var code = @"using System;
@@ -873,7 +839,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchStatement2()
         {
             var code = @"using System;
@@ -894,7 +859,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchStatement3()
         {
             var code = @"using System;
@@ -919,7 +883,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchStatement4()
         {
             var code = @"using System;
@@ -947,7 +910,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer1()
         {
             var code = @"using System;
@@ -968,7 +930,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer2()
         {
             var code = @"using System;
@@ -991,7 +952,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer3()
         {
             var code = @"using System;
@@ -1017,7 +977,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer4()
         {
             var code = @"using System;
@@ -1038,7 +997,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer5()
         {
             var code = @"using System;
@@ -1063,7 +1021,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Initializer6()
         {
             var code = @"using System;
@@ -1088,7 +1045,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement1()
         {
             var code = @"using System;
@@ -1109,7 +1065,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement2()
         {
             var code = @"using System;
@@ -1135,7 +1090,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement3()
         {
             var code = @"using System;
@@ -1158,7 +1112,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement4()
         {
             var code = @"using System;
@@ -1183,9 +1136,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8413")]
         public async Task EmbeddedStatementDoBlockAlone()
         {
             var code = @"using System;
@@ -1213,7 +1164,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement5()
         {
             var code = @"using System;
@@ -1241,7 +1191,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement6()
         {
             var code = @"using System;
@@ -1267,7 +1216,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement7()
         {
             var code = @"using System;
@@ -1293,7 +1241,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement8()
         {
             var code = @"using System;
@@ -1319,7 +1266,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement9()
         {
             var code = @"using System;
@@ -1342,7 +1288,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FieldlInitializer()
         {
             var code = @"using System;
@@ -1361,7 +1306,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayFieldlInitializer()
         {
             var code = @"using System;
@@ -1384,7 +1328,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ExpressionValuedPropertyInitializer()
         {
             var code = @"using System;
@@ -1403,7 +1346,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement10()
         {
             var code = @"using System;
@@ -1428,7 +1370,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement11()
         {
             var code = @"using System;
@@ -1449,7 +1390,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement12()
         {
             var code = @"using System;
@@ -1472,7 +1412,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement13()
         {
             var code = @"using System;
@@ -1497,7 +1436,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement14()
         {
             var code = @"using System;
@@ -1518,7 +1456,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement15()
         {
             var code = @"using System;
@@ -1541,7 +1478,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement16()
         {
             var code = @"using System;
@@ -1566,7 +1502,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement17()
         {
             var code = @"using System;
@@ -1593,7 +1528,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement1()
         {
             var code = @"using System;
@@ -1612,7 +1546,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement2()
         {
             var code = @"using System;
@@ -1643,7 +1576,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement3()
         {
             var code = @"using System;
@@ -1678,7 +1610,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement4()
         {
             var code = @"using System;
@@ -1701,7 +1632,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement5()
         {
             var code = @"using System;
@@ -1726,7 +1656,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement6()
         {
             var code = @"        using System;
@@ -1739,7 +1668,6 @@ using System.Linq;";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement7()
         {
             var code = @"            using System;
@@ -1766,7 +1694,6 @@ namespace NS2
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FollowPreviousElement8()
         {
             var code = @"using System;
@@ -1799,7 +1726,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task IfStatement1()
         {
             var code = @"using System;
@@ -1826,7 +1752,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task IfStatement2()
         {
             var code = @"using System;
@@ -1859,7 +1784,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task IfStatement3()
         {
             var code = @"using System;
@@ -1892,7 +1816,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task IfStatement4()
         {
             var code = @"using System;
@@ -1921,7 +1844,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement1()
         {
             var code = @"using System;
@@ -1948,7 +1870,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement2()
         {
             var code = @"using System;
@@ -1981,7 +1902,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement3()
         {
             var code = @"using System;
@@ -2020,7 +1940,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement4()
         {
             var code = @"using System;
@@ -2052,9 +1971,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/6645")]
         public async Task TryStatement5()
         {
             var code = @"using System;
@@ -2084,8 +2001,7 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        [WorkItem(537555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
         public async Task SingleLine()
         {
             var code = @"class C { void M() { C.M(    );$$ } }";
@@ -2096,7 +2012,6 @@ class Class
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task StringLiterals()
         {
             var code = @"class C { void M() { C.M(""Test {0}$$";
@@ -2106,7 +2021,6 @@ class Class
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals()
         {
             var code = @"class C { void M() { C.M('}$$";
@@ -2116,17 +2030,16 @@ class Class
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task CharLiterals1()
         {
-            var code = @"''';$$";
+            var code = @"';$$";
 
             var expected = string.Empty;
-            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
+            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Comments()
         {
             var code = @"class C { void M() { // { }$$";
@@ -2136,7 +2049,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FirstLineInFile()
         {
             var code = @"using System;$$";
@@ -2145,7 +2057,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Label1()
         {
             var code = @"class C
@@ -2166,7 +2077,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Label2()
         {
             var code = @"class C
@@ -2189,7 +2099,6 @@ int             i               =               20;$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Label3()
         {
             var code = @"class C
@@ -2214,7 +2123,6 @@ int             i               =               20;$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Label4()
         {
             var code = @"class C
@@ -2241,7 +2149,6 @@ int         nextLine            =           30          ;$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Label6()
         {
             var code = @"class C
@@ -2265,9 +2172,8 @@ int         nextLine            =           30          ;$$
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem(537776, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DisappearedTokens()
         {
             var code = @"class Class1
@@ -2289,35 +2195,37 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ClassKeyword);
         }
 
-        [WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
         public async Task DisappearedTokens2()
         {
-            var code = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);$$
-    }
-}";
+            var code = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o=new Object);$$
+                    }
+                }
+                """;
 
-            var expected = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);
-    }
-}";
+            var expected = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o = new Object);
+                    }
+                }
+                """;
+
             await AutoFormatOnSemicolonAsync(
                 code,
                 expected,
-                SyntaxKind.SemicolonToken);
+                SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem(537793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Delegate1()
         {
             var code = @"delegate void MyDelegate(int a,int b);$$";
@@ -2330,9 +2238,8 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.DelegateKeyword);
         }
 
-        [WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DoubleInitializer()
         {
             var code = @"class C
@@ -2357,9 +2264,8 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MissingToken1()
         {
             var code = @"public class Class1
@@ -2379,7 +2285,6 @@ int         nextLine            =           30          ;$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer1()
         {
             var code = @"public class Class1
@@ -2405,7 +2310,6 @@ int         nextLine            =           30          ;$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer2()
         {
             var code = @"public class Class1
@@ -2430,9 +2334,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         public async Task MalformedCode()
         {
             var code = @"namespace ClassLibrary1
@@ -2457,9 +2359,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         public async Task Colon_SwitchLabel()
         {
             var code = @"namespace ClassLibrary1
@@ -2496,9 +2396,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         public async Task Colon_SwitchLabel_Comment()
         {
             var code = @"namespace ClassLibrary1
@@ -2537,9 +2435,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         public async Task Colon_SwitchLabel_Comment2()
         {
             var code = @"namespace ClassLibrary1
@@ -2580,9 +2476,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ColonToken);
         }
 
-        [Fact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         public async Task Colon_Label()
         {
             var code = @"namespace ClassLibrary1
@@ -2613,9 +2507,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.None);
         }
 
-        [WpfFact]
-        [WorkItem(538793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
         public async Task Colon_Label2()
         {
             var code = @"namespace ClassLibrary1
@@ -2646,9 +2538,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(3186, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem(3186, "DevDiv_Projects/Roslyn")]
         public async Task SemicolonInElseIfStatement()
         {
             var code = @"using System;
@@ -2695,9 +2585,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(538391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
         public async Task SemicolonInElseIfStatement2()
         {
             var code = @"public class Class1
@@ -2730,9 +2618,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(8385, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem(8385, "DevDiv_Projects/Roslyn")]
         public async Task NullCoalescingOperator()
         {
             var code = @"class C
@@ -2757,9 +2643,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(541517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
         public async Task SwitchDefault()
         {
             var code = @"using System;
@@ -2802,9 +2686,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         public async Task MissingTokens1()
         {
             var code = @"class Program
@@ -2830,9 +2712,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         public async Task MissingTokens2()
         {
             var code = @"class C { void M() { M(() => { }$$ } }";
@@ -2845,9 +2725,7 @@ class Program
                 SyntaxKind.EqualsGreaterThanToken);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         public async Task UsingAlias()
         {
             var code = @"using Alias=System;$$";
@@ -2860,9 +2738,7 @@ class Program
                 SyntaxKind.UsingKeyword);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         public async Task NoLineChangeWithSyntaxError()
         {
             var code = @"struct Goo { public int member; }
@@ -2889,8 +2765,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(620568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
         public void SkippedTokens1(bool useTabs)
         {
             var code = @";$$*";
@@ -2902,8 +2777,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         public void AutoPropertyAccessor(bool useTabs)
         {
             var code = @"class C
@@ -2921,8 +2795,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         public void AutoPropertyAccessor2(bool useTabs)
         {
             var code = @"class C
@@ -2940,8 +2813,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         public void AutoPropertyAccessor3(bool useTabs)
         {
             var code = @"class C
@@ -2959,8 +2831,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(784674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
         public void AutoPropertyAccessor4(bool useTabs)
         {
             var code = @"class C
@@ -2978,8 +2849,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         public void AutoPropertyAccessor5(bool useTabs)
         {
             var code = @"class C
@@ -2996,8 +2866,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         public void AutoPropertyAccessor6(bool useTabs)
         {
             var code = @"class C
@@ -3015,8 +2884,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         public void AutoPropertyAccessor7(bool useTabs)
         {
             var code = @"class C
@@ -3034,8 +2902,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         public void NestedUsingStatement(bool useTabs)
         {
             var code = @"class C
@@ -3061,8 +2928,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         public void NestedNotUsingStatement(bool useTabs)
         {
             var code = @"class C
@@ -3088,7 +2954,6 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void UsingStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
@@ -3118,7 +2983,64 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedCheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        checked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            checked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        unchecked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            unchecked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
         public void FixedStatementWithNestedUsingStatement(bool useTabs)
         {
             var code = @"class C
@@ -3144,7 +3066,6 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FixedStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
@@ -3174,7 +3095,6 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FixedStatementWithNestedNotFixedStatement(bool useTabs)
         {
             var code = @"class C
@@ -3204,7 +3124,6 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void NotFixedStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
@@ -3234,8 +3153,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         public void FormattingRangeForFirstStatementOfBlock(bool useTabs)
         {
             var code = @"class C
@@ -3258,8 +3176,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         public void FormattingRangeForFirstMemberofType(bool useTabs)
         {
             var code = @"class C
@@ -3282,8 +3199,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         public void FormattingRangeForFirstMethodMemberofType(bool useTabs)
         {
             var code = @"interface C
@@ -3300,8 +3216,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
         public void FormattingRangeForConstructor(bool useTabs)
         {
             var code = @"class C
@@ -3318,8 +3233,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
         public void FormattingRangeForDestructor(bool useTabs)
         {
             var code = @"class C
@@ -3336,8 +3250,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
         public void FormattingRangeForOperator(bool useTabs)
         {
             var code = @"class C
@@ -3356,8 +3269,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         public void FormattingRangeForFirstMemberOfNamespace(bool useTabs)
         {
             var code = @"namespace C
@@ -3374,8 +3286,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         public void FormatDirectiveTriviaAlwaysToColumnZero(bool useTabs)
         {
             var code = @"class Program
@@ -3403,8 +3314,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode(bool useTabs)
         {
             var code = @"class Program
@@ -3434,8 +3344,7 @@ class Program{
 
         [WpfTheory]
         [CombinatorialData]
-        [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective(bool useTabs)
         {
             var code = @"class Program
@@ -3469,57 +3378,49 @@ class Program{
                 expected = expected.Replace("    ", "\t");
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
 
             var subjectDocument = workspace.Documents.Single();
+            var textBuffer = subjectDocument.GetTextBuffer();
+            var optionsService = workspace.GetService<EditorOptionsService>();
+            var editorOptions = optionsService.Factory.GetOptions(textBuffer);
+            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
-            var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            var typedChar = textBuffer.CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), textBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
+            var newSnapshot = textBuffer.CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }
 
-        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
-            TestWorkspace workspace)
-        {
-            var options = workspace.Options;
-            return Tuple.Create(options, Formatter.GetDefaultFormattingRules(workspace, LanguageNames.CSharp));
-        }
-
-        private Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+        private static Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
             => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.ColonToken, startTokenKind);
 
-        private Task AutoFormatOnSemicolonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+        private static Task AutoFormatOnSemicolonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
             => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.SemicolonToken, startTokenKind);
 
-        private Task AutoFormatOnCloseBraceAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+        private static Task AutoFormatOnCloseBraceAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
             => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.CloseBraceToken, startTokenKind);
 
-        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
             await AutoFormatOnMarkerAsync(initialMarkup, expected, useTabs: false, tokenKind, startTokenKind).ConfigureAwait(false);
             await AutoFormatOnMarkerAsync(initialMarkup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true, tokenKind, startTokenKind).ConfigureAwait(false);
         }
 
-        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(initialMarkup);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
-
-            var tuple = GetService(workspace);
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();
             var position = testDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
+            var rules = Formatter.GetDefaultFormattingRules(document);
 
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
             var endToken = root.FindToken(position);
@@ -3529,7 +3430,11 @@ class Program{
             }
 
             Assert.Equal(tokenKind, endToken.Kind());
-            var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
+
+            var options = new IndentationOptions(
+                new CSharpSyntaxFormattingOptions() { LineFormatting = new() { UseTabs = useTabs } });
+
+            var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null)
@@ -3544,7 +3449,7 @@ class Program{
                 return;
             }
 
-            var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
             var actual = GetFormattedText(buffer, changes);
             Assert.Equal(expected, actual);
         }

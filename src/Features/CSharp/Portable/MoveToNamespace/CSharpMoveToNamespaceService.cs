@@ -12,32 +12,31 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 {
     [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
-    internal class CSharpMoveToNamespaceService :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpMoveToNamespaceService(
+        [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService) :
+        AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>(optionsService)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveToNamespaceService(
-            [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService)
-            : base(optionsService)
-        {
-        }
-
         protected override string GetNamespaceName(SyntaxNode container)
             => container switch
             {
-                NamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
-                CompilationUnitSyntax compilationUnit => string.Empty,
+                BaseNamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
+                CompilationUnitSyntax _ => string.Empty,
                 _ => throw ExceptionUtilities.UnexpectedValue(container)
             };
 
-        protected override bool IsContainedInNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration, int position)
+        protected override bool IsContainedInNamespaceDeclaration(BaseNamespaceDeclarationSyntax baseNamespace, int position)
         {
-            var namespaceDeclarationStart = namespaceDeclaration.NamespaceKeyword.SpanStart;
-            var namespaceDeclarationEnd = namespaceDeclaration.OpenBraceToken.SpanStart;
+            var namespaceDeclarationStart = baseNamespace.NamespaceKeyword.SpanStart;
+            var namespaceDeclarationEnd = baseNamespace switch
+            {
+                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.OpenBraceToken.SpanStart,
+                FileScopedNamespaceDeclarationSyntax fileScopedNamespace => fileScopedNamespace.SemicolonToken.Span.End,
+                _ => throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind()),
+            };
 
-            return position >= namespaceDeclarationStart &&
-                position < namespaceDeclarationEnd;
+            return position >= namespaceDeclarationStart && position < namespaceDeclarationEnd;
         }
     }
 }

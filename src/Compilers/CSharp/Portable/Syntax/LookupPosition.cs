@@ -20,21 +20,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// A position is considered to be inside a block if it is on or after
         /// the open brace and strictly before the close brace.
         /// </summary>
-        internal static bool IsInBlock(int position, BlockSyntax blockOpt)
+        internal static bool IsInBlock(int position, BlockSyntax? blockOpt)
         {
             return blockOpt != null && IsBeforeToken(position, blockOpt, blockOpt.CloseBraceToken);
         }
 
         internal static bool IsInExpressionBody(
             int position,
-            ArrowExpressionClauseSyntax expressionBodyOpt,
+            ArrowExpressionClauseSyntax? expressionBodyOpt,
             SyntaxToken semicolonToken)
         {
             return expressionBodyOpt != null
                 && IsBeforeToken(position, expressionBodyOpt, semicolonToken);
         }
 
-        private static bool IsInBody(int position, BlockSyntax blockOpt, ArrowExpressionClauseSyntax exprOpt, SyntaxToken semiOpt)
+        private static bool IsInBody(int position, BlockSyntax? blockOpt, ArrowExpressionClauseSyntax? exprOpt, SyntaxToken semiOpt)
         {
             return IsInExpressionBody(position, exprOpt, semiOpt)
                 || IsInBlock(position, blockOpt);
@@ -120,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
         }
 
+        internal static bool IsInParameterList(int position, ParameterListSyntax parameterList)
+            => parameterList != null && IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
+
         internal static bool IsInMethodDeclaration(int position, BaseMethodDeclarationSyntax methodDecl)
         {
             Debug.Assert(methodDecl != null);
@@ -164,6 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, namespaceDecl.NamespaceKeyword, namespaceDecl.CloseBraceToken);
         }
 
+        internal static bool IsInNamespaceDeclaration(int position, FileScopedNamespaceDeclarationSyntax namespaceDecl)
+        {
+            Debug.Assert(namespaceDecl != null);
+
+            return position >= namespaceDecl.SpanStart;
+        }
+
         internal static bool IsInConstructorParameterScope(int position, ConstructorDeclarationSyntax constructorDecl)
         {
             Debug.Assert(constructorDecl != null);
@@ -182,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
                 IsBetweenTokens(position, initializerOpt.ColonToken,
-                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body.CloseBraceToken : constructorDecl.SemicolonToken);
+                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body!.CloseBraceToken : constructorDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodTypeParameterScope(int position, MethodDeclarationSyntax methodDecl)
@@ -192,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (methodDecl.TypeParameterList == null)
             {
-                // no type parameters => nothing can be in their scope
+                // no type parameters => they are not in scope
                 return false;
             }
 
@@ -210,11 +220,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             var explicitInterfaceSpecifier = methodDecl.ExplicitInterfaceSpecifier;
             var firstNameToken = explicitInterfaceSpecifier == null ? methodDecl.Identifier : explicitInterfaceSpecifier.GetFirstToken();
-
-            var typeParams = methodDecl.TypeParameterList;
-            var firstPostNameToken = typeParams == null ? methodDecl.ParameterList.OpenParenToken : typeParams.LessThanToken;
+            var firstPostNameToken = methodDecl.TypeParameterList.LessThanToken;
 
             // Scope does not include method name.
+            return !IsBetweenTokens(position, firstNameToken, firstPostNameToken);
+        }
+
+        internal static bool IsInLocalFunctionTypeParameterScope(int position, LocalFunctionStatementSyntax localFunction)
+        {
+            Debug.Assert(localFunction != null);
+
+            if (localFunction.TypeParameterList == null)
+            {
+                // no type parameters => they are not in scope
+                return false;
+            }
+
+            // optimization for a common case - when position is in the ReturnType, we can see type parameters
+            if (localFunction.ReturnType.FullSpan.Contains(position))
+            {
+                return true;
+            }
+
+            // Must be in the local function, but not in an attribute on the method.
+            if (IsInAttributeSpecification(position, localFunction.AttributeLists))
+            {
+                return false;
+            }
+
+            var firstNameToken = localFunction.Identifier;
+            var firstPostNameToken = localFunction.TypeParameterList.LessThanToken;
+
+            // Scope does not include local function name.
             return !IsBetweenTokens(position, firstNameToken, firstPostNameToken);
         }
 
@@ -367,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((GotoStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.IfStatement:
                     IfStatementSyntax ifStmt = (IfStatementSyntax)statement;
-                    ElseClauseSyntax elseOpt = ifStmt.Else;
+                    ElseClauseSyntax? elseOpt = ifStmt.Else;
                     return GetFirstExcludedToken(elseOpt == null ? ifStmt.Statement : elseOpt.Statement);
                 case SyntaxKind.LabeledStatement:
                     return GetFirstExcludedToken(((LabeledStatementSyntax)statement).Statement);
@@ -382,13 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.TryStatement:
                     TryStatementSyntax tryStmt = (TryStatementSyntax)statement;
 
-                    FinallyClauseSyntax finallyClause = tryStmt.Finally;
+                    FinallyClauseSyntax? finallyClause = tryStmt.Finally;
                     if (finallyClause != null)
                     {
                         return finallyClause.Block.CloseBraceToken;
                     }
 
-                    CatchClauseSyntax lastCatch = tryStmt.Catches.LastOrDefault();
+                    CatchClauseSyntax? lastCatch = tryStmt.Catches.LastOrDefault();
                     if (lastCatch != null)
                     {
                         return lastCatch.Block.CloseBraceToken;

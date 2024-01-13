@@ -17,8 +17,8 @@ Friend Class MockNamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
-    Private _extent As NamespaceExtent
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _extent As NamespaceExtent
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
@@ -123,7 +123,7 @@ Friend Class MockNamedTypeSymbol
 
     Private ReadOnly _name As String
     Private ReadOnly _kind As TypeKind
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private _container As NamespaceOrTypeSymbol
 
     Public Sub New(name As String, children As IEnumerable(Of Symbol), Optional kind As TypeKind = TypeKind.Class)
@@ -166,19 +166,19 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 
@@ -378,13 +378,24 @@ Friend Class MockNamedTypeSymbol
     Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
         Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
     End Function
+
+    Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
-    Private _name As String
-    Private _container As Symbol
+    Private ReadOnly _name As String
+    Private ReadOnly _container As Symbol
 
     Public Sub New(name As String)
         _name = name
@@ -534,6 +545,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property IsInitOnly As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property IsVararg As Boolean
         Get
             Return False
@@ -631,6 +648,12 @@ Friend Class MockMethodSymbol
     Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
         Throw ExceptionUtilities.Unreachable
     End Function
+
+    Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
 End Class
 
 Friend Class MockModuleSymbol
@@ -729,6 +752,13 @@ Friend Class MockModuleSymbol
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
     End Function
+
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class
 
 Friend Class MockAssemblySymbol
@@ -786,6 +816,18 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
         Return CType(Nothing, ImmutableArray(Of AssemblySymbol))
     End Function
@@ -803,6 +845,10 @@ Friend Class MockAssemblySymbol
     End Sub
 
     Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
+        Throw New NotImplementedException()
+    End Function
+
+    Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
         Throw New NotImplementedException()
     End Function
 
@@ -832,7 +878,23 @@ Friend Class MockAssemblySymbol
         Return Nothing
     End Function
 
+    Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+        Throw New NotImplementedException()
+    End Function
+
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
+
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
+
 End Class

@@ -2,29 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -39,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     internal sealed class RenameTrackingTestState : IDisposable
     {
         private readonly ITagger<RenameTrackingTag> _tagger;
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         private readonly IWpfTextView _view;
         private readonly ITextUndoHistoryRegistry _historyRegistry;
         private string _notificationMessage = null;
 
-        private readonly TestHostDocument _hostDocument;
-        public TestHostDocument HostDocument { get { return _hostDocument; } }
+        private readonly EditorTestHostDocument _hostDocument;
+        public EditorTestHostDocument HostDocument { get { return _hostDocument; } }
 
         private readonly IEditorOperations _editorOperations;
         public IEditorOperations EditorOperations { get { return _editorOperations; } }
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.ExportProvider);
+            var workspace = CreateTestWorkspace(markup, languageName);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -72,15 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = TestWorkspace.Create(
-                workspaceXml,
-                exportProvider: EditorServicesUtil.ExportProvider);
-
+            var workspace = CreateTestWorkspace(workspaceXml);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
         public RenameTrackingTestState(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
@@ -99,23 +94,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             };
 
             // Mock the action taken by the workspace INotificationService
-            var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var notificationService = (INotificationServiceCallback)Workspace.Services.GetRequiredService<INotificationService>();
             var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => _notificationMessage = message);
             notificationService.NotificationCallback = callback;
 
             var tracker = new RenameTrackingTaggerProvider(
-                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                _historyRegistry,
-                Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
-                Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
-                Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.GetService<IThreadingContext>(),
+                Workspace.GetService<IInlineRenameService>(),
+                Workspace.GetService<IDiagnosticAnalyzerService>(),
+                Workspace.GetService<IGlobalOptionService>(),
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
-            if (languageName == LanguageNames.CSharp ||
-                languageName == LanguageNames.VisualBasic)
+            if (languageName is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                     _historyRegistry,
@@ -127,16 +120,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static TestWorkspace CreateTestWorkspace(string code, string languageName, ExportProvider exportProvider = null)
+        private static EditorTestWorkspace CreateTestWorkspace(string code, string languageName)
         {
-            var xml = string.Format(@"
+            return CreateTestWorkspace(string.Format(@"
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"">
         <Document>{1}</Document>
     </Project>
-</Workspace>", languageName, code);
+</Workspace>", languageName, code));
+        }
 
-            return TestWorkspace.Create(xml, exportProvider: exportProvider);
+        private static EditorTestWorkspace CreateTestWorkspace(string xml)
+        {
+            return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
         }
 
         public void SendEscape()
@@ -204,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 var operations = (await codeAction.GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
+                await operations[0].TryApplyAsync(this.Workspace, this.Workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
             }
         }
 
@@ -218,8 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             await provider.WaitAllDispatcherOperationAndTasksAsync(
+                Workspace,
                 FeatureAttribute.RenameTracking,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.EventHookup);
         }

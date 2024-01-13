@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -155,7 +157,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 ProcessOutOfScopeLocals();
                 return _analysisData.CurrentBlockAnalysisData;
 
-                // Local functions
+                // Function added to address OOM when analyzing symbol usage analysis for locals.
+                // This reduces tracking locals as they go out of scope.
                 void ProcessOutOfScopeLocals()
                 {
                     if (branch == null)
@@ -175,7 +178,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         foreach (var local in region.Locals)
                         {
-                            _analysisData.CurrentBlockAnalysisData.Clear(local);
+                            // If locals are captured in local/anonymous functions,
+                            // then they are not technically out of scope.
+                            if (!_analysisData.CapturedLocals.Contains(local))
+                            {
+                                _analysisData.CurrentBlockAnalysisData.Clear(local);
+                            }
                         }
 
                         if (region.Kind == ControlFlowRegionKind.TryAndFinally)

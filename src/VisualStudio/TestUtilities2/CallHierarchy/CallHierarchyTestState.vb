@@ -3,37 +3,32 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.SymbolMapping
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.CallHierarchy
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Utilities
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTestState
-        Private Shared ReadOnly DefaultCatalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic _
-                .WithPart(GetType(CallHierarchyProvider)) _
-                .WithPart(GetType(DefaultSymbolMappingService)) _
-                .WithPart(GetType(EditorNotificationServiceFactory))
-        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(DefaultCatalog)
+        Implements IDisposable
 
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
-        Friend ReadOnly Workspace As TestWorkspace
+        Friend ReadOnly Workspace As EditorTestWorkspace
         Private ReadOnly _subjectBuffer As ITextBuffer
         Private ReadOnly _textView As IWpfTextView
+        Private ReadOnly _waiter As IAsynchronousOperationWaiter
 
         Private Class MockCallHierarchyPresenter
             Implements ICallHierarchyPresenter
@@ -87,14 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End Sub
         End Class
 
-        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim Workspace = TestWorkspace.Create(markup, exportProvider:=exportProvider)
-
-            Return New CallHierarchyTestState(Workspace)
-        End Function
-
-        Private Sub New(workspace As TestWorkspace)
+        Private Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
 
@@ -108,29 +96,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
+            Dim threadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
+            Dim asynchronousOperationListenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+            _waiter = asynchronousOperationListenerProvider.GetWaiter(FeatureAttribute.CallHierarchy)
+            _commandHandler = New CallHierarchyCommandHandler(threadingContext, threadOperationExecutor, asynchronousOperationListenerProvider, {_presenter}, provider)
         End Sub
 
-        Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As ExportProvider
-            If Not additionalTypes.Any Then
-                Return ExportProviderFactory.CreateExportProvider()
-            End If
-
-            Dim catalog = DefaultCatalog.WithParts(additionalTypes)
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()
+        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
+            Dim workspace = EditorTestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
+            Return New CallHierarchyTestState(workspace)
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim workspace = TestWorkspace.CreateCSharp(markup, exportProvider:=exportProvider)
+            Dim workspace = EditorTestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 
         Friend Property NotificationMessage As String
 
-        Friend Function GetRoot() As CallHierarchyItem
+        Friend Async Function GetRootAsync() As Task(Of CallHierarchyItem)
             Dim args = New ViewCallHierarchyCommandArgs(_textView, _subjectBuffer)
             _commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
+            Await _waiter.ExpeditedWaitAsync()
             Return _presenter.PresentedRoot
         End Function
 
@@ -149,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             SearchRoot(root, displayName, callback, scope, documents)
         End Sub
 
-        Private Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
+        Private Shared Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
             ' Assert we have the category before we try to find it to give better diagnosing
             Assert.Contains(displayName, root.SupportedSearchCategories.Select(Function(c) c.DisplayName))
 
@@ -193,19 +180,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Sub
 
         Friend Sub VerifyResultName(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
+            Dim callers = New List(Of String)
             SearchRoot(root, searchCategory, Sub(c As ICallHierarchyNameItem)
-                                                 Assert.Contains(ConvertToName(c), expectedCallers)
+                                                 callers.Add(ConvertToName(c))
                                              End Sub,
                 scope,
                 documents)
+
+            Assert.Equal(callers.Count, expectedCallers.Length)
+            For Each expected In expectedCallers
+                Assert.Contains(expected, callers)
+            Next
         End Sub
 
         Friend Sub VerifyResult(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
+            Dim callers = New List(Of String)
             SearchRoot(root, searchCategory, Sub(c As CallHierarchyItem)
-                                                 Assert.Contains(ConvertToName(c), expectedCallers)
+                                                 callers.Add(ConvertToName(c))
                                              End Sub,
                 scope,
                 documents)
+
+            Assert.Equal(callers.Count, expectedCallers.Length)
+            For Each expected In expectedCallers
+                Assert.Contains(expected, callers)
+            Next
+
         End Sub
 
         Friend Sub Navigate(root As CallHierarchyItem, searchCategory As String, callSite As String, Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
@@ -222,6 +222,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                     item.NavigateTo()
                 End If
             End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Workspace.Dispose()
         End Sub
     End Class
 End Namespace

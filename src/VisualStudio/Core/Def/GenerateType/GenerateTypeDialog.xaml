@@ -1,0 +1,168 @@
+﻿<vs:DialogWindow 
+            x:Uid="GenerateTypeDialog" AutomationProperties.AutomationId="GenerateTypeDialog"
+            x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType.GenerateTypeDialog"
+            x:ClassModifier="internal"
+            x:Name="dialog"
+            xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            mc:Ignorable="d" d:DesignWidth="460"
+            Height="353" Width="460"
+            MinHeight="370" MinWidth="460"
+            Title="{Binding ElementName=dialog, Path=GenerateTypeDialogTitle}"
+            HasHelpButton="True"
+            ResizeMode="CanResizeWithGrip"
+            ShowInTaskbar="False"
+            HasDialogFrame="True"
+            WindowStartupLocation="CenterOwner"
+            Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
+    <vs:DialogWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </vs:DialogWindow.Resources>
+    <StackPanel Margin="0,0,0,9" >
+        <Label Content="{Binding ElementName=dialog, Path=TypeDetails}" FontWeight="Bold" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"/>
+        <Grid Margin="20,0,1,0" Height="49">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="105"/>
+                <ColumnDefinition Width="Auto" MinWidth="99"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Label x:Name ="AccessLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=Access}" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="26"/>
+            <Label x:Name ="KindLabel" Grid.Row="0" Grid.Column="1" Content="{Binding ElementName=dialog, Path=Kind}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
+            <Label x:Name ="TypeNameLabel" Grid.Row="0" Grid.Column="2" Content="{Binding ElementName=dialog, Path=NameLabel}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="26"/>
+            <ComboBox 
+                x:Uid="AccessListUid" 
+                AutomationProperties.AutomationId="AccessList"
+                AutomationProperties.LabeledBy="{Binding ElementName=AccessLabel}"
+                Name="accessListComboBox"
+                ItemsSource="{Binding AccessList}"
+                SelectedIndex="{Binding AccessSelectIndex, Mode=Twoway}"
+                SelectedItem="{Binding SelectedAccessibilityString, Mode=OneWayToSource}"
+                IsEnabled="{Binding IsAccessListEnabled, Mode=TwoWay}"
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,0,20,0"/>
+            <ComboBox 
+                x:Uid="KindListUid" AutomationProperties.AutomationId="KindList"
+                AutomationProperties.LabeledBy="{Binding ElementName=KindLabel}"
+                Name="kindListComboBox"
+                ItemsSource="{Binding KindList, Mode=TwoWay}"
+                SelectedIndex="{Binding KindSelectIndex, Mode=Twoway}"
+                SelectedItem="{Binding SelectedTypeKindString, Mode=OneWayToSource}"
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="0,0,20,0"/>
+            <TextBox 
+                x:Uid="TypeNameTextBoxUid" Name="TypeNameTextBox" AutomationProperties.AutomationId="TypeNameTextBox"
+                AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabel}"
+                Grid.Row="1"
+                Grid.Column="2"
+                IsReadOnly="True"
+                HorizontalAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                Padding="0,0,0,1"
+                TextWrapping="Wrap"
+                Text="{Binding TypeName}"
+                Margin="0,0,20,0"
+                Opacity="0.56"/>
+        </Grid>
+        <Separator Margin="10,10,10,0" HorizontalAlignment="Stretch"/>
+        <Label x:Name="LocationLabel" Content="{Binding ElementName=dialog, Path=Location}" FontWeight="Bold" Margin="20,0,0,0"></Label>
+        <StackPanel>
+            <Label x:Name="ProjectLabel" Content="{Binding ElementName=dialog, Path=Project}" Margin="25,0,0,0"/>
+            <ComboBox
+                x:Uid="ProjectList" 
+                AutomationProperties.AutomationId="ProjectList"
+                x:Name="projectListComboBox"
+                AutomationProperties.LabeledBy="{Binding ElementName=ProjectLabel}"
+                SelectedIndex="{Binding ProjectSelectIndex, Mode=Twoway}"
+                ItemsSource="{Binding ProjectList, Mode=OneWay}"
+                SelectedValue="{Binding SelectedProject}"
+                SelectedValuePath="Project"
+                DisplayMemberPath="Name"
+                Margin="30,0,20,0"
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel>
+            <Label Content="{Binding ElementName=dialog, Path=FileName}" Margin="28,2,0,0"></Label>
+            <RadioButton 
+                x:Uid="CreateNewFileRadioButton" AutomationProperties.AutomationId="CreateNewFileRadioButton" 
+                Content="{Binding ElementName=dialog, Path=CreateNewFile}"
+                Margin="34,0,19,0"
+                x:Name="createNewFileRadioButton"
+                IsChecked="{Binding IsNewFile, Mode=TwoWay}"/>
+            <ComboBox 
+                x:Uid="CreateNewFileComboBox" Name="CreateNewFileComboBox" AutomationProperties.AutomationId="CreateNewFileComboBox" 
+                Margin="48,1,20,0"
+                IsEditable="True"
+                Text="{Binding FileName, Mode=TwoWay}"
+                ItemsSource="{Binding ProjectFolders, Mode=OneWay}"
+                IsEnabled="{Binding ElementName=createNewFileRadioButton, Path=IsChecked}"
+                HorizontalAlignment="Stretch"
+                LostFocus="FileNameTextBox_LostFocus">
+            </ComboBox>
+            <RadioButton 
+                x:Uid="AddToExistingFileRadioButton" AutomationProperties.AutomationId="AddToExistingFileRadioButton"
+                Content="{Binding ElementName=dialog, Path=AddToExistingFile}" 
+                Margin="34,5,0,0" 
+                x:Name="addToExistingFileRadioButton"
+                IsEnabled="{Binding IsExistingFileEnabled, Mode=TwoWay}"
+                IsChecked="{Binding IsExistingFile, Mode=TwoWay}"/>
+            <ComboBox
+                x:Uid="AddToExistingFileComboBox" Name="AddToExistingFileComboBox" AutomationProperties.AutomationId="AddToExistingFileComboBox"
+                SelectedIndex="{Binding DocumentSelectIndex, Mode=Twoway}"
+                ItemsSource="{Binding DocumentList, Mode=OneWay}"
+                DisplayMemberPath="Name"
+                SelectedValue="{Binding SelectedDocument}"
+                SelectedValuePath="Document"
+                IsEditable="False"
+                IsEnabled="{Binding IsChecked, ElementName=addToExistingFileRadioButton}"
+                HorizontalAlignment="Stretch"
+                Margin="48,1,20,0">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Height="21" Margin="0,15,21,0">
+            <Button 
+                x:Uid="OkButton" Name="OKButton" AutomationProperties.AutomationId="OkButton"
+                Content="{Binding ElementName=dialog, Path=OK}"
+                Margin="0,0,0,0"
+                Click="OK_Click"
+                IsDefault="True"
+                MinHeight="20"
+                MinWidth="70"/>
+            <Button 
+                x:Uid="CancelButton" Name="CancelButton" AutomationProperties.AutomationId="CancelButton"
+                Content="{Binding ElementName=dialog, Path=Cancel}"
+                Margin="7,0,0,0"
+                Click="Cancel_Click"
+                IsCancel="True"
+                MinHeight="20"
+                MinWidth="70" RenderTransformOrigin="0.69,0.45"/>
+        </StackPanel>
+    </StackPanel>
+
+</vs:DialogWindow>

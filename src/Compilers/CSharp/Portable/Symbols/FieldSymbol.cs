@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -58,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetFieldType(ConsList<FieldSymbol>.Empty);
             }
         }
+
+        public abstract RefKind RefKind { get; }
+
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
@@ -272,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this field has a pointer type.
         /// </summary>
         /// <remarks>
-        /// By default we defer to this.Type.IsPointerType() 
+        /// By default we defer to this.Type.IsPointerOrFunctionPointer() 
         /// However in some cases this may cause circular dependency via binding a
         /// pointer that points to the type that contains the current field.
         /// Fortunately in those cases we do not need to force binding of the field's type 
@@ -282,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.IsPointerType();
+                return this.Type.IsPointerOrFunctionPointer();
             }
         }
 
@@ -323,24 +331,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
+        /// <summary>
+        /// Returns true if this field is required to be set in an object initializer on object creation.
+        /// </summary>
+        internal abstract bool IsRequired { get; }
+
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
             }
 
-            return this.OriginalDefinition.GetUseSiteDiagnostic();
+            return this.OriginalDefinition.GetUseSiteInfo();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref UseSiteInfo<AssemblySymbol> result)
         {
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, RefKind == RefKind.None ? AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile : AllowedRequiredModifierType.None) ||
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.None))
             {
                 return true;
             }
@@ -350,32 +364,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
+                DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes))
                 {
+                    result = result.AdjustDiagnosticInfo(diagnosticInfo);
                     return true;
                 }
+
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
 
             return false;
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BindToBogus;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
         public sealed override bool HasUnsupportedMetadata
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
@@ -399,6 +411,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
+                return TupleElementIndex >= 0;
+            }
+        }
+
+        public virtual bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
                 return false;
             }
         }
@@ -412,6 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return ContainingType.IsTupleType ? this : null;
             }
         }
@@ -424,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                Debug.Assert(!(this is TupleElementFieldSymbol));
+                return TupleElementIndex >= 0 ? this : null;
             }
         }
 
@@ -445,11 +469,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return -1;
+                // wrapped tuple fields already have this information and override this property
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol or Retargeting.RetargetingFieldSymbol));
+                if (!ContainingType.IsTupleType)
+                {
+                    return -1;
+                }
+
+                if (!ContainingType.IsDefinition)
+                {
+                    return this.OriginalDefinition.TupleElementIndex;
+                }
+
+                var tupleElementPosition = NamedTypeSymbol.MatchesCanonicalTupleElementName(Name);
+                int arity = ContainingType.Arity;
+                if (tupleElementPosition <= 0 || tupleElementPosition > arity)
+                {
+                    // ex: no "Item2" in 'ValueTuple<T1>'
+                    return -1;
+                }
+                Debug.Assert(tupleElementPosition < NamedTypeSymbol.ValueTupleRestPosition);
+
+                WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(arity, tupleElementPosition);
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                Symbol found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                    accessWithinOpt: null); // force lookup of public members only
+
+                return found is not null
+                    ? tupleElementPosition - 1
+                    : -1;
             }
         }
 
-        bool IFieldSymbolInternal.IsVolatile => this.IsVolatile;
+        ISymbolInternal IFieldSymbolInternal.AssociatedSymbol => AssociatedSymbol;
+        bool IFieldSymbolInternal.IsVolatile => IsVolatile;
+        ITypeSymbolInternal IFieldSymbolInternal.Type => Type;
 
         protected override ISymbol CreateISymbol()
         {

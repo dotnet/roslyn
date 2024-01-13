@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -23,10 +21,7 @@ namespace Roslyn.Utilities
         }
 
         bool IEqualityComparer<object>.Equals(object? a, object? b)
-        {
-            Debug.Assert(false, "Are we using empty comparer with nonempty dictionary?");
-            return false;
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         int IEqualityComparer<object>.GetHashCode(object s)
         {

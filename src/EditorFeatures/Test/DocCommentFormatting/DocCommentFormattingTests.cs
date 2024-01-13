@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
@@ -10,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
 {
+    [Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
     public class DocCommentFormattingTests
     {
         private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
         private void TestFormat(string xmlFragment, string expected)
             => TestFormat(xmlFragment, expected, expected);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void CTag()
         {
             var comment = "Class <c>Point</c> models a point in a two-dimensional plane.";
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void ExampleAndCodeTags()
         {
             var comment = @"This method changes the point's location by the given x- and y-offsets.
@@ -48,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             results in <c>p</c>'s having the value (2,8).
             </example>";
 
-            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\nPoint p = new Point(3,5); p.Translate(-1,3);\r\n\r\nresults in p's having the value (2,8).";
+            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\n            Point p = new Point(3,5);\r\n            p.Translate(-1,3);\r\n            \r\n\r\nresults in p's having the value (2,8).";
 
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void ListTag()
         {
             var comment = @"Here is an example of a bulleted list:
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void ParaTag()
         {
             var comment = @"This is the entry point of the Point class testing program.
@@ -87,7 +90,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void TestPermissionTag()
         {
             var comment = @"<permission cref=""System.Security.PermissionSet"">Everyone can access this method.</permission>";
@@ -97,7 +100,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeTag()
         {
             var comment = @"<see cref=""AnotherFunction""/>";
@@ -107,7 +110,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlsoTag()
         {
             var comment = @"<seealso cref=""AnotherFunction""/>";
@@ -117,7 +120,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void ValueTag()
         {
             var comment = @"<value>Property <c>X</c> represents the point's x-coordinate.</value>";
@@ -127,7 +130,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void TestParamRefTag()
         {
             var comment =
@@ -139,7 +142,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void TestTypeParamRefTag()
         {
             var comment = @"This method fetches data and returns a list of  <typeparamref name=""Z""/>.";
@@ -149,7 +152,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Whitespace1()
         {
             var comment = "  This has extra whitespace.  ";
@@ -159,7 +162,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Whitespace2()
         {
             var comment =
@@ -173,7 +176,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Whitespace3()
         {
             var comment = "This  has  extra  whitespace.";
@@ -182,7 +185,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Paragraphs1()
         {
             var comment =
@@ -194,7 +197,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Paragraphs2()
         {
             var comment =
@@ -211,7 +214,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Paragraphs3()
         {
             var comment =
@@ -228,7 +231,7 @@ This is part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void Paragraphs4()
         {
             var comment =
@@ -244,8 +247,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
-        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
         public void Paragraphs5()
         {
             var comment =
@@ -263,10 +265,10 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Theory]
         [InlineData("<br/><br/>")]
         [InlineData("<br/><br/><br/>")]
-        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
         public void Paragraphs6(string lineBreak)
         {
             var comment =
@@ -285,7 +287,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See1()
         {
             var comment = @"See <see cref=""T:System.Object"" />";
@@ -295,7 +297,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See2()
         {
             var comment = @"See <see />";
@@ -305,7 +307,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See3()
         {
             var comment = @"See <see langword=""true"" />";
@@ -315,7 +317,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See4()
         {
             var comment = @"See <see href=""https://github.com"" />";
@@ -325,7 +327,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See5()
         {
             var comment = @"See <see href=""https://github.com"">GitHub</see>";
@@ -335,7 +337,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void See6()
         {
             var comment = @"See <see href=""https://github.com""></see>";
@@ -345,7 +347,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso1()
         {
             var comment = @"See also <seealso cref=""T:System.Object"" />";
@@ -355,7 +357,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso2()
         {
             var comment = @"See also <seealso />";
@@ -365,7 +367,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso3()
         {
             var comment = @"See also <seealso langword=""true"" />";
@@ -375,7 +377,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso4()
         {
             var comment = @"See also <seealso href=""https://github.com"" />";
@@ -385,7 +387,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso5()
         {
             var comment = @"See also <seealso href=""https://github.com"">GitHub</seealso>";
@@ -395,7 +397,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact]
         public void SeeAlso6()
         {
             var comment = @"See also <seealso href=""https://github.com""></seealso>";

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -95,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(TypeKind.Enum, ServicesVSResources.NamingSpecification_VisualBasic_Enum, specification),
                     new SymbolKindViewModel(TypeKind.Module, ServicesVSResources.NamingSpecification_VisualBasic_Module, specification),
                     new SymbolKindViewModel(SymbolKind.Property, ServicesVSResources.NamingSpecification_VisualBasic_Property, specification),
-                    new SymbolKindViewModel(SymbolKind.Method, ServicesVSResources.NamingSpecification_VisualBasic_Method, specification),
+                    new SymbolKindViewModel(MethodKind.Ordinary, ServicesVSResources.NamingSpecification_VisualBasic_Method, specification),
                     new SymbolKindViewModel(SymbolKind.Field, ServicesVSResources.NamingSpecification_VisualBasic_Field, specification),
                     new SymbolKindViewModel(SymbolKind.Event, ServicesVSResources.NamingSpecification_VisualBasic_Event, specification),
                     new SymbolKindViewModel(TypeKind.Delegate, ServicesVSResources.NamingSpecification_VisualBasic_Delegate, specification),
@@ -187,21 +189,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 _symbolKind = symbolKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(k => k.SymbolKind == symbolKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, symbolKind) => k.SymbolKind == symbolKind, symbolKind);
             }
 
             public SymbolKindViewModel(TypeKind typeKind, string name, SymbolSpecification specification)
             {
                 _typeKind = typeKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, typeKind) => k.TypeKind == typeKind, typeKind);
             }
 
             public SymbolKindViewModel(MethodKind methodKind, string name, SymbolSpecification specification)
             {
                 _methodKind = methodKind;
                 Name = name;
-                IsChecked = specification.ApplicableSymbolKindList.Any(k => k.MethodKind == methodKind);
+                IsChecked = specification.ApplicableSymbolKindList.Any(static (k, methodKind) => k.MethodKind == methodKind, methodKind);
             }
 
             internal SymbolKindOrTypeKind CreateSymbolOrTypeOrMethodKind()
@@ -210,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     _symbolKind.HasValue ? new SymbolKindOrTypeKind(_symbolKind.Value) :
                     _typeKind.HasValue ? new SymbolKindOrTypeKind(_typeKind.Value) :
                     _methodKind.HasValue ? new SymbolKindOrTypeKind(_methodKind.Value) :
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -232,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 _accessibility = accessibility;
                 Name = name;
 
-                IsChecked = specification.ApplicableAccessibilityList.Any(a => a == accessibility);
+                IsChecked = specification.ApplicableAccessibilityList.Any(static (a, accessibility) => a == accessibility, accessibility);
             }
         }
 
@@ -254,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 _modifier = modifier;
                 Name = name;
 
-                IsChecked = specification.RequiredModifierList.Any(m => m.Modifier == modifier);
+                IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifier == modifier, modifier);
             }
         }
     }

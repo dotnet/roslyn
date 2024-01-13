@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -22,12 +25,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken);
 
-        Task<IList<SyntaxNode>> GetReplacementMembersAsync(
+        Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
             Document document,
             IPropertySymbol property, SyntaxNode propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);

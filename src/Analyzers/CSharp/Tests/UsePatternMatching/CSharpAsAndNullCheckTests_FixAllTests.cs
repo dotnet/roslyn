@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpAsAndNullCheckTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -61,10 +65,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 
         return o is string e ? 1 : 0;
     }
-}");
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
+        public async Task FixAllInDocument1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        string a;
+        {|FixAllInDocument:var|} x = o as string;
+        if (x != null)
+        {
+        }
+
+        var y = o as string;
+        if (y != null)
+        {
+        }
+
+        if ((a = o as string) == null)
+        {
+        }
+
+        var c = o as string;
+        var d = c != null ? 1 : 0;
+
+        var e = o as string;
+        return e != null ? 1 : 0;
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (o is string x)
+        {
+        }
+
+        if (o is string y)
+        {
+        }
+
+        if (o is not string a)
+        {
+        }
+
+        var d = o is string c ? 1 : 0;
+
+        return o is string e ? 1 : 0;
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
         public async Task FixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -115,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26679")]
         public async Task FixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -181,8 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26680")]
         public async Task FixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(

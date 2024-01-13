@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -75,38 +79,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
         }
 
-        [Fact]
-        [WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
         public void BreakIntoWordParts_VerbatimIdentifier()
             => VerifyBreakIntoWordParts("@int:", "int");
 
-        [Fact]
-        [WorkItem(537875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
         public void BreakIntoWordParts_AllCapsConstant()
             => VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix1()
             => VerifyBreakIntoWordParts("UInteger", "U", "Integer");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix2()
             => VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_TwoCharacterCapitalIdentifier()
             => VerifyBreakIntoWordParts("UIElement", "UI", "Element");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XDocument()
             => VerifyBreakIntoWordParts("XDocument", "X", "Document");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XMLDocument1()
             => VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
 
@@ -118,10 +115,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void BreakIntoWordParts_TwoUppercaseCharacters()
             => VerifyBreakIntoWordParts("SimpleUIElement", "Simple", "UI", "Element");
 
-        private void VerifyBreakIntoWordParts(string original, params string[] parts)
+        private static void VerifyBreakIntoWordParts(string original, params string[] parts)
             => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoWordParts(original));
 
-        private void VerifyBreakIntoCharacterParts(string original, params string[] parts)
+        private static void VerifyBreakIntoCharacterParts(string original, params string[] parts)
             => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoCharacterParts(original));
 
         private const bool CaseSensitive = true;
@@ -141,24 +138,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("[|system.ref|]lection", "system.ref", PatternMatchKind.Prefix, CaseSensitive)]
 
-        [InlineData("Fog[|B|]ar", "b", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("Fog[|B|]ar", "b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
-        [InlineData("_[|my|]Button", "my", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|my|]button", "my", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|myb|]utton", "myb", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|myB|]utton", "myB", PatternMatchKind.Substring, CaseSensitive)]
+        [InlineData("_[|my|]Button", "my", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("my[|_b|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|my|]button", "my", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_my[|_b|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|myb|]utton", "myb", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|myB|]utton", "myB", PatternMatchKind.NonLowercaseSubstring, CaseSensitive)]
 
-        [InlineData("my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("_my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("_[|myB|]utton", "myb", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("my[|_B|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("_my[|_B|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("_[|myB|]utton", "myb", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseSensitive)]
 
-        [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
         [InlineData("[|Fo|]g[|B|]ar", "FoB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
@@ -193,7 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
-        // Test is internal as PatternMatchKind is internal, but this is still ran.
+        [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
+        [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
         internal void TestNonFuzzyMatch(
             string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
@@ -210,7 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("FogBarBaz", "ZZ")]
         [InlineData("FogBar", "GoooB")]
         [InlineData("GooActBarCatAlp", "GooAlpBarCat")]
-        [InlineData("Abcdefghijefghij", "efghij")]
+        // We don't want a lowercase pattern to match *across* a word boundary.
+        [InlineData("AbcdefGhijklmnop", "efghij")]
         [InlineData("Fog_Bar", "F__B")]
         [InlineData("FogBarBaz", "FZ")]
         [InlineData("_mybutton", "myB")]
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        private void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
+        private static void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
             => Assert.True(results.Any(r => r.Kind == type));
 
         [Fact]
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|]Reference", "metadata");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|]Reference", "Metadata");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|M|]etadataReference", "M");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Metadata|]Reference", "add metadata");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|A|]dd[|M|]etadataReference", "A M");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|][|Ref|]erence", "ref Metadata");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
         [Fact]
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|M|]etadata[|Ref|]erence", "ref M");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
         [Fact]
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "add Meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "Add meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "Add Meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -379,20 +379,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Get[|K|]ey[|W|]ord", "K*W");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
-        [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring1()
             => Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
 
-        [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
             var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
             Assert.False(match.First().IsCaseSensitive);
         }
 
@@ -416,27 +414,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
+        [Fact]
+        public void TestCachingOfPriorResult()
         {
-            using var resultDisposer = ArrayBuilder<string>.GetInstance(out var result);
-            foreach (var span in parts)
-            {
-                result.Add(identifier.Substring(span.Start, span.Length));
-            }
+            using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
+            matcher.Matches("Go");
 
-            parts.Free();
-            return result.ToImmutable();
+            // Ensure that the above call ended up caching the result.
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
+
+            matcher.Matches("DefNotAMatch");
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
+        }
+
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
+        {
+            using var result = TemporaryArray<string>.Empty;
+            foreach (var span in parts)
+                result.Add(identifier.Substring(span.Start, span.Length));
+
+            return result.ToImmutableAndClear();
         }
 
         private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.GetCharacterParts(identifier));
+        {
+            using var parts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddCharacterParts(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
+        }
 
         private static ImmutableArray<string> BreakIntoWordParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
+        {
+            using var parts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddWordParts(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
+        }
 
         private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var spans);
 
             var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
                 .GetFirstMatch(candidate);
@@ -455,10 +471,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var expectedSpans);
 
-            using var matchesDisposer = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
-            PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
+            using var matches = TemporaryArray<PatternMatch>.Empty;
+            PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());
 
             if (matches.Count == 0)
             {
@@ -467,9 +483,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
             else
             {
-                var actualSpans = matches.SelectMany(m => m.MatchedSpans).OrderBy(s => s.Start).ToList();
+                var flattened = new List<TextSpan>();
+                foreach (var match in matches)
+                    flattened.AddRange(match.MatchedSpans);
+
+                var actualSpans = flattened.OrderBy(s => s.Start).ToList();
                 Assert.Equal(expectedSpans, actualSpans);
-                return matches.ToImmutable();
+                return matches.ToImmutableAndClear();
             }
         }
     }

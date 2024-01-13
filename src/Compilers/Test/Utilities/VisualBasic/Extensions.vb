@@ -6,8 +6,10 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Xunit
 
 Friend Module Extensions
@@ -19,13 +21,6 @@ Friend Module Extensions
     <Extension>
     Public Function GetReferencedModuleSymbol(compilation As Compilation, reference As MetadataReference) As ModuleSymbol
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), ModuleSymbol)
-    End Function
-
-    ' TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
-    '       https://github.com/dotnet/roslyn/issues/11915
-    <Extension>
-    Public Function ToTestDisplayString(symbol As ISymbol) As String
-        Return Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol)
     End Function
 
     Private Function SplitMemberName(qualifiedName As String) As ImmutableArray(Of String)
@@ -70,7 +65,7 @@ Friend Module Extensions
         Dim lastContainer As NamespaceOrTypeSymbol = Nothing
         Dim members = GetMembers(container, qualifiedName, lastContainer)
         If members.Length = 0 Then
-            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+            Return Nothing
         ElseIf members.Length > 1 Then
             Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
         End If
@@ -152,7 +147,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
+        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(description))
     End Function
 
     <Extension>
@@ -328,7 +323,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+    Friend Function ParameterSymbols(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
         Return DirectCast(this, MethodSymbol).Parameters
     End Function
 
@@ -346,4 +341,85 @@ Friend Module Extensions
     Friend Function RefKind(this As ParameterSymbol) As RefKind
         Return DirectCast(this, IParameterSymbol).RefKind
     End Function
+
+    <Extension>
+    Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
+        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+    End Function
+
+    <Extension>
+    Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
+        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+    End Function
+
+    <Extension>
+    Friend Function GetUseSiteErrorInfo(this As Symbol) As DiagnosticInfo
+        Return this.GetUseSiteInfo().DiagnosticInfo
+    End Function
+
+    <Extension>
+    Friend Sub Verify(this As ReadOnlyBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
+        this.Diagnostics.Verify(expected)
+    End Sub
+
+    <Extension>
+    Friend Sub LookupMember(this As Binder,
+                            lookupResult As LookupResult,
+                            container As NamespaceOrTypeSymbol,
+                            name As String,
+                            arity As Integer,
+                            options As LookupOptions,
+                            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+        this.LookupMember(lookupResult, container, name, arity, options, useSiteInfo)
+        AddDiagnosticInfos(useSiteDiagnostics, useSiteInfo)
+    End Sub
+
+    Private Sub AddDiagnosticInfos(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo), useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
+        If useSiteInfo.Diagnostics IsNot Nothing Then
+            If useSiteDiagnostics Is Nothing Then
+                useSiteDiagnostics = DirectCast(useSiteInfo.Diagnostics, HashSet(Of DiagnosticInfo))
+            Else
+                useSiteDiagnostics.AddAll(useSiteInfo.Diagnostics)
+            End If
+        End If
+    End Sub
+
+    <Extension()>
+    Public Function IsBaseTypeOf(this As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+        Dim result = this.IsBaseTypeOf(subType, useSiteInfo)
+        AddDiagnosticInfos(useSiteDiagnostics, useSiteInfo)
+        Return result
+    End Function
+
+    <Extension()>
+    Public Function IsOrDerivedFrom(this As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+        Dim result = this.IsOrDerivedFrom(baseType, useSiteInfo)
+        AddDiagnosticInfos(useSiteDiagnostics, useSiteInfo)
+        Return result
+    End Function
+
+    <Extension>
+    Friend Sub Lookup(this As Binder,
+                      lookupResult As LookupResult,
+                      name As String,
+                      arity As Integer,
+                      options As LookupOptions,
+                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+        this.Lookup(lookupResult, name, arity, options, useSiteInfo)
+        AddDiagnosticInfos(useSiteDiagnostics, useSiteInfo)
+    End Sub
+
+    <Extension>
+    Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+        Dim result = this.GetBoundMethodBody(compilationState, builder, methodBodyBinder)
+        diagnostics.AddRange(builder.DiagnosticBag)
+        builder.Free()
+        Return result
+    End Function
+
 End Module

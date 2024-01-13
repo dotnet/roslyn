@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' </summary>
     ''' <typeparam name="TProxy">
-    ''' Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as 
-    ''' well as iterator rewriter use simplified form of proxy as they only capture 
+    ''' Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as
+    ''' well as iterator rewriter use simplified form of proxy as they only capture
     ''' locals as r-values in fields, async rewriter uses a different structure as a proxy
     ''' because it has to capture l-values on stack as well
     ''' </typeparam>
@@ -23,11 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected ReadOnly Body As BoundStatement
         Protected ReadOnly Method As MethodSymbol
-        Protected ReadOnly Diagnostics As DiagnosticBag
+        Protected ReadOnly Diagnostics As BindingDiagnosticBag
         Protected ReadOnly F As SyntheticBoundNodeFactory
         Protected ReadOnly StateMachineType As SynthesizedContainer
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
         Protected ReadOnly SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
+        Protected ReadOnly StateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo)
 
         Protected StateField As FieldSymbol
         Protected nonReusableLocalProxies As Dictionary(Of Symbol, TProxy)
@@ -38,14 +39,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(body As BoundStatement,
                           method As MethodSymbol,
                           stateMachineType As StateMachineTypeSymbol,
+                          stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                           slotAllocatorOpt As VariableSlotAllocator,
                           compilationState As TypeCompilationState,
-                          diagnostics As DiagnosticBag)
+                          diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(body IsNot Nothing)
             Debug.Assert(method IsNot Nothing)
             Debug.Assert(compilationState IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Debug.Assert(stateMachineType IsNot Nothing)
 
             Me.Body = body
@@ -54,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.SlotAllocatorOpt = slotAllocatorOpt
             Me.Diagnostics = diagnostics
             Me.SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
+            Me.StateDebugInfoBuilder = stateMachineStateDebugInfoBuilder
             Me.nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
 
             Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
@@ -103,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' add fields for the captured variables of the method
-            Dim variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Me.Method, Me.Body), Me.Diagnostics)
+            Dim variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Me.Method, Me.Body), Me.Diagnostics.DiagnosticBag)
 
             CreateNonReusableLocalProxies(variablesToHoist, Me.nextFreeHoistedLocalSlot)
 
@@ -193,14 +197,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim proxy As TProxy = Nothing
             If Me.nonReusableLocalProxies.TryGetValue(parameter, proxy) Then
-                ' This proxy may have already be added while processing 
+                ' This proxy may have already be added while processing
                 ' previous ByRef local
                 Return proxy
             End If
 
             If parameter.IsMe Then
                 Dim typeName As String = parameter.ContainingSymbol.ContainingType.Name
-                Dim isMeOfClosureType As Boolean = typeName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal)
+                Dim isMeOfClosureType As Boolean = typeName.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
 
                 ' NOTE: even though 'Me' is 'ByRef' in structures, Dev11 does capture it by value
                 ' NOTE: without generation of any errors/warnings. Roslyn has to match this behavior
@@ -264,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim proxy As TProxy = Nothing
             If nonReusableLocalProxies.TryGetValue(local, proxy) Then
-                ' This proxy may have already be added while processing 
+                ' This proxy may have already be added while processing
                 ' previous ByRef local
                 Return proxy
             End If
@@ -299,10 +303,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim previousSlotIndex = -1
                 If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax,
-                                                                                                               F.CompilationState.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, Diagnostics),
+                                                                                                               F.CompilationState.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, Diagnostics.DiagnosticBag),
                                                                                                                local.SynthesizedKind,
                                                                                                                id,
-                                                                                                               Diagnostics,
+                                                                                                               Diagnostics.DiagnosticBag,
                                                                                                                previousSlotIndex) Then
                     slotIndex = previousSlotIndex
                 End If
@@ -338,13 +342,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case local.SynthesizedKind
                 Case SynthesizedLocalKind.LambdaDisplayClass
-                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & StringConstants.ClosureVariablePrefix & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
                 Case SynthesizedLocalKind.UserDefined
-                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & local.Name & "$" & slotIndex
                 Case SynthesizedLocalKind.With
-                    proxyName = StringConstants.HoistedWithLocalPrefix & slotIndex
+                    proxyName = GeneratedNameConstants.HoistedWithLocalPrefix & slotIndex
                 Case Else
-                    proxyName = StringConstants.HoistedSynthesizedLocalPrefix & slotIndex
+                    proxyName = GeneratedNameConstants.HoistedSynthesizedLocalPrefix & slotIndex
             End Select
 
             Return F.StateMachineField(localType, Me.Method, proxyName, New LocalSlotDebugInfo(local.SynthesizedKind, id), slotIndex, Accessibility.Friend)
@@ -353,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If any required special/well-known type/member is not found or has use-site errors
         ''' we should not continue with transformation because it may have unwanted consequences;
-        ''' e.g. we do return Nothing if well-known member symbol is not found. This method should 
+        ''' e.g. we do return Nothing if well-known member symbol is not found. This method should
         ''' check all required symbols and return False if any of them are missing or have use-site errors.
         ''' We will also return True if signature is definitely bad - contains parameters that are ByRef or have error types
         ''' </summary>
@@ -371,26 +375,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Function EnsureSpecialType(type As SpecialType, bag As DiagnosticBag) As Symbol
-            Return Binder.GetSpecialType(F.Compilation.Assembly, type, Me.Body.Syntax, bag)
+        Friend Function EnsureSpecialType(type As SpecialType, bag As BindingDiagnosticBag) As Symbol
+            Return Binder.GetSpecialType(F.Compilation, type, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureWellKnownType(type As WellKnownType, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureWellKnownType(type As WellKnownType, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetWellKnownType(F.Compilation, type, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureSpecialMember(member As SpecialMember, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureSpecialMember(member As SpecialMember, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetSpecialTypeMember(F.Compilation.Assembly, member, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureWellKnownMember(member As WellKnownMember, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureWellKnownMember(member As WellKnownMember, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetWellKnownTypeMember(F.Compilation, member, Me.Body.Syntax, bag)
         End Function
 
         ''' <summary>
         ''' Check that the property and its getter exist and collect any use-site errors.
         ''' </summary>
-        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As DiagnosticBag)
+        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As BindingDiagnosticBag)
             Dim symbol = DirectCast(EnsureSpecialMember(member, bag), PropertySymbol)
 
             If symbol IsNot Nothing Then
@@ -401,10 +405,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                Dim useSiteError = getter.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    Binder.ReportDiagnostic(bag, Body.Syntax, useSiteError)
-                End If
+                Dim useSiteInfo = getter.GetUseSiteInfo()
+                Binder.ReportUseSite(bag, Body.Syntax, useSiteInfo)
             End If
         End Sub
 
@@ -433,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
 
             ' Errors must be reported before and if any this point should not be reachable
-            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
+            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
                                                                                methodName,
@@ -500,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OpenMoveNextMethodImplementation(methodToImplement As MethodSymbol, accessibility As Accessibility) As SynthesizedMethod
 
             ' Errors must be reported before and if any this point should not be reachable
-            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
+            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
                                                                     methodToImplement,

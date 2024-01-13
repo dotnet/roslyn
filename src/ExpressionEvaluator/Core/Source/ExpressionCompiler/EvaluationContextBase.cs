@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -85,9 +83,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DiagnosticFormatter formatter,
             CultureInfo? preferredUICulture)
         {
-            return (error is SimpleMessageDiagnostic simpleMessage) ?
-                simpleMessage.GetMessage() :
-                formatter.Format(error, preferredUICulture ?? CultureInfo.CurrentUICulture);
+            return (error is SimpleMessageDiagnostic simpleMessage)
+                ? simpleMessage.GetMessage()
+                : formatter.Format(error, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
 
         internal abstract bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic);
@@ -151,11 +149,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             public override bool Equals(Diagnostic? obj)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool Equals(object? obj)
             {
                 throw new NotImplementedException();
             }

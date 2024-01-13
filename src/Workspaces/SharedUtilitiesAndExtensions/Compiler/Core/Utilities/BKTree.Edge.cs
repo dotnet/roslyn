@@ -4,22 +4,16 @@
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        private struct Edge
+        private readonly struct Edge(int editDistance, int childNodeIndex)
         {
             // The edit distance between the child and parent connected by this edge.
             // The child can be found in _nodes at ChildNodeIndex. 
-            public readonly int EditDistance;
+            public readonly int EditDistance = editDistance;
 
             /// <summary>Where the child node can be found in <see cref="_nodes"/>.</summary>
-            public readonly int ChildNodeIndex;
-
-            public Edge(int editDistance, int childNodeIndex)
-            {
-                EditDistance = editDistance;
-                ChildNodeIndex = childNodeIndex;
-            }
+            public readonly int ChildNodeIndex = childNodeIndex;
 
             internal void WriteTo(ObjectWriter writer)
             {
@@ -28,7 +22,7 @@ namespace Roslyn.Utilities
             }
 
             internal static Edge ReadFrom(ObjectReader reader)
-                => new Edge(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
+                => new(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
         }
     }
 }

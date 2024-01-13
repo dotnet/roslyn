@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement>
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
+        TSyntaxKind, TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement>
     {
         protected readonly struct StatementRange
         {
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             }
 
             public bool IsEmpty => FirstStatement == null;
-            public SyntaxNode Parent => FirstStatement.Parent;
+            public SyntaxNode Parent => FirstStatement.GetRequiredParent();
         }
     }
 }

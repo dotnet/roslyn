@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -22,6 +24,16 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface ISpanMappingService : IDocumentService
     {
         /// <summary>
+        /// Whether this span mapping service can handle mapping import directives added to a document.
+        /// </summary>
+        bool SupportsMappingImportDirectives { get; }
+
+        Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+            Document oldDocument,
+            Document newDocument,
+            CancellationToken cancellationToken);
+
+        /// <summary>
         /// Map spans in the document to more appropriate locations
         /// 
         /// in current design, this can NOT map a span to a span that is not backed by a file.
@@ -40,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Result of span mapping
     /// </summary>
-    internal struct MappedSpanResult
+    internal readonly struct MappedSpanResult
     {
         /// <summary>
         /// Path to mapped file

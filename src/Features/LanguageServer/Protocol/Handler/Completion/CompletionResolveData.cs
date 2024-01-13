@@ -2,13 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
-    internal class CompletionResolveData
+    /// <summary>
+    /// Provides the intermediate data passed from CompletionHandler to CompletionResolveHandler.
+    /// Passed along via <see cref="LSP.CompletionItem.Data"/>.
+    /// </summary>
+    internal sealed class CompletionResolveData
     {
-        public CompletionParams CompletionParams { get; set; }
-        public string DisplayText { get; set; }
+        /// <summary>
+        /// ID associated with the item's completion list.
+        /// </summary>
+        /// <remarks>
+        /// Used to retrieve the correct completion list from <see cref="CompletionListCache"/>.
+        /// </remarks>
+        public long? ResultId { get; set; }
     }
 }

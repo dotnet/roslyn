@@ -3,36 +3,38 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class IfDirectiveKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashIfInFileTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>|</File>, "#If")
-        End Function
+        Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashIfInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "#If")
-        End Function
+        <Fact>
+        Public Sub HashIfInFileTest()
+            VerifyRecommendationsContain(<File>|</File>, "#If")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        <Fact>
+        Public Sub HashIfInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#If")
+        End Sub
+
+        <Fact>
+        Public Sub NotInEnumBlockMemberDeclarationTest()
+            VerifyRecommendationsMissing(<File>
                                              Enum goo
                                                 |
                                             End enum
                                          </File>, "#If")
-        End Function
+        End Sub
 
-        <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashRegionTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6389")>
+        Public Sub NotAfterHashRegionTest()
+            VerifyRecommendationsMissing(<File>
                                          Class C
 
                                              #Region |
 
                                          End Class
                                          </File>, "#If")
-        End Function
+        End Sub
     End Class
 End Namespace

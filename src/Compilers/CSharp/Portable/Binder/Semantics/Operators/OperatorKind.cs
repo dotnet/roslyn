@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         _NullableNull = 0x00000027, // reserved for binary op
         UserDefined = 0x00000028,
         Dynamic = 0x00000029,
+        _Utf8 = 0x0000002A, // reserved for binary op
 
         OpMask = 0x0000FF00,
         PostfixIncrement = 0x00001000,
@@ -322,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableNull = UnaryOperatorKind._NullableNull,
         UserDefined = UnaryOperatorKind.UserDefined,
         Dynamic = UnaryOperatorKind.Dynamic,
+        Utf8 = UnaryOperatorKind._Utf8,
 
         OpMask = 0x0000FF00,
         Multiplication = 0x00001000,
@@ -340,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         And = 0x00001D00,
         Xor = 0x00001E00,
         Or = 0x00001F00,
+        UnsignedRightShift = 0x00002000,
 
         Lifted = UnaryOperatorKind.Lifted,
         Logical = UnaryOperatorKind._Logical,
@@ -450,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ObjectAndStringConcatenation = ObjectAndString | Addition,
         DelegateCombination = Delegate | Addition,
         DynamicAddition = Dynamic | Addition,
+        Utf8Addition = Utf8 | Addition,
 
         IntSubtraction = Int | Subtraction,
         UIntSubtraction = UInt | Subtraction,
@@ -516,6 +522,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedNUIntRightShift = Lifted | NUInt | RightShift,
         LiftedUserDefinedRightShift = Lifted | UserDefined | RightShift,
         DynamicRightShift = Dynamic | RightShift,
+
+        IntUnsignedRightShift = Int | UnsignedRightShift,
+        UIntUnsignedRightShift = UInt | UnsignedRightShift,
+        LongUnsignedRightShift = Long | UnsignedRightShift,
+        ULongUnsignedRightShift = ULong | UnsignedRightShift,
+        NIntUnsignedRightShift = NInt | UnsignedRightShift,
+        NUIntUnsignedRightShift = NUInt | UnsignedRightShift,
+        UserDefinedUnsignedRightShift = UserDefined | UnsignedRightShift,
+        LiftedIntUnsignedRightShift = Lifted | Int | UnsignedRightShift,
+        LiftedUIntUnsignedRightShift = Lifted | UInt | UnsignedRightShift,
+        LiftedLongUnsignedRightShift = Lifted | Long | UnsignedRightShift,
+        LiftedULongUnsignedRightShift = Lifted | ULong | UnsignedRightShift,
+        LiftedNIntUnsignedRightShift = Lifted | NInt | UnsignedRightShift,
+        LiftedNUIntUnsignedRightShift = Lifted | NUInt | UnsignedRightShift,
+        LiftedUserDefinedUnsignedRightShift = Lifted | UserDefined | UnsignedRightShift,
 
         IntEqual = Int | Equal,
         UIntEqual = UInt | Equal,

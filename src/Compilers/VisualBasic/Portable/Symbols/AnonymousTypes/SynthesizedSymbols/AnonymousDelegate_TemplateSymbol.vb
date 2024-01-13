@@ -7,17 +7,13 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
 
         Private Class AnonymousDelegateTemplateSymbol
             Inherits AnonymousTypeOrDelegateTemplateSymbol
-
-            Private Const s_ctorIndex As Integer = 0
-            Private Const s_beginInvokeIndex As Integer = 1
-            Private Const s_endInvokeIndex As Integer = 2
-            Private Const s_invokeIndex As Integer = 3
 
             Protected ReadOnly TypeDescr As AnonymousTypeDescriptor
             Private ReadOnly _members As ImmutableArray(Of SynthesizedDelegateMethodSymbol)
@@ -52,12 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                          returnType)
 
                 For i = 0 To parameterDescriptors.Length - 2
-                    parameters.Add(New AnonymousDelegateParameterSymbol(delegateInvoke,
-                                                                        Me.TypeParameters(i),
-                                                                        i,
-                                                                        parameterDescriptors(i).IsByRef,
-                                                                        parameterDescriptors(i).Name,
-                                                                        i))
+                    parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateInvoke,
+                                                                              Me.TypeParameters(i),
+                                                                              i,
+                                                                              parameterDescriptors(i).IsByRef,
+                                                                              parameterDescriptors(i).Name,
+                                                                              i))
                 Next
 
                 delegateInvoke.SetParameters(parameters.ToImmutable())
@@ -71,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 delegateCtor.SetParameters(
                     ImmutableArray.Create(Of ParameterSymbol)(
-                           New AnonymousDelegateParameterSymbol(delegateCtor, manager.System_Object, 0, False, StringConstants.DelegateConstructorInstanceParameterName),
-                           New AnonymousDelegateParameterSymbol(delegateCtor, manager.System_IntPtr, 1, False, StringConstants.DelegateConstructorMethodParameterName)
+                           New AnonymousTypeOrDelegateParameterSymbol(delegateCtor, manager.System_Object, 0, False, StringConstants.DelegateConstructorInstanceParameterName),
+                           New AnonymousTypeOrDelegateParameterSymbol(delegateCtor, manager.System_IntPtr, 1, False, StringConstants.DelegateConstructorMethodParameterName)
                            ))
 
                 Dim delegateBeginInvoke As SynthesizedDelegateMethodSymbol
@@ -93,12 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     For i = 0 To delegateInvoke.ParameterCount - 1
                         Dim parameter As ParameterSymbol = delegateInvoke.Parameters(i)
-                        parameters.Add(New AnonymousDelegateParameterSymbol(delegateBeginInvoke, parameter.Type, i, parameter.IsByRef(), parameter.Name, i))
+                        parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateBeginInvoke, parameter.Type, i, parameter.IsByRef(), parameter.Name, i))
                     Next
 
-                    parameters.Add(New AnonymousDelegateParameterSymbol(delegateBeginInvoke, manager.System_AsyncCallback, i, False, StringConstants.DelegateMethodCallbackParameterName))
+                    parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateBeginInvoke, manager.System_AsyncCallback, i, False, StringConstants.DelegateMethodCallbackParameterName))
                     i += 1
-                    parameters.Add(New AnonymousDelegateParameterSymbol(delegateBeginInvoke, manager.System_Object, i, False, StringConstants.DelegateMethodInstanceParameterName))
+                    parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateBeginInvoke, manager.System_Object, i, False, StringConstants.DelegateMethodInstanceParameterName))
                     delegateBeginInvoke.SetParameters(parameters.ToImmutable())
                     parameters.Clear()
 
@@ -112,12 +108,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim parameter As ParameterSymbol = delegateInvoke.Parameters(i)
 
                         If parameter.IsByRef Then
-                            parameters.Add(New AnonymousDelegateParameterSymbol(delegateEndInvoke, parameter.Type, ordinal, parameter.IsByRef(), parameter.Name, i))
+                            parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateEndInvoke, parameter.Type, ordinal, parameter.IsByRef(), parameter.Name, i))
                             ordinal += 1
                         End If
                     Next
 
-                    parameters.Add(New AnonymousDelegateParameterSymbol(delegateEndInvoke, manager.System_IAsyncResult, ordinal, False, StringConstants.DelegateMethodResultParameterName))
+                    parameters.Add(New AnonymousTypeOrDelegateParameterSymbol(delegateEndInvoke, manager.System_IAsyncResult, ordinal, False, StringConstants.DelegateMethodResultParameterName))
                     delegateEndInvoke.SetParameters(parameters.ToImmutable())
 
                     _members = ImmutableArray.Create(delegateCtor, delegateBeginInvoke, delegateEndInvoke, delegateInvoke)
@@ -142,15 +138,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides ReadOnly Property GeneratedNamePrefix As String
                 Get
-                    Return GeneratedNames.AnonymousDelegateTemplateNamePrefix
+                    Return GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix
                 End Get
             End Property
 
-            Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                 Return Manager.System_MulticastDelegate
             End Function
 
-            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return ImmutableArray(Of NamedTypeSymbol).Empty
             End Function
 
@@ -173,8 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(compilationState, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                 ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
                 AddSynthesizedAttribute(attributes, Manager.Compilation.TrySynthesizeAttribute(
@@ -221,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Manager.GetHashCode()
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
+            Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
                 If obj Is Me Then
                     Return True
                 End If

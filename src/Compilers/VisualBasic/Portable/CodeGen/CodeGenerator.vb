@@ -185,37 +185,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _unhandledReturn = False
         End Sub
 
-        Private Sub EmitFieldAccess(fieldAccess As BoundFieldAccess)
-            ' TODO: combination load/store for +=; addresses for ref
-            Dim field As FieldSymbol = fieldAccess.FieldSymbol
-            If Not field.IsShared Then
-                EmitExpression(fieldAccess.ReceiverOpt, True)
-            End If
-
-            If field.IsShared Then
-                _builder.EmitOpCode(ILOpCode.Ldsfld)
-            Else
-                _builder.EmitOpCode(ILOpCode.Ldfld)
-            End If
-            EmitSymbolToken(field, fieldAccess.Syntax)
-        End Sub
-
         Private Function IsStackLocal(local As LocalSymbol) As Boolean
             Return _stackLocals IsNot Nothing AndAlso _stackLocals.Contains(local)
         End Function
-
-        Private Sub EmitLocalStore(local As BoundLocal)
-            ' TODO: combination load/store for +=; addresses for ref
-            Dim slot = GetLocal(local)
-            _builder.EmitLocalStore(slot)
-        End Sub
 
         Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As SyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
         Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As SyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken)
+            Dim methodRef = _module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken)
+            _builder.EmitToken(methodRef, syntaxNode, _diagnostics, If(encodeAsRawDefinitionToken, Cci.MetadataWriter.RawTokenEncoding.RowId, Cci.MetadataWriter.RawTokenEncoding.None))
         End Sub
 
         Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As SyntaxNode)

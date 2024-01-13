@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Most callers just call <see cref="ToExpression"/> to get the combo but some (object and array initializers) 
     /// hoist all call-site initialization code and emit multiple invocations of the same site.
     /// </summary>
-    internal struct LoweredDynamicOperation
+    internal readonly struct LoweredDynamicOperation
     {
         private readonly SyntheticBoundNodeFactory? _factory;
         private readonly TypeSymbol _resultType;

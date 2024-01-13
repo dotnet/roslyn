@@ -9,45 +9,47 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new StringLiteralExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMultiLineStringLiteral()
-        {
-            await VerifyBlockSpansAsync(
-@"
-class C
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
 {
-    void M()
-    {
-        var v =
-{|hint:{|textspan:$$@""
-class 
-{
-}
-""|}|};
-    }
-}",
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    internal override AbstractSyntaxStructureProvider CreateProvider()
+        => new StringLiteralExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMissingOnIncompleteStringLiteral()
-        {
-            await VerifyNoBlockSpansAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestMultiLineStringLiteral()
     {
-        var v = $$"";
+        await VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                {|hint:{|textspan:$$@"
+                class 
+                {
+                }
+                "|}|};
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
-}");
-        }
+
+    [Fact]
+    public async Task TestMissingOnIncompleteStringLiteral()
+    {
+        await VerifyNoBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $$";
+                    }
+                }
+                """);
     }
 }

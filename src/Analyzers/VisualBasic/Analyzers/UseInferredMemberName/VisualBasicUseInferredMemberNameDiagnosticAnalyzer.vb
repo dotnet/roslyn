@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -23,91 +24,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 SyntaxKind.NameColonEquals, SyntaxKind.NamedFieldInitializer)
         End Sub
 
-        Protected Overrides Sub LanguageSpecificAnalyzeSyntax(context As SyntaxNodeAnalysisContext,
-                syntaxTree As SyntaxTree,
-                options As AnalyzerOptions,
-                cancellationToken As CancellationToken)
-            Dim parseOptions = DirectCast(syntaxTree.Options, VisualBasicParseOptions)
+        Protected Overrides Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
             Select Case context.Node.Kind()
                 Case SyntaxKind.NameColonEquals
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, options, syntaxTree, parseOptions, cancellationToken)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context)
                     Exit Select
                 Case SyntaxKind.NamedFieldInitializer
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context, options, syntaxTree, cancellationToken)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context)
                     Exit Select
             End Select
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax,
-                context As SyntaxNodeAnalysisContext,
-                options As AnalyzerOptions,
-                syntaxTree As SyntaxTree,
-                parseOptions As VisualBasicParseOptions,
-                cancellationToken As CancellationToken)
+        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext)
 
             If Not nameColonEquals.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return
             End If
 
+            Dim syntaxTree = context.Node.SyntaxTree
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            Dim preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken)
+            Dim preference = context.GetAnalyzerOptions().PreferInferredTupleNames
             If Not preference.Value OrElse
-                Not CanSimplifyTupleName(argument, parseOptions) Then
+               ShouldSkipAnalysis(context, preference.Notification) OrElse
+               Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
                 Return
             End If
 
             ' Create a normal diagnostic
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    nameColonEquals.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations:=Nothing,
-                    properties:=Nothing))
-
-            ' Also fade out the part of the name-colon-equals syntax
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)))
+                DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    nameColonEquals.GetLocation(),
+                    preference.Notification,
+                    additionalLocations:=ImmutableArray(Of Location).Empty,
+                    additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(
-                fieldInitializer As NamedFieldInitializerSyntax,
-                context As SyntaxNodeAnalysisContext,
-                options As AnalyzerOptions,
-                syntaxTree As SyntaxTree,
-                cancellationToken As CancellationToken)
+        Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext)
             If Not fieldInitializer.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
                 Return
             End If
 
-            Dim preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken)
-            If Not preference.Value OrElse
-                Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
-
+            Dim preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames
+            If Not preference.Value OrElse Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
                 Return
             End If
 
             Dim fadeSpan = TextSpan.FromBounds(fieldInitializer.Name.SpanStart, fieldInitializer.EqualsToken.Span.End)
 
             ' Create a normal diagnostic
+            Dim syntaxTree = context.Node.SyntaxTree
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(
+                DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
-                    preference.Notification.Severity,
-                    additionalLocations:=Nothing,
-                    properties:=Nothing))
-
-            ' Also fade out the part of the name-equals syntax
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)))
+                    preference.Notification,
+                    additionalLocations:=ImmutableArray(Of Location).Empty,
+                    additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
     End Class
 End Namespace

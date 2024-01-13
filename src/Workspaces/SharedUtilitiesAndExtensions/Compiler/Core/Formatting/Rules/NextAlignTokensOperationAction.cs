@@ -4,46 +4,31 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    internal readonly struct NextAlignTokensOperationAction
+    [NonDefaultable]
+    internal readonly struct NextAlignTokensOperationAction(
+        ImmutableArray<AbstractFormattingRule> formattingRules,
+        int index,
+        SyntaxNode node,
+        List<AlignTokensOperation> list)
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxNode _node;
-        private readonly AnalyzerConfigOptions _options;
-        private readonly List<AlignTokensOperation> _list;
-
-        public NextAlignTokensOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxNode node,
-            AnalyzerConfigOptions options,
-            List<AlignTokensOperation> list)
-        {
-            _formattingRules = formattingRules;
-            _index = index;
-            _node = node;
-            _options = options;
-            _list = list;
-        }
-
         private NextAlignTokensOperationAction NextAction
-            => new NextAlignTokensOperationAction(_formattingRules, _index + 1, _node, _options, _list);
+            => new(formattingRules, index + 1, node, list);
 
         public void Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
+            if (index >= formattingRules.Length)
             {
                 return;
             }
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddAlignTokensOperations(_list, _node, _options, NextAction);
+                formattingRules[index].AddAlignTokensOperations(list, node, NextAction);
                 return;
             }
         }

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -36,6 +35,9 @@ namespace Microsoft.CodeAnalysis
         /// The name of the project. This may differ from the project's filename.
         /// </summary>
         public string Name => Attributes.Name;
+
+        /// <inheritdoc cref="ProjectAttributes.NameAndFlavor"/>
+        internal (string? name, string? flavor) NameAndFlavor => Attributes.NameAndFlavor;
 
         /// <summary>
         /// The name of the assembly that this project will create, without file extension.
@@ -65,20 +67,25 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the compiler output file (module or assembly).
         /// </summary>
-        public CompilationOutputFilePaths CompilationOutputFilePaths => Attributes.CompilationOutputFilePaths;
+        public CompilationOutputInfo CompilationOutputInfo => Attributes.CompilationOutputInfo;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
-        /// or null if it is unknown or not applicable. 
+        /// or null if it is unknown or not applicable.
         /// </summary>
         /// <remarks>
-        /// Right now VB doesn't have the concept of "default namespace", but we conjure one in workspace 
-        /// by assigning the value of the project's root namespace to it. So various features can choose to 
+        /// Right now VB doesn't have the concept of "default namespace", but we conjure one in workspace
+        /// by assigning the value of the project's root namespace to it. So various features can choose to
         /// use it for their own purpose.
-        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// In the future, we might consider officially exposing "default namespace" for VB project
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
         internal string? DefaultNamespace => Attributes.DefaultNamespace;
+
+        /// <summary>
+        /// Algorithm to calculate content checksum for debugging purposes.
+        /// </summary>
+        internal SourceHashAlgorithm ChecksumAlgorithm => Attributes.ChecksumAlgorithm;
 
         /// <summary>
         /// True if this is a submission project for interactive sessions.
@@ -217,21 +224,48 @@ namespace Microsoft.CodeAnalysis
             Type? hostObjectType = null,
             string? outputRefFilePath = null)
         {
-            return new ProjectInfo(
+            return Create(
                 new ProjectAttributes(
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
                     name ?? throw new ArgumentNullException(nameof(name)),
                     assemblyName ?? throw new ArgumentNullException(nameof(assemblyName)),
                     language ?? throw new ArgumentNullException(nameof(language)),
-                    filePath,
-                    outputFilePath,
-                    outputRefFilePath,
                     compilationOutputFilePaths: default,
+                    checksumAlgorithm: SourceHashAlgorithm.Sha1,
                     defaultNamespace: null,
+                    filePath: filePath,
+                    outputFilePath: outputFilePath,
+                    outputRefFilePath: outputRefFilePath,
+                    telemetryId: default,
                     isSubmission,
                     hasAllInformation: true,
                     runAnalyzers: true),
+                compilationOptions,
+                parseOptions,
+                documents,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocuments,
+                analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
+                hostObjectType);
+        }
+
+        internal static ProjectInfo Create(
+            ProjectAttributes attributes,
+            CompilationOptions? compilationOptions = null,
+            ParseOptions? parseOptions = null,
+            IEnumerable<DocumentInfo>? documents = null,
+            IEnumerable<ProjectReference>? projectReferences = null,
+            IEnumerable<MetadataReference>? metadataReferences = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null,
+            IEnumerable<DocumentInfo>? additionalDocuments = null,
+            IEnumerable<DocumentInfo>? analyzerConfigDocuments = null,
+            Type? hostObjectType = null)
+        {
+            return new ProjectInfo(
+                attributes,
                 compilationOptions,
                 parseOptions,
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)),
@@ -239,7 +273,7 @@ namespace Microsoft.CodeAnalysis
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)),
-                analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerConfigDocuments, nameof(analyzerConfigDocuments)),
                 hostObjectType);
         }
 
@@ -311,11 +345,14 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
             => With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
 
-        public ProjectInfo WithCompilationOutputFilePaths(in CompilationOutputFilePaths paths)
-            => With(attributes: Attributes.With(compilationOutputPaths: paths));
+        public ProjectInfo WithCompilationOutputInfo(in CompilationOutputInfo info)
+            => With(attributes: Attributes.With(compilationOutputInfo: info));
 
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
             => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
+
+        internal ProjectInfo WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+            => With(attributes: Attributes.With(checksumAlgorithm: checksumAlgorithm));
 
         internal ProjectInfo WithHasAllInformation(bool hasAllInformation)
             => With(attributes: Attributes.With(hasAllInformation: hasAllInformation));
@@ -347,6 +384,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
             => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
+        internal ProjectInfo WithTelemetryId(Guid telemetryId)
+        {
+            return With(attributes: Attributes.With(telemetryId: telemetryId));
+        }
+
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
 
@@ -354,107 +396,120 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this project itself but
         /// no tree information such as document info
         /// </summary>
-        internal sealed class ProjectAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class ProjectAttributes(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            CompilationOutputInfo compilationOutputFilePaths,
+            SourceHashAlgorithm checksumAlgorithm,
+            string? defaultNamespace = null,
+            string? filePath = null,
+            string? outputFilePath = null,
+            string? outputRefFilePath = null,
+            Guid telemetryId = default,
+            bool isSubmission = false,
+            bool hasAllInformation = true,
+            bool runAnalyzers = true)
         {
-            private Checksum? _lazyChecksum;
+            /// <summary>
+            /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
+            /// </summary>
+            private static readonly Regex s_projectNameAndFlavor = new(@"^(?<name>.*?)\s*\((?<flavor>.*?)\)$", RegexOptions.Compiled);
 
             /// <summary>
             /// The unique Id of the project.
             /// </summary>
-            public ProjectId Id { get; }
+            public ProjectId Id { get; } = id;
 
             /// <summary>
             /// The version of the project.
             /// </summary>
-            public VersionStamp Version { get; }
+            public VersionStamp Version { get; } = version;
 
             /// <summary>
             /// The name of the project. This may differ from the project's filename.
             /// </summary>
-            public string Name { get; }
+            public string Name { get; } = name;
 
             /// <summary>
             /// The name of the assembly that this project will create, without file extension.
             /// </summary>,
-            public string AssemblyName { get; }
+            public string AssemblyName { get; } = assemblyName;
 
             /// <summary>
             /// The language of the project.
             /// </summary>
-            public string Language { get; }
+            public string Language { get; } = language;
 
             /// <summary>
             /// The path to the project file or null if there is no project file.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; } = filePath;
 
             /// <summary>
             /// The path to the output file (module or assembly).
             /// </summary>
-            public string? OutputFilePath { get; }
+            public string? OutputFilePath { get; } = outputFilePath;
 
             /// <summary>
             /// The path to the reference assembly output file.
             /// </summary>
-            public string? OutputRefFilePath { get; }
+            public string? OutputRefFilePath { get; } = outputRefFilePath;
 
             /// <summary>
             /// Paths to the compiler output files.
             /// </summary>
-            public CompilationOutputFilePaths CompilationOutputFilePaths { get; }
+            public CompilationOutputInfo CompilationOutputInfo { get; } = compilationOutputFilePaths;
 
             /// <summary>
             /// The default namespace of the project.
             /// </summary>
-            public string? DefaultNamespace { get; }
+            public string? DefaultNamespace { get; } = defaultNamespace;
+
+            /// <summary>
+            /// Algorithm to calculate content checksum for debugging purposes.
+            /// </summary>
+            public SourceHashAlgorithm ChecksumAlgorithm { get; } = checksumAlgorithm;
 
             /// <summary>
             /// True if this is a submission project for interactive sessions.
             /// </summary>
-            public bool IsSubmission { get; }
+            public bool IsSubmission { get; } = isSubmission;
 
             /// <summary>
             /// True if project information is complete. In some workspace hosts, it is possible
             /// a project only has partial information. In such cases, a project might not have all
             /// information on its files or references.
             /// </summary>
-            public bool HasAllInformation { get; }
+            public bool HasAllInformation { get; } = hasAllInformation;
 
             /// <summary>
             /// True if we should run analyzers for this project.
             /// </summary>
-            public bool RunAnalyzers { get; }
+            public bool RunAnalyzers { get; } = runAnalyzers;
 
-            public ProjectAttributes(
-                ProjectId id,
-                VersionStamp version,
-                string name,
-                string assemblyName,
-                string language,
-                string? filePath,
-                string? outputFilePath,
-                string? outputRefFilePath,
-                CompilationOutputFilePaths compilationOutputFilePaths,
-                string? defaultNamespace,
-                bool isSubmission,
-                bool hasAllInformation,
-                bool runAnalyzers)
-            {
-                Id = id;
-                Name = name;
-                Language = language;
-                AssemblyName = assemblyName;
+            /// <summary>
+            /// The id report during telemetry events.
+            /// </summary>
+            public Guid TelemetryId { get; } = telemetryId;
 
-                Version = version;
-                FilePath = filePath;
-                OutputFilePath = outputFilePath;
-                OutputRefFilePath = outputRefFilePath;
-                CompilationOutputFilePaths = compilationOutputFilePaths;
-                DefaultNamespace = defaultNamespace;
-                IsSubmission = isSubmission;
-                HasAllInformation = hasAllInformation;
-                RunAnalyzers = runAnalyzers;
-            }
+            private SingleInitNullable<(string? name, string? flavor)> _lazyNameAndFlavor;
+            private SingleInitNullable<Checksum> _lazyChecksum;
+
+            /// <summary>
+            /// The name and flavor portions of the project broken out.  For example, the project
+            /// <c>Microsoft.CodeAnalysis.Workspace (netcoreapp3.1)</c> would have the name
+            /// <c>Microsoft.CodeAnalysis.Workspace</c> and the flavor <c>netcoreapp3.1</c>.  Values may be null <see
+            /// langword="null"/> if the name does not contain a flavor.
+            /// </summary>
+            public (string? name, string? flavor) NameAndFlavor
+                => _lazyNameAndFlavor.Initialize(static @this =>
+                {
+                    var match = s_projectNameAndFlavor.Match(@this.Name);
+                    return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
+                }, this);
 
             public ProjectAttributes With(
                 VersionStamp? version = null,
@@ -464,37 +519,43 @@ namespace Microsoft.CodeAnalysis
                 Optional<string?> filePath = default,
                 Optional<string?> outputPath = default,
                 Optional<string?> outputRefPath = default,
-                Optional<CompilationOutputFilePaths> compilationOutputPaths = default,
+                Optional<CompilationOutputInfo> compilationOutputInfo = default,
                 Optional<string?> defaultNamespace = default,
+                Optional<SourceHashAlgorithm> checksumAlgorithm = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default,
-                Optional<bool> runAnalyzers = default)
+                Optional<bool> runAnalyzers = default,
+                Optional<Guid> telemetryId = default)
             {
                 var newVersion = version ?? Version;
                 var newName = name ?? Name;
                 var newAssemblyName = assemblyName ?? AssemblyName;
                 var newLanguage = language ?? Language;
-                var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
+                var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
                 var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
-                var newCompilationOutputPaths = compilationOutputPaths.HasValue ? compilationOutputPaths.Value : CompilationOutputFilePaths;
+                var newCompilationOutputPaths = compilationOutputInfo.HasValue ? compilationOutputInfo.Value : CompilationOutputInfo;
                 var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
+                var newChecksumAlgorithm = checksumAlgorithm.HasValue ? checksumAlgorithm.Value : ChecksumAlgorithm;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
                 var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
+                var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
 
                 if (newVersion == Version &&
                     newName == Name &&
                     newAssemblyName == AssemblyName &&
                     newLanguage == Language &&
-                    newFilepath == FilePath &&
+                    newFilePath == FilePath &&
                     newOutputPath == OutputFilePath &&
                     newOutputRefPath == OutputRefFilePath &&
-                    newCompilationOutputPaths == CompilationOutputFilePaths &&
+                    newCompilationOutputPaths == CompilationOutputInfo &&
                     newDefaultNamespace == DefaultNamespace &&
+                    newChecksumAlgorithm == ChecksumAlgorithm &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation &&
-                    newRunAnalyzers == RunAnalyzers)
+                    newRunAnalyzers == RunAnalyzers &&
+                    newTelemetryId == TelemetryId)
                 {
                     return this;
                 }
@@ -505,17 +566,17 @@ namespace Microsoft.CodeAnalysis
                     newName,
                     newAssemblyName,
                     newLanguage,
-                    newFilepath,
-                    newOutputPath,
-                    newOutputRefPath,
                     newCompilationOutputPaths,
-                    newDefaultNamespace,
+                    newChecksumAlgorithm,
+                    defaultNamespace: newDefaultNamespace,
+                    filePath: newFilePath,
+                    outputFilePath: newOutputPath,
+                    outputRefFilePath: newOutputRefPath,
+                    newTelemetryId,
                     newIsSubmission,
                     newHasAllInformation,
                     newRunAnalyzers);
             }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -530,11 +591,13 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
-                CompilationOutputFilePaths.WriteTo(writer);
+                CompilationOutputInfo.WriteTo(writer);
                 writer.WriteString(DefaultNamespace);
+                writer.WriteByte(checked((byte)ChecksumAlgorithm));
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
                 writer.WriteBoolean(RunAnalyzers);
+                writer.WriteGuid(TelemetryId);
 
                 // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
                 //       serialization, we should include those here as well.
@@ -551,30 +614,34 @@ namespace Microsoft.CodeAnalysis
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();
-                var compilationOutputFilePaths = CompilationOutputFilePaths.ReadFrom(reader);
+                var compilationOutputFilePaths = CompilationOutputInfo.ReadFrom(reader);
                 var defaultNamespace = reader.ReadString();
+                var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadByte();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
                 var runAnalyzers = reader.ReadBoolean();
+                var telemetryId = reader.ReadGuid();
 
                 return new ProjectAttributes(
                     projectId,
                     VersionStamp.Create(),
-                    name,
-                    assemblyName,
-                    language,
-                    filePath,
-                    outputFilePath,
-                    outputRefFilePath,
+                    name: name,
+                    assemblyName: assemblyName,
+                    language: language,
                     compilationOutputFilePaths,
-                    defaultNamespace,
-                    isSubmission,
-                    hasAllInformation,
-                    runAnalyzers);
+                    checksumAlgorithm,
+                    defaultNamespace: defaultNamespace,
+                    filePath: filePath,
+                    outputFilePath: outputFilePath,
+                    outputRefFilePath: outputRefFilePath,
+                    telemetryId,
+                    isSubmission: isSubmission,
+                    hasAllInformation: hasAllInformation,
+                    runAnalyzers: runAnalyzers);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.ProjectAttributes, this);
+            public Checksum Checksum
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
@@ -13,14 +16,9 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal sealed class DefaultConverter : AbstractConverter
+    internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : AbstractConverter(forEachInfo)
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
-
-        public DefaultConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-            : base(forEachInfo)
-        {
-        }
 
         public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // If there is a single statement and it is a block, leave it as is.
             // Otherwise, wrap with a block.
             var block = WrapWithBlockIfNecessary(
-                ForEachInfo.Statements.Select(statement => statement.KeepCommentsAndAddElasticMarkers()));
+                ForEachInfo.Statements.SelectAsArray(statement => statement.KeepCommentsAndAddElasticMarkers()));
 
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             }
         }
 
-        private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
-            => (statements.Count() == 1 && statements.Single() is BlockSyntax block) ? block : SyntaxFactory.Block(statements);
+        private static BlockSyntax WrapWithBlockIfNecessary(ImmutableArray<StatementSyntax> statements)
+            => statements is [BlockSyntax block] ? block : SyntaxFactory.Block(statements);
     }
 }

@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
 {
@@ -22,11 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
         {
             Capabilities = new ServerCapabilities
             {
-                CodeActionProvider = true,
-                ExecuteCommandProvider = new ExecuteCommandOptions(),
+                CodeActionProvider = false,
                 ReferencesProvider = true,
                 RenameProvider = false,
-                Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true },
             }
         };
 

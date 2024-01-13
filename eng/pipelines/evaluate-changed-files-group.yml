@@ -1,0 +1,19 @@
+# This step template evaluates git changes using git based on a include/exclude path filter.
+# For more information on how the path evaluation works look at evaluate-changed-paths.sh docs
+# at the beginning of that file.
+
+parameters:
+  # Name for the subset that we're evaluating changes for.
+  # It is required to name the step correctly and so the variable created can be consumable.
+  subsetName: ''
+  # Array containing the arguments that are to be passed down to evaluate-changed-paths.sh
+  # Note that --azurevariable is always set to containschange, no need to pass it down.
+  arguments: []
+
+steps:
+  - ${{ if ne(parameters.arguments[0], '') }}:
+    - script: eng/evaluate-changed-paths.sh
+              --azurevariable containsChange
+              ${{ join(' ', parameters.arguments) }}
+      displayName: Evaluate paths for ${{ parameters.subsetName }}
+      name: ${{ format('SetPathVars_{0}', parameters.subsetName) }} # need a name to access output variable

@@ -4,14 +4,16 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -26,87 +28,104 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    internal partial class RenameCommandHandler
+    internal partial class RenameCommandHandler : AbstractRenameCommandHandler
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly InlineRenameService _renameService;
-
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RenameCommandHandler(
             IThreadingContext threadingContext,
-            InlineRenameService renameService)
+            InlineRenameService renameService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
         {
-            _threadingContext = threadingContext;
-            _renameService = renameService;
         }
 
-        public string DisplayName => EditorFeaturesResources.Rename;
-
-        private CommandState GetCommandState(Func<CommandState> nextHandler)
-        {
-            if (_renameService.ActiveSession != null)
+        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
+            => GetAdornment(textView) switch
             {
-                return CommandState.Available;
-            }
+                RenameDashboard dashboard => dashboard.ShouldReceiveKeyboardNavigation,
+                RenameFlyout => true, // Always receive keyboard navigation for the inline adornment
+                _ => false
+            };
 
-            return nextHandler();
+        protected override void SetFocusToTextView(ITextView textView)
+        {
+            (textView as IWpfTextView)?.VisualElement.Focus();
         }
 
-        private CommandState GetCommandState()
-            => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
-
-        private void HandlePossibleTypingCommand(EditorCommandArgs args, Action nextHandler, Action<SnapshotSpan> actionIfInsideActiveSpan)
+        protected override void SetFocusToAdornment(ITextView textView)
         {
-            if (_renameService.ActiveSession == null)
+            if (GetAdornment(textView) is { } adornment)
             {
-                nextHandler();
-                return;
-            }
-
-            var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
-
-            if (selectedSpans.Count > 1)
-            {
-                // If we have multiple spans active, then that means we have something like box
-                // selection going on. In this case, we'll just forward along.
-                nextHandler();
-                return;
-            }
-
-            var singleSpan = selectedSpans.Single();
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
-                containingSpan.Contains(singleSpan))
-            {
-                actionIfInsideActiveSpan(containingSpan);
-            }
-            else
-            {
-                // It's in a read-only area, so let's commit the rename and then let the character go
-                // through
-
-                CommitIfActiveAndCallNextHandler(args, nextHandler);
+                adornment.Focus();
             }
         }
 
-        private void CommitIfActive(EditorCommandArgs args)
+        protected override void SetAdornmentFocusToNextElement(ITextView textView)
         {
-            if (_renameService.ActiveSession != null)
+            if (GetAdornment(textView) is RenameDashboard dashboard)
             {
-                var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-                _renameService.ActiveSession.Commit();
-
-                var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-                args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-                args.TextView.Caret.MoveTo(translatedSelection.End);
+                dashboard.FocusNextElement();
             }
         }
 
-        private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
+        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
         {
-            CommitIfActive(args);
-            nextHandler();
+            if (GetAdornment(textView) is RenameDashboard dashboard)
+            {
+                dashboard.FocusNextElement();
+            }
+        }
+
+        private static InlineRenameAdornment? GetAdornment(ITextView textView)
+        {
+            // If our adornment layer somehow didn't get composed, GetAdornmentLayer will throw.
+            // Don't crash if that happens.
+            try
+            {
+                var adornment = ((IWpfTextView)textView).GetAdornmentLayer("RoslynRenameDashboard");
+                return adornment.Elements.Any()
+                    ? adornment.Elements[0].Adornment as InlineRenameAdornment
+                    : null;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+        }
+
+        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
+        {
+            try
+            {
+                base.Commit(activeSession, textView);
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = activeSession.Workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = activeSession.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
+
+                errorReportingService.ShowGlobalErrorInfo(
+                    message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    TelemetryFeatureName.InlineRename,
+                    ex,
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            }
         }
     }
 }

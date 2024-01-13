@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal struct TupleElementNamesInfo
+    internal readonly struct TupleElementNamesInfo
     {
         internal readonly ImmutableArray<string> ElementNames;
         internal readonly int SlotIndex; // Locals only

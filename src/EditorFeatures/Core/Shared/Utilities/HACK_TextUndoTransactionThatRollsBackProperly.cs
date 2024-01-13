@@ -17,18 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// on this forwards the cancellation to the inner transaction, and if it failed to roll back we
     /// do it ourselves.
     /// </summary>
-    internal sealed class HACK_TextUndoTransactionThatRollsBackProperly : ITextUndoTransaction
+    internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTransaction innerTransaction) : ITextUndoTransaction
     {
-        private readonly ITextUndoTransaction _innerTransaction;
-        private readonly RollbackDetectingUndoPrimitive _undoPrimitive;
+        private readonly ITextUndoTransaction _innerTransaction = innerTransaction;
+        private readonly RollbackDetectingUndoPrimitive _undoPrimitive = new();
 
         private bool _transactionOpen = true;
-
-        public HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTransaction innerTransaction)
-        {
-            _innerTransaction = innerTransaction;
-            _undoPrimitive = new RollbackDetectingUndoPrimitive();
-        }
 
         public bool CanRedo => _innerTransaction.CanRedo;
 
@@ -125,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             public bool CanUndo => true;
 
-            public ITextUndoTransaction Parent { get; set; }
+            public ITextUndoTransaction? Parent { get; set; }
 
             public bool CanMerge(ITextUndoPrimitive older)
                 => false;

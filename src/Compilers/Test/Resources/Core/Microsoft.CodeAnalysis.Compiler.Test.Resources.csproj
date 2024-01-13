@@ -3,26 +3,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IsShipping>false</IsShipping>
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Compiler.Test.Resources</PackageId>
+    <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
+    <NoWarn>NU5100,NU5106,CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
-    <Content Include="Analyzers\FaultyAnalyzer.cs" />
-    <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
-    <Content Include="AssemblyLoadTests\Alpha.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Alpha.dll" />
-    <Content Include="AssemblyLoadTests\Beta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Beta.dll" />
-    <Content Include="AssemblyLoadTests\Delta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Delta.dll" />
-    <Content Include="AssemblyLoadTests\Gamma.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Gamma.dll" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestLib01.dll" />
@@ -170,6 +164,8 @@
     <EmbeddedResource Include="SymbolsTests\Interface\MDInterfaceMapping.dll" />
     <EmbeddedResource Include="SymbolsTests\Interface\StaticMethodInInterface.dll" />
     <Content Include="SymbolsTests\Interface\StaticMethodInInterface.il" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID1.dll" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID2.dll" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib1.dll" />
     <Content Include="SymbolsTests\MDTestLib1.vb" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib2.dll" />
@@ -382,6 +378,10 @@
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Analyzers\README.md" />
+    <Compile Include="Analyzers\DoNothingAnalyzer.cs" />
+    <Compile Include="Analyzers\DoNothingGenerator.cs" />
+    <Compile Include="Analyzers\DoNothingSuppressor.cs" />
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />

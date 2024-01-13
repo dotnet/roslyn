@@ -6,8 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -205,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return multiLineLambdaExpression.Statements
             End If
 
-            throw ExceptionUtilities.UnexpectedValue(node)
+            Throw ExceptionUtilities.UnexpectedValue(node)
         End Function
 
         <Extension()>
@@ -220,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxKind.SingleLineSubLambdaExpression
                     Return True
             End Select
+
             Return False
         End Function
 
@@ -418,9 +420,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                     Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
-                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                    If directives.Any() Then
                         If Not textSpan.Contains(directives(0).SpanStart) OrElse
-                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                           Not textSpan.Contains(directives.Last().SpanStart) Then
                             ' This else/elif belongs to a pp span that isn't 
                             ' entirely within this node.
                             Return True
@@ -434,32 +436,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
         Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>
@@ -571,35 +573,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Returns child node or token that contains given position.
-        ''' </summary>
-        ''' <remarks>
-        ''' This is a copy of <see cref="SyntaxNode.ChildThatContainsPosition"/>  that also returns the index of the child node.
-        ''' </remarks>
-        <Extension>
-        Friend Function ChildThatContainsPosition(self As SyntaxNode, position As Integer, ByRef childIndex As Integer) As SyntaxNodeOrToken
-            Dim childList = self.ChildNodesAndTokens()
-            Dim left As Integer = 0
-            Dim right As Integer = childList.Count - 1
-            While left <= right
-                Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList(middle)
-                Dim span = node.FullSpan
-                If position < span.Start Then
-                    right = middle - 1
-                ElseIf position >= span.End Then
-                    left = middle + 1
-                Else
-                    childIndex = middle
-                    Return node
-                End If
-            End While
-
-            Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
         <Extension()>
@@ -764,8 +737,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         singleLineLambda.SubOrFunctionHeader,
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
-
-                    current = singleLineLambda.Parent
 
                     oldBlock = singleLineLambda
                     newBlock = multiLineLambda
@@ -999,58 +970,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
         End Function
 
-        ''' <summary>
-        ''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
-        ''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
-        ''' </summary>
-        ''' <param name="node"></param>
-        ''' <returns></returns>
         <Extension>
-        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
-            Dim access As SyntaxNode = node
-            Dim parent As SyntaxNode = access.Parent
+        Friend Function GetParentConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            ' Walk upwards based on the grammar/parser rules around ?. expressions (can be seen in
+            ' ParseExpression.vb (.ParsePostFixExpression).
+            '
+            ' These are the parts of the expression that the ?... expression can end with.  Specifically
+            '
+            '  1.      x?.y.M()             // invocation
+            '  2.      x?.y and x?.y.z      // member access (covered under MemberAccessExpressionSyntax below)
+            '  3.      x?!y                 // dictionary access (covered under MemberAccessExpressionSyntax below)
+            '  4.      x?.y<...>            // xml access
 
-            While parent IsNot Nothing
-                Select Case parent.Kind
-                    Case SyntaxKind.DictionaryAccessExpression,
-                         SyntaxKind.SimpleMemberAccessExpression
+            If node.IsAnyMemberAccessExpressionName() Then
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
 
-                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
-                            Return Nothing
-                        End If
+            ' Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
+            ' conditional access.
 
-                    Case SyntaxKind.XmlElementAccessExpression,
-                         SyntaxKind.XmlDescendantAccessExpression,
-                         SyntaxKind.XmlAttributeAccessExpression
+            While (TypeOf node Is InvocationExpressionSyntax OrElse
+                   TypeOf node Is MemberAccessExpressionSyntax OrElse
+                   TypeOf node Is XmlMemberAccessExpressionSyntax) AndAlso
+                   TypeOf node.Parent IsNot ConditionalAccessExpressionSyntax
 
-                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case SyntaxKind.InvocationExpression
-
-                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case SyntaxKind.ConditionalAccessExpression
-
-                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
-                        If conditional.WhenNotNull Is access Then
-                            Return conditional
-                        ElseIf conditional.Expression IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case Else
-                        Return Nothing
-                End Select
-
-                access = parent
-                parent = access.Parent
+                node = TryCast(node.Parent, ExpressionSyntax)
             End While
 
-            Return Nothing
+            ' Two cases we have to care about
+            '
+            '      1. a?.b.$$c.d        And
+            '      2. a?.b.$$c.d?.e...
+            '
+            ' Note that `a?.b.$$c.d?.e.f?.g.h.i` falls into the same bucket as two.  i.e. the parts after `.e` are
+            ' lower in the tree And are Not seen as we walk upwards.
+            '
+            '
+            ' To get the root ?. (the one after the `a`) we have to potentially consume the first ?. on the RHS of the
+            ' right spine (i.e. the one after `d`).  Once we do this, we then see if that itself Is on the RHS of a
+            ' another conditional, And if so we hten return the one on the left.  i.e. for '2' this goes in this direction:
+            '
+            '      a?.b.$$c.d?.e            // it will do:
+            '           ----->
+            '       <---------
+            '
+            ' Note that this only one CAE consumption on both sides.  GetRootConditionalAccessExpression can be used to
+            ' get the root parent in a case Like:
+            '
+            '      x?.y?.z?.a?.b.$$c.d?.e.f?.g.h.i              // It will do:
+            '                    ----->
+            '                <---------
+            '             <---
+            '          <---
+            '       <---
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).Expression Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).WhenNotNull Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            Return TryCast(node, ConditionalAccessExpressionSyntax)
+        End Function
+
+        ''' <summary>
+        ''' <see cref="ISyntaxFacts.GetRootConditionalAccessExpression"/>
+        ''' </summary>
+        <Extension>
+        Friend Function GetRootConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            ' Once we've walked up the entire RHS, now we continually walk up the conditional accesses until we're at
+            ' the root. For example, if we have `a?.b` And we're on the `.b`, this will give `a?.b`.  Similarly with
+            ' `a?.b?.c` if we're on either `.b` or `.c` this will result in `a?.b?.c` (i.e. the root of this CAE
+            ' sequence).
+
+            node = node.GetParentConditionalAccessExpression()
+            While TypeOf node?.Parent Is ConditionalAccessExpressionSyntax
+                Dim conditionalParent = DirectCast(node.Parent, ConditionalAccessExpressionSyntax)
+                If conditionalParent.WhenNotNull Is node Then
+                    node = conditionalParent
+                Else
+                    Exit While
+                End If
+            End While
+
+            Return TryCast(node, ConditionalAccessExpressionSyntax)
         End Function
 
         <Extension>
@@ -1201,6 +1210,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case Else
                     Return Nothing
             End Select
+        End Function
+
+        ''' <summary>
+        ''' If "node" is the begin statement of a declaration block, return that block, otherwise
+        ''' return node.
+        ''' </summary>
+        <Extension>
+        Public Function GetBlockFromBegin(node As SyntaxNode) As SyntaxNode
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+
+                    Case SyntaxKind.VariableDeclarator
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
+                End Select
+            End If
+
+            If begin Is node Then
+                Return parent
+            Else
+                Return node
+            End If
+        End Function
+
+        <Extension>
+        Public Function GetDeclarationBlockFromBegin(node As DeclarationStatementSyntax) As DeclarationStatementSyntax
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+                End Select
+            End If
+
+            If begin Is node Then
+                ' Every one of these parent casts is of a subtype of DeclarationStatementSyntax
+                ' So if the cast worked above, it will work here
+                Return DirectCast(parent, DeclarationStatementSyntax)
+            Else
+                Return node
+            End If
         End Function
     End Module
 End Namespace

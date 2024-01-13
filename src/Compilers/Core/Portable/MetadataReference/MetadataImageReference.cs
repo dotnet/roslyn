@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         protected override DocumentationProvider CreateDocumentationProvider()
         {
             // documentation provider is initialized in the constructor
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)

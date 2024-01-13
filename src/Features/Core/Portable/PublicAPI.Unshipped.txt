@@ -1,3 +1,5 @@
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.RemarksDocumentationComments = "RemarksDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ReturnsDocumentationComments = "ReturnsDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ValueDocumentationComments = "ValueDocumentationComments" -> string
+Microsoft.CodeAnalysis.TaggedText.Equals(Microsoft.CodeAnalysis.TaggedText other) -> bool
+override Microsoft.CodeAnalysis.TaggedText.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.TaggedText.GetHashCode() -> int
+static Microsoft.CodeAnalysis.TaggedText.operator !=(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
+static Microsoft.CodeAnalysis.TaggedText.operator ==(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool

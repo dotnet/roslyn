@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,6 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Represents the current translation state for a query.  Consider a query of the form
             // from ID in EXPR { clauses } SELECT ...
+
+#if DEBUG
+            /// <summary>
+            /// For debug assert only
+            /// </summary>
+            public string nextInvokedMethodName;
+#endif
 
             // EXPR, above
             public BoundExpression fromExpression;
@@ -59,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, DiagnosticBag diagnostics)
+            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
             {
                 string name = identifier.ValueText;
                 var result = new RangeVariableSymbol(name, binder.ContainingMemberOrLambda, identifier.GetLocation());
@@ -74,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!error)
+                if (!error && (object)diagnostics != BindingDiagnosticBag.Discarded)
                 {
                     var collisionDetector = new LocalScopeBinder(binder);
                     collisionDetector.ValidateDeclarationNameConflictsInScope(result, diagnostics);
@@ -109,6 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void Clear()
             {
+#if DEBUG
+                Debug.Assert(nextInvokedMethodName is null);
+                nextInvokedMethodName = null;
+#endif
+
                 fromExpression = null;
                 rangeVariable = null;
                 selectOrGroup = null;

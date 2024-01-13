@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,11 +27,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
-        private static ImmutableArray<string> s_disposedValueNameParts =
+        private static readonly ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
-        private static SymbolDisplayFormat s_format = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_format = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return null;
         }
 
-        private bool ShouldImplementDisposePattern(State state, bool explicitly)
+        private static bool ShouldImplementDisposePattern(State state, bool explicitly)
         {
             // Dispose pattern should be implemented only if -
             // 1. An interface named 'System.IDisposable' is unimplemented.
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var unimplementedMembers = explicitly
                 ? state.MembersWithoutExplicitImplementation
                 : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-            if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
+            if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
                 return false;
 
             // The dispose pattern is only applicable if the implementing type does
@@ -85,32 +86,31 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
-        private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private sealed class ImplementInterfaceWithDisposePatternCodeAction(
+            AbstractImplementInterfaceService service,
+            Document document,
+            ImplementTypeGenerationOptions options,
+            State state,
+            bool explicitly,
+            bool abstractly,
+            ISymbol? throughMember) : ImplementInterfaceCodeAction(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
         {
-            public ImplementInterfaceWithDisposePatternCodeAction(
-                AbstractImplementInterfaceService service,
-                Document document,
-                State state,
-                bool explicitly,
-                bool abstractly,
-                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
-            {
-            }
-
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
             }
 
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: true, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
             }
 
             public override string Title
@@ -149,15 +149,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
+                var context = new CodeGenerationContext(
+                    addImports: false,
+                    sortMembers: false,
+                    autoInsertionLocation: false);
+
+                var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var typeDeclarationWithAllMembers = info.Service.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(
-                        addImports: false,
-                        parseOptions: rootWithCoreMembers.SyntaxTree.Options,
-                        sortMembers: false,
-                        autoInsertionLocation: false));
+                    info,
+                    cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
                     rootWithCoreMembers.ReplaceNode(
@@ -169,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<Document> AddFinalizerCommentAsync(
+            private static async Task<Document> AddFinalizerCommentAsync(
                 Document document, SyntaxNode finalizer, CancellationToken cancellationToken)
             {
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -289,12 +292,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
 
                 // GC.SuppressFinalize(this);
-                statements.Add(g.ExpressionStatement(
-                    g.InvocationExpression(
-                        g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
-                            nameof(GC.SuppressFinalize)),
-                        g.ThisExpression())));
+                var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName!);
+                if (gcType != null)
+                {
+                    statements.Add(g.ExpressionStatement(
+                        g.InvocationExpression(
+                            g.MemberAccessExpression(
+                                g.TypeExpression(gcType),
+                                nameof(GC.SuppressFinalize)),
+                            g.ThisExpression())));
+                }
 
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);
@@ -312,19 +319,39 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return result;
             }
 
+            /// <summary>
+            /// This helper is implementing access to the editorconfig option. This would usually be done via <see cref="CodeFixOptionsProvider"/> but
+            /// we do not have access to <see cref="CodeActionOptionsProvider"/> here since the code action implementation is also used to implement <see cref="IImplementInterfaceService "/>.
+            /// TODO: remove - see https://github.com/dotnet/roslyn/issues/60990.
+            /// </summary>
+            public async ValueTask<AccessibilityModifiersRequired> GetAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)
+            {
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+
+                if (configOptions.TryGetEditorConfigOption<CodeStyleOption2<AccessibilityModifiersRequired>>(CodeStyleOptions2.AccessibilityModifiersRequired, out var value))
+                {
+                    return value.Value;
+                }
+
+                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
+
+                return fallbackFormattingOptions.AccessibilityModifiersRequired;
+            }
+
             private async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
                 Document document,
                 INamedTypeSymbol containingType,
                 CancellationToken cancellationToken)
             {
                 var rule = await document.GetApplicableNamingRuleAsync(
-                    SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessiblity = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
+                    SymbolKind.Field, Accessibility.Private, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var requireAccessiblity = await GetAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

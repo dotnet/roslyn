@@ -12,8 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "No change to symbol"
 
-        <WorkItem(528864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528864")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528864")>
         Public Sub C2CTypeSymbolUnchanged01()
 
             Dim src1 = <compilation name="C2CTypeSymbolUnchanged01">
@@ -77,7 +76,7 @@ End Namespace
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1)
         End Sub
 
-        <Fact, WorkItem(530198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530198")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530198")>
         Public Sub C2CTypeSymbolCaseChangeOnly()
 
             Dim src1 = <compilation name="C2CTypeSymbolCaseChangeOnly">
@@ -117,7 +116,7 @@ End Namespace
                 Dim sym1 = origlist(i)
                 Dim sym2 = newlist(i)
 
-                AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.None, expectEqual:=False)
+                AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.None, expectEqual:=False)
                 Dim resolvedSymbol = ResolveSymbol(sym2, comp1, SymbolIdComparison.None) ' ignored
                 Assert.NotNull(resolvedSymbol)
                 Assert.Equal(sym1, resolvedSymbol)
@@ -226,13 +225,13 @@ End Class
             Dim sym1 = comp1.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
             Dim sym2 = comp2.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
 
-            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, expectEqual:=False)
+            AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.IgnoreCase, expectEqual:=False)
             Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
             ResolveAndVerifySymbol(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds)
         End Sub
 
-        <Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")>
         Public Sub C2CAssemblySymbolChanged02()
 
             Dim src1 = <compilation name="C2CAssemblySymbolChanged01">
@@ -261,21 +260,21 @@ End Class
             Dim sym1 As ISymbol = comp1.Assembly
             Dim sym2 As ISymbol = comp2.Assembly
 
-            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.IgnoreCase, False)
             Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
             ' Same ID
-            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.IgnoreAssemblyIds)
             ' but can NOT resolve
             Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds))
 
             sym1 = comp1.Assembly.Modules(0)
             sym2 = comp2.Assembly.Modules(0)
 
-            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.IgnoreCase, False)
             Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
 
-            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            AssertSymbolsIdsEqual(sym2, sym1, SymbolIdComparison.IgnoreAssemblyIds)
             Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreAssemblyIds))
         End Sub
 

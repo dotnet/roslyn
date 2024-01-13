@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsValidContextInJoinClause(context, cancellationToken) ||
                 IsInParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
         }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier == SyntaxKind.None)
+                if (previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword)
                 {
                     return true;
                 }
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInForEachClause(CSharpSyntaxContext context)
+        private static bool IsValidContextInForEachClause(CSharpSyntaxContext context)
         {
             // cases:
             //   foreach (var v |
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                var joinClause = token.Parent.FirstAncestorOrSelf<JoinClauseSyntax>();
+                var joinClause = token.Parent?.FirstAncestorOrSelf<JoinClauseSyntax>();
                 if (joinClause != null)
                 {
                     // case:
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // case:
                     //   join x |
                     if (joinClause.Type != null &&
-                        joinClause.Type.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax joinIdentifier) &&
+                        joinClause.Type is IdentifierNameSyntax joinIdentifier &&
                         token == joinIdentifier.Identifier &&
                         !joinClause.Type.IsPotentialTypeName(context.SemanticModel, cancellationToken))
                     {

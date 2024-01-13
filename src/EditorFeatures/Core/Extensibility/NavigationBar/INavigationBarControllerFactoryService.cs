@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarControllerFactoryService
     {
-        INavigationBarController CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
+        IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
     }
 }

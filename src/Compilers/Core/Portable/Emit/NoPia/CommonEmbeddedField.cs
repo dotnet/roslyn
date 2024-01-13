@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 
@@ -198,6 +200,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 return UnderlyingField.GetType(context);
             }
+
+            ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers => UnderlyingField.RefCustomModifiers;
+
+            bool Cci.IFieldReference.IsByReference => UnderlyingField.IsByReference;
 
             Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
             {

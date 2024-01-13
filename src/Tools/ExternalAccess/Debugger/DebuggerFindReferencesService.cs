@@ -7,9 +7,9 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
     [Shared]
     internal sealed class DebuggerFindReferencesService
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             IThreadingContext threadingContext,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
-            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
@@ -37,16 +35,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
             // Let the presenter know we're starting a search.  It will give us back
             // the context object that the FAR service will push results into.
-            var context = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
+            //
+            // We're awaiting the work to find the symbols (as opposed to kicking it off in a
+            // fire-and-forget streaming fashion).  As such, we do not want to use the cancellation
+            // token provided by the presenter.  Instead, we'll let our caller own if this work
+            // is cancelable.
+            var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
-            await AbstractFindUsagesService.FindSymbolReferencesAsync(_threadingContext, context, symbol, project, cancellationToken).ConfigureAwait(false);
-
-            // Note: we don't need to put this in a finally.  The only time we might not hit
-            // this is if cancellation or another error gets thrown.  In the former case,
-            // that means that a new search has started.  We don't care about telling the
-            // context it has completed.  In the latter case something wrong has happened
-            // and we don't want to run any more code in this particular context.
-            await context.OnCompletedAsync().ConfigureAwait(false);
+            try
+            {
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

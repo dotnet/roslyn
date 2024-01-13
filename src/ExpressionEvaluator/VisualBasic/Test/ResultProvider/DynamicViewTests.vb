@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+' These tests specifically cover late binding scenarios
 Option Strict Off
 
 Imports System.Dynamic
@@ -116,8 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Next
         End Sub
 
-        <Fact>
-        <WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5667")>
         Public Sub NoMembers()
             Using New EnsureEnglishUICulture()
                 Dim expression = "o"

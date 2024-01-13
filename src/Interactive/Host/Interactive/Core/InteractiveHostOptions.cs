@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -15,39 +14,60 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed class InteractiveHostOptions
     {
         /// <summary>
-        /// Optional path to the .rsp file to process when initializing context of the process.
+        /// Path to interactive host executable.
         /// </summary>
-        public string InitializationFile { get; }
+        public string HostPath { get; }
 
         /// <summary>
-        /// Host culture used for localization of doc comments, errors.
+        /// Optional file name of the .rsp file to use to initialize the REPL.
+        /// </summary>
+        public string? InitializationFilePath { get; }
+
+        /// <summary>
+        /// Host culture used for data formatting.
         /// </summary>
         public CultureInfo Culture { get; }
 
         /// <summary>
-        /// Path to interactive host directory.
+        /// Host culture used for localization of doc comments, errors.
         /// </summary>
-        public string HostDirectory { get; }
+        public CultureInfo UICulture { get; }
 
         /// <summary>
-        /// Host process bitness.
+        /// Host process platform.
         /// </summary>
-        public bool Is64Bit { get; }
+        public InteractiveHostPlatform Platform { get; }
 
         public InteractiveHostOptions(
-            string hostDirectory,
-            string initializationFile = null,
-            CultureInfo culture = null,
-            bool is64Bit = false)
+            string hostPath,
+            string? initializationFilePath,
+            CultureInfo culture,
+            CultureInfo uiCulture,
+            InteractiveHostPlatform platform)
         {
-            Debug.Assert(hostDirectory != null);
-            HostDirectory = hostDirectory;
-            InitializationFile = initializationFile;
-            Culture = culture ?? CultureInfo.CurrentUICulture;
-            Is64Bit = is64Bit;
+            Contract.ThrowIfNull(hostPath);
+
+            HostPath = hostPath;
+            InitializationFilePath = initializationFilePath;
+            Culture = culture;
+            UICulture = uiCulture;
+            Platform = platform;
         }
 
-        public string GetHostPath()
-            => Path.Combine(HostDirectory, "InteractiveHost" + (Is64Bit ? "64" : "32") + ".exe");
+        public static InteractiveHostOptions CreateFromDirectory(
+            string hostDirectory,
+            string? initializationFileName,
+            CultureInfo culture,
+            CultureInfo uiCulture,
+            InteractiveHostPlatform platform)
+        {
+            var hostSubdirectory = (platform == InteractiveHostPlatform.Core) ? "Core" : "Desktop";
+            var hostExecutableFileName = "InteractiveHost" + (platform == InteractiveHostPlatform.Desktop32 ? "32" : "64") + ".exe";
+
+            var hostPath = Path.Combine(hostDirectory, hostSubdirectory, hostExecutableFileName);
+            var initializationFilePath = (initializationFileName != null) ? Path.Combine(hostDirectory, hostSubdirectory, initializationFileName) : null;
+
+            return new InteractiveHostOptions(hostPath, initializationFilePath, culture, uiCulture, platform);
+        }
     }
 }

@@ -2,45 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class MutableNamingStyle
+    internal class MutableNamingStyle(NamingStyle namingStyle)
     {
-        public NamingStyle NamingStyle { get; private set; }
+        public NamingStyle NamingStyle { get; private set; } = namingStyle;
 
         public Guid ID => NamingStyle.ID;
 
         public string Name
         {
             get => NamingStyle.Name;
-            set => NamingStyle = NamingStyle.With(name: value);
+            set => NamingStyle = NamingStyle with { Name = value };
         }
 
         public string Prefix
         {
             get => NamingStyle.Prefix;
-            set => NamingStyle = NamingStyle.With(prefix: value);
+            set => NamingStyle = NamingStyle with { Prefix = value };
         }
 
         public string Suffix
         {
             get => NamingStyle.Suffix;
-            set => NamingStyle = NamingStyle.With(suffix: value);
+            set => NamingStyle = NamingStyle with { Suffix = value };
         }
 
         public string WordSeparator
         {
             get => NamingStyle.WordSeparator;
-            set => NamingStyle = NamingStyle.With(wordSeparator: value);
+            set => NamingStyle = NamingStyle with { WordSeparator = value };
         }
 
         public Capitalization CapitalizationScheme
         {
             get => NamingStyle.CapitalizationScheme;
-            set => NamingStyle = NamingStyle.With(capitalizationScheme: value);
+            set => NamingStyle = NamingStyle with { CapitalizationScheme = value };
         }
 
         public MutableNamingStyle()
@@ -48,10 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
         }
 
-        public MutableNamingStyle(NamingStyle namingStyle)
-            => NamingStyle = namingStyle;
-
         internal MutableNamingStyle Clone()
-            => new MutableNamingStyle(NamingStyle);
+            => new(NamingStyle);
     }
 }

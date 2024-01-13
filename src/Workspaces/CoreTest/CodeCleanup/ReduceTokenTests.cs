@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -16,11 +18,16 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
     public class ReduceTokenTests
     {
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+#if NETCOREAPP
+        private static bool IsNetCoreApp => true;
+#else
+        private static bool IsNetCoreApp => false;
+#endif
+
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_LessThan8Digits()
         {
             var code = @"[|
@@ -103,9 +110,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
@@ -188,9 +193,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_8Digits()
         {
             var code = @"[|
@@ -225,23 +228,23 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
 
         Const f_8_1 As Single = 0.14999795F      ' Dev11 & Roslyn: 0.14999795F
-        Const f_8_2 As Single = 0.149997965F      ' Dev11 & Roslyn: 0.149997965F
+        Const f_8_2 As Single = {(IsNetCoreApp ? "0.14999796F" : "0.149997965F")}      ' Dev11 & Roslyn: 0.149997965F
 
         Const f_8_3 As Single = 0.1499797F      ' Dev11 & Roslyn: Unchanged
 
-        Const f_8_4 As Single = 1.49997938F      ' Dev11 & Roslyn: 1.49997938F
-        Const f_8_5 As Single = 1.49997973F      ' Dev11 & Roslyn: 1.49997973F
+        Const f_8_4 As Single = {(IsNetCoreApp ? "1.4999794F" : "1.49997938F")}      ' Dev11 & Roslyn: 1.49997938F
+        Const f_8_5 As Single = {(IsNetCoreApp ? "1.4999797F" : "1.49997973F")}      ' Dev11 & Roslyn: 1.49997973F
 
-        Const f_8_6 As Single = 1499.97937F      ' Dev11 & Roslyn: 1499.97937F
+        Const f_8_6 As Single = {(IsNetCoreApp ? "1499.9794F" : "1499.97937F")}      ' Dev11 & Roslyn: 1499.97937F
 
-        Const f_8_7 As Single = 1499979.75F      ' Dev11 & Roslyn: 1499979.75F
+        Const f_8_7 As Single = {(IsNetCoreApp ? "1499979.8F" : "1499979.75F")}      ' Dev11 & Roslyn: 1499979.75F
 
         Const f_8_8 As Single = 14999797.0F     ' Dev11 & Roslyn: unchanged
 
@@ -259,9 +262,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
@@ -296,23 +297,23 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
 
         Const f_8_1 As Single = 0.14999795!      ' Dev11 & Roslyn: 0.14999795F
-        Const f_8_2 As Single = 0.149997965!      ' Dev11 & Roslyn: 0.149997965F
+        Const f_8_2 As Single = {(IsNetCoreApp ? "0.14999796!" : "0.149997965!")}      ' Dev11 & Roslyn: 0.149997965F
 
         Const f_8_3 As Single = 0.1499797!      ' Dev11 & Roslyn: Unchanged
 
-        Const f_8_4 As Single = 1.49997938!      ' Dev11 & Roslyn: 1.49997938F
-        Const f_8_5 As Single = 1.49997973!      ' Dev11 & Roslyn: 1.49997973F
+        Const f_8_4 As Single = {(IsNetCoreApp ? "1.4999794!" : "1.49997938!")}      ' Dev11 & Roslyn: 1.49997938F
+        Const f_8_5 As Single = {(IsNetCoreApp ? "1.4999797!" : "1.49997973!")}      ' Dev11 & Roslyn: 1.49997973F
 
-        Const f_8_6 As Single = 1499.97937!      ' Dev11 & Roslyn: 1499.97937F
+        Const f_8_6 As Single = {(IsNetCoreApp ? "1499.9794!" : "1499.97937!")}      ' Dev11 & Roslyn: 1499.97937F
 
-        Const f_8_7 As Single = 1499979.75!      ' Dev11 & Roslyn: 1499979.75F
+        Const f_8_7 As Single = {(IsNetCoreApp ? "1499979.8!" : "1499979.75!")}      ' Dev11 & Roslyn: 1499979.75F
 
         Const f_8_8 As Single = 14999797.0!     ' Dev11 & Roslyn: unchanged
 
@@ -330,9 +331,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_GreaterThan8Digits()
         {
             var code = @"[|
@@ -379,24 +378,24 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
 
         ' (a) > 8 significant digits overall, but < 8 digits before decimal point.
-        Const f_9_1 As Single = 0.149997935F     ' Dev11 & Roslyn: 0.149997935F
-        Const f_9_2 As Single = 0.149997935F    ' Dev11 & Roslyn: 0.149997935F
-        Const f_9_3 As Single = 1.49997962F     ' Dev11 & Roslyn: 1.49997962F
+        Const f_9_1 As Single = {(IsNetCoreApp ? "0.14999793F" : "0.149997935F")}     ' Dev11 & Roslyn: 0.149997935F
+        Const f_9_2 As Single = {(IsNetCoreApp ? "0.14999793F" : "0.149997935F")}    ' Dev11 & Roslyn: 0.149997935F
+        Const f_9_3 As Single = {(IsNetCoreApp ? "1.4999796F" : "1.49997962F")}     ' Dev11 & Roslyn: 1.49997962F
 
-        Const f_10_1 As Single = 14999.7969F   ' Dev11 & Roslyn: 14999.7969F
+        Const f_10_1 As Single = {(IsNetCoreApp ? "14999.797F" : "14999.7969F")}   ' Dev11 & Roslyn: 14999.7969F
 
         ' (b) > 8 significant digits before decimal point.
-        Const f_10_2 As Single = 149997968.0F   ' Dev11 & Roslyn: 149997968.0F
-        Const f_10_3 As Single = 1.49997965E+9F  ' Dev11 & Roslyn: 1.49997965E+9F
+        Const f_10_2 As Single = {(IsNetCoreApp ? "149997970.0F" : "149997968.0F")}   ' Dev11 & Roslyn: 149997968.0F
+        Const f_10_3 As Single = {(IsNetCoreApp ? "1.4999796E+9F" : "1.49997965E+9F")}  ' Dev11 & Roslyn: 1.49997965E+9F
 
-        Const f_24_1 As Single = 1.11111148E+20F      ' Dev11 & Roslyn: 1.11111148E+20F
+        Const f_24_1 As Single = {(IsNetCoreApp ? "1.1111115E+20F" : "1.11111148E+20F")}      ' Dev11 & Roslyn: 1.11111148E+20F
 
         ' (c) Overflow/Underflow cases for Single: Ensure no pretty listing/round off
         '     Holds signed IEEE 32-bit (4-byte) single-precision floating-point numbers ranging in value from -3.4028235E+38 through -1.401298E-45 for negative values and
@@ -425,9 +424,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
@@ -474,24 +471,24 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 9 significant digits
 
         ' (a) > 8 significant digits overall, but < 8 digits before decimal point.
-        Const f_9_1 As Single = 0.149997935!     ' Dev11 & Roslyn: 0.149997935F
-        Const f_9_2 As Single = 0.149997935!    ' Dev11 & Roslyn: 0.149997935F
-        Const f_9_3 As Single = 1.49997962!     ' Dev11 & Roslyn: 1.49997962F
+        Const f_9_1 As Single = {(IsNetCoreApp ? "0.14999793!" : "0.149997935!")}     ' Dev11 & Roslyn: 0.149997935F
+        Const f_9_2 As Single = {(IsNetCoreApp ? "0.14999793!" : "0.149997935!")}    ' Dev11 & Roslyn: 0.149997935F
+        Const f_9_3 As Single = {(IsNetCoreApp ? "1.4999796!" : "1.49997962!")}     ' Dev11 & Roslyn: 1.49997962F
 
-        Const f_10_1 As Single = 14999.7969!   ' Dev11 & Roslyn: 14999.7969F
+        Const f_10_1 As Single = {(IsNetCoreApp ? "14999.797!" : "14999.7969!")}   ' Dev11 & Roslyn: 14999.7969F
 
         ' (b) > 8 significant digits before decimal point.
-        Const f_10_2 As Single = 149997968.0!   ' Dev11 & Roslyn: 149997968.0F
-        Const f_10_3 As Single = 1.49997965E+9!  ' Dev11 & Roslyn: 1.49997965E+9F
+        Const f_10_2 As Single = {(IsNetCoreApp ? "149997970.0!" : "149997968.0!")}   ' Dev11 & Roslyn: 149997968.0F
+        Const f_10_3 As Single = {(IsNetCoreApp ? "1.4999796E+9!" : "1.49997965E+9!")}  ' Dev11 & Roslyn: 1.49997965E+9F
 
-        Const f_24_1 As Single = 1.11111148E+20!      ' Dev11 & Roslyn: 1.11111148E+20F
+        Const f_24_1 As Single = {(IsNetCoreApp ? "1.1111115E+20!" : "1.11111148E+20!")}      ' Dev11 & Roslyn: 1.11111148E+20F
 
         ' (c) Overflow/Underflow cases for Single: Ensure no pretty listing/round off
         '     Holds signed IEEE 32-bit (4-byte) single-precision floating-point numbers ranging in value from -3.4028235E+38 through -1.401298E-45 for negative values and
@@ -520,9 +517,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_LessThan16Digits()
         {
             var code = @"[|
@@ -605,9 +600,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
         {
             var code = @"[|
@@ -690,9 +683,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_16Digits()
         {
             var code = @"[|
@@ -731,25 +722,25 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 17 significant digits
 
         Const f_16_1 As Double = 0.1499999999799993      ' Dev11 & Roslyn: 0.1499999999799993
-        Const f_16_2 As Double = 0.14999999997999969      ' Dev11 & Roslyn: 0.14999999997999969
+        Const f_16_2 As Double = {(IsNetCoreApp ? "0.1499999999799997" : "0.14999999997999969")}      ' Dev11 & Roslyn: 0.14999999997999969
 
         Const f_16_3 As Double = 0.149999999799995      ' Dev11 & Roslyn: Unchanged
 
         Const f_16_4 As Double = 1.499999999799994      ' Dev11 & Roslyn: Unchanged
-        Const f_16_5 As Double = 1.4999999997999951      ' Dev11 & Roslyn: 1.4999999997999951
+        Const f_16_5 As Double = {(IsNetCoreApp ? "1.499999999799995" : "1.4999999997999951")}      ' Dev11 & Roslyn: 1.4999999997999951
 
         Const f_16_6 As Double = 14999999.99799994      ' Dev11 & Roslyn: Unchanged
-        Const f_16_7 As Double = 14999999.997999949      ' Dev11 & Roslyn: 14999999.997999949
+        Const f_16_7 As Double = {(IsNetCoreApp ? "14999999.99799995" : "14999999.997999949")}      ' Dev11 & Roslyn: 14999999.997999949
 
-        Const f_16_8 As Double = 149999999997999.19      ' Dev11 & Roslyn: 149999999997999.19
-        Const f_16_9 As Double = 149999999997999.81      ' Dev11 & Roslyn: 149999999997999.81
+        Const f_16_8 As Double = {(IsNetCoreApp ? "149999999997999.2" : "149999999997999.19")}      ' Dev11 & Roslyn: 149999999997999.19
+        Const f_16_9 As Double = {(IsNetCoreApp ? "149999999997999.8" : "149999999997999.81")}      ' Dev11 & Roslyn: 149999999997999.81
 
         Const f_16_10 As Double = 1499999999979995.0    ' Dev11 & Roslyn: Unchanged
 
@@ -769,9 +760,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
         {
             var code = @"[|
@@ -810,25 +799,25 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
         ' Dev11 and Roslyn behavior are identical: Always rounded off and pretty listed to <= 17 significant digits
 
         Const f_16_1 As Double = 0.1499999999799993R      ' Dev11 & Roslyn: 0.1499999999799993
-        Const f_16_2 As Double = 0.14999999997999969R      ' Dev11 & Roslyn: 0.14999999997999969
+        Const f_16_2 As Double = {(IsNetCoreApp ? "0.1499999999799997R" : "0.14999999997999969R")}      ' Dev11 & Roslyn: 0.14999999997999969
 
         Const f_16_3 As Double = 0.149999999799995#      ' Dev11 & Roslyn: Unchanged
 
         Const f_16_4 As Double = 1.499999999799994R      ' Dev11 & Roslyn: Unchanged
-        Const f_16_5 As Double = 1.4999999997999951R      ' Dev11 & Roslyn: 1.4999999997999951
+        Const f_16_5 As Double = {(IsNetCoreApp ? "1.499999999799995R" : "1.4999999997999951R")}      ' Dev11 & Roslyn: 1.4999999997999951
 
         Const f_16_6 As Double = 14999999.99799994#      ' Dev11 & Roslyn: Unchanged
-        Const f_16_7 As Double = 14999999.997999949R      ' Dev11 & Roslyn: 14999999.997999949
+        Const f_16_7 As Double = {(IsNetCoreApp ? "14999999.99799995R" : "14999999.997999949R")}      ' Dev11 & Roslyn: 14999999.997999949
 
-        Const f_16_8 As Double = 149999999997999.19R      ' Dev11 & Roslyn: 149999999997999.19
-        Const f_16_9 As Double = 149999999997999.81#      ' Dev11 & Roslyn: 149999999997999.81
+        Const f_16_8 As Double = {(IsNetCoreApp ? "149999999997999.2R" : "149999999997999.19R")}      ' Dev11 & Roslyn: 149999999997999.19
+        Const f_16_9 As Double = {(IsNetCoreApp ? "149999999997999.8#" : "149999999997999.81#")}      ' Dev11 & Roslyn: 149999999997999.81
 
         Const f_16_10 As Double = 1499999999979995.0R    ' Dev11 & Roslyn: Unchanged
 
@@ -848,9 +837,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_GreaterThan16Digits()
         {
             var code = @"[|
@@ -915,7 +902,7 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -927,7 +914,7 @@ Module Program
         Const f_17_3 As Double = 0.14999999997999938     ' Dev11 & Roslyn: 0.14999999997999938
 
         Const f_17_4 As Double = 0.1499999997999957     ' Dev11 & Roslyn: Unchanged
-        Const f_17_5 As Double = 0.14999999979999579     ' Dev11 & Roslyn: 0.14999999979999579
+        Const f_17_5 As Double = {(IsNetCoreApp ? "0.1499999997999958" : "0.14999999979999579")}     ' Dev11 & Roslyn: 0.14999999979999579
 
         Const f_17_6 As Double = 1.4999999997999947     ' Dev11 & Roslyn: Unchanged
         Const f_17_7 As Double = 1.4999999997999944     ' Dev11 & Roslyn: 1.4999999997999944
@@ -938,10 +925,10 @@ Module Program
         Const f_18_3 As Double = 14999999.997999946    ' Dev11 & Roslyn: 14999999.997999946
 
         ' (b) > 16 significant digits before decimal point.
-        Const f_18_4 As Double = 1.4999999999734E+16    ' Dev11 & Roslyn: 1.4999999999734E+16
+        Const f_18_4 As Double = {(IsNetCoreApp ? "14999999999734000.0" : "1.4999999999734E+16")}    ' Dev11 & Roslyn: 1.4999999999734E+16
         Const f_18_5 As Double = 14999999999379996.0    ' Dev11 & Roslyn: 14999999999379996.0
 
-        Const f_24_1 As Double = 1.1111114999912469E+20      ' Dev11 & Roslyn: 1.1111114999912469E+20
+        Const f_24_1 As Double = {(IsNetCoreApp ? "1.111111499991247E+20" : "1.1111114999912469E+20")}      ' Dev11 & Roslyn: 1.1111114999912469E+20
 
         ' (c) Overflow/Underflow cases for Double: Ensure no pretty listing/round off
         '     Holds signed IEEE 64-bit (8-byte) double-precision floating-point numbers ranging in value from -1.79769313486231570E+308 through -4.94065645841246544E-324 for negative values and
@@ -979,9 +966,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
         {
             var code = @"[|
@@ -1046,7 +1031,7 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -1058,7 +1043,7 @@ Module Program
         Const f_17_3 As Double = 0.14999999997999938#     ' Dev11 & Roslyn: 0.14999999997999938
 
         Const f_17_4 As Double = 0.1499999997999957R     ' Dev11 & Roslyn: Unchanged
-        Const f_17_5 As Double = 0.14999999979999579R     ' Dev11 & Roslyn: 0.14999999979999579
+        Const f_17_5 As Double = {(IsNetCoreApp ? "0.1499999997999958R" : "0.14999999979999579R")}     ' Dev11 & Roslyn: 0.14999999979999579
 
         Const f_17_6 As Double = 1.4999999997999947#     ' Dev11 & Roslyn: Unchanged
         Const f_17_7 As Double = 1.4999999997999944R     ' Dev11 & Roslyn: 1.4999999997999944
@@ -1069,10 +1054,10 @@ Module Program
         Const f_18_3 As Double = 14999999.997999946R    ' Dev11 & Roslyn: 14999999.997999946
 
         ' (b) > 16 significant digits before decimal point.
-        Const f_18_4 As Double = 1.4999999999734E+16#    ' Dev11 & Roslyn: 1.4999999999734E+16
+        Const f_18_4 As Double = {(IsNetCoreApp ? "14999999999734000.0#" : "1.4999999999734E+16#")}    ' Dev11 & Roslyn: 1.4999999999734E+16
         Const f_18_5 As Double = 14999999999379996.0R    ' Dev11 & Roslyn: 14999999999379996.0
 
-        Const f_24_1 As Double = 1.1111114999912469E+20R      ' Dev11 & Roslyn: 1.1111114999912469E+20
+        Const f_24_1 As Double = {(IsNetCoreApp ? "1.111111499991247E+20R" : "1.1111114999912469E+20R")}      ' Dev11 & Roslyn: 1.1111114999912469E+20
 
         ' (c) Overflow/Underflow cases for Double: Ensure no pretty listing/round off
         '     Holds signed IEEE 64-bit (8-byte) double-precision floating-point numbers ranging in value from -1.79769313486231570E+308 through -4.94065645841246544E-324 for negative values and
@@ -1110,9 +1095,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiterals_LessThan30Digits()
         {
             var code = @"[|
@@ -1195,9 +1178,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
         {
             var code = @"[|
@@ -1280,9 +1261,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiterals_30Digits()
         {
             var code = @"[|
@@ -1337,9 +1316,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
         {
             var code = @"[|
@@ -1394,9 +1371,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiterals_GreaterThan30Digits()
         {
             var code = @"[|
@@ -1451,9 +1426,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceFloatLiteralsWithNegativeExponents()
         {
             var code = @"[|
@@ -1502,7 +1475,7 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
 
@@ -1530,19 +1503,19 @@ Module Program
         Const f_4 As Single = 1.234567E-9F ' Change at -9
         Const f_5 As Single = 1.234567E-10F
 
-        Const f_6 As Single = 0.00000000123456778F
-        Const f_7 As Single = 0.000000000123456786F
-        Const f_8 As Single = 1.23456783E-11F ' Change at -11
-        Const f_9 As Single = 1.23456779E-12F
+        Const f_6 As Single = {(IsNetCoreApp ? "0.0000000012345678F" : "0.00000000123456778F")}
+        Const f_7 As Single = {(IsNetCoreApp ? "0.00000000012345679F" : "0.000000000123456786F")}
+        Const f_8 As Single = {(IsNetCoreApp ? "1.2345678E-11F" : "1.23456783E-11F")} ' Change at -11
+        Const f_9 As Single = {(IsNetCoreApp ? "1.2345678E-12F" : "1.23456779E-12F")}
 
         Const d_1 As Single = 0.00000000000000123456789012345
         Const d_2 As Single = 0.000000000000000123456789012345
         Const d_3 As Single = 1.23456789012345E-17 ' Change at -17
         Const d_4 As Single = 1.23456789012345E-18
 
-        Const d_5 As Double = 0.000000000000000012345678901234561
+        Const d_5 As Double = {(IsNetCoreApp ? "0.00000000000000001234567890123456" : "0.000000000000000012345678901234561")}
         Const d_6 As Double = 0.000000000000000001234567890123456
-        Const d_7 As Double = 1.2345678901234561E-19   ' Change at -19
+        Const d_7 As Double = {(IsNetCoreApp ? "1.234567890123456E-19" : "1.2345678901234561E-19")}   ' Change at -19
         Const d_8 As Double = 1.234567890123456E-20
     End Sub
 End Module
@@ -1550,9 +1523,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceSingleLiteralsWithTrailingZeros()
         {
             var code = @"[|
@@ -1585,7 +1556,7 @@ Module Program
 End Module
 |]";
 
-            var expected = @"
+            var expected = $@"
 Module Program
     Sub Main(args As String())
         Const f1 As Single = 3.011F                      ' Dev11 & Roslyn: 3.011F
@@ -1595,9 +1566,9 @@ Module Program
         Const f5 As Single = 3.0E+13!                      ' Dev11 & Roslyn: 3.0E+13!
         Const f6 As Single = 3.0E+13F                    ' Dev11 & Roslyn: 3.0E+13F
         Const f7 As Single = 30000.1F                   ' Dev11 & Roslyn: 30000.1F
-        Const f8 As Single = 3.00012337E+13!         ' Dev11 & Roslyn: 3.00012337E+13!
-        Const f9 As Single = 3.00012337E+13F         ' Dev11 & Roslyn: 3.00012337E+13F
-        Const f10 As Single = 3000.12354F        ' Dev11 & Roslyn: 3000.12354F
+        Const f8 As Single = {(IsNetCoreApp ? "3.0001234E+13!" : "3.00012337E+13!")}         ' Dev11 & Roslyn: 3.00012337E+13!
+        Const f9 As Single = {(IsNetCoreApp ? "3.0001234E+13F" : "3.00012337E+13F")}         ' Dev11 & Roslyn: 3.00012337E+13F
+        Const f10 As Single = {(IsNetCoreApp ? "3000.1235F" : "3000.12354F")}        ' Dev11 & Roslyn: 3000.12354F
         Const f11 As Single = 0.0000003!                     ' Dev11 & Roslyn: 0.0000003!
 
         Console.WriteLine(f1)
@@ -1617,9 +1588,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDoubleLiteralsWithTrailingZeros()
         {
             var code = @"[|
@@ -1684,9 +1653,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         public async Task ReduceDecimalLiteralsWithTrailingZeros()
         {
             var code = @"[|
@@ -1751,9 +1718,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
         public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
             var savedCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
@@ -1788,8 +1753,7 @@ End Module";
             }
         }
 
-        [Fact]
-        [WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
         public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;
@@ -1824,7 +1788,6 @@ End Module";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithLeadingZeros()
         {
             var code = @"[|
@@ -1878,7 +1841,6 @@ End Module
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
         {
             var code = @"[|
@@ -1922,7 +1884,6 @@ End Module
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithOverflow()
         {
             var code = @"[|
@@ -1958,7 +1919,6 @@ End Module
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceBinaryIntegerLiteral()
         {
             var code = @"[|
@@ -2023,15 +1983,16 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public async Task ReduceIntegersWithDigitSeparators()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14034")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48492")]
+        public async Task DoNotReduceDigitSeparators()
         {
             var source = @"
 Module Module1
     Sub Main()
         Dim x = 100_000
+        Dim y = 100_000.0F
+        Dim z = 100_000.0D
     End Sub
 End Module
 ";
@@ -2041,15 +2002,14 @@ End Module
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.ReduceTokens || p.Name == PredefinedCodeCleanupProviderNames.CaseCorrection || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.ReduceTokens or PredefinedCodeCleanupProviderNames.CaseCorrection or PredefinedCodeCleanupProviderNames.Format);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], CodeCleanupOptions.GetDefault(document.Project.Services), codeCleanups);
 
-            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+            AssertEx.EqualOrDiff(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
         }
 
         private static Document CreateDocument(string code, string language)
@@ -2058,7 +2018,7 @@ End Module
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

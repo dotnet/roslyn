@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct ArgumentAnalysisResult
+    internal readonly struct ArgumentAnalysisResult
     {
         public readonly ImmutableArray<int> ArgsToParamsOpt;
         public readonly int ArgumentPosition;
@@ -84,8 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.Expanded, 0, 0, argsToParamsOpt);
         }
 
-#if DEBUG        
+#if DEBUG
+#pragma warning disable IDE0051 // Remove unused private members
         private string Dump()
+#pragma warning restore IDE0051 // Remove unused private members
         {
             string s = "";
             switch (Kind)

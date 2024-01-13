@@ -1,0 +1,150 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane.PreviewPane"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:pp="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane"
+             x:ClassModifier="internal" mc:Ignorable="d"
+             Focusable="True" IsTabStop="False" TextOptions.TextFormattingMode="Display"
+             Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.PanelTextBrushKey}}"
+             d:DesignHeight="300" d:DesignWidth="400" 
+             x:Name="ThisPane"
+             AutomationProperties.Name="{Binding Path=AutomationName, RelativeSource={RelativeSource Self}}">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF"/>
+        <SolidColorBrush x:Key="Expander.MouseOver.Circle.Fill" Color="#FFF3F9FF"/>
+        <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Circle.Stroke" Color="#FF3C77DD"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Circle.Fill" Color="#FFD9ECFF"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Arrow.Stroke" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Circle.Stroke" Color="#FFBCBCBC"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Circle.Fill" Color="#FFE6E6E6"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="#FF707070"/>
+        <SolidColorBrush x:Key="Expander.Static.Circle.Fill" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="Expander.Static.Circle.Stroke" Color="#FF333333"/>
+        <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="#FF333333"/>
+        <Style x:Key="ExpanderToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Padding="{TemplateBinding Padding}">
+                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                                <Ellipse x:Name="circle" Height="16" Width="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         Fill="{StaticResource Expander.Static.Circle.Fill}"  Stroke="{StaticResource Expander.Static.Circle.Stroke}"/>
+                                <Path x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" StrokeThickness="2" SnapsToDevicePixels="False"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Data" TargetName="arrow" Value="M 1,4.5  L 4.5,1  L 8,4.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Stroke}"/>
+                                <Setter Property="StrokeThickness" TargetName="circle" Value="1.5"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Pressed.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Disabled.Arrow.Stroke}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PreviewPaneRunStyle" TargetType="Run">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="PreviewPaneHyperlinkStyle" TargetType="Hyperlink">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextBrushKey}}" />
+            <Setter Property="TextDecorations" Value="{x:Null}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextHoverBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.PanelHyperlinkDisabledBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="True">
+                    <Setter Property="Cursor" Value="Hand" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="TextDecorations" Value="Underline" />
+                </Trigger>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <DockPanel MinWidth="400">
+        <StackPanel Name="HeaderStackPanel" DockPanel.Dock="Top" Visibility="Collapsed"
+                    MinWidth="{Binding ElementName=PreviewDockPanel, Path=ActualWidth}">
+            <FlowDocumentScrollViewer Margin="3" MaxHeight="150" IsTabStop="True"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <FlowDocument PagePadding="0">
+                    <Paragraph TextAlignment="Left"
+                               FontFamily="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontFamilyKey}}"
+                               FontSize="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontSizeKey}}">
+                        <TextBlock Name="TitleTextBlock" TextWrapping="Wrap">
+                            <ToggleButton Name="ExpanderToggleButton" Margin="0,0,5,-2" Padding="0" Visibility="Collapsed"
+                                          Style="{DynamicResource ExpanderToggleButtonStyle}" IsTabStop="True"
+                                          Checked="ExpanderToggleButton_CheckedChanged" Unchecked="ExpanderToggleButton_CheckedChanged"/>
+                            <Border Name="SeverityIconBorder" Height="16" Width="16" Margin="-3,0,0,-2"/>
+                            <TextBlock Name="IdTextBlock" Margin="2,0">
+                                <Hyperlink Name="IdHyperlink"
+                                           IsEnabled="False"
+                                           RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                                           Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
+                            </TextBlock>
+                            <Run Name="TitleRun" Style="{StaticResource PreviewPaneRunStyle}"/>
+                        </TextBlock>
+                    </Paragraph>
+                </FlowDocument>
+            </FlowDocumentScrollViewer>
+            <DockPanel Name="DescriptionDockPanel" LastChildFill="False" Visibility="Collapsed">
+                <Separator DockPanel.Dock="Top" Margin="0"/>
+                <FlowDocumentScrollViewer DockPanel.Dock="Top" Margin="3" MaxHeight="300" IsTabStop="True"
+                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <FlowDocument PagePadding="0">
+                        <Paragraph Name="DescriptionParagraph" TextAlignment="Left"
+                                   FontFamily="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontFamilyKey}}"
+                                   FontSize="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontSizeKey}}"/>
+                    </FlowDocument>
+                </FlowDocumentScrollViewer>
+                <TextBlock Name="LearnMoreTextBlock" DockPanel.Dock="Bottom" TextAlignment="Right" Margin="3,0,3,3" Visibility="Collapsed"
+                           FontFamily="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontFamilyKey}}"
+                           FontSize="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontSizeKey}}">
+                    <Hyperlink Name="LearnMoreHyperlink" 
+                               IsEnabled="False" 
+                               RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                               Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
+                </TextBlock>
+            </DockPanel>
+            <Separator Name="HeaderSeparator" Margin="0" Visibility="Collapsed"/>
+        </StackPanel>
+        <DockPanel Name="PreviewDockPanel" DockPanel.Dock="Top" Visibility="Collapsed">
+            <ScrollViewer Name="PreviewScrollViewer" IsTabStop="False"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          Padding="3 1 3 1"
+                          AutomationProperties.Name="{Binding ElementName=ThisPane, Path=AutomationName}"/>
+        </DockPanel>
+        <Button x:Name="OptionsButton" Content="Change Style Options" Click="OptionsButton_Click" DockPanel.Dock="Bottom"></Button>
+    </DockPanel>
+</UserControl>

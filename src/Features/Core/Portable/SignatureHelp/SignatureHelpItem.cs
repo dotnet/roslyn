@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public SignatureHelpItem(
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IEnumerable<TaggedText> prefixParts,
             IEnumerable<TaggedText> separatorParts,
             IEnumerable<TaggedText> suffixParts,
             IEnumerable<SignatureHelpParameter> parameters,
-            IEnumerable<TaggedText> descriptionParts)
+            IEnumerable<TaggedText>? descriptionParts)
         {
             if (isVariadic && !parameters.Any())
             {

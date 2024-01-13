@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public const string CS0428 = nameof(CS0428);
 
         /// <summary>
-        ///  There is no argument given that corresponds to the required formal parameter 'X' of 'Y'
+        ///  There is no argument given that corresponds to the required parameter 'X' of 'Y'
         /// </summary>
         public const string CS7036 = nameof(CS7036);
 
@@ -125,6 +127,26 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// Specialized for WinRT
         /// </summary>
         public const string CS4036 = nameof(CS4036);
+
+        /// <summary>
+        /// foreach statement cannot operate on variables of type 'X' because 'X' does not contain a public instance or extension definition for 'GetEnumerator'
+        /// </summary>
+        public const string CS1579 = nameof(CS1579);
+
+        /// <summary>
+        /// foreach statement cannot operate on variables of type 'X' because 'X' does not contain a public instance or extension definition for 'GetEnumerator'. Did you mean 'await foreach' rather than 'foreach'?
+        /// </summary>
+        public const string CS8414 = nameof(CS8414);
+
+        /// <summary>
+        /// Asynchronous foreach statement cannot operate on variables of type 'X' because 'X' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+        /// </summary>
+        public const string CS8411 = nameof(CS8411);
+
+        /// <summary>
+        /// Asynchronous foreach statement cannot operate on variables of type 'X' because 'X' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+        /// </summary>
+        public const string CS8415 = nameof(CS8415);
 
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
@@ -153,7 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS0428,
                     CS7036,
                     CS0281,
-                    CS4036));
+                    CS4036,
+                    CS1579,
+                    CS8414,
+                    CS8411,
+                    CS8415));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]

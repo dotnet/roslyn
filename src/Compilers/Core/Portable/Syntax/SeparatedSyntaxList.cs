@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -558,6 +557,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
         {
             get { return this.ToArray(); }
@@ -567,8 +567,11 @@ namespace Microsoft.CodeAnalysis
         {
             get { return _list.ToArray(); }
         }
+#pragma warning restore IDE0051 // Remove unused private members
 
+#pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()
+#pragma warning restore RS0041 // uses oblivious reference types
         {
             return new Enumerator(this);
         }
@@ -598,7 +601,14 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SeparatedSyntaxList<TNode> op_Implicit(SeparatedSyntaxList<SyntaxNode> nodes)
+        {
+            return new SeparatedSyntaxList<TNode>(nodes._list);
+        }
+
+        public static explicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
         {
             return new SeparatedSyntaxList<TNode>(nodes._list);
         }

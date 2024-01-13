@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -73,6 +69,9 @@ namespace Microsoft.CodeAnalysis
             DocumentServiceProvider = documentServiceProvider;
         }
 
+        /// <summary>
+        /// Creates info.
+        /// </summary>
         public static DocumentInfo Create(
             DocumentId id,
             string name,
@@ -82,44 +81,17 @@ namespace Microsoft.CodeAnalysis
             string? filePath = null,
             bool isGenerated = false)
         {
-            return Create(
-                id ?? throw new ArgumentNullException(nameof(id)),
-                name ?? throw new ArgumentNullException(nameof(name)),
-                PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
-                sourceCodeKind,
+            return new DocumentInfo(
+                new DocumentAttributes(
+                    id ?? throw new ArgumentNullException(nameof(id)),
+                    name ?? throw new ArgumentNullException(nameof(name)),
+                    PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
+                    sourceCodeKind,
+                    filePath,
+                    isGenerated,
+                    designTimeOnly: false),
                 loader,
-                filePath,
-                isGenerated,
                 documentServiceProvider: null);
-        }
-
-        // TODO: https://github.com/dotnet/roslyn/issues/35079
-        // Used by Razor: https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.VisualStudio.Editor.Razor/DefaultVisualStudioMacDocumentInfoFactory.cs#L38
-        [Obsolete("This is a compatibility shim for Razor; please do not use it.")]
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IEnumerable<string>? folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated,
-            IDocumentServiceProvider? documentServiceProvider)
-        {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders.ToBoxedImmutableArray(), sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
-        }
-
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IReadOnlyList<string> folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated,
-            IDocumentServiceProvider? documentServiceProvider)
-        {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
@@ -159,6 +131,12 @@ namespace Microsoft.CodeAnalysis
         public DocumentInfo WithTextLoader(TextLoader? loader)
             => With(loader: loader);
 
+        internal DocumentInfo WithDesignTimeOnly(bool designTimeOnly)
+            => With(attributes: Attributes.With(designTimeOnly: designTimeOnly));
+
+        internal DocumentInfo WithDocumentServiceProvider(IDocumentServiceProvider? provider)
+            => With(documentServiceProvider: new(provider));
+
         private string GetDebuggerDisplay()
             => (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
 
@@ -166,55 +144,52 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this document itself but
         /// no tree information such as document info
         /// </summary>
-        internal sealed class DocumentAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class DocumentAttributes(
+            DocumentId id,
+            string name,
+            IReadOnlyList<string> folders,
+            SourceCodeKind sourceCodeKind,
+            string? filePath,
+            bool isGenerated,
+            bool designTimeOnly)
         {
-            private Checksum? _lazyChecksum;
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The Id of the document.
             /// </summary>
-            public DocumentId Id { get; }
+            public DocumentId Id { get; } = id;
 
             /// <summary>
             /// The name of the document.
             /// </summary>
-            public string Name { get; }
+            public string Name { get; } = name;
 
             /// <summary>
             /// The names of the logical nested folders the document is contained in.
             /// </summary>
-            public IReadOnlyList<string> Folders { get; }
+            public IReadOnlyList<string> Folders { get; } = folders;
 
             /// <summary>
             /// The kind of the source code.
             /// </summary>
-            public SourceCodeKind SourceCodeKind { get; }
+            public SourceCodeKind SourceCodeKind { get; } = sourceCodeKind;
 
             /// <summary>
             /// The file path of the document.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; } = filePath;
 
             /// <summary>
             /// True if the document is a side effect of the build.
             /// </summary>
-            public bool IsGenerated { get; }
+            public bool IsGenerated { get; } = isGenerated;
 
-            public DocumentAttributes(
-                DocumentId id,
-                string name,
-                IReadOnlyList<string> folders,
-                SourceCodeKind sourceCodeKind,
-                string? filePath,
-                bool isGenerated)
-            {
-                Id = id;
-                Name = name;
-                Folders = folders;
-                SourceCodeKind = sourceCodeKind;
-                FilePath = filePath;
-                IsGenerated = isGenerated;
-            }
+            /// <summary>
+            /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+            /// but is not passed to the compiler when the containing project is built, e.g. a Razor view
+            /// </summary>
+            public bool DesignTimeOnly { get; } = designTimeOnly;
 
             public DocumentAttributes With(
                 DocumentId? id = null,
@@ -222,7 +197,8 @@ namespace Microsoft.CodeAnalysis
                 IReadOnlyList<string>? folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default,
                 Optional<string?> filePath = default,
-                Optional<bool> isGenerated = default)
+                Optional<bool> isGenerated = default,
+                Optional<bool> designTimeOnly = default)
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
@@ -230,21 +206,27 @@ namespace Microsoft.CodeAnalysis
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
+                var newDesignTimeOnly = designTimeOnly.HasValue ? designTimeOnly.Value : DesignTimeOnly;
 
                 if (newId == Id &&
                     newName == Name &&
                     newFolders.SequenceEqual(Folders) &&
                     newSourceCodeKind == SourceCodeKind &&
                     newFilePath == FilePath &&
-                    newIsGenerated == IsGenerated)
+                    newIsGenerated == IsGenerated &&
+                    newDesignTimeOnly == DesignTimeOnly)
                 {
                     return this;
                 }
 
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
+            // This is the string used to represent the FilePath property on a SyntaxTree object.
+            // if the document does not yet have a file path, use the document's name instead in regular code
+            // or an empty string in script code.
+            public string SyntaxTreeFilePath
+                => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -252,9 +234,10 @@ namespace Microsoft.CodeAnalysis
 
                 writer.WriteString(Name);
                 writer.WriteValue(Folders.ToArray());
-                writer.WriteInt32((int)SourceCodeKind);
+                writer.WriteByte(checked((byte)SourceCodeKind));
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
+                writer.WriteBoolean(DesignTimeOnly);
             }
 
             public static DocumentAttributes ReadFrom(ObjectReader reader)
@@ -263,15 +246,16 @@ namespace Microsoft.CodeAnalysis
 
                 var name = reader.ReadString();
                 var folders = (string[])reader.ReadValue();
-                var sourceCodeKind = reader.ReadInt32();
+                var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
+                var designTimeOnly = reader.ReadBoolean();
 
-                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+                return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
+            public Checksum Checksum
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }

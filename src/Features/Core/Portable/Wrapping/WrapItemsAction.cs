@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -19,8 +19,12 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction : DocumentChangeAction
+    internal sealed class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
+        : DocumentChangeAction(title, createChangedDocument, GetSortTitle(parentTitle, title), CodeActionPriority.Low)
     {
+        private static string GetSortTitle(string title, string parentTitle)
+            => $"{parentTitle}_{title}";
+
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 
         // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
@@ -28,72 +32,61 @@ namespace Microsoft.CodeAnalysis.Wrapping
         // choose to be prioritized accordingly.
         private static ImmutableArray<string> s_mruTitles = ImmutableArray<string>.Empty;
 
-        public string ParentTitle { get; }
+        public string ParentTitle { get; } = parentTitle;
 
-        public string SortTitle { get; }
+        public string SortTitle { get; } = GetSortTitle(parentTitle, title);
 
-        // Make our code action low priority.  This option will be offered *a lot*, and 
-        // much of  the time will not be something the user particularly wants to do.  
-        // It should be offered after all other normal refactorings.
-        //
-        // This value is only relevant if this code action is the only one in its group,
-        // and it ends up getting inlined as a top-level-action that is offered.
-        internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-        public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument)
-        {
-            ParentTitle = parentTitle;
-            SortTitle = parentTitle + "_" + title;
-        }
-
-        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // For preview, we don't want to compute the normal operations.  Specifically, we don't
             // want to compute the stateful operation that tracks which code action was triggered.
-            return base.ComputeOperationsAsync(cancellationToken);
+            return await base.ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
-            var operationsList = operations.ToList();
-
-            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
-            return operationsList;
+            var operations = await base.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
+            return operations.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
-        {
-            // make a local so this array can't change out from under us.
-            var mruTitles = s_mruTitles;
-            return codeActions.Sort((d1, d2) => ComparerWithState.CompareTo(d1, d2, (mruTitles, codeActions), s_comparers));
-        }
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, GetSortTitle);
 
-        private static readonly ImmutableArray<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>> s_comparers =
-            ImmutableArray.Create<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>>(
-                // one of these has never been invoked.  It's always after an item that has been
-                // invoked.
-                // we've invoked both of these before.  Order by how recently it was invoked.
-                (ca, tuple) => tuple.Item1.IndexOf(GetSortTitle(ca)),
-                // Neither of these has been invoked.   Keep it in the same order we found it in the
-                // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
-                // to sort stably.
-                (ca, tuple) => tuple.Item2.IndexOf(ca));
+        public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
+            ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)
+        {
+            return items.Sort((d1, d2) =>
+            {
+                var mruIndex1 = mostRecentlyUsedKeys.IndexOf(getKey(d1));
+                var mruIndex2 = mostRecentlyUsedKeys.IndexOf(getKey(d2));
+
+                // If both are in the mru, prefer the one earlier on.
+                if (mruIndex1 >= 0 && mruIndex2 >= 0)
+                    return mruIndex1 - mruIndex2;
+
+                // if either is in the mru, and the other is not, then the mru item is preferred.
+                if (mruIndex1 >= 0)
+                    return -1;
+
+                if (mruIndex2 >= 0)
+                    return 1;
+
+                // Neither are in the mru.  Sort them based on their original locations.
+                var index1 = items.IndexOf(d1);
+                var index2 = items.IndexOf(d2);
+
+                // Note: we don't return 0 here as ImmutableArray.Sort is not stable.
+                return index1 - index2;
+            });
+        }
 
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;
 
-        private class RecordCodeActionOperation : CodeActionOperation
+        private class RecordCodeActionOperation(string sortTitle, string parentTitle) : CodeActionOperation
         {
-            private readonly string _sortTitle;
-            private readonly string _parentTitle;
-
-            public RecordCodeActionOperation(string sortTitle, string parentTitle)
-            {
-                _sortTitle = sortTitle;
-                _parentTitle = parentTitle;
-            }
+            private readonly string _sortTitle = sortTitle;
+            private readonly string _parentTitle = parentTitle;
 
             internal override bool ApplyDuringTests => false;
 

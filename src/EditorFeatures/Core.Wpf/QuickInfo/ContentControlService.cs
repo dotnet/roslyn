@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,19 +40,19 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService)
+            EditorOptionsService editorOptionsService)
         {
             _threadingContext = threadingContext;
             _textEditorFactoryService = textEditorFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
             => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
 
-        public DisposableToolTip CreateDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
+        public DisposableToolTip CreateDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
         {
             var control = CreateViewHostingControl(textBuffer, contentSpan);
 
@@ -65,9 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // 
             // our underlying preview tagger and mechanism to attach tagger to associated buffer of
             // opened document will light up automatically
-            var document = baseDocument.WithText(textBuffer.AsTextContainer().CurrentText);
             var workspace = new PreviewWorkspace(document.Project.Solution);
-            workspace.OpenDocument(document.Id);
+            workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
 
             return new DisposableToolTip(toolTip, workspace);
         }
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 _threadingContext,
                 ImmutableArray.Create(snapshotSpan),
                 _projectionBufferFactoryService,
-                _editorOptionsFactoryService,
+                _editorOptionsService,
                 _textEditorFactoryService,
                 contentType,
                 roleSet);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,23 +32,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             return type.SubstituteTypes(visitor.Substitutions, compilation);
         }
 
-        private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
+        private sealed class DetermineSubstitutionsVisitor(
+            Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken) : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
-                new Dictionary<ITypeSymbol, ITypeSymbol>();
-            private readonly CancellationToken _cancellationToken;
-            private readonly Compilation _compilation;
-            private readonly ISet<string> _availableTypeParameterNames;
-            private readonly Project _project;
-
-            public DetermineSubstitutionsVisitor(
-                Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken)
-            {
-                _compilation = compilation;
-                _availableTypeParameterNames = availableTypeParameterNames;
-                _project = project;
-                _cancellationToken = cancellationToken;
-            }
+                new();
+            private readonly CancellationToken _cancellationToken = cancellationToken;
+            private readonly Compilation _compilation = compilation;
+            private readonly ISet<string> _availableTypeParameterNames = availableTypeParameterNames;
+            private readonly Project _project = project;
 
             public override ValueTask VisitDynamicType(IDynamicTypeSymbol symbol)
                 => default;
@@ -100,7 +94,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var commonTypes = await GetDerivedAndImplementedTypesAsync(
                     (INamedTypeSymbol)symbol.ConstraintTypes[0], projects).ConfigureAwait(false);
 
-                for (int i = 1; i < symbol.ConstraintTypes.Length; i++)
+                for (var i = 1; i < symbol.ConstraintTypes.Length; i++)
                 {
                     var currentTypes = await GetDerivedAndImplementedTypesAsync(
                         (INamedTypeSymbol)symbol.ConstraintTypes[i], projects).ConfigureAwait(false);
@@ -134,14 +128,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var solution = _project.Solution;
 
-                var symbolAndProjectId = SymbolAndProjectId.Create(constraintType, _project.Id);
+                var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
-                var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                var implementedTypes = await SymbolFinder.FindImplementationsAsync(
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
-                return derivedClasses.Concat(implementedTypes).Select(t => t.Symbol).ToSet();
+                return derivedClasses.Concat(implementedTypes).ToSet();
             }
         }
     }

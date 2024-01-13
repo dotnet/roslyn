@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedParameter,
         TEmbeddedTypeParameter>
     {
-        internal abstract class CommonEmbeddedParameter : Cci.IParameterDefinition
+        internal abstract class CommonEmbeddedParameter : Cci.IEmbeddedDefinition, Cci.IParameterDefinition
         {
             public readonly CommonEmbeddedMember ContainingPropertyOrMethod;
             public readonly TParameterSymbol UnderlyingParameter;
@@ -45,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.ContainingPropertyOrMethod = containingPropertyOrMethod;
                 this.UnderlyingParameter = underlyingParameter;
             }
+
+            public bool IsEncDeleted
+                => false;
 
             protected TEmbeddedTypesManager TypeManager
             {
@@ -67,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract ushort Index { get; }
             protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
 
-            private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
+            private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description, out int signatureIndex)
             {
-                return TypeManager.IsTargetAttribute(UnderlyingParameter, attrData, description);
+                return TypeManager.IsTargetAttribute(attrData, description, out signatureIndex);
             }
 
             private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
@@ -84,41 +89,39 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
-                    if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 0)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.DateTimeConstantAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else
-                    {
-                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute);
-                        if (signatureIndex != -1)
-                        {
-                            Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
+                    int signatureIndex;
+                    ImmutableArray<TypedConstant> constructorArguments;
+                    ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments;
 
-                            if (attrData.CommonConstructorArguments.Length == 5)
-                            {
-                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(
-                                    signatureIndex == 0 ? WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor :
-                                        WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                                    attrData, syntaxNodeOpt, diagnostics));
-                            }
-                        }
-                        else if (IsTargetAttribute(attrData, AttributeDescription.DefaultParameterValueAttribute))
+                    if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute, out signatureIndex))
+                    {
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            if (attrData.CommonConstructorArguments.Length == 1)
-                            {
-                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                            }
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        }
+                    }
+                    else if (IsTargetAttribute(attrData, AttributeDescription.DateTimeConstantAttribute, out signatureIndex))
+                    {
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
+                        {
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        }
+                    }
+                    else if (IsTargetAttribute(attrData, AttributeDescription.DecimalConstantAttribute, out signatureIndex))
+                    {
+                        if ((signatureIndex == 0 || signatureIndex == 1) && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
+                        {
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(
+                                signatureIndex == 0 ? WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor :
+                                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                                constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        }
+                    }
+                    else if (IsTargetAttribute(attrData, AttributeDescription.DefaultParameterValueAttribute, out signatureIndex))
+                    {
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
+                        {
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                 }
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -208,13 +211,15 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }
+
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
             string Cci.INamedEntity.Name
             {
@@ -264,6 +269,18 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public override string ToString()
             {
                 return ((ISymbol)UnderlyingParameter).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
             }
         }
     }

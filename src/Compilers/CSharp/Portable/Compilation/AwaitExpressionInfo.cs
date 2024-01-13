@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Structure containing all semantic information about an await expression.
     /// </summary>
-    public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
+    public readonly struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
         public IMethodSymbol? GetAwaiterMethod { get; }
 

@@ -45,10 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(kind, errors, annotations)
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-        End Sub
-
     End Class
 
     ''' <summary>
@@ -69,10 +65,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -96,10 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -141,27 +129,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _empty = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _empty isnot Nothing 
-             AdjustFlagsAndWidth(_empty)
-             Me._empty = _empty
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EmptyStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._empty)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EmptyStatementSyntax), Function(r) New EmptyStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EmptyStatementSyntax(Me, parent, startLocation)
         End Function
@@ -169,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' An empty token because all non terminals must have a token.
         ''' </summary>
-        Friend  ReadOnly Property Empty As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Empty As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._empty
             End Get
@@ -242,33 +209,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _endKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _endKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_endKeyword)
-             Me._endKeyword = _endKeyword
-          End If
-          Dim _blockKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _blockKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_blockKeyword)
-             Me._blockKeyword = _blockKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EndBlockStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._endKeyword)
-          writer.WriteValue(Me._blockKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EndBlockStatementSyntax), Function(r) New EndBlockStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax(Me, parent, startLocation)
         End Function
@@ -276,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End" keyword
         ''' </summary>
-        Friend  ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._endKeyword
             End Get
@@ -288,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' "Sub", "Function", "Get, "Set", "Property", "Operator", "Event", "AddHandler",
         ''' "RemoveHandler", "RaiseEvent", "While", "Try" or "SyncLock".
         ''' </summary>
-        Friend  ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._blockKeyword
             End Get
@@ -301,8 +241,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._blockKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -409,51 +349,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _options = DirectCast(reader.ReadValue(), GreenNode)
-          If _options isnot Nothing 
-             AdjustFlagsAndWidth(_options)
-             Me._options = _options
-          End If
-          Dim _imports = DirectCast(reader.ReadValue(), GreenNode)
-          If _imports isnot Nothing 
-             AdjustFlagsAndWidth(_imports)
-             Me._imports = _imports
-          End If
-          Dim _attributes = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributes isnot Nothing 
-             AdjustFlagsAndWidth(_attributes)
-             Me._attributes = _attributes
-          End If
-          Dim _members = DirectCast(reader.ReadValue(), GreenNode)
-          If _members isnot Nothing 
-             AdjustFlagsAndWidth(_members)
-             Me._members = _members
-          End If
-          Dim _endOfFileToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _endOfFileToken isnot Nothing 
-             AdjustFlagsAndWidth(_endOfFileToken)
-             Me._endOfFileToken = _endOfFileToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CompilationUnitSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._options)
-          writer.WriteValue(Me._imports)
-          writer.WriteValue(Me._attributes)
-          writer.WriteValue(Me._members)
-          writer.WriteValue(Me._endOfFileToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CompilationUnitSyntax), Function(r) New CompilationUnitSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax(Me, parent, startLocation)
         End Function
@@ -464,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Options As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)
+        Friend ReadOnly Property Options As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Me._options)
             End Get
@@ -476,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property [Imports] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)
+        Friend ReadOnly Property [Imports] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Me._imports)
             End Get
@@ -489,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)
+        Friend ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Me._attributes)
             End Get
@@ -503,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._members)
             End Get
@@ -513,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the end of the source file. This token may have trivia (whitespace,
         ''' comments, ...) attached to it.
         ''' </summary>
-        Friend  ReadOnly Property EndOfFileToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EndOfFileToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._endOfFileToken
             End Get
@@ -532,8 +427,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endOfFileToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -608,39 +503,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _optionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _optionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_optionKeyword)
-             Me._optionKeyword = _optionKeyword
-          End If
-          Dim _nameKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _nameKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_nameKeyword)
-             Me._nameKeyword = _nameKeyword
-          End If
-          Dim _valueKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _valueKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_valueKeyword)
-             Me._valueKeyword = _valueKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OptionStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._optionKeyword)
-          writer.WriteValue(Me._nameKeyword)
-          writer.WriteValue(Me._valueKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OptionStatementSyntax), Function(r) New OptionStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OptionStatementSyntax(Me, parent, startLocation)
         End Function
@@ -648,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Option" keyword.
         ''' </summary>
-        Friend  ReadOnly Property OptionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OptionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._optionKeyword
             End Get
@@ -658,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The keyword that identifies the option being set: Explicit, Strict, Compare or
         ''' Infer.
         ''' </summary>
-        Friend  ReadOnly Property NameKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NameKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._nameKeyword
             End Get
@@ -671,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ValueKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ValueKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._valueKeyword
             End Get
@@ -686,8 +548,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._valueKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -755,33 +617,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _importsKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _importsKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_importsKeyword)
-             Me._importsKeyword = _importsKeyword
-          End If
-          Dim _importsClauses = DirectCast(reader.ReadValue(), GreenNode)
-          If _importsClauses isnot Nothing 
-             AdjustFlagsAndWidth(_importsClauses)
-             Me._importsClauses = _importsClauses
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ImportsStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._importsKeyword)
-          writer.WriteValue(Me._importsClauses)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ImportsStatementSyntax), Function(r) New ImportsStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ImportsStatementSyntax(Me, parent, startLocation)
         End Function
@@ -789,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Imports" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ImportsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ImportsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._importsKeyword
             End Get
@@ -802,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ImportsClauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ImportsClauseSyntax)
+        Friend ReadOnly Property ImportsClauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ImportsClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ImportsClauseSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ImportsClauseSyntax)(Me._importsClauses))
             End Get
@@ -815,8 +650,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._importsClauses
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -853,10 +688,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -911,33 +742,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _alias = DirectCast(reader.ReadValue(), ImportAliasClauseSyntax)
-          If _alias isnot Nothing 
-             AdjustFlagsAndWidth(_alias)
-             Me._alias = _alias
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), NameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleImportsClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._alias)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SimpleImportsClauseSyntax), Function(r) New SimpleImportsClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleImportsClauseSyntax(Me, parent, startLocation)
         End Function
@@ -948,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property [Alias] As InternalSyntax.ImportAliasClauseSyntax
+        Friend ReadOnly Property [Alias] As InternalSyntax.ImportAliasClauseSyntax
             Get
                 Return Me._alias
             End Get
@@ -957,7 +761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The namespace or type being imported.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.NameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.NameSyntax
             Get
                 Return Me._name
             End Get
@@ -970,8 +774,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._name
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1033,33 +837,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ImportAliasClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._equalsToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ImportAliasClauseSyntax), Function(r) New ImportAliasClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ImportAliasClauseSyntax(Me, parent, startLocation)
         End Function
@@ -1067,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The identifier being introduced.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -1076,7 +853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -1089,8 +866,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._equalsToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1159,44 +936,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanToken)
-             Me._lessThanToken = _lessThanToken
-          End If
-          Dim _xmlNamespace = DirectCast(reader.ReadValue(), XmlAttributeSyntax)
-          If _xmlNamespace isnot Nothing 
-             AdjustFlagsAndWidth(_xmlNamespace)
-             Me._xmlNamespace = _xmlNamespace
-          End If
-          Dim _greaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _greaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_greaterThanToken)
-             Me._greaterThanToken = _greaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlNamespaceImportsClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanToken)
-          writer.WriteValue(Me._xmlNamespace)
-          writer.WriteValue(Me._greaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlNamespaceImportsClauseSyntax), Function(r) New XmlNamespaceImportsClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNamespaceImportsClauseSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanToken
             End Get
@@ -1205,13 +949,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Identifies the XML namespace alias and URI.
         ''' </summary>
-        Friend  ReadOnly Property XmlNamespace As InternalSyntax.XmlAttributeSyntax
+        Friend ReadOnly Property XmlNamespace As InternalSyntax.XmlAttributeSyntax
             Get
                 Return Me._xmlNamespace
             End Get
         End Property
 
-        Friend  ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._greaterThanToken
             End Get
@@ -1226,8 +970,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._greaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1302,39 +1046,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _namespaceStatement = DirectCast(reader.ReadValue(), NamespaceStatementSyntax)
-          If _namespaceStatement isnot Nothing 
-             AdjustFlagsAndWidth(_namespaceStatement)
-             Me._namespaceStatement = _namespaceStatement
-          End If
-          Dim _members = DirectCast(reader.ReadValue(), GreenNode)
-          If _members isnot Nothing 
-             AdjustFlagsAndWidth(_members)
-             Me._members = _members
-          End If
-          Dim _endNamespaceStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endNamespaceStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endNamespaceStatement)
-             Me._endNamespaceStatement = _endNamespaceStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NamespaceBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._namespaceStatement)
-          writer.WriteValue(Me._members)
-          writer.WriteValue(Me._endNamespaceStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NamespaceBlockSyntax), Function(r) New NamespaceBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NamespaceBlockSyntax(Me, parent, startLocation)
         End Function
@@ -1342,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The statement that begins the NamespaceBlock.
         ''' </summary>
-        Friend  ReadOnly Property NamespaceStatement As InternalSyntax.NamespaceStatementSyntax
+        Friend ReadOnly Property NamespaceStatement As InternalSyntax.NamespaceStatementSyntax
             Get
                 Return Me._namespaceStatement
             End Get
@@ -1354,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._members)
             End Get
@@ -1363,7 +1074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End Namespace statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndNamespaceStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndNamespaceStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endNamespaceStatement
             End Get
@@ -1378,8 +1089,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endNamespaceStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1442,33 +1153,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _namespaceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _namespaceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_namespaceKeyword)
-             Me._namespaceKeyword = _namespaceKeyword
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), NameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NamespaceStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._namespaceKeyword)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NamespaceStatementSyntax), Function(r) New NamespaceStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NamespaceStatementSyntax(Me, parent, startLocation)
         End Function
@@ -1476,7 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Namespace" keyword.
         ''' </summary>
-        Friend  ReadOnly Property NamespaceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NamespaceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._namespaceKeyword
             End Get
@@ -1485,7 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' A (possibly dotted) name denoting the namespace being declared.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.NameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.NameSyntax
             Get
                 Return Me._name
             End Get
@@ -1498,8 +1182,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._name
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1584,39 +1268,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _inherits = DirectCast(reader.ReadValue(), GreenNode)
-          If _inherits isnot Nothing 
-             AdjustFlagsAndWidth(_inherits)
-             Me._inherits = _inherits
-          End If
-          Dim _implements = DirectCast(reader.ReadValue(), GreenNode)
-          If _implements isnot Nothing 
-             AdjustFlagsAndWidth(_implements)
-             Me._implements = _implements
-          End If
-          Dim _members = DirectCast(reader.ReadValue(), GreenNode)
-          If _members isnot Nothing 
-             AdjustFlagsAndWidth(_members)
-             Me._members = _members
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._inherits)
-          writer.WriteValue(Me._implements)
-          writer.WriteValue(Me._members)
-        End Sub
-
         ''' <summary>
         ''' A list of the Inherits declarations for the type.
         ''' </summary>
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property [Inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax)
+        Friend ReadOnly Property [Inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax)(Me._inherits)
             End Get
@@ -1628,7 +1286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property [Implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax)
+        Friend ReadOnly Property [Implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax)(Me._implements)
             End Get
@@ -1640,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._members)
             End Get
@@ -1692,33 +1350,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _moduleStatement = DirectCast(reader.ReadValue(), ModuleStatementSyntax)
-          If _moduleStatement isnot Nothing 
-             AdjustFlagsAndWidth(_moduleStatement)
-             Me._moduleStatement = _moduleStatement
-          End If
-          Dim _endModuleStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endModuleStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endModuleStatement)
-             Me._endModuleStatement = _endModuleStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ModuleBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._moduleStatement)
-          writer.WriteValue(Me._endModuleStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ModuleBlockSyntax), Function(r) New ModuleBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ModuleBlockSyntax(Me, parent, startLocation)
         End Function
@@ -1726,7 +1357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Module" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property ModuleStatement As InternalSyntax.ModuleStatementSyntax
+        Friend ReadOnly Property ModuleStatement As InternalSyntax.ModuleStatementSyntax
             Get
                 Return Me._moduleStatement
             End Get
@@ -1735,7 +1366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Module" statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndModuleStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndModuleStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endModuleStatement
             End Get
@@ -1754,8 +1385,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endModuleStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1818,33 +1449,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _structureStatement = DirectCast(reader.ReadValue(), StructureStatementSyntax)
-          If _structureStatement isnot Nothing 
-             AdjustFlagsAndWidth(_structureStatement)
-             Me._structureStatement = _structureStatement
-          End If
-          Dim _endStructureStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endStructureStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endStructureStatement)
-             Me._endStructureStatement = _endStructureStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New StructureBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._structureStatement)
-          writer.WriteValue(Me._endStructureStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(StructureBlockSyntax), Function(r) New StructureBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.StructureBlockSyntax(Me, parent, startLocation)
         End Function
@@ -1852,7 +1456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Structure" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property StructureStatement As InternalSyntax.StructureStatementSyntax
+        Friend ReadOnly Property StructureStatement As InternalSyntax.StructureStatementSyntax
             Get
                 Return Me._structureStatement
             End Get
@@ -1861,7 +1465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Structure" statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndStructureStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndStructureStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endStructureStatement
             End Get
@@ -1880,8 +1484,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endStructureStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -1944,33 +1548,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _interfaceStatement = DirectCast(reader.ReadValue(), InterfaceStatementSyntax)
-          If _interfaceStatement isnot Nothing 
-             AdjustFlagsAndWidth(_interfaceStatement)
-             Me._interfaceStatement = _interfaceStatement
-          End If
-          Dim _endInterfaceStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endInterfaceStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endInterfaceStatement)
-             Me._endInterfaceStatement = _endInterfaceStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterfaceBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._interfaceStatement)
-          writer.WriteValue(Me._endInterfaceStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterfaceBlockSyntax), Function(r) New InterfaceBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax(Me, parent, startLocation)
         End Function
@@ -1978,7 +1555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Interface" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property InterfaceStatement As InternalSyntax.InterfaceStatementSyntax
+        Friend ReadOnly Property InterfaceStatement As InternalSyntax.InterfaceStatementSyntax
             Get
                 Return Me._interfaceStatement
             End Get
@@ -1987,7 +1564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Interface" statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndInterfaceStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndInterfaceStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endInterfaceStatement
             End Get
@@ -2006,8 +1583,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endInterfaceStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2070,33 +1647,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _classStatement = DirectCast(reader.ReadValue(), ClassStatementSyntax)
-          If _classStatement isnot Nothing 
-             AdjustFlagsAndWidth(_classStatement)
-             Me._classStatement = _classStatement
-          End If
-          Dim _endClassStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endClassStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endClassStatement)
-             Me._endClassStatement = _endClassStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ClassBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._classStatement)
-          writer.WriteValue(Me._endClassStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ClassBlockSyntax), Function(r) New ClassBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ClassBlockSyntax(Me, parent, startLocation)
         End Function
@@ -2104,7 +1654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Class" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property ClassStatement As InternalSyntax.ClassStatementSyntax
+        Friend ReadOnly Property ClassStatement As InternalSyntax.ClassStatementSyntax
             Get
                 Return Me._classStatement
             End Get
@@ -2113,7 +1663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Class" statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndClassStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndClassStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endClassStatement
             End Get
@@ -2132,8 +1682,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endClassStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2209,39 +1759,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _enumStatement = DirectCast(reader.ReadValue(), EnumStatementSyntax)
-          If _enumStatement isnot Nothing 
-             AdjustFlagsAndWidth(_enumStatement)
-             Me._enumStatement = _enumStatement
-          End If
-          Dim _members = DirectCast(reader.ReadValue(), GreenNode)
-          If _members isnot Nothing 
-             AdjustFlagsAndWidth(_members)
-             Me._members = _members
-          End If
-          Dim _endEnumStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endEnumStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endEnumStatement)
-             Me._endEnumStatement = _endEnumStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EnumBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._enumStatement)
-          writer.WriteValue(Me._members)
-          writer.WriteValue(Me._endEnumStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EnumBlockSyntax), Function(r) New EnumBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EnumBlockSyntax(Me, parent, startLocation)
         End Function
@@ -2249,7 +1766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The statement that begins the type or module.
         ''' </summary>
-        Friend  ReadOnly Property EnumStatement As InternalSyntax.EnumStatementSyntax
+        Friend ReadOnly Property EnumStatement As InternalSyntax.EnumStatementSyntax
             Get
                 Return Me._enumStatement
             End Get
@@ -2261,7 +1778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._members)
             End Get
@@ -2270,7 +1787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End XXX statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndEnumStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndEnumStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endEnumStatement
             End Get
@@ -2285,8 +1802,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endEnumStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2324,10 +1841,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -2381,33 +1894,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _inheritsKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _inheritsKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_inheritsKeyword)
-             Me._inheritsKeyword = _inheritsKeyword
-          End If
-          Dim _types = DirectCast(reader.ReadValue(), GreenNode)
-          If _types isnot Nothing 
-             AdjustFlagsAndWidth(_types)
-             Me._types = _types
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InheritsStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._inheritsKeyword)
-          writer.WriteValue(Me._types)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InheritsStatementSyntax), Function(r) New InheritsStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax(Me, parent, startLocation)
         End Function
@@ -2415,7 +1901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Inherits" keyword.
         ''' </summary>
-        Friend  ReadOnly Property InheritsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property InheritsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._inheritsKeyword
             End Get
@@ -2424,7 +1910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' A list of the types being inherited.
         ''' </summary>
-        Friend  ReadOnly Property Types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
+        Friend ReadOnly Property Types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of TypeSyntax)(Me._types))
             End Get
@@ -2437,8 +1923,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._types
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2506,33 +1992,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _implementsKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _implementsKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_implementsKeyword)
-             Me._implementsKeyword = _implementsKeyword
-          End If
-          Dim _types = DirectCast(reader.ReadValue(), GreenNode)
-          If _types isnot Nothing 
-             AdjustFlagsAndWidth(_types)
-             Me._types = _types
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ImplementsStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._implementsKeyword)
-          writer.WriteValue(Me._types)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ImplementsStatementSyntax), Function(r) New ImplementsStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsStatementSyntax(Me, parent, startLocation)
         End Function
@@ -2540,7 +1999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Implements" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ImplementsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ImplementsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._implementsKeyword
             End Get
@@ -2549,7 +2008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' A list of the types being implemented.
         ''' </summary>
-        Friend  ReadOnly Property Types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
+        Friend ReadOnly Property Types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of TypeSyntax)(Me._types))
             End Get
@@ -2562,8 +2021,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._types
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2657,38 +2116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _typeParameterList = DirectCast(reader.ReadValue(), TypeParameterListSyntax)
-          If _typeParameterList isnot Nothing 
-             AdjustFlagsAndWidth(_typeParameterList)
-             Me._typeParameterList = _typeParameterList
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._typeParameterList)
-        End Sub
-
         ''' <summary>
         ''' A list of all attribute lists on this declaration. If no attributes were
         ''' specified, an empty list is returned.
@@ -2696,7 +2123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -2709,7 +2136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -2718,7 +2145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the type being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -2731,7 +2158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
+        Friend ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
             Get
                 Return Me._typeParameterList
             End Get
@@ -2776,27 +2203,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _moduleKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _moduleKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_moduleKeyword)
-             Me._moduleKeyword = _moduleKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ModuleStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._moduleKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ModuleStatementSyntax), Function(r) New ModuleStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ModuleStatementSyntax(Me, parent, startLocation)
         End Function
@@ -2804,7 +2210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Module" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ModuleKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ModuleKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._moduleKeyword
             End Get
@@ -2823,8 +2229,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._typeParameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2880,27 +2286,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _structureKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _structureKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_structureKeyword)
-             Me._structureKeyword = _structureKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New StructureStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._structureKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(StructureStatementSyntax), Function(r) New StructureStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.StructureStatementSyntax(Me, parent, startLocation)
         End Function
@@ -2908,7 +2293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Structure" keyword.
         ''' </summary>
-        Friend  ReadOnly Property StructureKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property StructureKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._structureKeyword
             End Get
@@ -2927,8 +2312,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._typeParameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -2984,27 +2369,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _interfaceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _interfaceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_interfaceKeyword)
-             Me._interfaceKeyword = _interfaceKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterfaceStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._interfaceKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterfaceStatementSyntax), Function(r) New InterfaceStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceStatementSyntax(Me, parent, startLocation)
         End Function
@@ -3012,7 +2376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Interface" keyword.
         ''' </summary>
-        Friend  ReadOnly Property InterfaceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property InterfaceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._interfaceKeyword
             End Get
@@ -3031,8 +2395,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._typeParameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3088,27 +2452,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _classKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _classKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_classKeyword)
-             Me._classKeyword = _classKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ClassStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._classKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ClassStatementSyntax), Function(r) New ClassStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ClassStatementSyntax(Me, parent, startLocation)
         End Function
@@ -3116,7 +2459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Class" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ClassKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ClassKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._classKeyword
             End Get
@@ -3135,8 +2478,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._typeParameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3238,51 +2581,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _enumKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _enumKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_enumKeyword)
-             Me._enumKeyword = _enumKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _underlyingType = DirectCast(reader.ReadValue(), AsClauseSyntax)
-          If _underlyingType isnot Nothing 
-             AdjustFlagsAndWidth(_underlyingType)
-             Me._underlyingType = _underlyingType
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EnumStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._enumKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._underlyingType)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EnumStatementSyntax), Function(r) New EnumStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EnumStatementSyntax(Me, parent, startLocation)
         End Function
@@ -3294,7 +2592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -3307,7 +2605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -3316,7 +2614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Enum" keyword.
         ''' </summary>
-        Friend  ReadOnly Property EnumKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EnumKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._enumKeyword
             End Get
@@ -3325,7 +2623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the enum being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -3338,7 +2636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property UnderlyingType As InternalSyntax.AsClauseSyntax
+        Friend ReadOnly Property UnderlyingType As InternalSyntax.AsClauseSyntax
             Get
                 Return Me._underlyingType
             End Get
@@ -3357,8 +2655,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._underlyingType
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3440,45 +2738,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _ofKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ofKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ofKeyword)
-             Me._ofKeyword = _ofKeyword
-          End If
-          Dim _parameters = DirectCast(reader.ReadValue(), GreenNode)
-          If _parameters isnot Nothing 
-             AdjustFlagsAndWidth(_parameters)
-             Me._parameters = _parameters
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeParameterListSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._ofKeyword)
-          writer.WriteValue(Me._parameters)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeParameterListSyntax), Function(r) New TypeParameterListSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterListSyntax(Me, parent, startLocation)
         End Function
@@ -3486,7 +2745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -3495,7 +2754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Of" keyword.
         ''' </summary>
-        Friend  ReadOnly Property OfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ofKeyword
             End Get
@@ -3505,7 +2764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of the type parameters. There must be at least one type parameter in the
         ''' list.
         ''' </summary>
-        Friend  ReadOnly Property Parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeParameterSyntax)
+        Friend ReadOnly Property Parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeParameterSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeParameterSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of TypeParameterSyntax)(Me._parameters))
             End Get
@@ -3514,7 +2773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -3531,8 +2790,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3613,39 +2872,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _varianceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _varianceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_varianceKeyword)
-             Me._varianceKeyword = _varianceKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _typeParameterConstraintClause = DirectCast(reader.ReadValue(), TypeParameterConstraintClauseSyntax)
-          If _typeParameterConstraintClause isnot Nothing 
-             AdjustFlagsAndWidth(_typeParameterConstraintClause)
-             Me._typeParameterConstraintClause = _typeParameterConstraintClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeParameterSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._varianceKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._typeParameterConstraintClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeParameterSyntax), Function(r) New TypeParameterSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax(Me, parent, startLocation)
         End Function
@@ -3657,7 +2883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property VarianceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property VarianceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._varianceKeyword
             End Get
@@ -3666,7 +2892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the type parameter
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -3679,7 +2905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property TypeParameterConstraintClause As InternalSyntax.TypeParameterConstraintClauseSyntax
+        Friend ReadOnly Property TypeParameterConstraintClause As InternalSyntax.TypeParameterConstraintClauseSyntax
             Get
                 Return Me._typeParameterConstraintClause
             End Get
@@ -3694,8 +2920,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._typeParameterConstraintClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3733,10 +2959,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -3785,33 +3007,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _asKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _asKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_asKeyword)
-             Me._asKeyword = _asKeyword
-          End If
-          Dim _constraint = DirectCast(reader.ReadValue(), ConstraintSyntax)
-          If _constraint isnot Nothing 
-             AdjustFlagsAndWidth(_constraint)
-             Me._constraint = _constraint
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeParameterSingleConstraintClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._asKeyword)
-          writer.WriteValue(Me._constraint)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeParameterSingleConstraintClauseSyntax), Function(r) New TypeParameterSingleConstraintClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSingleConstraintClauseSyntax(Me, parent, startLocation)
         End Function
@@ -3820,7 +3015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" keyword, if any type constraints were supplied. If no type constraints
         ''' were supplied, Nothing is returned.
         ''' </summary>
-        Friend  ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._asKeyword
             End Get
@@ -3830,7 +3025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of the supplied constraints. If no constraints were supplied, Nothing is
         ''' returned.
         ''' </summary>
-        Friend  ReadOnly Property Constraint As InternalSyntax.ConstraintSyntax
+        Friend ReadOnly Property Constraint As InternalSyntax.ConstraintSyntax
             Get
                 Return Me._constraint
             End Get
@@ -3843,8 +3038,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._constraint
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -3927,45 +3122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _asKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _asKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_asKeyword)
-             Me._asKeyword = _asKeyword
-          End If
-          Dim _openBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_openBraceToken)
-             Me._openBraceToken = _openBraceToken
-          End If
-          Dim _constraints = DirectCast(reader.ReadValue(), GreenNode)
-          If _constraints isnot Nothing 
-             AdjustFlagsAndWidth(_constraints)
-             Me._constraints = _constraints
-          End If
-          Dim _closeBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeBraceToken)
-             Me._closeBraceToken = _closeBraceToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeParameterMultipleConstraintClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._asKeyword)
-          writer.WriteValue(Me._openBraceToken)
-          writer.WriteValue(Me._constraints)
-          writer.WriteValue(Me._closeBraceToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeParameterMultipleConstraintClauseSyntax), Function(r) New TypeParameterMultipleConstraintClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterMultipleConstraintClauseSyntax(Me, parent, startLocation)
         End Function
@@ -3973,7 +3129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "As" keyword.
         ''' </summary>
-        Friend  ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._asKeyword
             End Get
@@ -3982,7 +3138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "{" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openBraceToken
             End Get
@@ -3992,7 +3148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of the supplied constraints. If no constraints were supplied, an empty
         ''' list is returned.
         ''' </summary>
-        Friend  ReadOnly Property Constraints As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ConstraintSyntax)
+        Friend ReadOnly Property Constraints As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ConstraintSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ConstraintSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ConstraintSyntax)(Me._constraints))
             End Get
@@ -4001,7 +3157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "}" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeBraceToken
             End Get
@@ -4018,8 +3174,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeBraceToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -4057,10 +3213,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -4103,27 +3255,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _constraintKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _constraintKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_constraintKeyword)
-             Me._constraintKeyword = _constraintKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SpecialConstraintSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._constraintKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SpecialConstraintSyntax), Function(r) New SpecialConstraintSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SpecialConstraintSyntax(Me, parent, startLocation)
         End Function
@@ -4132,7 +3263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "New", "Class" or "Structure" keyword that denotes the kind of special
         ''' constraint.
         ''' </summary>
-        Friend  ReadOnly Property ConstraintKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ConstraintKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._constraintKeyword
             End Get
@@ -4198,27 +3329,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeConstraintSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._type)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeConstraintSyntax), Function(r) New TypeConstraintSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeConstraintSyntax(Me, parent, startLocation)
         End Function
@@ -4226,7 +3336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type describing the constraint.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -4318,39 +3428,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), EqualsValueSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EnumMemberDeclarationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EnumMemberDeclarationSyntax), Function(r) New EnumMemberDeclarationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EnumMemberDeclarationSyntax(Me, parent, startLocation)
         End Function
@@ -4358,13 +3435,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
         End Property
 
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -4376,7 +3453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
             Get
                 Return Me._initializer
             End Get
@@ -4391,8 +3468,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -4453,27 +3530,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._statements)
-        End Sub
-
         ''' <summary>
         ''' The statements contained in the block statement. This might be an empty list.
         ''' </summary>
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -4525,33 +3588,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _subOrFunctionStatement = DirectCast(reader.ReadValue(), MethodStatementSyntax)
-          If _subOrFunctionStatement isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionStatement)
-             Me._subOrFunctionStatement = _subOrFunctionStatement
-          End If
-          Dim _endSubOrFunctionStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endSubOrFunctionStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endSubOrFunctionStatement)
-             Me._endSubOrFunctionStatement = _endSubOrFunctionStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MethodBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subOrFunctionStatement)
-          writer.WriteValue(Me._endSubOrFunctionStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MethodBlockSyntax), Function(r) New MethodBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockSyntax(Me, parent, startLocation)
         End Function
@@ -4559,7 +3595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" or "Function" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionStatement As InternalSyntax.MethodStatementSyntax
+        Friend ReadOnly Property SubOrFunctionStatement As InternalSyntax.MethodStatementSyntax
             Get
                 Return Me._subOrFunctionStatement
             End Get
@@ -4568,7 +3604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Sub" or "End Function" statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndSubOrFunctionStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndSubOrFunctionStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endSubOrFunctionStatement
             End Get
@@ -4583,8 +3619,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endSubOrFunctionStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -4647,33 +3683,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _subNewStatement = DirectCast(reader.ReadValue(), SubNewStatementSyntax)
-          If _subNewStatement isnot Nothing 
-             AdjustFlagsAndWidth(_subNewStatement)
-             Me._subNewStatement = _subNewStatement
-          End If
-          Dim _endSubStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endSubStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endSubStatement)
-             Me._endSubStatement = _endSubStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ConstructorBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subNewStatement)
-          writer.WriteValue(Me._endSubStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ConstructorBlockSyntax), Function(r) New ConstructorBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ConstructorBlockSyntax(Me, parent, startLocation)
         End Function
@@ -4681,7 +3690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub New" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property SubNewStatement As InternalSyntax.SubNewStatementSyntax
+        Friend ReadOnly Property SubNewStatement As InternalSyntax.SubNewStatementSyntax
             Get
                 Return Me._subNewStatement
             End Get
@@ -4690,7 +3699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Sub" statement that ends the block declaration.
         ''' </summary>
-        Friend  ReadOnly Property EndSubStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndSubStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endSubStatement
             End Get
@@ -4705,8 +3714,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endSubStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -4769,33 +3778,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _operatorStatement = DirectCast(reader.ReadValue(), OperatorStatementSyntax)
-          If _operatorStatement isnot Nothing 
-             AdjustFlagsAndWidth(_operatorStatement)
-             Me._operatorStatement = _operatorStatement
-          End If
-          Dim _endOperatorStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endOperatorStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endOperatorStatement)
-             Me._endOperatorStatement = _endOperatorStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OperatorBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._operatorStatement)
-          writer.WriteValue(Me._endOperatorStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OperatorBlockSyntax), Function(r) New OperatorBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OperatorBlockSyntax(Me, parent, startLocation)
         End Function
@@ -4803,7 +3785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Operator" statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property OperatorStatement As InternalSyntax.OperatorStatementSyntax
+        Friend ReadOnly Property OperatorStatement As InternalSyntax.OperatorStatementSyntax
             Get
                 Return Me._operatorStatement
             End Get
@@ -4812,7 +3794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Operator" statement that ends the block declaration.
         ''' </summary>
-        Friend  ReadOnly Property EndOperatorStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndOperatorStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endOperatorStatement
             End Get
@@ -4827,8 +3809,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endOperatorStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -4892,33 +3874,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _accessorStatement = DirectCast(reader.ReadValue(), AccessorStatementSyntax)
-          If _accessorStatement isnot Nothing 
-             AdjustFlagsAndWidth(_accessorStatement)
-             Me._accessorStatement = _accessorStatement
-          End If
-          Dim _endAccessorStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endAccessorStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endAccessorStatement)
-             Me._endAccessorStatement = _endAccessorStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AccessorBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._accessorStatement)
-          writer.WriteValue(Me._endAccessorStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AccessorBlockSyntax), Function(r) New AccessorBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorBlockSyntax(Me, parent, startLocation)
         End Function
@@ -4927,7 +3882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
         ''' begins the accessor block.
         ''' </summary>
-        Friend  ReadOnly Property AccessorStatement As InternalSyntax.AccessorStatementSyntax
+        Friend ReadOnly Property AccessorStatement As InternalSyntax.AccessorStatementSyntax
             Get
                 Return Me._accessorStatement
             End Get
@@ -4937,7 +3892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </summary>
-        Friend  ReadOnly Property EndAccessorStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndAccessorStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endAccessorStatement
             End Get
@@ -4952,8 +3907,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endAccessorStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -5029,39 +3984,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _propertyStatement = DirectCast(reader.ReadValue(), PropertyStatementSyntax)
-          If _propertyStatement isnot Nothing 
-             AdjustFlagsAndWidth(_propertyStatement)
-             Me._propertyStatement = _propertyStatement
-          End If
-          Dim _accessors = DirectCast(reader.ReadValue(), GreenNode)
-          If _accessors isnot Nothing 
-             AdjustFlagsAndWidth(_accessors)
-             Me._accessors = _accessors
-          End If
-          Dim _endPropertyStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endPropertyStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endPropertyStatement)
-             Me._endPropertyStatement = _endPropertyStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PropertyBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._propertyStatement)
-          writer.WriteValue(Me._accessors)
-          writer.WriteValue(Me._endPropertyStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PropertyBlockSyntax), Function(r) New PropertyBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax(Me, parent, startLocation)
         End Function
@@ -5069,7 +3991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The property declaration that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property PropertyStatement As InternalSyntax.PropertyStatementSyntax
+        Friend ReadOnly Property PropertyStatement As InternalSyntax.PropertyStatementSyntax
             Get
                 Return Me._propertyStatement
             End Get
@@ -5079,7 +4001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The accessor blocks contained in the property, between the Property and the End
         ''' Property statements.
         ''' </summary>
-        Friend  ReadOnly Property Accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)
+        Friend ReadOnly Property Accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)(Me._accessors)
             End Get
@@ -5088,7 +4010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End Property statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndPropertyStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndPropertyStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endPropertyStatement
             End Get
@@ -5103,8 +4025,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endPropertyStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -5180,39 +4102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _eventStatement = DirectCast(reader.ReadValue(), EventStatementSyntax)
-          If _eventStatement isnot Nothing 
-             AdjustFlagsAndWidth(_eventStatement)
-             Me._eventStatement = _eventStatement
-          End If
-          Dim _accessors = DirectCast(reader.ReadValue(), GreenNode)
-          If _accessors isnot Nothing 
-             AdjustFlagsAndWidth(_accessors)
-             Me._accessors = _accessors
-          End If
-          Dim _endEventStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endEventStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endEventStatement)
-             Me._endEventStatement = _endEventStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EventBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._eventStatement)
-          writer.WriteValue(Me._accessors)
-          writer.WriteValue(Me._endEventStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EventBlockSyntax), Function(r) New EventBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EventBlockSyntax(Me, parent, startLocation)
         End Function
@@ -5220,7 +4109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The event declaration that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property EventStatement As InternalSyntax.EventStatementSyntax
+        Friend ReadOnly Property EventStatement As InternalSyntax.EventStatementSyntax
             Get
                 Return Me._eventStatement
             End Get
@@ -5230,7 +4119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The accessor blocks contained in the custom event declaration, between the
         ''' Event statement and the End Event statement.
         ''' </summary>
-        Friend  ReadOnly Property Accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)
+        Friend ReadOnly Property Accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AccessorBlockSyntax)(Me._accessors)
             End Get
@@ -5239,7 +4128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End Event statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndEventStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndEventStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endEventStatement
             End Get
@@ -5254,8 +4143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endEventStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -5342,32 +4231,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _parameterList = DirectCast(reader.ReadValue(), ParameterListSyntax)
-          If _parameterList isnot Nothing 
-             AdjustFlagsAndWidth(_parameterList)
-             Me._parameterList = _parameterList
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._parameterList)
-        End Sub
-
         ''' <summary>
         ''' A list of all attribute lists on this declaration. If no attributes were
         ''' specified, Nothing is returned.
@@ -5375,7 +4238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -5390,7 +4253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -5403,7 +4266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ParameterList As InternalSyntax.ParameterListSyntax
+        Friend ReadOnly Property ParameterList As InternalSyntax.ParameterListSyntax
             Get
                 Return Me._parameterList
             End Get
@@ -5467,39 +4330,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _parameters = DirectCast(reader.ReadValue(), GreenNode)
-          If _parameters isnot Nothing 
-             AdjustFlagsAndWidth(_parameters)
-             Me._parameters = _parameters
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ParameterListSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._parameters)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ParameterListSyntax), Function(r) New ParameterListSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterListSyntax(Me, parent, startLocation)
         End Function
@@ -5508,7 +4338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "(" token that introduces the parameter list. If no parameter list was
         ''' present, Nothing is returned.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -5520,7 +4350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
+        Friend ReadOnly Property Parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ParameterSyntax)(Me._parameters))
             End Get
@@ -5530,7 +4360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The ")" token that concludes the parameter list. If no parameter list was
         ''' present, Nothing is returned.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -5545,8 +4375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -5663,57 +4493,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 9
-          Dim _subOrFunctionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _subOrFunctionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionKeyword)
-             Me._subOrFunctionKeyword = _subOrFunctionKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _typeParameterList = DirectCast(reader.ReadValue(), TypeParameterListSyntax)
-          If _typeParameterList isnot Nothing 
-             AdjustFlagsAndWidth(_typeParameterList)
-             Me._typeParameterList = _typeParameterList
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _handlesClause = DirectCast(reader.ReadValue(), HandlesClauseSyntax)
-          If _handlesClause isnot Nothing 
-             AdjustFlagsAndWidth(_handlesClause)
-             Me._handlesClause = _handlesClause
-          End If
-          Dim _implementsClause = DirectCast(reader.ReadValue(), ImplementsClauseSyntax)
-          If _implementsClause isnot Nothing 
-             AdjustFlagsAndWidth(_implementsClause)
-             Me._implementsClause = _implementsClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MethodStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subOrFunctionKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._typeParameterList)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._handlesClause)
-          writer.WriteValue(Me._implementsClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MethodStatementSyntax), Function(r) New MethodStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodStatementSyntax(Me, parent, startLocation)
         End Function
@@ -5721,7 +4500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" or "Function" keyword that introduces this method declaration.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._subOrFunctionKeyword
             End Get
@@ -5730,7 +4509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the method being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -5743,7 +4522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
+        Friend ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
             Get
                 Return Me._typeParameterList
             End Get
@@ -5756,7 +4535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -5768,7 +4547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property HandlesClause As InternalSyntax.HandlesClauseSyntax
+        Friend ReadOnly Property HandlesClause As InternalSyntax.HandlesClauseSyntax
             Get
                 Return Me._handlesClause
             End Get
@@ -5781,7 +4560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
+        Friend ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
             Get
                 Return Me._implementsClause
             End Get
@@ -5808,8 +4587,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 8
                     Return Me._implementsClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -5873,33 +4652,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _subKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _subKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_subKeyword)
-             Me._subKeyword = _subKeyword
-          End If
-          Dim _newKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _newKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_newKeyword)
-             Me._newKeyword = _newKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SubNewStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subKeyword)
-          writer.WriteValue(Me._newKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SubNewStatementSyntax), Function(r) New SubNewStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SubNewStatementSyntax(Me, parent, startLocation)
         End Function
@@ -5907,7 +4659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SubKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SubKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._subKeyword
             End Get
@@ -5916,7 +4668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "New" keyword in the constructor declaration.
         ''' </summary>
-        Friend  ReadOnly Property NewKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NewKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._newKeyword
             End Get
@@ -5935,8 +4687,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._parameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -6071,75 +4823,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 12
-          Dim _declareKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _declareKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_declareKeyword)
-             Me._declareKeyword = _declareKeyword
-          End If
-          Dim _charsetKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _charsetKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_charsetKeyword)
-             Me._charsetKeyword = _charsetKeyword
-          End If
-          Dim _subOrFunctionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _subOrFunctionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionKeyword)
-             Me._subOrFunctionKeyword = _subOrFunctionKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _libKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _libKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_libKeyword)
-             Me._libKeyword = _libKeyword
-          End If
-          Dim _libraryName = DirectCast(reader.ReadValue(), LiteralExpressionSyntax)
-          If _libraryName isnot Nothing 
-             AdjustFlagsAndWidth(_libraryName)
-             Me._libraryName = _libraryName
-          End If
-          Dim _aliasKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _aliasKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_aliasKeyword)
-             Me._aliasKeyword = _aliasKeyword
-          End If
-          Dim _aliasName = DirectCast(reader.ReadValue(), LiteralExpressionSyntax)
-          If _aliasName isnot Nothing 
-             AdjustFlagsAndWidth(_aliasName)
-             Me._aliasName = _aliasName
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DeclareStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._declareKeyword)
-          writer.WriteValue(Me._charsetKeyword)
-          writer.WriteValue(Me._subOrFunctionKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._libKeyword)
-          writer.WriteValue(Me._libraryName)
-          writer.WriteValue(Me._aliasKeyword)
-          writer.WriteValue(Me._aliasName)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DeclareStatementSyntax), Function(r) New DeclareStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DeclareStatementSyntax(Me, parent, startLocation)
         End Function
@@ -6147,7 +4830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Declare" keyword.
         ''' </summary>
-        Friend  ReadOnly Property DeclareKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property DeclareKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._declareKeyword
             End Get
@@ -6160,7 +4843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CharsetKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CharsetKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._charsetKeyword
             End Get
@@ -6169,7 +4852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" or "Function" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._subOrFunctionKeyword
             End Get
@@ -6178,7 +4861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the method being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -6187,7 +4870,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Lib" keyword.
         ''' </summary>
-        Friend  ReadOnly Property LibKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property LibKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._libKeyword
             End Get
@@ -6196,7 +4879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The string literal with the library name.
         ''' </summary>
-        Friend  ReadOnly Property LibraryName As InternalSyntax.LiteralExpressionSyntax
+        Friend ReadOnly Property LibraryName As InternalSyntax.LiteralExpressionSyntax
             Get
                 Return Me._libraryName
             End Get
@@ -6208,7 +4891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AliasKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AliasKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._aliasKeyword
             End Get
@@ -6220,7 +4903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AliasName As InternalSyntax.LiteralExpressionSyntax
+        Friend ReadOnly Property AliasName As InternalSyntax.LiteralExpressionSyntax
             Get
                 Return Me._aliasName
             End Get
@@ -6233,7 +4916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -6266,8 +4949,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 11
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -6362,51 +5045,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 8
-          Dim _delegateKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _delegateKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_delegateKeyword)
-             Me._delegateKeyword = _delegateKeyword
-          End If
-          Dim _subOrFunctionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _subOrFunctionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionKeyword)
-             Me._subOrFunctionKeyword = _subOrFunctionKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _typeParameterList = DirectCast(reader.ReadValue(), TypeParameterListSyntax)
-          If _typeParameterList isnot Nothing 
-             AdjustFlagsAndWidth(_typeParameterList)
-             Me._typeParameterList = _typeParameterList
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DelegateStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._delegateKeyword)
-          writer.WriteValue(Me._subOrFunctionKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._typeParameterList)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DelegateStatementSyntax), Function(r) New DelegateStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DelegateStatementSyntax(Me, parent, startLocation)
         End Function
@@ -6414,7 +5052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Delegate" keyword.
         ''' </summary>
-        Friend  ReadOnly Property DelegateKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property DelegateKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._delegateKeyword
             End Get
@@ -6423,7 +5061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" or "Function" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._subOrFunctionKeyword
             End Get
@@ -6432,7 +5070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the delegate being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -6445,7 +5083,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
+        Friend ReadOnly Property TypeParameterList As InternalSyntax.TypeParameterListSyntax
             Get
                 Return Me._typeParameterList
             End Get
@@ -6458,7 +5096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -6483,8 +5121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 7
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -6587,51 +5225,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 8
-          Dim _customKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _customKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_customKeyword)
-             Me._customKeyword = _customKeyword
-          End If
-          Dim _eventKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _eventKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_eventKeyword)
-             Me._eventKeyword = _eventKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _implementsClause = DirectCast(reader.ReadValue(), ImplementsClauseSyntax)
-          If _implementsClause isnot Nothing 
-             AdjustFlagsAndWidth(_implementsClause)
-             Me._implementsClause = _implementsClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EventStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._customKeyword)
-          writer.WriteValue(Me._eventKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._implementsClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EventStatementSyntax), Function(r) New EventStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EventStatementSyntax(Me, parent, startLocation)
         End Function
@@ -6642,7 +5235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CustomKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CustomKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._customKeyword
             End Get
@@ -6651,7 +5244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Event" keyword that introduces this event declaration.
         ''' </summary>
-        Friend  ReadOnly Property EventKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EventKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._eventKeyword
             End Get
@@ -6660,7 +5253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the event being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -6673,7 +5266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -6686,7 +5279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
+        Friend ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
             Get
                 Return Me._implementsClause
             End Get
@@ -6711,8 +5304,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 7
                     Return Me._implementsClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -6790,39 +5383,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-          Dim _operatorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _operatorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_operatorKeyword)
-             Me._operatorKeyword = _operatorKeyword
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OperatorStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._operatorKeyword)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OperatorStatementSyntax), Function(r) New OperatorStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OperatorStatementSyntax(Me, parent, startLocation)
         End Function
@@ -6830,7 +5390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Operator" keyword that introduces this operator declaration.
         ''' </summary>
-        Friend  ReadOnly Property OperatorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OperatorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._operatorKeyword
             End Get
@@ -6839,7 +5399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The operator being defined.
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._operatorToken
             End Get
@@ -6852,7 +5412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -6873,8 +5433,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -6978,51 +5538,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 8
-          Dim _propertyKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _propertyKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_propertyKeyword)
-             Me._propertyKeyword = _propertyKeyword
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), AsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), EqualsValueSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-          Dim _implementsClause = DirectCast(reader.ReadValue(), ImplementsClauseSyntax)
-          If _implementsClause isnot Nothing 
-             AdjustFlagsAndWidth(_implementsClause)
-             Me._implementsClause = _implementsClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PropertyStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._propertyKeyword)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._initializer)
-          writer.WriteValue(Me._implementsClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PropertyStatementSyntax), Function(r) New PropertyStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyStatementSyntax(Me, parent, startLocation)
         End Function
@@ -7030,7 +5545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Property" keyword that introduces this property declaration.
         ''' </summary>
-        Friend  ReadOnly Property PropertyKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property PropertyKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._propertyKeyword
             End Get
@@ -7039,7 +5554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the property being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -7052,7 +5567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.AsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.AsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -7065,7 +5580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
             Get
                 Return Me._initializer
             End Get
@@ -7078,7 +5593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
+        Friend ReadOnly Property ImplementsClause As InternalSyntax.ImplementsClauseSyntax
             Get
                 Return Me._implementsClause
             End Get
@@ -7103,8 +5618,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 7
                     Return Me._implementsClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -7162,27 +5677,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _accessorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _accessorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_accessorKeyword)
-             Me._accessorKeyword = _accessorKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AccessorStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._accessorKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AccessorStatementSyntax), Function(r) New AccessorStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorStatementSyntax(Me, parent, startLocation)
         End Function
@@ -7191,7 +5685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" keyword that
         ''' introduces this accessor declaration.
         ''' </summary>
-        Friend  ReadOnly Property AccessorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AccessorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._accessorKeyword
             End Get
@@ -7208,8 +5702,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._parameterList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -7278,33 +5772,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _implementsKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _implementsKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_implementsKeyword)
-             Me._implementsKeyword = _implementsKeyword
-          End If
-          Dim _interfaceMembers = DirectCast(reader.ReadValue(), GreenNode)
-          If _interfaceMembers isnot Nothing 
-             AdjustFlagsAndWidth(_interfaceMembers)
-             Me._interfaceMembers = _interfaceMembers
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ImplementsClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._implementsKeyword)
-          writer.WriteValue(Me._interfaceMembers)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ImplementsClauseSyntax), Function(r) New ImplementsClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsClauseSyntax(Me, parent, startLocation)
         End Function
@@ -7312,7 +5779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Implements" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ImplementsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ImplementsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._implementsKeyword
             End Get
@@ -7321,7 +5788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of interface members being implemented.
         ''' </summary>
-        Friend  ReadOnly Property InterfaceMembers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of QualifiedNameSyntax)
+        Friend ReadOnly Property InterfaceMembers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of QualifiedNameSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of QualifiedNameSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of QualifiedNameSyntax)(Me._interfaceMembers))
             End Get
@@ -7334,8 +5801,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._interfaceMembers
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -7404,33 +5871,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _handlesKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _handlesKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_handlesKeyword)
-             Me._handlesKeyword = _handlesKeyword
-          End If
-          Dim _events = DirectCast(reader.ReadValue(), GreenNode)
-          If _events isnot Nothing 
-             AdjustFlagsAndWidth(_events)
-             Me._events = _events
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New HandlesClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._handlesKeyword)
-          writer.WriteValue(Me._events)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(HandlesClauseSyntax), Function(r) New HandlesClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.HandlesClauseSyntax(Me, parent, startLocation)
         End Function
@@ -7438,7 +5878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Handles" keyword.
         ''' </summary>
-        Friend  ReadOnly Property HandlesKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property HandlesKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._handlesKeyword
             End Get
@@ -7447,7 +5887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of event members being handled.
         ''' </summary>
-        Friend  ReadOnly Property Events As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of HandlesClauseItemSyntax)
+        Friend ReadOnly Property Events As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of HandlesClauseItemSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of HandlesClauseItemSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of HandlesClauseItemSyntax)(Me._events))
             End Get
@@ -7460,8 +5900,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._events
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -7498,10 +5938,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -7543,27 +5979,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _keyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyword)
-             Me._keyword = _keyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New KeywordEventContainerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(KeywordEventContainerSyntax), Function(r) New KeywordEventContainerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.KeywordEventContainerSyntax(Me, parent, startLocation)
         End Function
@@ -7572,7 +5987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The container of the event. This can be one of the special keywords: "Me",
         ''' "MyBase" or "MyClass".
         ''' </summary>
-        Friend  ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyword
             End Get
@@ -7638,27 +6053,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WithEventsEventContainerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WithEventsEventContainerSyntax), Function(r) New WithEventsEventContainerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WithEventsEventContainerSyntax(Me, parent, startLocation)
         End Function
@@ -7667,7 +6061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The container of the event. It is a simple identifier that refers to a
         ''' WithEvents member of the containing type.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -7747,39 +6141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _withEventsContainer = DirectCast(reader.ReadValue(), WithEventsEventContainerSyntax)
-          If _withEventsContainer isnot Nothing 
-             AdjustFlagsAndWidth(_withEventsContainer)
-             Me._withEventsContainer = _withEventsContainer
-          End If
-          Dim _dotToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dotToken isnot Nothing 
-             AdjustFlagsAndWidth(_dotToken)
-             Me._dotToken = _dotToken
-          End If
-          Dim _property = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _property isnot Nothing 
-             AdjustFlagsAndWidth(_property)
-             Me._property = _property
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WithEventsPropertyEventContainerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._withEventsContainer)
-          writer.WriteValue(Me._dotToken)
-          writer.WriteValue(Me._property)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WithEventsPropertyEventContainerSyntax), Function(r) New WithEventsPropertyEventContainerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WithEventsPropertyEventContainerSyntax(Me, parent, startLocation)
         End Function
@@ -7787,7 +6148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The container of the event.
         ''' </summary>
-        Friend  ReadOnly Property WithEventsContainer As InternalSyntax.WithEventsEventContainerSyntax
+        Friend ReadOnly Property WithEventsContainer As InternalSyntax.WithEventsEventContainerSyntax
             Get
                 Return Me._withEventsContainer
             End Get
@@ -7796,7 +6157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "." token.
         ''' </summary>
-        Friend  ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dotToken
             End Get
@@ -7806,7 +6167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The provider of the event. It is a property of a WithEvents member of the
         ''' containing type.
         ''' </summary>
-        Friend  ReadOnly Property [Property] As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property [Property] As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._property
             End Get
@@ -7821,8 +6182,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._property
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -7891,39 +6252,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _eventContainer = DirectCast(reader.ReadValue(), EventContainerSyntax)
-          If _eventContainer isnot Nothing 
-             AdjustFlagsAndWidth(_eventContainer)
-             Me._eventContainer = _eventContainer
-          End If
-          Dim _dotToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dotToken isnot Nothing 
-             AdjustFlagsAndWidth(_dotToken)
-             Me._dotToken = _dotToken
-          End If
-          Dim _eventMember = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _eventMember isnot Nothing 
-             AdjustFlagsAndWidth(_eventMember)
-             Me._eventMember = _eventMember
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New HandlesClauseItemSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._eventContainer)
-          writer.WriteValue(Me._dotToken)
-          writer.WriteValue(Me._eventMember)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(HandlesClauseItemSyntax), Function(r) New HandlesClauseItemSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.HandlesClauseItemSyntax(Me, parent, startLocation)
         End Function
@@ -7933,7 +6261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' a members of the containing type) or one of the special keywords "Me", "MyBase"
         ''' or "MyClass".
         ''' </summary>
-        Friend  ReadOnly Property EventContainer As InternalSyntax.EventContainerSyntax
+        Friend ReadOnly Property EventContainer As InternalSyntax.EventContainerSyntax
             Get
                 Return Me._eventContainer
             End Get
@@ -7942,7 +6270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "." token.
         ''' </summary>
-        Friend  ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dotToken
             End Get
@@ -7951,7 +6279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The event being handled. This must be a simple identifier.
         ''' </summary>
-        Friend  ReadOnly Property EventMember As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property EventMember As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._eventMember
             End Get
@@ -7966,8 +6294,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._eventMember
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8056,39 +6384,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _missingIdentifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _missingIdentifier isnot Nothing 
-             AdjustFlagsAndWidth(_missingIdentifier)
-             Me._missingIdentifier = _missingIdentifier
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New IncompleteMemberSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._missingIdentifier)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(IncompleteMemberSyntax), Function(r) New IncompleteMemberSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.IncompleteMemberSyntax(Me, parent, startLocation)
         End Function
@@ -8100,7 +6395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -8113,7 +6408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -8126,7 +6421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property MissingIdentifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property MissingIdentifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._missingIdentifier
             End Get
@@ -8141,8 +6436,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._missingIdentifier
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8232,39 +6527,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _declarators = DirectCast(reader.ReadValue(), GreenNode)
-          If _declarators isnot Nothing 
-             AdjustFlagsAndWidth(_declarators)
-             Me._declarators = _declarators
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FieldDeclarationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._declarators)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(FieldDeclarationSyntax), Function(r) New FieldDeclarationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldDeclarationSyntax(Me, parent, startLocation)
         End Function
@@ -8276,7 +6538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -8289,7 +6551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -8299,7 +6561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of variable declarator. Each declarator specifies one or more variable
         ''' names along with a type and/or initializer.
         ''' </summary>
-        Friend  ReadOnly Property Declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
+        Friend ReadOnly Property Declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of VariableDeclaratorSyntax)(Me._declarators))
             End Get
@@ -8314,8 +6576,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._declarators
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8403,39 +6665,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _names = DirectCast(reader.ReadValue(), GreenNode)
-          If _names isnot Nothing 
-             AdjustFlagsAndWidth(_names)
-             Me._names = _names
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), AsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), EqualsValueSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New VariableDeclaratorSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._names)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(VariableDeclaratorSyntax), Function(r) New VariableDeclaratorSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.VariableDeclaratorSyntax(Me, parent, startLocation)
         End Function
@@ -8444,7 +6673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The names of the variables being declared. Each name might have a "?" or "()"
         ''' modifier(s) attached.
         ''' </summary>
-        Friend  ReadOnly Property Names As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ModifiedIdentifierSyntax)
+        Friend ReadOnly Property Names As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ModifiedIdentifierSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ModifiedIdentifierSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ModifiedIdentifierSyntax)(Me._names))
             End Get
@@ -8457,7 +6686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.AsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.AsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -8470,7 +6699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.EqualsValueSyntax
             Get
                 Return Me._initializer
             End Get
@@ -8485,8 +6714,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8541,24 +6770,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _asKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _asKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_asKeyword)
-             Me._asKeyword = _asKeyword
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._asKeyword)
-        End Sub
-
         ''' <summary>
         ''' The "As" keyword.
         ''' </summary>
-        Friend  ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._asKeyword
             End Get
@@ -8617,33 +6832,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleAsClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._type)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SimpleAsClauseSyntax), Function(r) New SimpleAsClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax(Me, parent, startLocation)
         End Function
@@ -8655,7 +6843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -8664,7 +6852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type-name part of the As clause.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -8679,8 +6867,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._type
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8738,27 +6926,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _newExpression = DirectCast(reader.ReadValue(), NewExpressionSyntax)
-          If _newExpression isnot Nothing 
-             AdjustFlagsAndWidth(_newExpression)
-             Me._newExpression = _newExpression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AsNewClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._newExpression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AsNewClauseSyntax), Function(r) New AsNewClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AsNewClauseSyntax(Me, parent, startLocation)
         End Function
@@ -8766,7 +6933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The New expression
         ''' </summary>
-        Friend  ReadOnly Property NewExpression As InternalSyntax.NewExpressionSyntax
+        Friend ReadOnly Property NewExpression As InternalSyntax.NewExpressionSyntax
             Get
                 Return Me._newExpression
             End Get
@@ -8779,8 +6946,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._newExpression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -8801,7 +6968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     ''' <summary>
     ''' An abstract node class that represents a "With" or "From" clause used to
-    ''' initializer an new object.
+    ''' initialize a new object.
     ''' </summary>
     Friend MustInherit Class ObjectCreationInitializerSyntax
         Inherits VisualBasicSyntaxNode
@@ -8818,10 +6985,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -8889,45 +7052,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _withKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _withKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_withKeyword)
-             Me._withKeyword = _withKeyword
-          End If
-          Dim _openBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_openBraceToken)
-             Me._openBraceToken = _openBraceToken
-          End If
-          Dim _initializers = DirectCast(reader.ReadValue(), GreenNode)
-          If _initializers isnot Nothing 
-             AdjustFlagsAndWidth(_initializers)
-             Me._initializers = _initializers
-          End If
-          Dim _closeBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeBraceToken)
-             Me._closeBraceToken = _closeBraceToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ObjectMemberInitializerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._withKeyword)
-          writer.WriteValue(Me._openBraceToken)
-          writer.WriteValue(Me._initializers)
-          writer.WriteValue(Me._closeBraceToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ObjectMemberInitializerSyntax), Function(r) New ObjectMemberInitializerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ObjectMemberInitializerSyntax(Me, parent, startLocation)
         End Function
@@ -8935,7 +7059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "With" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WithKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WithKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._withKeyword
             End Get
@@ -8944,7 +7068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "{" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openBraceToken
             End Get
@@ -8953,7 +7077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The comma-separated list of field initializers.
         ''' </summary>
-        Friend  ReadOnly Property Initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of FieldInitializerSyntax)
+        Friend ReadOnly Property Initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of FieldInitializerSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of FieldInitializerSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of FieldInitializerSyntax)(Me._initializers))
             End Get
@@ -8962,7 +7086,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "}" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeBraceToken
             End Get
@@ -8979,8 +7103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeBraceToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9043,33 +7167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _fromKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _fromKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_fromKeyword)
-             Me._fromKeyword = _fromKeyword
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), CollectionInitializerSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ObjectCollectionInitializerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._fromKeyword)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ObjectCollectionInitializerSyntax), Function(r) New ObjectCollectionInitializerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ObjectCollectionInitializerSyntax(Me, parent, startLocation)
         End Function
@@ -9077,7 +7174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "From" keyword.
         ''' </summary>
-        Friend  ReadOnly Property FromKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property FromKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._fromKeyword
             End Get
@@ -9086,7 +7183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The initializer including the braces.
         ''' </summary>
-        Friend  ReadOnly Property Initializer As InternalSyntax.CollectionInitializerSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.CollectionInitializerSyntax
             Get
                 Return Me._initializer
             End Get
@@ -9099,8 +7196,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9159,27 +7256,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _keyKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyKeyword)
-             Me._keyKeyword = _keyKeyword
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyKeyword)
-        End Sub
-
         ''' <summary>
         ''' The optional "Key" keyword.
         ''' </summary>
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property KeyKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property KeyKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyKeyword
             End Get
@@ -9224,27 +7307,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InferredFieldInitializerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InferredFieldInitializerSyntax), Function(r) New InferredFieldInitializerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InferredFieldInitializerSyntax(Me, parent, startLocation)
         End Function
@@ -9252,7 +7314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The value being assigned.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -9265,8 +7327,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9343,45 +7405,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _dotToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dotToken isnot Nothing 
-             AdjustFlagsAndWidth(_dotToken)
-             Me._dotToken = _dotToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NamedFieldInitializerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._dotToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NamedFieldInitializerSyntax), Function(r) New NamedFieldInitializerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedFieldInitializerSyntax(Me, parent, startLocation)
         End Function
@@ -9389,7 +7412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "." token.
         ''' </summary>
-        Friend  ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dotToken
             End Get
@@ -9398,7 +7421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the field being initialized.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._name
             End Get
@@ -9407,7 +7430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -9416,7 +7439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The value being assigned to the field.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -9435,8 +7458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9499,33 +7522,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EqualsValueSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EqualsValueSyntax), Function(r) New EqualsValueSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EqualsValueSyntax(Me, parent, startLocation)
         End Function
@@ -9533,7 +7529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -9542,7 +7538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression used as the initial value.
         ''' </summary>
-        Friend  ReadOnly Property Value As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Value As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._value
             End Get
@@ -9555,8 +7551,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9663,51 +7659,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _identifier = DirectCast(reader.ReadValue(), ModifiedIdentifierSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _default = DirectCast(reader.ReadValue(), EqualsValueSyntax)
-          If _default isnot Nothing 
-             AdjustFlagsAndWidth(_default)
-             Me._default = _default
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ParameterSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._default)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ParameterSyntax), Function(r) New ParameterSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterSyntax(Me, parent, startLocation)
         End Function
@@ -9719,7 +7670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -9732,7 +7683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -9741,7 +7692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the parameter, including any "?" or "()" modifiers.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
             Get
                 Return Me._identifier
             End Get
@@ -9754,7 +7705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -9767,7 +7718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property [Default] As InternalSyntax.EqualsValueSyntax
+        Friend ReadOnly Property [Default] As InternalSyntax.EqualsValueSyntax
             Get
                 Return Me._default
             End Get
@@ -9786,8 +7737,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._default
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -9882,45 +7833,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _nullable = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _nullable isnot Nothing 
-             AdjustFlagsAndWidth(_nullable)
-             Me._nullable = _nullable
-          End If
-          Dim _arrayBounds = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _arrayBounds isnot Nothing 
-             AdjustFlagsAndWidth(_arrayBounds)
-             Me._arrayBounds = _arrayBounds
-          End If
-          Dim _arrayRankSpecifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _arrayRankSpecifiers isnot Nothing 
-             AdjustFlagsAndWidth(_arrayRankSpecifiers)
-             Me._arrayRankSpecifiers = _arrayRankSpecifiers
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ModifiedIdentifierSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._nullable)
-          writer.WriteValue(Me._arrayBounds)
-          writer.WriteValue(Me._arrayRankSpecifiers)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ModifiedIdentifierSyntax), Function(r) New ModifiedIdentifierSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ModifiedIdentifierSyntax(Me, parent, startLocation)
         End Function
@@ -9928,7 +7840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The identifier that names the item being declared.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -9940,7 +7852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Nullable As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Nullable As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._nullable
             End Get
@@ -9952,7 +7864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._arrayBounds
             End Get
@@ -9965,7 +7877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArrayRankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
+        Friend ReadOnly Property ArrayRankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)(Me._arrayRankSpecifiers)
             End Get
@@ -9982,8 +7894,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._arrayRankSpecifiers
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10059,39 +7971,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _commaTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _commaTokens isnot Nothing 
-             AdjustFlagsAndWidth(_commaTokens)
-             Me._commaTokens = _commaTokens
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ArrayRankSpecifierSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._commaTokens)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ArrayRankSpecifierSyntax), Function(r) New ArrayRankSpecifierSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayRankSpecifierSyntax(Me, parent, startLocation)
         End Function
@@ -10099,7 +7978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -10111,7 +7990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CommaTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of PunctuationSyntax)
+        Friend ReadOnly Property CommaTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of PunctuationSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._commaTokens)
             End Get
@@ -10120,7 +7999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -10135,8 +8014,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10211,39 +8090,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanToken)
-             Me._lessThanToken = _lessThanToken
-          End If
-          Dim _attributes = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributes isnot Nothing 
-             AdjustFlagsAndWidth(_attributes)
-             Me._attributes = _attributes
-          End If
-          Dim _greaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _greaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_greaterThanToken)
-             Me._greaterThanToken = _greaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AttributeListSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanToken)
-          writer.WriteValue(Me._attributes)
-          writer.WriteValue(Me._greaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AttributeListSyntax), Function(r) New AttributeListSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax(Me, parent, startLocation)
         End Function
@@ -10251,7 +8097,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "&lt;" token.
         ''' </summary>
-        Friend  ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanToken
             End Get
@@ -10263,7 +8109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AttributeSyntax)
+        Friend ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AttributeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AttributeSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of AttributeSyntax)(Me._attributes))
             End Get
@@ -10272,7 +8118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "&gt;" token.
         ''' </summary>
-        Friend  ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._greaterThanToken
             End Get
@@ -10287,8 +8133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._greaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10369,39 +8215,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _target = DirectCast(reader.ReadValue(), AttributeTargetSyntax)
-          If _target isnot Nothing 
-             AdjustFlagsAndWidth(_target)
-             Me._target = _target
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _argumentList = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _argumentList isnot Nothing 
-             AdjustFlagsAndWidth(_argumentList)
-             Me._argumentList = _argumentList
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AttributeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._target)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._argumentList)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AttributeSyntax), Function(r) New AttributeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeSyntax(Me, parent, startLocation)
         End Function
@@ -10412,7 +8225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Target As InternalSyntax.AttributeTargetSyntax
+        Friend ReadOnly Property Target As InternalSyntax.AttributeTargetSyntax
             Get
                 Return Me._target
             End Get
@@ -10421,7 +8234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the attribute.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.TypeSyntax
             Get
                 Return Me._name
             End Get
@@ -10434,7 +8247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._argumentList
             End Get
@@ -10449,8 +8262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._argumentList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10512,33 +8325,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _attributeModifier = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _attributeModifier isnot Nothing 
-             AdjustFlagsAndWidth(_attributeModifier)
-             Me._attributeModifier = _attributeModifier
-          End If
-          Dim _colonToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _colonToken isnot Nothing 
-             AdjustFlagsAndWidth(_colonToken)
-             Me._colonToken = _colonToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AttributeTargetSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeModifier)
-          writer.WriteValue(Me._colonToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AttributeTargetSyntax), Function(r) New AttributeTargetSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeTargetSyntax(Me, parent, startLocation)
         End Function
@@ -10547,7 +8333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "Assembly" or "Module" attribute modifier, is present. If no attribute
         ''' modifier is present, Nothing is returned.
         ''' </summary>
-        Friend  ReadOnly Property AttributeModifier As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AttributeModifier As InternalSyntax.KeywordSyntax
             Get
                 Return Me._attributeModifier
             End Get
@@ -10557,7 +8343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The ":" token, if an attribute modifier is present. If no attribute modifier is
         ''' present, Nothing is returned.
         ''' </summary>
-        Friend  ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._colonToken
             End Get
@@ -10570,8 +8356,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._colonToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10633,27 +8419,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AttributesStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._attributeLists)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AttributesStatementSyntax), Function(r) New AttributesStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributesStatementSyntax(Me, parent, startLocation)
         End Function
@@ -10664,7 +8429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -10732,27 +8497,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ExpressionStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ExpressionStatementSyntax), Function(r) New ExpressionStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionStatementSyntax(Me, parent, startLocation)
         End Function
@@ -10760,7 +8504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -10833,33 +8577,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _questionToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _questionToken isnot Nothing 
-             AdjustFlagsAndWidth(_questionToken)
-             Me._questionToken = _questionToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PrintStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._questionToken)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PrintStatementSyntax), Function(r) New PrintStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PrintStatementSyntax(Me, parent, startLocation)
         End Function
@@ -10867,7 +8584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' "?" token.
         ''' </summary>
-        Friend  ReadOnly Property QuestionToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property QuestionToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._questionToken
             End Get
@@ -10876,7 +8593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression whose value is being output.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -10889,8 +8606,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -10966,39 +8683,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _whileStatement = DirectCast(reader.ReadValue(), WhileStatementSyntax)
-          If _whileStatement isnot Nothing 
-             AdjustFlagsAndWidth(_whileStatement)
-             Me._whileStatement = _whileStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _endWhileStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endWhileStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endWhileStatement)
-             Me._endWhileStatement = _endWhileStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WhileBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._whileStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._endWhileStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WhileBlockSyntax), Function(r) New WhileBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileBlockSyntax(Me, parent, startLocation)
         End Function
@@ -11006,7 +8690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The While statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property WhileStatement As InternalSyntax.WhileStatementSyntax
+        Friend ReadOnly Property WhileStatement As InternalSyntax.WhileStatementSyntax
             Get
                 Return Me._whileStatement
             End Get
@@ -11018,7 +8702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -11027,7 +8711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End While statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndWhileStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndWhileStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endWhileStatement
             End Get
@@ -11042,8 +8726,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endWhileStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11119,39 +8803,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _usingStatement = DirectCast(reader.ReadValue(), UsingStatementSyntax)
-          If _usingStatement isnot Nothing 
-             AdjustFlagsAndWidth(_usingStatement)
-             Me._usingStatement = _usingStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _endUsingStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endUsingStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endUsingStatement)
-             Me._endUsingStatement = _endUsingStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New UsingBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._usingStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._endUsingStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(UsingBlockSyntax), Function(r) New UsingBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.UsingBlockSyntax(Me, parent, startLocation)
         End Function
@@ -11159,7 +8810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The UsingStatement that begins the Using...End Using block.
         ''' </summary>
-        Friend  ReadOnly Property UsingStatement As InternalSyntax.UsingStatementSyntax
+        Friend ReadOnly Property UsingStatement As InternalSyntax.UsingStatementSyntax
             Get
                 Return Me._usingStatement
             End Get
@@ -11172,7 +8823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -11181,7 +8832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End Using statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndUsingStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndUsingStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endUsingStatement
             End Get
@@ -11196,8 +8847,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endUsingStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11273,39 +8924,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _syncLockStatement = DirectCast(reader.ReadValue(), SyncLockStatementSyntax)
-          If _syncLockStatement isnot Nothing 
-             AdjustFlagsAndWidth(_syncLockStatement)
-             Me._syncLockStatement = _syncLockStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _endSyncLockStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endSyncLockStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endSyncLockStatement)
-             Me._endSyncLockStatement = _endSyncLockStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SyncLockBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._syncLockStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._endSyncLockStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SyncLockBlockSyntax), Function(r) New SyncLockBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockBlockSyntax(Me, parent, startLocation)
         End Function
@@ -11313,7 +8931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The SyncLock statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property SyncLockStatement As InternalSyntax.SyncLockStatementSyntax
+        Friend ReadOnly Property SyncLockStatement As InternalSyntax.SyncLockStatementSyntax
             Get
                 Return Me._syncLockStatement
             End Get
@@ -11326,7 +8944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -11335,7 +8953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End SyncLock statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndSyncLockStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndSyncLockStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endSyncLockStatement
             End Get
@@ -11350,8 +8968,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endSyncLockStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11427,39 +9045,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _withStatement = DirectCast(reader.ReadValue(), WithStatementSyntax)
-          If _withStatement isnot Nothing 
-             AdjustFlagsAndWidth(_withStatement)
-             Me._withStatement = _withStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _endWithStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endWithStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endWithStatement)
-             Me._endWithStatement = _endWithStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WithBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._withStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._endWithStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WithBlockSyntax), Function(r) New WithBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WithBlockSyntax(Me, parent, startLocation)
         End Function
@@ -11467,7 +9052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The WithStatement that begins the With...End With block.
         ''' </summary>
-        Friend  ReadOnly Property WithStatement As InternalSyntax.WithStatementSyntax
+        Friend ReadOnly Property WithStatement As InternalSyntax.WithStatementSyntax
             Get
                 Return Me._withStatement
             End Get
@@ -11480,7 +9065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -11489,7 +9074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End With statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndWithStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndWithStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endWithStatement
             End Get
@@ -11504,8 +9089,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endWithStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11579,33 +9164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _modifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _modifiers isnot Nothing 
-             AdjustFlagsAndWidth(_modifiers)
-             Me._modifiers = _modifiers
-          End If
-          Dim _declarators = DirectCast(reader.ReadValue(), GreenNode)
-          If _declarators isnot Nothing 
-             AdjustFlagsAndWidth(_declarators)
-             Me._declarators = _declarators
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LocalDeclarationStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._modifiers)
-          writer.WriteValue(Me._declarators)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LocalDeclarationStatementSyntax), Function(r) New LocalDeclarationStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LocalDeclarationStatementSyntax(Me, parent, startLocation)
         End Function
@@ -11614,7 +9172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The modifier token (Static, Dim or Const) that introduces this local variable
         ''' declaration.
         ''' </summary>
-        Friend  ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
+        Friend ReadOnly Property Modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._modifiers)
             End Get
@@ -11624,7 +9182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of variable declarator. Each declarator specifies one or more variable
         ''' names along with a type and/or initializer.
         ''' </summary>
-        Friend  ReadOnly Property Declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
+        Friend ReadOnly Property Declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of VariableDeclaratorSyntax)(Me._declarators))
             End Get
@@ -11637,8 +9195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._declarators
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11700,33 +9258,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _labelToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _labelToken isnot Nothing 
-             AdjustFlagsAndWidth(_labelToken)
-             Me._labelToken = _labelToken
-          End If
-          Dim _colonToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _colonToken isnot Nothing 
-             AdjustFlagsAndWidth(_colonToken)
-             Me._colonToken = _colonToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LabelStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._labelToken)
-          writer.WriteValue(Me._colonToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LabelStatementSyntax), Function(r) New LabelStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LabelStatementSyntax(Me, parent, startLocation)
         End Function
@@ -11735,7 +9266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The name of the label. If the label is a line number, returns an IntegerLiteral
         ''' that is the line number, otherwise, returns an Identifier.
         ''' </summary>
-        Friend  ReadOnly Property LabelToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property LabelToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._labelToken
             End Get
@@ -11744,7 +9275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ":" token of the label statement.
         ''' </summary>
-        Friend  ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._colonToken
             End Get
@@ -11757,8 +9288,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._colonToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11820,33 +9351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _goToKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _goToKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_goToKeyword)
-             Me._goToKeyword = _goToKeyword
-          End If
-          Dim _label = DirectCast(reader.ReadValue(), LabelSyntax)
-          If _label isnot Nothing 
-             AdjustFlagsAndWidth(_label)
-             Me._label = _label
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GoToStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._goToKeyword)
-          writer.WriteValue(Me._label)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GoToStatementSyntax), Function(r) New GoToStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GoToStatementSyntax(Me, parent, startLocation)
         End Function
@@ -11854,7 +9358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "GoTo" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GoToKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GoToKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._goToKeyword
             End Get
@@ -11864,7 +9368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The name of the label. If the label is a line number, wraps an IntegerLiteral
         ''' that is the line number, otherwise, wraps an Identifier.
         ''' </summary>
-        Friend  ReadOnly Property Label As InternalSyntax.LabelSyntax
+        Friend ReadOnly Property Label As InternalSyntax.LabelSyntax
             Get
                 Return Me._label
             End Get
@@ -11877,8 +9381,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._label
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -11934,27 +9438,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _labelToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _labelToken isnot Nothing 
-             AdjustFlagsAndWidth(_labelToken)
-             Me._labelToken = _labelToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LabelSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._labelToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LabelSyntax), Function(r) New LabelSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LabelSyntax(Me, parent, startLocation)
         End Function
@@ -11963,7 +9446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The label name (identifier), line number (integer literal), or next keyword
         ''' token.
         ''' </summary>
-        Friend  ReadOnly Property LabelToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property LabelToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._labelToken
             End Get
@@ -12030,27 +9513,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _stopOrEndKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _stopOrEndKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_stopOrEndKeyword)
-             Me._stopOrEndKeyword = _stopOrEndKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New StopOrEndStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._stopOrEndKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(StopOrEndStatementSyntax), Function(r) New StopOrEndStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.StopOrEndStatementSyntax(Me, parent, startLocation)
         End Function
@@ -12058,7 +9520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Stop" or "End" keyword.
         ''' </summary>
-        Friend  ReadOnly Property StopOrEndKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property StopOrEndKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._stopOrEndKeyword
             End Get
@@ -12132,33 +9594,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _exitKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _exitKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_exitKeyword)
-             Me._exitKeyword = _exitKeyword
-          End If
-          Dim _blockKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _blockKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_blockKeyword)
-             Me._blockKeyword = _blockKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ExitStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._exitKeyword)
-          writer.WriteValue(Me._blockKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ExitStatementSyntax), Function(r) New ExitStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ExitStatementSyntax(Me, parent, startLocation)
         End Function
@@ -12166,7 +9601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Exit" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ExitKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ExitKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._exitKeyword
             End Get
@@ -12175,7 +9610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The keyword describing the block to exit.
         ''' </summary>
-        Friend  ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._blockKeyword
             End Get
@@ -12188,8 +9623,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._blockKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -12252,33 +9687,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _continueKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _continueKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_continueKeyword)
-             Me._continueKeyword = _continueKeyword
-          End If
-          Dim _blockKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _blockKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_blockKeyword)
-             Me._blockKeyword = _blockKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ContinueStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._continueKeyword)
-          writer.WriteValue(Me._blockKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ContinueStatementSyntax), Function(r) New ContinueStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ContinueStatementSyntax(Me, parent, startLocation)
         End Function
@@ -12286,7 +9694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Continue" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ContinueKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ContinueKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._continueKeyword
             End Get
@@ -12296,7 +9704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </summary>
-        Friend  ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property BlockKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._blockKeyword
             End Get
@@ -12309,8 +9717,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._blockKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -12378,33 +9786,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _returnKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _returnKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_returnKeyword)
-             Me._returnKeyword = _returnKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ReturnStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._returnKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ReturnStatementSyntax), Function(r) New ReturnStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ReturnStatementSyntax(Me, parent, startLocation)
         End Function
@@ -12412,7 +9793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Return" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ReturnKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ReturnKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._returnKeyword
             End Get
@@ -12424,7 +9805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -12437,8 +9818,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -12533,51 +9914,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _ifKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifKeyword)
-             Me._ifKeyword = _ifKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-          Dim _thenKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _thenKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_thenKeyword)
-             Me._thenKeyword = _thenKeyword
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _elseClause = DirectCast(reader.ReadValue(), SingleLineElseClauseSyntax)
-          If _elseClause isnot Nothing 
-             AdjustFlagsAndWidth(_elseClause)
-             Me._elseClause = _elseClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SingleLineIfStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._ifKeyword)
-          writer.WriteValue(Me._condition)
-          writer.WriteValue(Me._thenKeyword)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._elseClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SingleLineIfStatementSyntax), Function(r) New SingleLineIfStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineIfStatementSyntax(Me, parent, startLocation)
         End Function
@@ -12585,7 +9921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "If" keyword.
         ''' </summary>
-        Friend  ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifKeyword
             End Get
@@ -12594,7 +9930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The condition expression to be evaluated.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -12603,7 +9939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Then" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._thenKeyword
             End Get
@@ -12616,7 +9952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -12628,7 +9964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ElseClause As InternalSyntax.SingleLineElseClauseSyntax
+        Friend ReadOnly Property ElseClause As InternalSyntax.SingleLineElseClauseSyntax
             Get
                 Return Me._elseClause
             End Get
@@ -12647,8 +9983,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._elseClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -12716,33 +10052,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseKeyword)
-             Me._elseKeyword = _elseKeyword
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SingleLineElseClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseKeyword)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SingleLineElseClauseSyntax), Function(r) New SingleLineElseClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineElseClauseSyntax(Me, parent, startLocation)
         End Function
@@ -12750,7 +10059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Else" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseKeyword
             End Get
@@ -12763,7 +10072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -12776,8 +10085,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -12879,51 +10188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _ifStatement = DirectCast(reader.ReadValue(), IfStatementSyntax)
-          If _ifStatement isnot Nothing 
-             AdjustFlagsAndWidth(_ifStatement)
-             Me._ifStatement = _ifStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _elseIfBlocks = DirectCast(reader.ReadValue(), GreenNode)
-          If _elseIfBlocks isnot Nothing 
-             AdjustFlagsAndWidth(_elseIfBlocks)
-             Me._elseIfBlocks = _elseIfBlocks
-          End If
-          Dim _elseBlock = DirectCast(reader.ReadValue(), ElseBlockSyntax)
-          If _elseBlock isnot Nothing 
-             AdjustFlagsAndWidth(_elseBlock)
-             Me._elseBlock = _elseBlock
-          End If
-          Dim _endIfStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endIfStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endIfStatement)
-             Me._endIfStatement = _endIfStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MultiLineIfBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._ifStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._elseIfBlocks)
-          writer.WriteValue(Me._elseBlock)
-          writer.WriteValue(Me._endIfStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MultiLineIfBlockSyntax), Function(r) New MultiLineIfBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MultiLineIfBlockSyntax(Me, parent, startLocation)
         End Function
@@ -12931,7 +10195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "If" statement that begins the "If" block.
         ''' </summary>
-        Friend  ReadOnly Property IfStatement As InternalSyntax.IfStatementSyntax
+        Friend ReadOnly Property IfStatement As InternalSyntax.IfStatementSyntax
             Get
                 Return Me._ifStatement
             End Get
@@ -12944,7 +10208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -12957,7 +10221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ElseIfBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ElseIfBlockSyntax)
+        Friend ReadOnly Property ElseIfBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ElseIfBlockSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ElseIfBlockSyntax)(Me._elseIfBlocks)
             End Get
@@ -12970,7 +10234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ElseBlock As InternalSyntax.ElseBlockSyntax
+        Friend ReadOnly Property ElseBlock As InternalSyntax.ElseBlockSyntax
             Get
                 Return Me._elseBlock
             End Get
@@ -12979,7 +10243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Then "End If" statement.
         ''' </summary>
-        Friend  ReadOnly Property EndIfStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndIfStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endIfStatement
             End Get
@@ -12998,8 +10262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endIfStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13074,39 +10338,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _ifKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifKeyword)
-             Me._ifKeyword = _ifKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-          Dim _thenKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _thenKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_thenKeyword)
-             Me._thenKeyword = _thenKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New IfStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._ifKeyword)
-          writer.WriteValue(Me._condition)
-          writer.WriteValue(Me._thenKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(IfStatementSyntax), Function(r) New IfStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.IfStatementSyntax(Me, parent, startLocation)
         End Function
@@ -13114,7 +10345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "If" keyword.
         ''' </summary>
-        Friend  ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifKeyword
             End Get
@@ -13123,7 +10354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The condition expression to be evaluated.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -13135,7 +10366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._thenKeyword
             End Get
@@ -13150,8 +10381,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._thenKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13219,33 +10450,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elseIfStatement = DirectCast(reader.ReadValue(), ElseIfStatementSyntax)
-          If _elseIfStatement isnot Nothing 
-             AdjustFlagsAndWidth(_elseIfStatement)
-             Me._elseIfStatement = _elseIfStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseIfBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseIfStatement)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseIfBlockSyntax), Function(r) New ElseIfBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseIfBlockSyntax(Me, parent, startLocation)
         End Function
@@ -13253,7 +10457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "ElseIf ... Then" statement the begins the "ElseIf" block.
         ''' </summary>
-        Friend  ReadOnly Property ElseIfStatement As InternalSyntax.ElseIfStatementSyntax
+        Friend ReadOnly Property ElseIfStatement As InternalSyntax.ElseIfStatementSyntax
             Get
                 Return Me._elseIfStatement
             End Get
@@ -13266,7 +10470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -13279,8 +10483,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13355,39 +10559,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _elseIfKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseIfKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseIfKeyword)
-             Me._elseIfKeyword = _elseIfKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-          Dim _thenKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _thenKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_thenKeyword)
-             Me._thenKeyword = _thenKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseIfStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseIfKeyword)
-          writer.WriteValue(Me._condition)
-          writer.WriteValue(Me._thenKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseIfStatementSyntax), Function(r) New ElseIfStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseIfStatementSyntax(Me, parent, startLocation)
         End Function
@@ -13395,7 +10566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "ElseIf" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ElseIfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseIfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseIfKeyword
             End Get
@@ -13404,7 +10575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The condition expression to be evaluated.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -13416,7 +10587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._thenKeyword
             End Get
@@ -13431,8 +10602,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._thenKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13500,33 +10671,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elseStatement = DirectCast(reader.ReadValue(), ElseStatementSyntax)
-          If _elseStatement isnot Nothing 
-             AdjustFlagsAndWidth(_elseStatement)
-             Me._elseStatement = _elseStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseStatement)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseBlockSyntax), Function(r) New ElseBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseBlockSyntax(Me, parent, startLocation)
         End Function
@@ -13534,7 +10678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Else" statement that begins the "Else" block.
         ''' </summary>
-        Friend  ReadOnly Property ElseStatement As InternalSyntax.ElseStatementSyntax
+        Friend ReadOnly Property ElseStatement As InternalSyntax.ElseStatementSyntax
             Get
                 Return Me._elseStatement
             End Get
@@ -13546,7 +10690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -13559,8 +10703,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13615,27 +10759,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _elseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseKeyword)
-             Me._elseKeyword = _elseKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseStatementSyntax), Function(r) New ElseStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseStatementSyntax(Me, parent, startLocation)
         End Function
@@ -13643,7 +10766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Else" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseKeyword
             End Get
@@ -13755,51 +10878,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _tryStatement = DirectCast(reader.ReadValue(), TryStatementSyntax)
-          If _tryStatement isnot Nothing 
-             AdjustFlagsAndWidth(_tryStatement)
-             Me._tryStatement = _tryStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _catchBlocks = DirectCast(reader.ReadValue(), GreenNode)
-          If _catchBlocks isnot Nothing 
-             AdjustFlagsAndWidth(_catchBlocks)
-             Me._catchBlocks = _catchBlocks
-          End If
-          Dim _finallyBlock = DirectCast(reader.ReadValue(), FinallyBlockSyntax)
-          If _finallyBlock isnot Nothing 
-             AdjustFlagsAndWidth(_finallyBlock)
-             Me._finallyBlock = _finallyBlock
-          End If
-          Dim _endTryStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endTryStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endTryStatement)
-             Me._endTryStatement = _endTryStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TryBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._tryStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._catchBlocks)
-          writer.WriteValue(Me._finallyBlock)
-          writer.WriteValue(Me._endTryStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TryBlockSyntax), Function(r) New TryBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TryBlockSyntax(Me, parent, startLocation)
         End Function
@@ -13807,7 +10885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Try" statement that begins the "Try" block.
         ''' </summary>
-        Friend  ReadOnly Property TryStatement As InternalSyntax.TryStatementSyntax
+        Friend ReadOnly Property TryStatement As InternalSyntax.TryStatementSyntax
             Get
                 Return Me._tryStatement
             End Get
@@ -13819,7 +10897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -13832,7 +10910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CatchBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CatchBlockSyntax)
+        Friend ReadOnly Property CatchBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CatchBlockSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CatchBlockSyntax)(Me._catchBlocks)
             End Get
@@ -13844,7 +10922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property FinallyBlock As InternalSyntax.FinallyBlockSyntax
+        Friend ReadOnly Property FinallyBlock As InternalSyntax.FinallyBlockSyntax
             Get
                 Return Me._finallyBlock
             End Get
@@ -13853,7 +10931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End Try" statement.
         ''' </summary>
-        Friend  ReadOnly Property EndTryStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndTryStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endTryStatement
             End Get
@@ -13872,8 +10950,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endTryStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -13928,27 +11006,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _tryKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _tryKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_tryKeyword)
-             Me._tryKeyword = _tryKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TryStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._tryKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TryStatementSyntax), Function(r) New TryStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TryStatementSyntax(Me, parent, startLocation)
         End Function
@@ -13956,7 +11013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Try" keyword.
         ''' </summary>
-        Friend  ReadOnly Property TryKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property TryKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._tryKeyword
             End Get
@@ -14035,33 +11092,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _catchStatement = DirectCast(reader.ReadValue(), CatchStatementSyntax)
-          If _catchStatement isnot Nothing 
-             AdjustFlagsAndWidth(_catchStatement)
-             Me._catchStatement = _catchStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CatchBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._catchStatement)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CatchBlockSyntax), Function(r) New CatchBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchBlockSyntax(Me, parent, startLocation)
         End Function
@@ -14069,7 +11099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Catch" statement that begins the "Catch" block.
         ''' </summary>
-        Friend  ReadOnly Property CatchStatement As InternalSyntax.CatchStatementSyntax
+        Friend ReadOnly Property CatchStatement As InternalSyntax.CatchStatementSyntax
             Get
                 Return Me._catchStatement
             End Get
@@ -14082,7 +11112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -14095,8 +11125,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -14190,45 +11220,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _catchKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _catchKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_catchKeyword)
-             Me._catchKeyword = _catchKeyword
-          End If
-          Dim _identifierName = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _identifierName isnot Nothing 
-             AdjustFlagsAndWidth(_identifierName)
-             Me._identifierName = _identifierName
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _whenClause = DirectCast(reader.ReadValue(), CatchFilterClauseSyntax)
-          If _whenClause isnot Nothing 
-             AdjustFlagsAndWidth(_whenClause)
-             Me._whenClause = _whenClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CatchStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._catchKeyword)
-          writer.WriteValue(Me._identifierName)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._whenClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CatchStatementSyntax), Function(r) New CatchStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchStatementSyntax(Me, parent, startLocation)
         End Function
@@ -14236,7 +11227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Catch" keyword.
         ''' </summary>
-        Friend  ReadOnly Property CatchKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CatchKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._catchKeyword
             End Get
@@ -14249,7 +11240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property IdentifierName As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property IdentifierName As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._identifierName
             End Get
@@ -14261,7 +11252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -14273,7 +11264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property WhenClause As InternalSyntax.CatchFilterClauseSyntax
+        Friend ReadOnly Property WhenClause As InternalSyntax.CatchFilterClauseSyntax
             Get
                 Return Me._whenClause
             End Get
@@ -14290,8 +11281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._whenClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -14353,33 +11344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _whenKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _whenKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_whenKeyword)
-             Me._whenKeyword = _whenKeyword
-          End If
-          Dim _filter = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _filter isnot Nothing 
-             AdjustFlagsAndWidth(_filter)
-             Me._filter = _filter
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CatchFilterClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._whenKeyword)
-          writer.WriteValue(Me._filter)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CatchFilterClauseSyntax), Function(r) New CatchFilterClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchFilterClauseSyntax(Me, parent, startLocation)
         End Function
@@ -14387,7 +11351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "When" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WhenKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WhenKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._whenKeyword
             End Get
@@ -14396,7 +11360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The filter expression to be evaluated.
         ''' </summary>
-        Friend  ReadOnly Property Filter As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Filter As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._filter
             End Get
@@ -14409,8 +11373,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._filter
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -14478,33 +11442,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _finallyStatement = DirectCast(reader.ReadValue(), FinallyStatementSyntax)
-          If _finallyStatement isnot Nothing 
-             AdjustFlagsAndWidth(_finallyStatement)
-             Me._finallyStatement = _finallyStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FinallyBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._finallyStatement)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(FinallyBlockSyntax), Function(r) New FinallyBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyBlockSyntax(Me, parent, startLocation)
         End Function
@@ -14512,7 +11449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Finally" statement that begins the "Finally" block.
         ''' </summary>
-        Friend  ReadOnly Property FinallyStatement As InternalSyntax.FinallyStatementSyntax
+        Friend ReadOnly Property FinallyStatement As InternalSyntax.FinallyStatementSyntax
             Get
                 Return Me._finallyStatement
             End Get
@@ -14524,7 +11461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -14537,8 +11474,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -14593,27 +11530,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _finallyKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _finallyKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_finallyKeyword)
-             Me._finallyKeyword = _finallyKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FinallyStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._finallyKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(FinallyStatementSyntax), Function(r) New FinallyStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyStatementSyntax(Me, parent, startLocation)
         End Function
@@ -14621,7 +11537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Finally" keyword.
         ''' </summary>
-        Friend  ReadOnly Property FinallyKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property FinallyKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._finallyKeyword
             End Get
@@ -14694,33 +11610,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _errorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _errorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_errorKeyword)
-             Me._errorKeyword = _errorKeyword
-          End If
-          Dim _errorNumber = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _errorNumber isnot Nothing 
-             AdjustFlagsAndWidth(_errorNumber)
-             Me._errorNumber = _errorNumber
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ErrorStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._errorKeyword)
-          writer.WriteValue(Me._errorNumber)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ErrorStatementSyntax), Function(r) New ErrorStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ErrorStatementSyntax(Me, parent, startLocation)
         End Function
@@ -14728,7 +11617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Error" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._errorKeyword
             End Get
@@ -14737,7 +11626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that represents the error number.
         ''' </summary>
-        Friend  ReadOnly Property ErrorNumber As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property ErrorNumber As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._errorNumber
             End Get
@@ -14750,8 +11639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._errorNumber
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -14840,51 +11729,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _onKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _onKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_onKeyword)
-             Me._onKeyword = _onKeyword
-          End If
-          Dim _errorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _errorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_errorKeyword)
-             Me._errorKeyword = _errorKeyword
-          End If
-          Dim _goToKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _goToKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_goToKeyword)
-             Me._goToKeyword = _goToKeyword
-          End If
-          Dim _minus = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _minus isnot Nothing 
-             AdjustFlagsAndWidth(_minus)
-             Me._minus = _minus
-          End If
-          Dim _label = DirectCast(reader.ReadValue(), LabelSyntax)
-          If _label isnot Nothing 
-             AdjustFlagsAndWidth(_label)
-             Me._label = _label
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OnErrorGoToStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._onKeyword)
-          writer.WriteValue(Me._errorKeyword)
-          writer.WriteValue(Me._goToKeyword)
-          writer.WriteValue(Me._minus)
-          writer.WriteValue(Me._label)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OnErrorGoToStatementSyntax), Function(r) New OnErrorGoToStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OnErrorGoToStatementSyntax(Me, parent, startLocation)
         End Function
@@ -14892,7 +11736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "On" keyword
         ''' </summary>
-        Friend  ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._onKeyword
             End Get
@@ -14901,7 +11745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Error" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._errorKeyword
             End Get
@@ -14910,7 +11754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "GoTo" keyword
         ''' </summary>
-        Friend  ReadOnly Property GoToKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GoToKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._goToKeyword
             End Get
@@ -14922,7 +11766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Minus As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Minus As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._minus
             End Get
@@ -14932,7 +11776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The name of the label. If the label is a line number, 0 or -1, wraps an
         ''' IntegerLiteralToken that is the line number, otherwise, wraps an Identifier.
         ''' </summary>
-        Friend  ReadOnly Property Label As InternalSyntax.LabelSyntax
+        Friend ReadOnly Property Label As InternalSyntax.LabelSyntax
             Get
                 Return Me._label
             End Get
@@ -14951,8 +11795,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._label
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15028,45 +11872,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _onKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _onKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_onKeyword)
-             Me._onKeyword = _onKeyword
-          End If
-          Dim _errorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _errorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_errorKeyword)
-             Me._errorKeyword = _errorKeyword
-          End If
-          Dim _resumeKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _resumeKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_resumeKeyword)
-             Me._resumeKeyword = _resumeKeyword
-          End If
-          Dim _nextKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _nextKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_nextKeyword)
-             Me._nextKeyword = _nextKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OnErrorResumeNextStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._onKeyword)
-          writer.WriteValue(Me._errorKeyword)
-          writer.WriteValue(Me._resumeKeyword)
-          writer.WriteValue(Me._nextKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OnErrorResumeNextStatementSyntax), Function(r) New OnErrorResumeNextStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OnErrorResumeNextStatementSyntax(Me, parent, startLocation)
         End Function
@@ -15074,7 +11879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "On" keyword
         ''' </summary>
-        Friend  ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._onKeyword
             End Get
@@ -15083,7 +11888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Error" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ErrorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._errorKeyword
             End Get
@@ -15092,7 +11897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Resume" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ResumeKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ResumeKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._resumeKeyword
             End Get
@@ -15101,7 +11906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Next"
         ''' </summary>
-        Friend  ReadOnly Property NextKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NextKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._nextKeyword
             End Get
@@ -15118,8 +11923,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._nextKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15188,33 +11993,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _resumeKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _resumeKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_resumeKeyword)
-             Me._resumeKeyword = _resumeKeyword
-          End If
-          Dim _label = DirectCast(reader.ReadValue(), LabelSyntax)
-          If _label isnot Nothing 
-             AdjustFlagsAndWidth(_label)
-             Me._label = _label
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ResumeStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._resumeKeyword)
-          writer.WriteValue(Me._label)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ResumeStatementSyntax), Function(r) New ResumeStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ResumeStatementSyntax(Me, parent, startLocation)
         End Function
@@ -15222,7 +12000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Resume" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ResumeKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ResumeKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._resumeKeyword
             End Get
@@ -15236,7 +12014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Label As InternalSyntax.LabelSyntax
+        Friend ReadOnly Property Label As InternalSyntax.LabelSyntax
             Get
                 Return Me._label
             End Get
@@ -15249,8 +12027,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._label
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15326,39 +12104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _selectStatement = DirectCast(reader.ReadValue(), SelectStatementSyntax)
-          If _selectStatement isnot Nothing 
-             AdjustFlagsAndWidth(_selectStatement)
-             Me._selectStatement = _selectStatement
-          End If
-          Dim _caseBlocks = DirectCast(reader.ReadValue(), GreenNode)
-          If _caseBlocks isnot Nothing 
-             AdjustFlagsAndWidth(_caseBlocks)
-             Me._caseBlocks = _caseBlocks
-          End If
-          Dim _endSelectStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endSelectStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endSelectStatement)
-             Me._endSelectStatement = _endSelectStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SelectBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._selectStatement)
-          writer.WriteValue(Me._caseBlocks)
-          writer.WriteValue(Me._endSelectStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SelectBlockSyntax), Function(r) New SelectBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SelectBlockSyntax(Me, parent, startLocation)
         End Function
@@ -15366,7 +12111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The Select Case statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property SelectStatement As InternalSyntax.SelectStatementSyntax
+        Friend ReadOnly Property SelectStatement As InternalSyntax.SelectStatementSyntax
             Get
                 Return Me._selectStatement
             End Get
@@ -15378,7 +12123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CaseBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CaseBlockSyntax)
+        Friend ReadOnly Property CaseBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CaseBlockSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of CaseBlockSyntax)(Me._caseBlocks)
             End Get
@@ -15387,7 +12132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The End Select statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property EndSelectStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndSelectStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endSelectStatement
             End Get
@@ -15402,8 +12147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endSelectStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15479,39 +12224,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _selectKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _selectKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_selectKeyword)
-             Me._selectKeyword = _selectKeyword
-          End If
-          Dim _caseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _caseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_caseKeyword)
-             Me._caseKeyword = _caseKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SelectStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._selectKeyword)
-          writer.WriteValue(Me._caseKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SelectStatementSyntax), Function(r) New SelectStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SelectStatementSyntax(Me, parent, startLocation)
         End Function
@@ -15519,7 +12231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Select" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SelectKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SelectKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._selectKeyword
             End Get
@@ -15531,7 +12243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CaseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CaseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._caseKeyword
             End Get
@@ -15540,7 +12252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The value that branching is based on.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -15555,8 +12267,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15624,33 +12336,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _caseStatement = DirectCast(reader.ReadValue(), CaseStatementSyntax)
-          If _caseStatement isnot Nothing 
-             AdjustFlagsAndWidth(_caseStatement)
-             Me._caseStatement = _caseStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CaseBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._caseStatement)
-          writer.WriteValue(Me._statements)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CaseBlockSyntax), Function(r) New CaseBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseBlockSyntax(Me, parent, startLocation)
         End Function
@@ -15658,7 +12343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The statement that begins the case block.
         ''' </summary>
-        Friend  ReadOnly Property CaseStatement As InternalSyntax.CaseStatementSyntax
+        Friend ReadOnly Property CaseStatement As InternalSyntax.CaseStatementSyntax
             Get
                 Return Me._caseStatement
             End Get
@@ -15670,7 +12355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -15683,8 +12368,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._statements
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15754,33 +12439,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _caseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _caseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_caseKeyword)
-             Me._caseKeyword = _caseKeyword
-          End If
-          Dim _cases = DirectCast(reader.ReadValue(), GreenNode)
-          If _cases isnot Nothing 
-             AdjustFlagsAndWidth(_cases)
-             Me._cases = _cases
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CaseStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._caseKeyword)
-          writer.WriteValue(Me._cases)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CaseStatementSyntax), Function(r) New CaseStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseStatementSyntax(Me, parent, startLocation)
         End Function
@@ -15788,7 +12446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Case" keyword
         ''' </summary>
-        Friend  ReadOnly Property CaseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CaseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._caseKeyword
             End Get
@@ -15798,7 +12456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of clauses associated with this Case. If Kind=CaseElse, then this list
         ''' has exactly one child, which is a ElseCaseClause.
         ''' </summary>
-        Friend  ReadOnly Property Cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CaseClauseSyntax)
+        Friend ReadOnly Property Cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CaseClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CaseClauseSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of CaseClauseSyntax)(Me._cases))
             End Get
@@ -15811,8 +12469,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._cases
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -15850,10 +12508,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -15894,27 +12548,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _elseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseKeyword)
-             Me._elseKeyword = _elseKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseCaseClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseCaseClauseSyntax), Function(r) New ElseCaseClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseCaseClauseSyntax(Me, parent, startLocation)
         End Function
@@ -15922,7 +12555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Else" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseKeyword
             End Get
@@ -15988,27 +12621,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _value = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleCaseClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SimpleCaseClauseSyntax), Function(r) New SimpleCaseClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleCaseClauseSyntax(Me, parent, startLocation)
         End Function
@@ -16016,7 +12628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that denotes the value being tested against.
         ''' </summary>
-        Friend  ReadOnly Property Value As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Value As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._value
             End Get
@@ -16096,39 +12708,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lowerBound = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _lowerBound isnot Nothing 
-             AdjustFlagsAndWidth(_lowerBound)
-             Me._lowerBound = _lowerBound
-          End If
-          Dim _toKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _toKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_toKeyword)
-             Me._toKeyword = _toKeyword
-          End If
-          Dim _upperBound = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _upperBound isnot Nothing 
-             AdjustFlagsAndWidth(_upperBound)
-             Me._upperBound = _upperBound
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RangeCaseClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lowerBound)
-          writer.WriteValue(Me._toKeyword)
-          writer.WriteValue(Me._upperBound)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RangeCaseClauseSyntax), Function(r) New RangeCaseClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeCaseClauseSyntax(Me, parent, startLocation)
         End Function
@@ -16136,7 +12715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The lower bound of the range.
         ''' </summary>
-        Friend  ReadOnly Property LowerBound As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property LowerBound As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._lowerBound
             End Get
@@ -16145,7 +12724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "To" keyword
         ''' </summary>
-        Friend  ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._toKeyword
             End Get
@@ -16154,7 +12733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The upper bound of the range.
         ''' </summary>
-        Friend  ReadOnly Property UpperBound As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property UpperBound As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._upperBound
             End Get
@@ -16169,8 +12748,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._upperBound
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16245,39 +12824,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _isKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _isKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_isKeyword)
-             Me._isKeyword = _isKeyword
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RelationalCaseClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._isKeyword)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RelationalCaseClauseSyntax), Function(r) New RelationalCaseClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RelationalCaseClauseSyntax(Me, parent, startLocation)
         End Function
@@ -16288,7 +12834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property IsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._isKeyword
             End Get
@@ -16298,7 +12844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The operator in the relational clause. One of "=", "&lt;", "&gt;", "&lt;=" or
         ''' "&gt;=".
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._operatorToken
             End Get
@@ -16307,7 +12853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that denotes the value being tested against.
         ''' </summary>
-        Friend  ReadOnly Property Value As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Value As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._value
             End Get
@@ -16322,8 +12868,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16386,33 +12932,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _syncLockKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _syncLockKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_syncLockKeyword)
-             Me._syncLockKeyword = _syncLockKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SyncLockStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._syncLockKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SyncLockStatementSyntax), Function(r) New SyncLockStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax(Me, parent, startLocation)
         End Function
@@ -16420,7 +12939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "SyncLock" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SyncLockKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SyncLockKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._syncLockKeyword
             End Get
@@ -16429,7 +12948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being synchronized on.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -16442,8 +12961,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16519,39 +13038,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _doStatement = DirectCast(reader.ReadValue(), DoStatementSyntax)
-          If _doStatement isnot Nothing 
-             AdjustFlagsAndWidth(_doStatement)
-             Me._doStatement = _doStatement
-          End If
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _loopStatement = DirectCast(reader.ReadValue(), LoopStatementSyntax)
-          If _loopStatement isnot Nothing 
-             AdjustFlagsAndWidth(_loopStatement)
-             Me._loopStatement = _loopStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DoLoopBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._doStatement)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._loopStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DoLoopBlockSyntax), Function(r) New DoLoopBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DoLoopBlockSyntax(Me, parent, startLocation)
         End Function
@@ -16559,7 +13045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The Do statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property DoStatement As InternalSyntax.DoStatementSyntax
+        Friend ReadOnly Property DoStatement As InternalSyntax.DoStatementSyntax
             Get
                 Return Me._doStatement
             End Get
@@ -16571,7 +13057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -16580,7 +13066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The Loop statement that ends the block.
         ''' </summary>
-        Friend  ReadOnly Property LoopStatement As InternalSyntax.LoopStatementSyntax
+        Friend ReadOnly Property LoopStatement As InternalSyntax.LoopStatementSyntax
             Get
                 Return Me._loopStatement
             End Get
@@ -16595,8 +13081,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._loopStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16664,33 +13150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _doKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _doKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_doKeyword)
-             Me._doKeyword = _doKeyword
-          End If
-          Dim _whileOrUntilClause = DirectCast(reader.ReadValue(), WhileOrUntilClauseSyntax)
-          If _whileOrUntilClause isnot Nothing 
-             AdjustFlagsAndWidth(_whileOrUntilClause)
-             Me._whileOrUntilClause = _whileOrUntilClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DoStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._doKeyword)
-          writer.WriteValue(Me._whileOrUntilClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DoStatementSyntax), Function(r) New DoStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DoStatementSyntax(Me, parent, startLocation)
         End Function
@@ -16698,7 +13157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Do" keyword.
         ''' </summary>
-        Friend  ReadOnly Property DoKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property DoKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._doKeyword
             End Get
@@ -16711,7 +13170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property WhileOrUntilClause As InternalSyntax.WhileOrUntilClauseSyntax
+        Friend ReadOnly Property WhileOrUntilClause As InternalSyntax.WhileOrUntilClauseSyntax
             Get
                 Return Me._whileOrUntilClause
             End Get
@@ -16724,8 +13183,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._whileOrUntilClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16793,33 +13252,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _loopKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _loopKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_loopKeyword)
-             Me._loopKeyword = _loopKeyword
-          End If
-          Dim _whileOrUntilClause = DirectCast(reader.ReadValue(), WhileOrUntilClauseSyntax)
-          If _whileOrUntilClause isnot Nothing 
-             AdjustFlagsAndWidth(_whileOrUntilClause)
-             Me._whileOrUntilClause = _whileOrUntilClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LoopStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._loopKeyword)
-          writer.WriteValue(Me._whileOrUntilClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LoopStatementSyntax), Function(r) New LoopStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LoopStatementSyntax(Me, parent, startLocation)
         End Function
@@ -16827,7 +13259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Loop" keyword.
         ''' </summary>
-        Friend  ReadOnly Property LoopKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property LoopKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._loopKeyword
             End Get
@@ -16840,7 +13272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property WhileOrUntilClause As InternalSyntax.WhileOrUntilClauseSyntax
+        Friend ReadOnly Property WhileOrUntilClause As InternalSyntax.WhileOrUntilClauseSyntax
             Get
                 Return Me._whileOrUntilClause
             End Get
@@ -16853,8 +13285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._whileOrUntilClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -16918,33 +13350,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _whileOrUntilKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _whileOrUntilKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_whileOrUntilKeyword)
-             Me._whileOrUntilKeyword = _whileOrUntilKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WhileOrUntilClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._whileOrUntilKeyword)
-          writer.WriteValue(Me._condition)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WhileOrUntilClauseSyntax), Function(r) New WhileOrUntilClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileOrUntilClauseSyntax(Me, parent, startLocation)
         End Function
@@ -16952,7 +13357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "While" or "Until" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WhileOrUntilKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WhileOrUntilKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._whileOrUntilKeyword
             End Get
@@ -16961,7 +13366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The boolean expression after the While or Until.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -16974,8 +13379,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._condition
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17038,33 +13443,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _whileKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _whileKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_whileKeyword)
-             Me._whileKeyword = _whileKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WhileStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._whileKeyword)
-          writer.WriteValue(Me._condition)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WhileStatementSyntax), Function(r) New WhileStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileStatementSyntax(Me, parent, startLocation)
         End Function
@@ -17072,7 +13450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "While" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WhileKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WhileKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._whileKeyword
             End Get
@@ -17081,7 +13459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The boolean expression that controls the While loop.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -17094,8 +13472,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._condition
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17166,26 +13544,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _nextStatement = DirectCast(reader.ReadValue(), NextStatementSyntax)
-          If _nextStatement isnot Nothing 
-             AdjustFlagsAndWidth(_nextStatement)
-             Me._nextStatement = _nextStatement
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._nextStatement)
-        End Sub
-
         ''' <summary>
         ''' The statements contained in the For or For Each loop. This might be an empty
         ''' list.
@@ -17193,7 +13551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -17206,7 +13564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property NextStatement As InternalSyntax.NextStatementSyntax
+        Friend ReadOnly Property NextStatement As InternalSyntax.NextStatementSyntax
             Get
                 Return Me._nextStatement
             End Get
@@ -17252,27 +13610,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _forStatement = DirectCast(reader.ReadValue(), ForStatementSyntax)
-          If _forStatement isnot Nothing 
-             AdjustFlagsAndWidth(_forStatement)
-             Me._forStatement = _forStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ForBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._forStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ForBlockSyntax), Function(r) New ForBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ForBlockSyntax(Me, parent, startLocation)
         End Function
@@ -17280,7 +13617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The For statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property ForStatement As InternalSyntax.ForStatementSyntax
+        Friend ReadOnly Property ForStatement As InternalSyntax.ForStatementSyntax
             Get
                 Return Me._forStatement
             End Get
@@ -17295,8 +13632,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._nextStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17353,27 +13690,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _forEachStatement = DirectCast(reader.ReadValue(), ForEachStatementSyntax)
-          If _forEachStatement isnot Nothing 
-             AdjustFlagsAndWidth(_forEachStatement)
-             Me._forEachStatement = _forEachStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ForEachBlockSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._forEachStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ForEachBlockSyntax), Function(r) New ForEachBlockSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachBlockSyntax(Me, parent, startLocation)
         End Function
@@ -17381,7 +13697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The For Each statement that begins the block.
         ''' </summary>
-        Friend  ReadOnly Property ForEachStatement As InternalSyntax.ForEachStatementSyntax
+        Friend ReadOnly Property ForEachStatement As InternalSyntax.ForEachStatementSyntax
             Get
                 Return Me._forEachStatement
             End Get
@@ -17396,8 +13712,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._nextStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17456,30 +13772,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _forKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _forKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_forKeyword)
-             Me._forKeyword = _forKeyword
-          End If
-          Dim _controlVariable = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-          If _controlVariable isnot Nothing 
-             AdjustFlagsAndWidth(_controlVariable)
-             Me._controlVariable = _controlVariable
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._forKeyword)
-          writer.WriteValue(Me._controlVariable)
-        End Sub
-
         ''' <summary>
         ''' The "For" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ForKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ForKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._forKeyword
             End Get
@@ -17491,7 +13787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' variable. If this loop is of a form that does declare a new control variable,
         ''' this is a VariableDeclarator that has the variable being declared.
         ''' </summary>
-        Friend  ReadOnly Property ControlVariable As InternalSyntax.VisualBasicSyntaxNode
+        Friend ReadOnly Property ControlVariable As InternalSyntax.VisualBasicSyntaxNode
             Get
                 Return Me._controlVariable
             End Get
@@ -17574,51 +13870,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 7
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _fromValue = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _fromValue isnot Nothing 
-             AdjustFlagsAndWidth(_fromValue)
-             Me._fromValue = _fromValue
-          End If
-          Dim _toKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _toKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_toKeyword)
-             Me._toKeyword = _toKeyword
-          End If
-          Dim _toValue = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _toValue isnot Nothing 
-             AdjustFlagsAndWidth(_toValue)
-             Me._toValue = _toValue
-          End If
-          Dim _stepClause = DirectCast(reader.ReadValue(), ForStepClauseSyntax)
-          If _stepClause isnot Nothing 
-             AdjustFlagsAndWidth(_stepClause)
-             Me._stepClause = _stepClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ForStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._fromValue)
-          writer.WriteValue(Me._toKeyword)
-          writer.WriteValue(Me._toValue)
-          writer.WriteValue(Me._stepClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ForStatementSyntax), Function(r) New ForStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ForStatementSyntax(Me, parent, startLocation)
         End Function
@@ -17626,7 +13877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -17635,7 +13886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression denoting the initial value of the iteration.
         ''' </summary>
-        Friend  ReadOnly Property FromValue As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property FromValue As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._fromValue
             End Get
@@ -17644,7 +13895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "To" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._toKeyword
             End Get
@@ -17653,7 +13904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression denoting the final value of the iteration.
         ''' </summary>
-        Friend  ReadOnly Property ToValue As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property ToValue As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._toValue
             End Get
@@ -17665,7 +13916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property StepClause As InternalSyntax.ForStepClauseSyntax
+        Friend ReadOnly Property StepClause As InternalSyntax.ForStepClauseSyntax
             Get
                 Return Me._stepClause
             End Get
@@ -17688,8 +13939,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 6
                     Return Me._stepClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17751,33 +14002,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _stepKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _stepKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_stepKeyword)
-             Me._stepKeyword = _stepKeyword
-          End If
-          Dim _stepValue = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _stepValue isnot Nothing 
-             AdjustFlagsAndWidth(_stepValue)
-             Me._stepValue = _stepValue
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ForStepClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._stepKeyword)
-          writer.WriteValue(Me._stepValue)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ForStepClauseSyntax), Function(r) New ForStepClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ForStepClauseSyntax(Me, parent, startLocation)
         End Function
@@ -17785,7 +14009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Step" keyword.
         ''' </summary>
-        Friend  ReadOnly Property StepKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property StepKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._stepKeyword
             End Get
@@ -17794,7 +14018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression denoting the step increment.
         ''' </summary>
-        Friend  ReadOnly Property StepValue As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property StepValue As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._stepValue
             End Get
@@ -17807,8 +14031,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._stepValue
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -17883,39 +14107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _eachKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _eachKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_eachKeyword)
-             Me._eachKeyword = _eachKeyword
-          End If
-          Dim _inKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _inKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_inKeyword)
-             Me._inKeyword = _inKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ForEachStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._eachKeyword)
-          writer.WriteValue(Me._inKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ForEachStatementSyntax), Function(r) New ForEachStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax(Me, parent, startLocation)
         End Function
@@ -17923,7 +14114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Each" keyword.
         ''' </summary>
-        Friend  ReadOnly Property EachKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EachKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._eachKeyword
             End Get
@@ -17932,7 +14123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "In" keyword.
         ''' </summary>
-        Friend  ReadOnly Property InKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property InKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._inKeyword
             End Get
@@ -17941,7 +14132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression denoting the collection to iterate over.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -17960,8 +14151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18032,33 +14223,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _nextKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _nextKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_nextKeyword)
-             Me._nextKeyword = _nextKeyword
-          End If
-          Dim _controlVariables = DirectCast(reader.ReadValue(), GreenNode)
-          If _controlVariables isnot Nothing 
-             AdjustFlagsAndWidth(_controlVariables)
-             Me._controlVariables = _controlVariables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NextStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._nextKeyword)
-          writer.WriteValue(Me._controlVariables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NextStatementSyntax), Function(r) New NextStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18066,7 +14230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Next" keyword.
         ''' </summary>
-        Friend  ReadOnly Property NextKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NextKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._nextKeyword
             End Get
@@ -18078,7 +14242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ControlVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
+        Friend ReadOnly Property ControlVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionSyntax)(Me._controlVariables))
             End Get
@@ -18091,8 +14255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._controlVariables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18175,39 +14339,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _usingKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _usingKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_usingKeyword)
-             Me._usingKeyword = _usingKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _variables = DirectCast(reader.ReadValue(), GreenNode)
-          If _variables isnot Nothing 
-             AdjustFlagsAndWidth(_variables)
-             Me._variables = _variables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New UsingStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._usingKeyword)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._variables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(UsingStatementSyntax), Function(r) New UsingStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.UsingStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18215,7 +14346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Using" keyword.
         ''' </summary>
-        Friend  ReadOnly Property UsingKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property UsingKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._usingKeyword
             End Get
@@ -18228,7 +14359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -18241,7 +14372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
+        Friend ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of VariableDeclaratorSyntax)(Me._variables))
             End Get
@@ -18256,8 +14387,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._variables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18325,33 +14456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _throwKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _throwKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_throwKeyword)
-             Me._throwKeyword = _throwKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ThrowStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._throwKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ThrowStatementSyntax), Function(r) New ThrowStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ThrowStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18359,7 +14463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Throw" keyword
         ''' </summary>
-        Friend  ReadOnly Property ThrowKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ThrowKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._throwKeyword
             End Get
@@ -18371,7 +14475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -18384,8 +14488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18455,39 +14559,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _left = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _left isnot Nothing 
-             AdjustFlagsAndWidth(_left)
-             Me._left = _left
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _right = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _right isnot Nothing 
-             AdjustFlagsAndWidth(_right)
-             Me._right = _right
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AssignmentStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._left)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._right)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AssignmentStatementSyntax), Function(r) New AssignmentStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AssignmentStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18495,7 +14566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The target (left hand side) of the assignment.
         ''' </summary>
-        Friend  ReadOnly Property Left As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Left As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._left
             End Get
@@ -18505,7 +14576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The operator used in the assignment statement. One of "=", "+=", "-=", "*=",
         ''' "/=", "\=", "^=", "&amp;=", "&lt;&lt;=" or "&gt;&gt;=".
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._operatorToken
             End Get
@@ -18514,7 +14585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The source (right hand side) of the assignment.
         ''' </summary>
-        Friend  ReadOnly Property Right As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Right As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._right
             End Get
@@ -18529,8 +14600,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._right
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18592,33 +14663,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _mid = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _mid isnot Nothing 
-             AdjustFlagsAndWidth(_mid)
-             Me._mid = _mid
-          End If
-          Dim _argumentList = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _argumentList isnot Nothing 
-             AdjustFlagsAndWidth(_argumentList)
-             Me._argumentList = _argumentList
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MidExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._mid)
-          writer.WriteValue(Me._argumentList)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MidExpressionSyntax), Function(r) New MidExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MidExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -18626,7 +14670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Mid" possibly followed by a type character.
         ''' </summary>
-        Friend  ReadOnly Property Mid As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Mid As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._mid
             End Get
@@ -18635,7 +14679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The argument list.
         ''' </summary>
-        Friend  ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._argumentList
             End Get
@@ -18648,8 +14692,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._argumentList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18669,7 +14713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represent an call statement (also known as a invocation statement).
+    ''' Represent a call statement (also known as a invocation statement).
     ''' </summary>
     Friend NotInheritable Class CallStatementSyntax
         Inherits ExecutableStatementSyntax
@@ -18711,33 +14755,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _callKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _callKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_callKeyword)
-             Me._callKeyword = _callKeyword
-          End If
-          Dim _invocation = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _invocation isnot Nothing 
-             AdjustFlagsAndWidth(_invocation)
-             Me._invocation = _invocation
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CallStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._callKeyword)
-          writer.WriteValue(Me._invocation)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CallStatementSyntax), Function(r) New CallStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CallStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18745,7 +14762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Call" keyword.
         ''' </summary>
-        Friend  ReadOnly Property CallKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property CallKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._callKeyword
             End Get
@@ -18755,7 +14772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The expression denoting the call. This could be an Invocation or a MemberAccess
         ''' (in the case where no parentheses were supplied.)
         ''' </summary>
-        Friend  ReadOnly Property Invocation As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Invocation As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._invocation
             End Get
@@ -18768,8 +14785,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._invocation
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -18846,45 +14863,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _addHandlerOrRemoveHandlerKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _addHandlerOrRemoveHandlerKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_addHandlerOrRemoveHandlerKeyword)
-             Me._addHandlerOrRemoveHandlerKeyword = _addHandlerOrRemoveHandlerKeyword
-          End If
-          Dim _eventExpression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _eventExpression isnot Nothing 
-             AdjustFlagsAndWidth(_eventExpression)
-             Me._eventExpression = _eventExpression
-          End If
-          Dim _commaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _commaToken isnot Nothing 
-             AdjustFlagsAndWidth(_commaToken)
-             Me._commaToken = _commaToken
-          End If
-          Dim _delegateExpression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _delegateExpression isnot Nothing 
-             AdjustFlagsAndWidth(_delegateExpression)
-             Me._delegateExpression = _delegateExpression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AddRemoveHandlerStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._addHandlerOrRemoveHandlerKeyword)
-          writer.WriteValue(Me._eventExpression)
-          writer.WriteValue(Me._commaToken)
-          writer.WriteValue(Me._delegateExpression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AddRemoveHandlerStatementSyntax), Function(r) New AddRemoveHandlerStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AddRemoveHandlerStatementSyntax(Me, parent, startLocation)
         End Function
@@ -18892,7 +14870,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "AddHandler" or "RemoveHandler" keyword.
         ''' </summary>
-        Friend  ReadOnly Property AddHandlerOrRemoveHandlerKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AddHandlerOrRemoveHandlerKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._addHandlerOrRemoveHandlerKeyword
             End Get
@@ -18901,7 +14879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The event being accessed.
         ''' </summary>
-        Friend  ReadOnly Property EventExpression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property EventExpression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._eventExpression
             End Get
@@ -18910,7 +14888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "," token.
         ''' </summary>
-        Friend  ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._commaToken
             End Get
@@ -18919,7 +14897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The delegate being added or removed.
         ''' </summary>
-        Friend  ReadOnly Property DelegateExpression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property DelegateExpression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._delegateExpression
             End Get
@@ -18936,8 +14914,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._delegateExpression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19012,39 +14990,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _raiseEventKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _raiseEventKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_raiseEventKeyword)
-             Me._raiseEventKeyword = _raiseEventKeyword
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _argumentList = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _argumentList isnot Nothing 
-             AdjustFlagsAndWidth(_argumentList)
-             Me._argumentList = _argumentList
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RaiseEventStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._raiseEventKeyword)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._argumentList)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RaiseEventStatementSyntax), Function(r) New RaiseEventStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RaiseEventStatementSyntax(Me, parent, startLocation)
         End Function
@@ -19052,7 +14997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "RaiseEvent" keyword
         ''' </summary>
-        Friend  ReadOnly Property RaiseEventKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property RaiseEventKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._raiseEventKeyword
             End Get
@@ -19061,7 +15006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the event being raised.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._name
             End Get
@@ -19073,7 +15018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._argumentList
             End Get
@@ -19088,8 +15033,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._argumentList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19153,33 +15098,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _withKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _withKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_withKeyword)
-             Me._withKeyword = _withKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WithStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._withKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WithStatementSyntax), Function(r) New WithStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WithStatementSyntax(Me, parent, startLocation)
         End Function
@@ -19187,7 +15105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "With" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WithKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WithKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._withKeyword
             End Get
@@ -19196,7 +15114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that is the operand of the With statement.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -19209,8 +15127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19291,39 +15209,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _reDimKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _reDimKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_reDimKeyword)
-             Me._reDimKeyword = _reDimKeyword
-          End If
-          Dim _preserveKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _preserveKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_preserveKeyword)
-             Me._preserveKeyword = _preserveKeyword
-          End If
-          Dim _clauses = DirectCast(reader.ReadValue(), GreenNode)
-          If _clauses isnot Nothing 
-             AdjustFlagsAndWidth(_clauses)
-             Me._clauses = _clauses
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ReDimStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._reDimKeyword)
-          writer.WriteValue(Me._preserveKeyword)
-          writer.WriteValue(Me._clauses)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ReDimStatementSyntax), Function(r) New ReDimStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ReDimStatementSyntax(Me, parent, startLocation)
         End Function
@@ -19331,7 +15216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "ReDim" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ReDimKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ReDimKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._reDimKeyword
             End Get
@@ -19344,7 +15229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property PreserveKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property PreserveKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._preserveKeyword
             End Get
@@ -19353,7 +15238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of ReDim clauses.
         ''' </summary>
-        Friend  ReadOnly Property Clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of RedimClauseSyntax)
+        Friend ReadOnly Property Clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of RedimClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of RedimClauseSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of RedimClauseSyntax)(Me._clauses))
             End Get
@@ -19368,8 +15253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._clauses
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19431,33 +15316,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _arrayBounds = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _arrayBounds isnot Nothing 
-             AdjustFlagsAndWidth(_arrayBounds)
-             Me._arrayBounds = _arrayBounds
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RedimClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._arrayBounds)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RedimClauseSyntax), Function(r) New RedimClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RedimClauseSyntax(Me, parent, startLocation)
         End Function
@@ -19465,7 +15323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The target of the ReDim statement.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -19474,7 +15332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ArraySizeInitializationModifier.
         ''' </summary>
-        Friend  ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._arrayBounds
             End Get
@@ -19487,8 +15345,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._arrayBounds
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19556,33 +15414,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _eraseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _eraseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_eraseKeyword)
-             Me._eraseKeyword = _eraseKeyword
-          End If
-          Dim _expressions = DirectCast(reader.ReadValue(), GreenNode)
-          If _expressions isnot Nothing 
-             AdjustFlagsAndWidth(_expressions)
-             Me._expressions = _expressions
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EraseStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._eraseKeyword)
-          writer.WriteValue(Me._expressions)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EraseStatementSyntax), Function(r) New EraseStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EraseStatementSyntax(Me, parent, startLocation)
         End Function
@@ -19590,7 +15421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Erase" keyword.
         ''' </summary>
-        Friend  ReadOnly Property EraseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EraseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._eraseKeyword
             End Get
@@ -19599,7 +15430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' A list of expressions denoting the arrays to erase.
         ''' </summary>
-        Friend  ReadOnly Property Expressions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
+        Friend ReadOnly Property Expressions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionSyntax)(Me._expressions))
             End Get
@@ -19612,8 +15443,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expressions
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19650,10 +15481,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -19698,27 +15525,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _token = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _token isnot Nothing 
-             AdjustFlagsAndWidth(_token)
-             Me._token = _token
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LiteralExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._token)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LiteralExpressionSyntax), Function(r) New LiteralExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -19734,7 +15540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind=NothingLiteral ==&gt; Returns Keyword (with it's kind being
         ''' NothingKeyword)
         ''' </summary>
-        Friend  ReadOnly Property Token As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property Token As InternalSyntax.SyntaxToken
             Get
                 Return Me._token
             End Get
@@ -19814,39 +15620,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ParenthesizedExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ParenthesizedExpressionSyntax), Function(r) New ParenthesizedExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ParenthesizedExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -19854,7 +15627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -19863,7 +15636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -19872,7 +15645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -19887,8 +15660,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -19963,39 +15736,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _arguments = DirectCast(reader.ReadValue(), GreenNode)
-          If _arguments isnot Nothing 
-             AdjustFlagsAndWidth(_arguments)
-             Me._arguments = _arguments
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TupleExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._arguments)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TupleExpressionSyntax), Function(r) New TupleExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -20003,7 +15743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -20012,7 +15752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of tuple arguments.
         ''' </summary>
-        Friend  ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of SimpleArgumentSyntax)
+        Friend ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of SimpleArgumentSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of SimpleArgumentSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of SimpleArgumentSyntax)(Me._arguments))
             End Get
@@ -20021,7 +15761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -20036,8 +15776,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -20112,39 +15852,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _elements = DirectCast(reader.ReadValue(), GreenNode)
-          If _elements isnot Nothing 
-             AdjustFlagsAndWidth(_elements)
-             Me._elements = _elements
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TupleTypeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._elements)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TupleTypeSyntax), Function(r) New TupleTypeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax(Me, parent, startLocation)
         End Function
@@ -20152,7 +15859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -20161,7 +15868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of tuple elements.
         ''' </summary>
-        Friend  ReadOnly Property Elements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TupleElementSyntax)
+        Friend ReadOnly Property Elements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TupleElementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TupleElementSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of TupleElementSyntax)(Me._elements))
             End Get
@@ -20170,7 +15877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -20185,8 +15892,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -20223,10 +15930,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -20267,27 +15970,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypedTupleElementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._type)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypedTupleElementSyntax), Function(r) New TypedTupleElementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax(Me, parent, startLocation)
         End Function
@@ -20295,7 +15977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type-name part of the tuple element syntax.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -20375,33 +16057,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NamedTupleElementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NamedTupleElementSyntax), Function(r) New NamedTupleElementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax(Me, parent, startLocation)
         End Function
@@ -20409,7 +16064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the element.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -20421,7 +16076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -20434,8 +16089,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -20488,24 +16143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _keyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyword)
-             Me._keyword = _keyword
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyword)
-        End Sub
-
         ''' <summary>
         ''' The "Me", "MyClass" or "MyBase" keyword.
         ''' </summary>
-        Friend  ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyword
             End Get
@@ -20534,17 +16175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, keyword)
             MyBase._slotCount = 1
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MeExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MeExpressionSyntax), Function(r) New MeExpressionSyntax(r))
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -20598,17 +16228,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase._slotCount = 1
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MyBaseExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MyBaseExpressionSyntax), Function(r) New MyBaseExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MyBaseExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -20658,17 +16277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, keyword)
             MyBase._slotCount = 1
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MyClassExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MyClassExpressionSyntax), Function(r) New MyClassExpressionSyntax(r))
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -20756,45 +16364,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _getTypeKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _getTypeKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_getTypeKeyword)
-             Me._getTypeKeyword = _getTypeKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GetTypeExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._getTypeKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._type)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GetTypeExpressionSyntax), Function(r) New GetTypeExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GetTypeExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -20802,7 +16371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "GetType" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GetTypeKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GetTypeKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._getTypeKeyword
             End Get
@@ -20811,7 +16380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -20820,7 +16389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type to get the Type object for. This can be an open generic type.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -20829,7 +16398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -20846,8 +16415,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -20923,45 +16492,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _typeOfKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _typeOfKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_typeOfKeyword)
-             Me._typeOfKeyword = _typeOfKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeOfExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._typeOfKeyword)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._type)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeOfExpressionSyntax), Function(r) New TypeOfExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeOfExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -20969,7 +16499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "TypeOf" keyword.
         ''' </summary>
-        Friend  ReadOnly Property TypeOfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property TypeOfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._typeOfKeyword
             End Get
@@ -20978,7 +16508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being tested.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -20987,7 +16517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Is" or "IsNot" keyword.
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OperatorToken As InternalSyntax.KeywordSyntax
             Get
                 Return Me._operatorToken
             End Get
@@ -20996,7 +16526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the type being tested against.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -21013,8 +16543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._type
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -21096,45 +16626,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _getXmlNamespaceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _getXmlNamespaceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_getXmlNamespaceKeyword)
-             Me._getXmlNamespaceKeyword = _getXmlNamespaceKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlPrefixNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GetXmlNamespaceExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._getXmlNamespaceKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GetXmlNamespaceExpressionSyntax), Function(r) New GetXmlNamespaceExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GetXmlNamespaceExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -21142,7 +16633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "GetXmlNamespace" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GetXmlNamespaceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GetXmlNamespaceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._getXmlNamespaceKeyword
             End Get
@@ -21151,7 +16642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -21163,7 +16654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Name As InternalSyntax.XmlPrefixNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlPrefixNameSyntax
             Get
                 Return Me._name
             End Get
@@ -21172,7 +16663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -21189,8 +16680,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -21266,39 +16757,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), SimpleNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MemberAccessExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MemberAccessExpressionSyntax), Function(r) New MemberAccessExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -21309,7 +16767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -21318,7 +16776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "." or "!" token.
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OperatorToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._operatorToken
             End Get
@@ -21327,7 +16785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The identifier after the "." or "!" token.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.SimpleNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.SimpleNameSyntax
             Get
                 Return Me._name
             End Get
@@ -21342,8 +16800,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._name
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -21446,51 +16904,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _base = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _base isnot Nothing 
-             AdjustFlagsAndWidth(_base)
-             Me._base = _base
-          End If
-          Dim _token1 = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _token1 isnot Nothing 
-             AdjustFlagsAndWidth(_token1)
-             Me._token1 = _token1
-          End If
-          Dim _token2 = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _token2 isnot Nothing 
-             AdjustFlagsAndWidth(_token2)
-             Me._token2 = _token2
-          End If
-          Dim _token3 = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _token3 isnot Nothing 
-             AdjustFlagsAndWidth(_token3)
-             Me._token3 = _token3
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlMemberAccessExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._base)
-          writer.WriteValue(Me._token1)
-          writer.WriteValue(Me._token2)
-          writer.WriteValue(Me._token3)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlMemberAccessExpressionSyntax), Function(r) New XmlMemberAccessExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlMemberAccessExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -21501,7 +16914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Base As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Base As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._base
             End Get
@@ -21510,7 +16923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The initial dot "." part of the separator.
         ''' </summary>
-        Friend  ReadOnly Property Token1 As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Token1 As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._token1
             End Get
@@ -21522,7 +16935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Token2 As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Token2 As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._token2
             End Get
@@ -21534,7 +16947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Token3 As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Token3 As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._token3
             End Get
@@ -21543,7 +16956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The identifier after the ".", ".@" or "..."
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._name
             End Get
@@ -21562,8 +16975,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._name
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -21639,33 +17052,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _argumentList = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _argumentList isnot Nothing 
-             AdjustFlagsAndWidth(_argumentList)
-             Me._argumentList = _argumentList
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InvocationExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._argumentList)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InvocationExpressionSyntax), Function(r) New InvocationExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -21676,7 +17062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -21688,7 +17074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._argumentList
             End Get
@@ -21701,8 +17087,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._argumentList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -21767,30 +17153,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _newKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _newKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_newKeyword)
-             Me._newKeyword = _newKeyword
-          End If
-          Dim _attributeLists = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributeLists isnot Nothing 
-             AdjustFlagsAndWidth(_attributeLists)
-             Me._attributeLists = _attributeLists
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._newKeyword)
-          writer.WriteValue(Me._attributeLists)
-        End Sub
-
         ''' <summary>
         ''' The "New" keyword.
         ''' </summary>
-        Friend  ReadOnly Property NewKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NewKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._newKeyword
             End Get
@@ -21803,7 +17169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
+        Friend ReadOnly Property AttributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)(Me._attributeLists)
             End Get
@@ -21874,39 +17240,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-          Dim _argumentList = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _argumentList isnot Nothing 
-             AdjustFlagsAndWidth(_argumentList)
-             Me._argumentList = _argumentList
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), ObjectCreationInitializerSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ObjectCreationExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._type)
-          writer.WriteValue(Me._argumentList)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ObjectCreationExpressionSyntax), Function(r) New ObjectCreationExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ObjectCreationExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -21914,7 +17247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type of the object being initialized.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -21927,7 +17260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArgumentList As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._argumentList
             End Get
@@ -21939,7 +17272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Initializer As InternalSyntax.ObjectCreationInitializerSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.ObjectCreationInitializerSyntax
             Get
                 Return Me._initializer
             End Get
@@ -21958,8 +17291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22014,27 +17347,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _initializer = DirectCast(reader.ReadValue(), ObjectMemberInitializerSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AnonymousObjectCreationExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AnonymousObjectCreationExpressionSyntax), Function(r) New AnonymousObjectCreationExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AnonymousObjectCreationExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22042,7 +17354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The With clause to initialize the new object.
         ''' </summary>
-        Friend  ReadOnly Property Initializer As InternalSyntax.ObjectMemberInitializerSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.ObjectMemberInitializerSyntax
             Get
                 Return Me._initializer
             End Get
@@ -22057,8 +17369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22146,45 +17458,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-          Dim _arrayBounds = DirectCast(reader.ReadValue(), ArgumentListSyntax)
-          If _arrayBounds isnot Nothing 
-             AdjustFlagsAndWidth(_arrayBounds)
-             Me._arrayBounds = _arrayBounds
-          End If
-          Dim _rankSpecifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _rankSpecifiers isnot Nothing 
-             AdjustFlagsAndWidth(_rankSpecifiers)
-             Me._rankSpecifiers = _rankSpecifiers
-          End If
-          Dim _initializer = DirectCast(reader.ReadValue(), CollectionInitializerSyntax)
-          If _initializer isnot Nothing 
-             AdjustFlagsAndWidth(_initializer)
-             Me._initializer = _initializer
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ArrayCreationExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._type)
-          writer.WriteValue(Me._arrayBounds)
-          writer.WriteValue(Me._rankSpecifiers)
-          writer.WriteValue(Me._initializer)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ArrayCreationExpressionSyntax), Function(r) New ArrayCreationExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayCreationExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22192,7 +17465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The element type of the array being created.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -22204,7 +17477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
+        Friend ReadOnly Property ArrayBounds As InternalSyntax.ArgumentListSyntax
             Get
                 Return Me._arrayBounds
             End Get
@@ -22217,7 +17490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property RankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
+        Friend ReadOnly Property RankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)(Me._rankSpecifiers)
             End Get
@@ -22226,7 +17499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The initializer including the braces.
         ''' </summary>
-        Friend  ReadOnly Property Initializer As InternalSyntax.CollectionInitializerSyntax
+        Friend ReadOnly Property Initializer As InternalSyntax.CollectionInitializerSyntax
             Get
                 Return Me._initializer
             End Get
@@ -22247,8 +17520,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._initializer
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22324,39 +17597,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_openBraceToken)
-             Me._openBraceToken = _openBraceToken
-          End If
-          Dim _initializers = DirectCast(reader.ReadValue(), GreenNode)
-          If _initializers isnot Nothing 
-             AdjustFlagsAndWidth(_initializers)
-             Me._initializers = _initializers
-          End If
-          Dim _closeBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeBraceToken)
-             Me._closeBraceToken = _closeBraceToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CollectionInitializerSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openBraceToken)
-          writer.WriteValue(Me._initializers)
-          writer.WriteValue(Me._closeBraceToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CollectionInitializerSyntax), Function(r) New CollectionInitializerSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionInitializerSyntax(Me, parent, startLocation)
         End Function
@@ -22364,7 +17604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "{" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openBraceToken
             End Get
@@ -22376,7 +17616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
+        Friend ReadOnly Property Initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionSyntax)(Me._initializers))
             End Get
@@ -22385,7 +17625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "}" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeBraceToken
             End Get
@@ -22400,8 +17640,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeBraceToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22489,54 +17729,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _keyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyword)
-             Me._keyword = _keyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _commaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _commaToken isnot Nothing 
-             AdjustFlagsAndWidth(_commaToken)
-             Me._commaToken = _commaToken
-          End If
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._commaToken)
-          writer.WriteValue(Me._type)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
         ''' <summary>
         ''' The "CType", "DirectCast" or "TryCast" keyword.
         ''' </summary>
-        Friend  ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyword
             End Get
@@ -22545,7 +17741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -22554,7 +17750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being cast.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -22563,7 +17759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "," token.
         ''' </summary>
-        Friend  ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._commaToken
             End Get
@@ -22572,7 +17768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type the expression is being cast to.
         ''' </summary>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -22581,7 +17777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -22609,17 +17805,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase._slotCount = 6
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CTypeExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CTypeExpressionSyntax), Function(r) New CTypeExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CTypeExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22639,8 +17824,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22679,17 +17864,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase._slotCount = 6
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DirectCastExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DirectCastExpressionSyntax), Function(r) New DirectCastExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectCastExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22709,8 +17883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22749,17 +17923,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase._slotCount = 6
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TryCastExpressionSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TryCastExpressionSyntax), Function(r) New TryCastExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TryCastExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22779,8 +17942,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -22857,45 +18020,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _keyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyword)
-             Me._keyword = _keyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PredefinedCastExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PredefinedCastExpressionSyntax), Function(r) New PredefinedCastExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PredefinedCastExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -22903,7 +18027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The keyword that was used in the cast operation.
         ''' </summary>
-        Friend  ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyword
             End Get
@@ -22912,7 +18036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -22921,7 +18045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being cast.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -22930,7 +18054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -22947,8 +18071,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23019,39 +18143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _left = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _left isnot Nothing 
-             AdjustFlagsAndWidth(_left)
-             Me._left = _left
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _right = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _right isnot Nothing 
-             AdjustFlagsAndWidth(_right)
-             Me._right = _right
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New BinaryExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._left)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._right)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(BinaryExpressionSyntax), Function(r) New BinaryExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.BinaryExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23059,13 +18150,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The left operand.
         ''' </summary>
-        Friend  ReadOnly Property Left As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Left As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._left
             End Get
         End Property
 
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._operatorToken
             End Get
@@ -23074,7 +18165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The right operand.
         ''' </summary>
-        Friend  ReadOnly Property Right As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Right As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._right
             End Get
@@ -23089,8 +18180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._right
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23152,33 +18243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _operatorToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-          Dim _operand = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _operand isnot Nothing 
-             AdjustFlagsAndWidth(_operand)
-             Me._operand = _operand
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New UnaryExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._operatorToken)
-          writer.WriteValue(Me._operand)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(UnaryExpressionSyntax), Function(r) New UnaryExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.UnaryExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23186,7 +18250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The token that is the operator.
         ''' </summary>
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._operatorToken
             End Get
@@ -23195,7 +18259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being operated on.
         ''' </summary>
-        Friend  ReadOnly Property Operand As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Operand As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._operand
             End Get
@@ -23208,8 +18272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._operand
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23300,57 +18364,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-          Dim _ifKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifKeyword)
-             Me._ifKeyword = _ifKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _firstExpression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _firstExpression isnot Nothing 
-             AdjustFlagsAndWidth(_firstExpression)
-             Me._firstExpression = _firstExpression
-          End If
-          Dim _commaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _commaToken isnot Nothing 
-             AdjustFlagsAndWidth(_commaToken)
-             Me._commaToken = _commaToken
-          End If
-          Dim _secondExpression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _secondExpression isnot Nothing 
-             AdjustFlagsAndWidth(_secondExpression)
-             Me._secondExpression = _secondExpression
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New BinaryConditionalExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._ifKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._firstExpression)
-          writer.WriteValue(Me._commaToken)
-          writer.WriteValue(Me._secondExpression)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(BinaryConditionalExpressionSyntax), Function(r) New BinaryConditionalExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.BinaryConditionalExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23358,7 +18371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "If" keyword
         ''' </summary>
-        Friend  ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifKeyword
             End Get
@@ -23367,7 +18380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -23376,7 +18389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The first expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property FirstExpression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property FirstExpression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._firstExpression
             End Get
@@ -23385,7 +18398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "," token.
         ''' </summary>
-        Friend  ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._commaToken
             End Get
@@ -23394,7 +18407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The second expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property SecondExpression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property SecondExpression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._secondExpression
             End Get
@@ -23403,7 +18416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -23424,8 +18437,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23530,69 +18543,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 8
-          Dim _ifKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifKeyword)
-             Me._ifKeyword = _ifKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-          Dim _firstCommaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _firstCommaToken isnot Nothing 
-             AdjustFlagsAndWidth(_firstCommaToken)
-             Me._firstCommaToken = _firstCommaToken
-          End If
-          Dim _whenTrue = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _whenTrue isnot Nothing 
-             AdjustFlagsAndWidth(_whenTrue)
-             Me._whenTrue = _whenTrue
-          End If
-          Dim _secondCommaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _secondCommaToken isnot Nothing 
-             AdjustFlagsAndWidth(_secondCommaToken)
-             Me._secondCommaToken = _secondCommaToken
-          End If
-          Dim _whenFalse = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _whenFalse isnot Nothing 
-             AdjustFlagsAndWidth(_whenFalse)
-             Me._whenFalse = _whenFalse
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TernaryConditionalExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._ifKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._condition)
-          writer.WriteValue(Me._firstCommaToken)
-          writer.WriteValue(Me._whenTrue)
-          writer.WriteValue(Me._secondCommaToken)
-          writer.WriteValue(Me._whenFalse)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TernaryConditionalExpressionSyntax), Function(r) New TernaryConditionalExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TernaryConditionalExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23600,7 +18550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "If" keyword
         ''' </summary>
-        Friend  ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifKeyword
             End Get
@@ -23609,7 +18559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -23618,7 +18568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The first expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -23627,7 +18577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "," token.
         ''' </summary>
-        Friend  ReadOnly Property FirstCommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property FirstCommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._firstCommaToken
             End Get
@@ -23636,7 +18586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The second expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property WhenTrue As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property WhenTrue As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._whenTrue
             End Get
@@ -23645,7 +18595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "," token.
         ''' </summary>
-        Friend  ReadOnly Property SecondCommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property SecondCommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._secondCommaToken
             End Get
@@ -23654,7 +18604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The second expression inside the parentheses.
         ''' </summary>
-        Friend  ReadOnly Property WhenFalse As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property WhenFalse As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._whenFalse
             End Get
@@ -23663,7 +18613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -23688,8 +18638,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 7
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23741,25 +18691,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _subOrFunctionHeader = DirectCast(reader.ReadValue(), LambdaHeaderSyntax)
-          If _subOrFunctionHeader isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionHeader)
-             Me._subOrFunctionHeader = _subOrFunctionHeader
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subOrFunctionHeader)
-        End Sub
-
         ''' <summary>
         ''' The header part of the lambda that includes the "Sub" or "Function" keyword,
         ''' the argument list and return type.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionHeader As InternalSyntax.LambdaHeaderSyntax
+        Friend ReadOnly Property SubOrFunctionHeader As InternalSyntax.LambdaHeaderSyntax
             Get
                 Return Me._subOrFunctionHeader
             End Get
@@ -23803,27 +18739,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _body = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-          If _body isnot Nothing 
-             AdjustFlagsAndWidth(_body)
-             Me._body = _body
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SingleLineLambdaExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._body)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SingleLineLambdaExpressionSyntax), Function(r) New SingleLineLambdaExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineLambdaExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23832,7 +18747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The body of the lambda. Depending on the kind of lambda, this is either a
         ''' Statement (single-line Sub lambda) or Expression (single-line Function).
         ''' </summary>
-        Friend  ReadOnly Property Body As InternalSyntax.VisualBasicSyntaxNode
+        Friend ReadOnly Property Body As InternalSyntax.VisualBasicSyntaxNode
             Get
                 Return Me._body
             End Get
@@ -23845,8 +18760,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._body
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -23914,33 +18829,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _statements = DirectCast(reader.ReadValue(), GreenNode)
-          If _statements isnot Nothing 
-             AdjustFlagsAndWidth(_statements)
-             Me._statements = _statements
-          End If
-          Dim _endSubOrFunctionStatement = DirectCast(reader.ReadValue(), EndBlockStatementSyntax)
-          If _endSubOrFunctionStatement isnot Nothing 
-             AdjustFlagsAndWidth(_endSubOrFunctionStatement)
-             Me._endSubOrFunctionStatement = _endSubOrFunctionStatement
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New MultiLineLambdaExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._statements)
-          writer.WriteValue(Me._endSubOrFunctionStatement)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(MultiLineLambdaExpressionSyntax), Function(r) New MultiLineLambdaExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.MultiLineLambdaExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -23953,7 +18841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
+        Friend ReadOnly Property Statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(Me._statements)
             End Get
@@ -23963,7 +18851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Returns the "End Sub" or "End Function" statement if this is a multi-line
         ''' lambda.
         ''' </summary>
-        Friend  ReadOnly Property EndSubOrFunctionStatement As InternalSyntax.EndBlockStatementSyntax
+        Friend ReadOnly Property EndSubOrFunctionStatement As InternalSyntax.EndBlockStatementSyntax
             Get
                 Return Me._endSubOrFunctionStatement
             End Get
@@ -23978,8 +18866,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endSubOrFunctionStatement
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24047,33 +18935,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _subOrFunctionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _subOrFunctionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_subOrFunctionKeyword)
-             Me._subOrFunctionKeyword = _subOrFunctionKeyword
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LambdaHeaderSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._subOrFunctionKeyword)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LambdaHeaderSyntax), Function(r) New LambdaHeaderSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax(Me, parent, startLocation)
         End Function
@@ -24081,7 +18942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Sub" or "Function" keyword that introduces this lambda expression.
         ''' </summary>
-        Friend  ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SubOrFunctionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._subOrFunctionKeyword
             End Get
@@ -24094,7 +18955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -24113,8 +18974,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24189,39 +19050,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _arguments = DirectCast(reader.ReadValue(), GreenNode)
-          If _arguments isnot Nothing 
-             AdjustFlagsAndWidth(_arguments)
-             Me._arguments = _arguments
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ArgumentListSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._arguments)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ArgumentListSyntax), Function(r) New ArgumentListSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax(Me, parent, startLocation)
         End Function
@@ -24229,7 +19057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -24242,7 +19070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
+        Friend ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ArgumentSyntax)(Me._arguments))
             End Get
@@ -24251,7 +19079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -24266,8 +19094,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24305,10 +19133,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -24350,27 +19174,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _empty = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _empty isnot Nothing 
-             AdjustFlagsAndWidth(_empty)
-             Me._empty = _empty
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OmittedArgumentSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._empty)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OmittedArgumentSyntax), Function(r) New OmittedArgumentSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OmittedArgumentSyntax(Me, parent, startLocation)
         End Function
@@ -24378,7 +19181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' An empty token because all non terminals must have a token.
         ''' </summary>
-        Friend  ReadOnly Property Empty As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property Empty As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._empty
             End Get
@@ -24458,33 +19261,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _nameColonEquals = DirectCast(reader.ReadValue(), NameColonEqualsSyntax)
-          If _nameColonEquals isnot Nothing 
-             AdjustFlagsAndWidth(_nameColonEquals)
-             Me._nameColonEquals = _nameColonEquals
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleArgumentSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._nameColonEquals)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SimpleArgumentSyntax), Function(r) New SimpleArgumentSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax(Me, parent, startLocation)
         End Function
@@ -24495,7 +19271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property NameColonEquals As InternalSyntax.NameColonEqualsSyntax
+        Friend ReadOnly Property NameColonEquals As InternalSyntax.NameColonEqualsSyntax
             Get
                 Return Me._nameColonEquals
             End Get
@@ -24504,7 +19280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that is the argument.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -24517,8 +19293,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24580,33 +19356,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _name = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _colonEqualsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _colonEqualsToken isnot Nothing 
-             AdjustFlagsAndWidth(_colonEqualsToken)
-             Me._colonEqualsToken = _colonEqualsToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NameColonEqualsSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._colonEqualsToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NameColonEqualsSyntax), Function(r) New NameColonEqualsSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NameColonEqualsSyntax(Me, parent, startLocation)
         End Function
@@ -24614,7 +19363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name used to identify the named argument.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._name
             End Get
@@ -24623,7 +19372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ":=" token.
         ''' </summary>
-        Friend  ReadOnly Property ColonEqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property ColonEqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._colonEqualsToken
             End Get
@@ -24636,8 +19385,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._colonEqualsToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24707,39 +19456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lowerBound = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _lowerBound isnot Nothing 
-             AdjustFlagsAndWidth(_lowerBound)
-             Me._lowerBound = _lowerBound
-          End If
-          Dim _toKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _toKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_toKeyword)
-             Me._toKeyword = _toKeyword
-          End If
-          Dim _upperBound = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _upperBound isnot Nothing 
-             AdjustFlagsAndWidth(_upperBound)
-             Me._upperBound = _upperBound
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RangeArgumentSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lowerBound)
-          writer.WriteValue(Me._toKeyword)
-          writer.WriteValue(Me._upperBound)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RangeArgumentSyntax), Function(r) New RangeArgumentSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgumentSyntax(Me, parent, startLocation)
         End Function
@@ -24747,7 +19463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The lower bound of the range. This is typically the integer constant zero.
         ''' </summary>
-        Friend  ReadOnly Property LowerBound As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property LowerBound As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._lowerBound
             End Get
@@ -24756,7 +19472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "To" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ToKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._toKeyword
             End Get
@@ -24765,7 +19481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The upper bound of the range.
         ''' </summary>
-        Friend  ReadOnly Property UpperBound As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property UpperBound As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._upperBound
             End Get
@@ -24780,8 +19496,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._upperBound
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -24844,27 +19560,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _clauses = DirectCast(reader.ReadValue(), GreenNode)
-          If _clauses isnot Nothing 
-             AdjustFlagsAndWidth(_clauses)
-             Me._clauses = _clauses
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New QueryExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._clauses)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(QueryExpressionSyntax), Function(r) New QueryExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -24873,7 +19568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of all the query operators in this query expression. This list always
         ''' contains at least one operator.
         ''' </summary>
-        Friend  ReadOnly Property Clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)
+        Friend ReadOnly Property Clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)(Me._clauses)
             End Get
@@ -24921,10 +19616,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -24993,45 +19684,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _identifier = DirectCast(reader.ReadValue(), ModifiedIdentifierSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _inKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _inKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_inKeyword)
-             Me._inKeyword = _inKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CollectionRangeVariableSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._inKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CollectionRangeVariableSyntax), Function(r) New CollectionRangeVariableSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax(Me, parent, startLocation)
         End Function
@@ -25039,7 +19691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the range variable being defined.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
             Get
                 Return Me._identifier
             End Get
@@ -25051,7 +19703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -25060,7 +19712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "In" keyword.
         ''' </summary>
-        Friend  ReadOnly Property InKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property InKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._inKeyword
             End Get
@@ -25069,7 +19721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression that serves as the source of items for the range variable.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -25086,8 +19738,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -25156,33 +19808,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _nameEquals = DirectCast(reader.ReadValue(), VariableNameEqualsSyntax)
-          If _nameEquals isnot Nothing 
-             AdjustFlagsAndWidth(_nameEquals)
-             Me._nameEquals = _nameEquals
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ExpressionRangeVariableSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._nameEquals)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ExpressionRangeVariableSyntax), Function(r) New ExpressionRangeVariableSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionRangeVariableSyntax(Me, parent, startLocation)
         End Function
@@ -25194,7 +19819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property NameEquals As InternalSyntax.VariableNameEqualsSyntax
+        Friend ReadOnly Property NameEquals As InternalSyntax.VariableNameEqualsSyntax
             Get
                 Return Me._nameEquals
             End Get
@@ -25203,7 +19828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression used to initialize the expression variable.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -25216,8 +19841,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -25287,33 +19912,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _nameEquals = DirectCast(reader.ReadValue(), VariableNameEqualsSyntax)
-          If _nameEquals isnot Nothing 
-             AdjustFlagsAndWidth(_nameEquals)
-             Me._nameEquals = _nameEquals
-          End If
-          Dim _aggregation = DirectCast(reader.ReadValue(), AggregationSyntax)
-          If _aggregation isnot Nothing 
-             AdjustFlagsAndWidth(_aggregation)
-             Me._aggregation = _aggregation
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AggregationRangeVariableSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._nameEquals)
-          writer.WriteValue(Me._aggregation)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AggregationRangeVariableSyntax), Function(r) New AggregationRangeVariableSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AggregationRangeVariableSyntax(Me, parent, startLocation)
         End Function
@@ -25326,7 +19924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property NameEquals As InternalSyntax.VariableNameEqualsSyntax
+        Friend ReadOnly Property NameEquals As InternalSyntax.VariableNameEqualsSyntax
             Get
                 Return Me._nameEquals
             End Get
@@ -25336,7 +19934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The name of the aggregation function. The "Group" aggregation function is
         ''' represented by the identifier "Group".
         ''' </summary>
-        Friend  ReadOnly Property Aggregation As InternalSyntax.AggregationSyntax
+        Friend ReadOnly Property Aggregation As InternalSyntax.AggregationSyntax
             Get
                 Return Me._aggregation
             End Get
@@ -25349,8 +19947,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._aggregation
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -25425,39 +20023,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _identifier = DirectCast(reader.ReadValue(), ModifiedIdentifierSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New VariableNameEqualsSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-          writer.WriteValue(Me._asClause)
-          writer.WriteValue(Me._equalsToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(VariableNameEqualsSyntax), Function(r) New VariableNameEqualsSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.VariableNameEqualsSyntax(Me, parent, startLocation)
         End Function
@@ -25465,7 +20030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the variable being defined.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.ModifiedIdentifierSyntax
             Get
                 Return Me._identifier
             End Get
@@ -25477,7 +20042,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -25486,7 +20051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -25501,8 +20066,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._equalsToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -25540,10 +20105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -25624,45 +20185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _functionName = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _functionName isnot Nothing 
-             AdjustFlagsAndWidth(_functionName)
-             Me._functionName = _functionName
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _argument = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _argument isnot Nothing 
-             AdjustFlagsAndWidth(_argument)
-             Me._argument = _argument
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FunctionAggregationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._functionName)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._argument)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(FunctionAggregationSyntax), Function(r) New FunctionAggregationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FunctionAggregationSyntax(Me, parent, startLocation)
         End Function
@@ -25670,7 +20192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the aggregation function.
         ''' </summary>
-        Friend  ReadOnly Property FunctionName As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property FunctionName As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._functionName
             End Get
@@ -25682,7 +20204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -25694,7 +20216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Argument As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Argument As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._argument
             End Get
@@ -25706,7 +20228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -25723,8 +20245,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -25781,27 +20303,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _groupKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _groupKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_groupKeyword)
-             Me._groupKeyword = _groupKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GroupAggregationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._groupKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GroupAggregationSyntax), Function(r) New GroupAggregationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupAggregationSyntax(Me, parent, startLocation)
         End Function
@@ -25809,7 +20310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Group" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._groupKeyword
             End Get
@@ -25890,33 +20391,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _fromKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _fromKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_fromKeyword)
-             Me._fromKeyword = _fromKeyword
-          End If
-          Dim _variables = DirectCast(reader.ReadValue(), GreenNode)
-          If _variables isnot Nothing 
-             AdjustFlagsAndWidth(_variables)
-             Me._variables = _variables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New FromClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._fromKeyword)
-          writer.WriteValue(Me._variables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(FromClauseSyntax), Function(r) New FromClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.FromClauseSyntax(Me, parent, startLocation)
         End Function
@@ -25924,7 +20398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "From" keyword.
         ''' </summary>
-        Friend  ReadOnly Property FromKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property FromKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._fromKeyword
             End Get
@@ -25933,7 +20407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of collection variables declared by this From operator.
         ''' </summary>
-        Friend  ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
+        Friend ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of CollectionRangeVariableSyntax)(Me._variables))
             End Get
@@ -25946,8 +20420,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._variables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26015,33 +20489,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _letKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _letKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_letKeyword)
-             Me._letKeyword = _letKeyword
-          End If
-          Dim _variables = DirectCast(reader.ReadValue(), GreenNode)
-          If _variables isnot Nothing 
-             AdjustFlagsAndWidth(_variables)
-             Me._variables = _variables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New LetClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._letKeyword)
-          writer.WriteValue(Me._variables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(LetClauseSyntax), Function(r) New LetClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.LetClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26049,7 +20496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Let" keyword.
         ''' </summary>
-        Friend  ReadOnly Property LetKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property LetKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._letKeyword
             End Get
@@ -26058,7 +20505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of expression range variable being defined by the Let operator.
         ''' </summary>
-        Friend  ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
+        Friend ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionRangeVariableSyntax)(Me._variables))
             End Get
@@ -26071,8 +20518,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._variables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26173,51 +20620,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _aggregateKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _aggregateKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_aggregateKeyword)
-             Me._aggregateKeyword = _aggregateKeyword
-          End If
-          Dim _variables = DirectCast(reader.ReadValue(), GreenNode)
-          If _variables isnot Nothing 
-             AdjustFlagsAndWidth(_variables)
-             Me._variables = _variables
-          End If
-          Dim _additionalQueryOperators = DirectCast(reader.ReadValue(), GreenNode)
-          If _additionalQueryOperators isnot Nothing 
-             AdjustFlagsAndWidth(_additionalQueryOperators)
-             Me._additionalQueryOperators = _additionalQueryOperators
-          End If
-          Dim _intoKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _intoKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_intoKeyword)
-             Me._intoKeyword = _intoKeyword
-          End If
-          Dim _aggregationVariables = DirectCast(reader.ReadValue(), GreenNode)
-          If _aggregationVariables isnot Nothing 
-             AdjustFlagsAndWidth(_aggregationVariables)
-             Me._aggregationVariables = _aggregationVariables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AggregateClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._aggregateKeyword)
-          writer.WriteValue(Me._variables)
-          writer.WriteValue(Me._additionalQueryOperators)
-          writer.WriteValue(Me._intoKeyword)
-          writer.WriteValue(Me._aggregationVariables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AggregateClauseSyntax), Function(r) New AggregateClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AggregateClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26225,7 +20627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Aggregate" keyword.
         ''' </summary>
-        Friend  ReadOnly Property AggregateKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AggregateKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._aggregateKeyword
             End Get
@@ -26234,7 +20636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of collection range variables declared by this Aggregate operator.
         ''' </summary>
-        Friend  ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
+        Friend ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of CollectionRangeVariableSyntax)(Me._variables))
             End Get
@@ -26246,7 +20648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AdditionalQueryOperators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)
+        Friend ReadOnly Property AdditionalQueryOperators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of QueryClauseSyntax)(Me._additionalQueryOperators)
             End Get
@@ -26255,7 +20657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Into" keyword.
         ''' </summary>
-        Friend  ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._intoKeyword
             End Get
@@ -26264,7 +20666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of new variables being defined by the aggregation.
         ''' </summary>
-        Friend  ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
+        Friend ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of AggregationRangeVariableSyntax)(Me._aggregationVariables))
             End Get
@@ -26283,8 +20685,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._aggregationVariables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26339,27 +20741,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _distinctKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _distinctKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_distinctKeyword)
-             Me._distinctKeyword = _distinctKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DistinctClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._distinctKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DistinctClauseSyntax), Function(r) New DistinctClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DistinctClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26367,7 +20748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Distinct" keyword.
         ''' </summary>
-        Friend  ReadOnly Property DistinctKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property DistinctKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._distinctKeyword
             End Get
@@ -26440,33 +20821,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _whereKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _whereKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_whereKeyword)
-             Me._whereKeyword = _whereKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New WhereClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._whereKeyword)
-          writer.WriteValue(Me._condition)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(WhereClauseSyntax), Function(r) New WhereClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.WhereClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26474,7 +20828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Where" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WhereKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WhereKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._whereKeyword
             End Get
@@ -26483,7 +20837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The boolean expression used for filtering.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -26496,8 +20850,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._condition
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26567,39 +20921,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _skipOrTakeKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _skipOrTakeKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_skipOrTakeKeyword)
-             Me._skipOrTakeKeyword = _skipOrTakeKeyword
-          End If
-          Dim _whileKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _whileKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_whileKeyword)
-             Me._whileKeyword = _whileKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PartitionWhileClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._skipOrTakeKeyword)
-          writer.WriteValue(Me._whileKeyword)
-          writer.WriteValue(Me._condition)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PartitionWhileClauseSyntax), Function(r) New PartitionWhileClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26607,7 +20928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Skip" or "Take" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SkipOrTakeKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SkipOrTakeKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._skipOrTakeKeyword
             End Get
@@ -26616,7 +20937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "While" keyword.
         ''' </summary>
-        Friend  ReadOnly Property WhileKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WhileKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._whileKeyword
             End Get
@@ -26625,7 +20946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The boolean expression used for partitioning.
         ''' </summary>
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -26640,8 +20961,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._condition
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26703,33 +21024,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _skipOrTakeKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _skipOrTakeKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_skipOrTakeKeyword)
-             Me._skipOrTakeKeyword = _skipOrTakeKeyword
-          End If
-          Dim _count = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _count isnot Nothing 
-             AdjustFlagsAndWidth(_count)
-             Me._count = _count
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PartitionClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._skipOrTakeKeyword)
-          writer.WriteValue(Me._count)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PartitionClauseSyntax), Function(r) New PartitionClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26737,7 +21031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Skip" or "Take" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SkipOrTakeKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SkipOrTakeKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._skipOrTakeKeyword
             End Get
@@ -26746,7 +21040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents the expression with the number of items to take or skip.
         ''' </summary>
-        Friend  ReadOnly Property Count As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Count As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._count
             End Get
@@ -26759,8 +21053,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._count
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -26868,57 +21162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-          Dim _groupKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _groupKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_groupKeyword)
-             Me._groupKeyword = _groupKeyword
-          End If
-          Dim _items = DirectCast(reader.ReadValue(), GreenNode)
-          If _items isnot Nothing 
-             AdjustFlagsAndWidth(_items)
-             Me._items = _items
-          End If
-          Dim _byKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _byKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_byKeyword)
-             Me._byKeyword = _byKeyword
-          End If
-          Dim _keys = DirectCast(reader.ReadValue(), GreenNode)
-          If _keys isnot Nothing 
-             AdjustFlagsAndWidth(_keys)
-             Me._keys = _keys
-          End If
-          Dim _intoKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _intoKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_intoKeyword)
-             Me._intoKeyword = _intoKeyword
-          End If
-          Dim _aggregationVariables = DirectCast(reader.ReadValue(), GreenNode)
-          If _aggregationVariables isnot Nothing 
-             AdjustFlagsAndWidth(_aggregationVariables)
-             Me._aggregationVariables = _aggregationVariables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GroupByClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._groupKeyword)
-          writer.WriteValue(Me._items)
-          writer.WriteValue(Me._byKeyword)
-          writer.WriteValue(Me._keys)
-          writer.WriteValue(Me._intoKeyword)
-          writer.WriteValue(Me._aggregationVariables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GroupByClauseSyntax), Function(r) New GroupByClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupByClauseSyntax(Me, parent, startLocation)
         End Function
@@ -26926,7 +21169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Group" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._groupKeyword
             End Get
@@ -26939,7 +21182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Items As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
+        Friend ReadOnly Property Items As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionRangeVariableSyntax)(Me._items))
             End Get
@@ -26948,7 +21191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "By" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ByKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ByKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._byKeyword
             End Get
@@ -26957,13 +21200,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The key values being used for grouping.
         ''' </summary>
-        Friend  ReadOnly Property Keys As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
+        Friend ReadOnly Property Keys As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionRangeVariableSyntax)(Me._keys))
             End Get
         End Property
 
-        Friend  ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._intoKeyword
             End Get
@@ -26972,7 +21215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of new variables that calculate aggregations.
         ''' </summary>
-        Friend  ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
+        Friend ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of AggregationRangeVariableSyntax)(Me._aggregationVariables))
             End Get
@@ -26993,8 +21236,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._aggregationVariables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27092,48 +21335,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _joinKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _joinKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_joinKeyword)
-             Me._joinKeyword = _joinKeyword
-          End If
-          Dim _joinedVariables = DirectCast(reader.ReadValue(), GreenNode)
-          If _joinedVariables isnot Nothing 
-             AdjustFlagsAndWidth(_joinedVariables)
-             Me._joinedVariables = _joinedVariables
-          End If
-          Dim _additionalJoins = DirectCast(reader.ReadValue(), GreenNode)
-          If _additionalJoins isnot Nothing 
-             AdjustFlagsAndWidth(_additionalJoins)
-             Me._additionalJoins = _additionalJoins
-          End If
-          Dim _onKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _onKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_onKeyword)
-             Me._onKeyword = _onKeyword
-          End If
-          Dim _joinConditions = DirectCast(reader.ReadValue(), GreenNode)
-          If _joinConditions isnot Nothing 
-             AdjustFlagsAndWidth(_joinConditions)
-             Me._joinConditions = _joinConditions
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._joinKeyword)
-          writer.WriteValue(Me._joinedVariables)
-          writer.WriteValue(Me._additionalJoins)
-          writer.WriteValue(Me._onKeyword)
-          writer.WriteValue(Me._joinConditions)
-        End Sub
-
         ''' <summary>
         ''' The "Join" keyword.
         ''' </summary>
-        Friend  ReadOnly Property JoinKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property JoinKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._joinKeyword
             End Get
@@ -27142,7 +21347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Defines the collection range variables being joined to.
         ''' </summary>
-        Friend  ReadOnly Property JoinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
+        Friend ReadOnly Property JoinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of CollectionRangeVariableSyntax)(Me._joinedVariables))
             End Get
@@ -27154,7 +21359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AdditionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinClauseSyntax)
+        Friend ReadOnly Property AdditionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinClauseSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinClauseSyntax)(Me._additionalJoins)
             End Get
@@ -27163,7 +21368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "On" keyword.
         ''' </summary>
-        Friend  ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OnKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._onKeyword
             End Get
@@ -27173,7 +21378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The conditions indicating what expressions to compare during the join. Each
         ''' condition is a JoinCondition, and the separators are "And" keywords.
         ''' </summary>
-        Friend  ReadOnly Property JoinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)
+        Friend ReadOnly Property JoinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of JoinConditionSyntax)(Me._joinConditions))
             End Get
@@ -27231,39 +21436,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _left = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _left isnot Nothing 
-             AdjustFlagsAndWidth(_left)
-             Me._left = _left
-          End If
-          Dim _equalsKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _equalsKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_equalsKeyword)
-             Me._equalsKeyword = _equalsKeyword
-          End If
-          Dim _right = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _right isnot Nothing 
-             AdjustFlagsAndWidth(_right)
-             Me._right = _right
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New JoinConditionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._left)
-          writer.WriteValue(Me._equalsKeyword)
-          writer.WriteValue(Me._right)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(JoinConditionSyntax), Function(r) New JoinConditionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax(Me, parent, startLocation)
         End Function
@@ -27271,7 +21443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The left expression in the Join condition.
         ''' </summary>
-        Friend  ReadOnly Property Left As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Left As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._left
             End Get
@@ -27280,7 +21452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Equals" keyword.
         ''' </summary>
-        Friend  ReadOnly Property EqualsKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EqualsKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._equalsKeyword
             End Get
@@ -27289,7 +21461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The right expression in the Join condition.
         ''' </summary>
-        Friend  ReadOnly Property Right As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Right As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._right
             End Get
@@ -27304,8 +21476,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._right
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27347,17 +21519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase._slotCount = 5
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleJoinClauseSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SimpleJoinClauseSyntax), Function(r) New SimpleJoinClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleJoinClauseSyntax(Me, parent, startLocation)
         End Function
@@ -27375,8 +21536,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._joinConditions
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27451,39 +21612,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 8
-          Dim _groupKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _groupKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_groupKeyword)
-             Me._groupKeyword = _groupKeyword
-          End If
-          Dim _intoKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _intoKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_intoKeyword)
-             Me._intoKeyword = _intoKeyword
-          End If
-          Dim _aggregationVariables = DirectCast(reader.ReadValue(), GreenNode)
-          If _aggregationVariables isnot Nothing 
-             AdjustFlagsAndWidth(_aggregationVariables)
-             Me._aggregationVariables = _aggregationVariables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GroupJoinClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._groupKeyword)
-          writer.WriteValue(Me._intoKeyword)
-          writer.WriteValue(Me._aggregationVariables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GroupJoinClauseSyntax), Function(r) New GroupJoinClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupJoinClauseSyntax(Me, parent, startLocation)
         End Function
@@ -27491,7 +21619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Group" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GroupKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._groupKeyword
             End Get
@@ -27500,7 +21628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Into" keyword.
         ''' </summary>
-        Friend  ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IntoKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._intoKeyword
             End Get
@@ -27509,7 +21637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of new variables that calculate aggregations.
         ''' </summary>
-        Friend  ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
+        Friend ReadOnly Property AggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of AggregationRangeVariableSyntax)(Me._aggregationVariables))
             End Get
@@ -27534,8 +21662,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 7
                     Return Me._aggregationVariables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27610,39 +21738,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _orderKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _orderKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_orderKeyword)
-             Me._orderKeyword = _orderKeyword
-          End If
-          Dim _byKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _byKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_byKeyword)
-             Me._byKeyword = _byKeyword
-          End If
-          Dim _orderings = DirectCast(reader.ReadValue(), GreenNode)
-          If _orderings isnot Nothing 
-             AdjustFlagsAndWidth(_orderings)
-             Me._orderings = _orderings
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OrderByClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._orderKeyword)
-          writer.WriteValue(Me._byKeyword)
-          writer.WriteValue(Me._orderings)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OrderByClauseSyntax), Function(r) New OrderByClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OrderByClauseSyntax(Me, parent, startLocation)
         End Function
@@ -27650,7 +21745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Order" keyword
         ''' </summary>
-        Friend  ReadOnly Property OrderKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OrderKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._orderKeyword
             End Get
@@ -27659,7 +21754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "By" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ByKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ByKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._byKeyword
             End Get
@@ -27668,7 +21763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The list of OrderExpression's to sort by.
         ''' </summary>
-        Friend  ReadOnly Property Orderings As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of OrderingSyntax)
+        Friend ReadOnly Property Orderings As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of OrderingSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of OrderingSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of OrderingSyntax)(Me._orderings))
             End Get
@@ -27683,8 +21778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._orderings
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27753,33 +21848,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _ascendingOrDescendingKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ascendingOrDescendingKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ascendingOrDescendingKeyword)
-             Me._ascendingOrDescendingKeyword = _ascendingOrDescendingKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New OrderingSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._ascendingOrDescendingKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(OrderingSyntax), Function(r) New OrderingSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.OrderingSyntax(Me, parent, startLocation)
         End Function
@@ -27787,7 +21855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression to sort by.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -27800,7 +21868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AscendingOrDescendingKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AscendingOrDescendingKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ascendingOrDescendingKeyword
             End Get
@@ -27813,8 +21881,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._ascendingOrDescendingKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27882,33 +21950,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _selectKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _selectKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_selectKeyword)
-             Me._selectKeyword = _selectKeyword
-          End If
-          Dim _variables = DirectCast(reader.ReadValue(), GreenNode)
-          If _variables isnot Nothing 
-             AdjustFlagsAndWidth(_variables)
-             Me._variables = _variables
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SelectClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._selectKeyword)
-          writer.WriteValue(Me._variables)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SelectClauseSyntax), Function(r) New SelectClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SelectClauseSyntax(Me, parent, startLocation)
         End Function
@@ -27916,7 +21957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Select" keyword.
         ''' </summary>
-        Friend  ReadOnly Property SelectKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property SelectKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._selectKeyword
             End Get
@@ -27926,7 +21967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of expression range variables being defined by the Select query
         ''' operator.
         ''' </summary>
-        Friend  ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
+        Friend ReadOnly Property Variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of ExpressionRangeVariableSyntax)(Me._variables))
             End Get
@@ -27939,8 +21980,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._variables
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -27978,10 +22019,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -28055,50 +22092,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _declaration = DirectCast(reader.ReadValue(), XmlDeclarationSyntax)
-          If _declaration isnot Nothing 
-             AdjustFlagsAndWidth(_declaration)
-             Me._declaration = _declaration
-          End If
-          Dim _precedingMisc = DirectCast(reader.ReadValue(), GreenNode)
-          If _precedingMisc isnot Nothing 
-             AdjustFlagsAndWidth(_precedingMisc)
-             Me._precedingMisc = _precedingMisc
-          End If
-          Dim _root = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _root isnot Nothing 
-             AdjustFlagsAndWidth(_root)
-             Me._root = _root
-          End If
-          Dim _followingMisc = DirectCast(reader.ReadValue(), GreenNode)
-          If _followingMisc isnot Nothing 
-             AdjustFlagsAndWidth(_followingMisc)
-             Me._followingMisc = _followingMisc
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlDocumentSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._declaration)
-          writer.WriteValue(Me._precedingMisc)
-          writer.WriteValue(Me._root)
-          writer.WriteValue(Me._followingMisc)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlDocumentSyntax), Function(r) New XmlDocumentSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlDocumentSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Declaration As InternalSyntax.XmlDeclarationSyntax
+        Friend ReadOnly Property Declaration As InternalSyntax.XmlDeclarationSyntax
             Get
                 Return Me._declaration
             End Get
@@ -28107,13 +22105,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property PrecedingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property PrecedingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._precedingMisc)
             End Get
         End Property
 
-        Friend  ReadOnly Property Root As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Root As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._root
             End Get
@@ -28122,7 +22120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property FollowingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property FollowingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._followingMisc)
             End Get
@@ -28139,8 +22137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._followingMisc
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -28242,74 +22240,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 6
-          Dim _lessThanQuestionToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanQuestionToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanQuestionToken)
-             Me._lessThanQuestionToken = _lessThanQuestionToken
-          End If
-          Dim _xmlKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _xmlKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_xmlKeyword)
-             Me._xmlKeyword = _xmlKeyword
-          End If
-          Dim _version = DirectCast(reader.ReadValue(), XmlDeclarationOptionSyntax)
-          If _version isnot Nothing 
-             AdjustFlagsAndWidth(_version)
-             Me._version = _version
-          End If
-          Dim _encoding = DirectCast(reader.ReadValue(), XmlDeclarationOptionSyntax)
-          If _encoding isnot Nothing 
-             AdjustFlagsAndWidth(_encoding)
-             Me._encoding = _encoding
-          End If
-          Dim _standalone = DirectCast(reader.ReadValue(), XmlDeclarationOptionSyntax)
-          If _standalone isnot Nothing 
-             AdjustFlagsAndWidth(_standalone)
-             Me._standalone = _standalone
-          End If
-          Dim _questionGreaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _questionGreaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_questionGreaterThanToken)
-             Me._questionGreaterThanToken = _questionGreaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlDeclarationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanQuestionToken)
-          writer.WriteValue(Me._xmlKeyword)
-          writer.WriteValue(Me._version)
-          writer.WriteValue(Me._encoding)
-          writer.WriteValue(Me._standalone)
-          writer.WriteValue(Me._questionGreaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlDeclarationSyntax), Function(r) New XmlDeclarationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlDeclarationSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanQuestionToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanQuestionToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanQuestionToken
             End Get
         End Property
 
-        Friend  ReadOnly Property XmlKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property XmlKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._xmlKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property Version As InternalSyntax.XmlDeclarationOptionSyntax
+        Friend ReadOnly Property Version As InternalSyntax.XmlDeclarationOptionSyntax
             Get
                 Return Me._version
             End Get
@@ -28318,7 +22265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Encoding As InternalSyntax.XmlDeclarationOptionSyntax
+        Friend ReadOnly Property Encoding As InternalSyntax.XmlDeclarationOptionSyntax
             Get
                 Return Me._encoding
             End Get
@@ -28327,13 +22274,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Standalone As InternalSyntax.XmlDeclarationOptionSyntax
+        Friend ReadOnly Property Standalone As InternalSyntax.XmlDeclarationOptionSyntax
             Get
                 Return Me._standalone
             End Get
         End Property
 
-        Friend  ReadOnly Property QuestionGreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property QuestionGreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._questionGreaterThanToken
             End Get
@@ -28354,8 +22301,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 5
                     Return Me._questionGreaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -28425,56 +22372,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equals = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equals isnot Nothing 
-             AdjustFlagsAndWidth(_equals)
-             Me._equals = _equals
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), XmlStringSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlDeclarationOptionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equals)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlDeclarationOptionSyntax), Function(r) New XmlDeclarationOptionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlDeclarationOptionSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend Shadows  ReadOnly Property Equals As InternalSyntax.PunctuationSyntax
+        Friend Shadows ReadOnly Property Equals As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equals
             End Get
         End Property
 
-        Friend  ReadOnly Property Value As InternalSyntax.XmlStringSyntax
+        Friend ReadOnly Property Value As InternalSyntax.XmlStringSyntax
             Get
                 Return Me._value
             End Get
@@ -28489,8 +22403,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -28565,44 +22479,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _startTag = DirectCast(reader.ReadValue(), XmlElementStartTagSyntax)
-          If _startTag isnot Nothing 
-             AdjustFlagsAndWidth(_startTag)
-             Me._startTag = _startTag
-          End If
-          Dim _content = DirectCast(reader.ReadValue(), GreenNode)
-          If _content isnot Nothing 
-             AdjustFlagsAndWidth(_content)
-             Me._content = _content
-          End If
-          Dim _endTag = DirectCast(reader.ReadValue(), XmlElementEndTagSyntax)
-          If _endTag isnot Nothing 
-             AdjustFlagsAndWidth(_endTag)
-             Me._endTag = _endTag
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlElementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._startTag)
-          writer.WriteValue(Me._content)
-          writer.WriteValue(Me._endTag)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlElementSyntax), Function(r) New XmlElementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property StartTag As InternalSyntax.XmlElementStartTagSyntax
+        Friend ReadOnly Property StartTag As InternalSyntax.XmlElementStartTagSyntax
             Get
                 Return Me._startTag
             End Get
@@ -28611,13 +22492,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property Content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._content)
             End Get
         End Property
 
-        Friend  ReadOnly Property EndTag As InternalSyntax.XmlElementEndTagSyntax
+        Friend ReadOnly Property EndTag As InternalSyntax.XmlElementEndTagSyntax
             Get
                 Return Me._endTag
             End Get
@@ -28632,8 +22513,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endTag
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -28694,27 +22575,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _textTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _textTokens isnot Nothing 
-             AdjustFlagsAndWidth(_textTokens)
-             Me._textTokens = _textTokens
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlTextSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._textTokens)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlTextSyntax), Function(r) New XmlTextSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax(Me, parent, startLocation)
         End Function
@@ -28723,7 +22583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of all the text tokens in the Xml text. This list always contains at
         ''' least one token.
         ''' </summary>
-        Friend  ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
+        Friend ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._textTokens)
             End Get
@@ -28816,56 +22676,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _lessThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanToken)
-             Me._lessThanToken = _lessThanToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _attributes = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributes isnot Nothing 
-             AdjustFlagsAndWidth(_attributes)
-             Me._attributes = _attributes
-          End If
-          Dim _greaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _greaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_greaterThanToken)
-             Me._greaterThanToken = _greaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlElementStartTagSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._attributes)
-          writer.WriteValue(Me._greaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlElementStartTagSyntax), Function(r) New XmlElementStartTagSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementStartTagSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._name
             End Get
@@ -28874,13 +22695,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._attributes)
             End Get
         End Property
 
-        Friend  ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._greaterThanToken
             End Get
@@ -28897,8 +22718,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._greaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -28973,44 +22794,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanSlashToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanSlashToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanSlashToken)
-             Me._lessThanSlashToken = _lessThanSlashToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _greaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _greaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_greaterThanToken)
-             Me._greaterThanToken = _greaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlElementEndTagSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanSlashToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._greaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlElementEndTagSyntax), Function(r) New XmlElementEndTagSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementEndTagSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanSlashToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanSlashToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanSlashToken
             End Get
@@ -29019,13 +22807,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._greaterThanToken
             End Get
@@ -29040,8 +22828,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._greaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29123,56 +22911,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _lessThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanToken)
-             Me._lessThanToken = _lessThanToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _attributes = DirectCast(reader.ReadValue(), GreenNode)
-          If _attributes isnot Nothing 
-             AdjustFlagsAndWidth(_attributes)
-             Me._attributes = _attributes
-          End If
-          Dim _slashGreaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _slashGreaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_slashGreaterThanToken)
-             Me._slashGreaterThanToken = _slashGreaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlEmptyElementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._attributes)
-          writer.WriteValue(Me._slashGreaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlEmptyElementSyntax), Function(r) New XmlEmptyElementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlEmptyElementSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._name
             End Get
@@ -29181,13 +22930,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property Attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._attributes)
             End Get
         End Property
 
-        Friend  ReadOnly Property SlashGreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property SlashGreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._slashGreaterThanToken
             End Get
@@ -29204,8 +22953,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._slashGreaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29274,56 +23023,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _name = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), XmlNodeSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlAttributeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlAttributeSyntax), Function(r) New XmlAttributeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlAttributeSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Value As InternalSyntax.XmlNodeSyntax
+        Friend ReadOnly Property Value As InternalSyntax.XmlNodeSyntax
             Get
                 Return Me._value
             End Get
@@ -29338,8 +23054,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29376,10 +23092,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -29441,44 +23153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _startQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _startQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_startQuoteToken)
-             Me._startQuoteToken = _startQuoteToken
-          End If
-          Dim _textTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _textTokens isnot Nothing 
-             AdjustFlagsAndWidth(_textTokens)
-             Me._textTokens = _textTokens
-          End If
-          Dim _endQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _endQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_endQuoteToken)
-             Me._endQuoteToken = _endQuoteToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlStringSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._startQuoteToken)
-          writer.WriteValue(Me._textTokens)
-          writer.WriteValue(Me._endQuoteToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlStringSyntax), Function(r) New XmlStringSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlStringSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._startQuoteToken
             End Get
@@ -29487,13 +23166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
+        Friend ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._textTokens)
             End Get
         End Property
 
-        Friend  ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._endQuoteToken
             End Get
@@ -29508,8 +23187,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endQuoteToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29564,32 +23243,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlPrefixNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlPrefixNameSyntax), Function(r) New XmlPrefixNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlPrefixNameSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
             Get
                 Return Me._name
             End Get
@@ -29670,33 +23328,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _prefix = DirectCast(reader.ReadValue(), XmlPrefixSyntax)
-          If _prefix isnot Nothing 
-             AdjustFlagsAndWidth(_prefix)
-             Me._prefix = _prefix
-          End If
-          Dim _localName = DirectCast(reader.ReadValue(), XmlNameTokenSyntax)
-          If _localName isnot Nothing 
-             AdjustFlagsAndWidth(_localName)
-             Me._localName = _localName
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._prefix)
-          writer.WriteValue(Me._localName)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlNameSyntax), Function(r) New XmlNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNameSyntax(Me, parent, startLocation)
         End Function
@@ -29704,13 +23335,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Prefix As InternalSyntax.XmlPrefixSyntax
+        Friend ReadOnly Property Prefix As InternalSyntax.XmlPrefixSyntax
             Get
                 Return Me._prefix
             End Get
         End Property
 
-        Friend  ReadOnly Property LocalName As InternalSyntax.XmlNameTokenSyntax
+        Friend ReadOnly Property LocalName As InternalSyntax.XmlNameTokenSyntax
             Get
                 Return Me._localName
             End Get
@@ -29723,8 +23354,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._localName
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29795,56 +23426,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanToken)
-             Me._lessThanToken = _lessThanToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _greaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _greaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_greaterThanToken)
-             Me._greaterThanToken = _greaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlBracketedNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._greaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlBracketedNameSyntax), Function(r) New XmlBracketedNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlBracketedNameSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property GreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._greaterThanToken
             End Get
@@ -29859,8 +23457,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._greaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -29922,44 +23520,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _colonToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _colonToken isnot Nothing 
-             AdjustFlagsAndWidth(_colonToken)
-             Me._colonToken = _colonToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlPrefixSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._colonToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlPrefixSyntax), Function(r) New XmlPrefixSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlPrefixSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._colonToken
             End Get
@@ -29972,8 +23543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._colonToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30049,56 +23620,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanExclamationMinusMinusToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanExclamationMinusMinusToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanExclamationMinusMinusToken)
-             Me._lessThanExclamationMinusMinusToken = _lessThanExclamationMinusMinusToken
-          End If
-          Dim _textTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _textTokens isnot Nothing 
-             AdjustFlagsAndWidth(_textTokens)
-             Me._textTokens = _textTokens
-          End If
-          Dim _minusMinusGreaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _minusMinusGreaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_minusMinusGreaterThanToken)
-             Me._minusMinusGreaterThanToken = _minusMinusGreaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlCommentSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanExclamationMinusMinusToken)
-          writer.WriteValue(Me._textTokens)
-          writer.WriteValue(Me._minusMinusGreaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlCommentSyntax), Function(r) New XmlCommentSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlCommentSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanExclamationMinusMinusToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanExclamationMinusMinusToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanExclamationMinusMinusToken
             End Get
         End Property
 
-        Friend  ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
+        Friend ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._textTokens)
             End Get
         End Property
 
-        Friend  ReadOnly Property MinusMinusGreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property MinusMinusGreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._minusMinusGreaterThanToken
             End Get
@@ -30113,8 +23651,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._minusMinusGreaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30197,68 +23735,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _lessThanQuestionToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanQuestionToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanQuestionToken)
-             Me._lessThanQuestionToken = _lessThanQuestionToken
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _textTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _textTokens isnot Nothing 
-             AdjustFlagsAndWidth(_textTokens)
-             Me._textTokens = _textTokens
-          End If
-          Dim _questionGreaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _questionGreaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_questionGreaterThanToken)
-             Me._questionGreaterThanToken = _questionGreaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlProcessingInstructionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanQuestionToken)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._textTokens)
-          writer.WriteValue(Me._questionGreaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlProcessingInstructionSyntax), Function(r) New XmlProcessingInstructionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlProcessingInstructionSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanQuestionToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanQuestionToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanQuestionToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameTokenSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
+        Friend ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._textTokens)
             End Get
         End Property
 
-        Friend  ReadOnly Property QuestionGreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property QuestionGreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._questionGreaterThanToken
             End Get
@@ -30275,8 +23774,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._questionGreaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30351,56 +23850,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _beginCDataToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _beginCDataToken isnot Nothing 
-             AdjustFlagsAndWidth(_beginCDataToken)
-             Me._beginCDataToken = _beginCDataToken
-          End If
-          Dim _textTokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _textTokens isnot Nothing 
-             AdjustFlagsAndWidth(_textTokens)
-             Me._textTokens = _textTokens
-          End If
-          Dim _endCDataToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _endCDataToken isnot Nothing 
-             AdjustFlagsAndWidth(_endCDataToken)
-             Me._endCDataToken = _endCDataToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlCDataSectionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._beginCDataToken)
-          writer.WriteValue(Me._textTokens)
-          writer.WriteValue(Me._endCDataToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlCDataSectionSyntax), Function(r) New XmlCDataSectionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlCDataSectionSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property BeginCDataToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property BeginCDataToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._beginCDataToken
             End Get
         End Property
 
-        Friend  ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
+        Friend ReadOnly Property TextTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlTextTokenSyntax)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._textTokens)
             End Get
         End Property
 
-        Friend  ReadOnly Property EndCDataToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EndCDataToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._endCDataToken
             End Get
@@ -30415,8 +23881,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._endCDataToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30486,56 +23952,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _lessThanPercentEqualsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _lessThanPercentEqualsToken isnot Nothing 
-             AdjustFlagsAndWidth(_lessThanPercentEqualsToken)
-             Me._lessThanPercentEqualsToken = _lessThanPercentEqualsToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _percentGreaterThanToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _percentGreaterThanToken isnot Nothing 
-             AdjustFlagsAndWidth(_percentGreaterThanToken)
-             Me._percentGreaterThanToken = _percentGreaterThanToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlEmbeddedExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._lessThanPercentEqualsToken)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._percentGreaterThanToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlEmbeddedExpressionSyntax), Function(r) New XmlEmbeddedExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlEmbeddedExpressionSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property LessThanPercentEqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property LessThanPercentEqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._lessThanPercentEqualsToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
         End Property
 
-        Friend  ReadOnly Property PercentGreaterThanToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property PercentGreaterThanToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._percentGreaterThanToken
             End Get
@@ -30550,8 +23983,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._percentGreaterThanToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30590,10 +24023,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -30648,33 +24077,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elementType = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _elementType isnot Nothing 
-             AdjustFlagsAndWidth(_elementType)
-             Me._elementType = _elementType
-          End If
-          Dim _rankSpecifiers = DirectCast(reader.ReadValue(), GreenNode)
-          If _rankSpecifiers isnot Nothing 
-             AdjustFlagsAndWidth(_rankSpecifiers)
-             Me._rankSpecifiers = _rankSpecifiers
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ArrayTypeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elementType)
-          writer.WriteValue(Me._rankSpecifiers)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ArrayTypeSyntax), Function(r) New ArrayTypeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayTypeSyntax(Me, parent, startLocation)
         End Function
@@ -30682,7 +24084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The type of the elements of the array.
         ''' </summary>
-        Friend  ReadOnly Property ElementType As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property ElementType As InternalSyntax.TypeSyntax
             Get
                 Return Me._elementType
             End Get
@@ -30691,7 +24093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents the list of "()" or "(,,)" modifiers on the array type.
         ''' </summary>
-        Friend  ReadOnly Property RankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
+        Friend ReadOnly Property RankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)(Me._rankSpecifiers)
             End Get
@@ -30704,8 +24106,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._rankSpecifiers
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30767,33 +24169,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elementType = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _elementType isnot Nothing 
-             AdjustFlagsAndWidth(_elementType)
-             Me._elementType = _elementType
-          End If
-          Dim _questionMarkToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _questionMarkToken isnot Nothing 
-             AdjustFlagsAndWidth(_questionMarkToken)
-             Me._questionMarkToken = _questionMarkToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NullableTypeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elementType)
-          writer.WriteValue(Me._questionMarkToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NullableTypeSyntax), Function(r) New NullableTypeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NullableTypeSyntax(Me, parent, startLocation)
         End Function
@@ -30802,7 +24177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The kind of type that is this type is a nullable of. Cannot be an array type or
         ''' a nullable type.
         ''' </summary>
-        Friend  ReadOnly Property ElementType As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property ElementType As InternalSyntax.TypeSyntax
             Get
                 Return Me._elementType
             End Get
@@ -30811,7 +24186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "?" token.
         ''' </summary>
-        Friend  ReadOnly Property QuestionMarkToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property QuestionMarkToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._questionMarkToken
             End Get
@@ -30824,8 +24199,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._questionMarkToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -30881,27 +24256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _keyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _keyword isnot Nothing 
-             AdjustFlagsAndWidth(_keyword)
-             Me._keyword = _keyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PredefinedTypeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._keyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PredefinedTypeSyntax), Function(r) New PredefinedTypeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.PredefinedTypeSyntax(Me, parent, startLocation)
         End Function
@@ -30909,7 +24263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The keyword that was used to describe the built-in type.
         ''' </summary>
-        Friend  ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Keyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._keyword
             End Get
@@ -30960,10 +24314,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(kind, errors, annotations)
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-        End Sub
-
     End Class
 
     ''' <summary>
@@ -30999,24 +24349,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _identifier = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _identifier isnot Nothing 
-             AdjustFlagsAndWidth(_identifier)
-             Me._identifier = _identifier
-          End If
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._identifier)
-        End Sub
-
         ''' <summary>
         ''' The identifier in the name.
         ''' </summary>
-        Friend  ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Identifier As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._identifier
             End Get
@@ -31046,17 +24382,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind, errors, annotations, identifier)
             MyBase._slotCount = 1
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New IdentifierNameSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(IdentifierNameSyntax), Function(r) New IdentifierNameSyntax(r))
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -31124,27 +24449,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _typeArgumentList = DirectCast(reader.ReadValue(), TypeArgumentListSyntax)
-          If _typeArgumentList isnot Nothing 
-             AdjustFlagsAndWidth(_typeArgumentList)
-             Me._typeArgumentList = _typeArgumentList
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GenericNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._typeArgumentList)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GenericNameSyntax), Function(r) New GenericNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GenericNameSyntax(Me, parent, startLocation)
         End Function
@@ -31152,7 +24456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The generic argument list.
         ''' </summary>
-        Friend  ReadOnly Property TypeArgumentList As InternalSyntax.TypeArgumentListSyntax
+        Friend ReadOnly Property TypeArgumentList As InternalSyntax.TypeArgumentListSyntax
             Get
                 Return Me._typeArgumentList
             End Get
@@ -31165,8 +24469,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._typeArgumentList
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -31235,39 +24539,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _left = DirectCast(reader.ReadValue(), NameSyntax)
-          If _left isnot Nothing 
-             AdjustFlagsAndWidth(_left)
-             Me._left = _left
-          End If
-          Dim _dotToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dotToken isnot Nothing 
-             AdjustFlagsAndWidth(_dotToken)
-             Me._dotToken = _dotToken
-          End If
-          Dim _right = DirectCast(reader.ReadValue(), SimpleNameSyntax)
-          If _right isnot Nothing 
-             AdjustFlagsAndWidth(_right)
-             Me._right = _right
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New QualifiedNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._left)
-          writer.WriteValue(Me._dotToken)
-          writer.WriteValue(Me._right)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(QualifiedNameSyntax), Function(r) New QualifiedNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.QualifiedNameSyntax(Me, parent, startLocation)
         End Function
@@ -31276,7 +24547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The part of the name that appears to the left of the dot. This can itself be
         ''' any name.
         ''' </summary>
-        Friend  ReadOnly Property Left As InternalSyntax.NameSyntax
+        Friend ReadOnly Property Left As InternalSyntax.NameSyntax
             Get
                 Return Me._left
             End Get
@@ -31285,7 +24556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "." token that separates the names.
         ''' </summary>
-        Friend  ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dotToken
             End Get
@@ -31295,7 +24566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The part of the name that appears to the right of the dot. This must be a
         ''' simple identifier.
         ''' </summary>
-        Friend  ReadOnly Property Right As InternalSyntax.SimpleNameSyntax
+        Friend ReadOnly Property Right As InternalSyntax.SimpleNameSyntax
             Get
                 Return Me._right
             End Get
@@ -31310,8 +24581,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._right
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -31366,27 +24637,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _globalKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _globalKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_globalKeyword)
-             Me._globalKeyword = _globalKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New GlobalNameSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._globalKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(GlobalNameSyntax), Function(r) New GlobalNameSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.GlobalNameSyntax(Me, parent, startLocation)
         End Function
@@ -31394,7 +24644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Global" keyword.
         ''' </summary>
-        Friend  ReadOnly Property GlobalKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property GlobalKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._globalKeyword
             End Get
@@ -31487,45 +24737,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _ofKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ofKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ofKeyword)
-             Me._ofKeyword = _ofKeyword
-          End If
-          Dim _arguments = DirectCast(reader.ReadValue(), GreenNode)
-          If _arguments isnot Nothing 
-             AdjustFlagsAndWidth(_arguments)
-             Me._arguments = _arguments
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New TypeArgumentListSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._ofKeyword)
-          writer.WriteValue(Me._arguments)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(TypeArgumentListSyntax), Function(r) New TypeArgumentListSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax(Me, parent, startLocation)
         End Function
@@ -31533,7 +24744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -31542,7 +24753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Of" keyword.
         ''' </summary>
-        Friend  ReadOnly Property OfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ofKeyword
             End Get
@@ -31551,7 +24762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' A list of all the type arguments.
         ''' </summary>
-        Friend  ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
+        Friend ReadOnly Property Arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of TypeSyntax)(Me._arguments))
             End Get
@@ -31560,7 +24771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -31577,8 +24788,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -31660,44 +24871,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _name = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _signature = DirectCast(reader.ReadValue(), CrefSignatureSyntax)
-          If _signature isnot Nothing 
-             AdjustFlagsAndWidth(_signature)
-             Me._signature = _signature
-          End If
-          Dim _asClause = DirectCast(reader.ReadValue(), SimpleAsClauseSyntax)
-          If _asClause isnot Nothing 
-             AdjustFlagsAndWidth(_asClause)
-             Me._asClause = _asClause
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CrefReferenceSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._signature)
-          writer.WriteValue(Me._asClause)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CrefReferenceSyntax), Function(r) New CrefReferenceSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CrefReferenceSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Name As InternalSyntax.TypeSyntax
             Get
                 Return Me._name
             End Get
@@ -31706,7 +24884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Signature As InternalSyntax.CrefSignatureSyntax
+        Friend ReadOnly Property Signature As InternalSyntax.CrefSignatureSyntax
             Get
                 Return Me._signature
             End Get
@@ -31715,7 +24893,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
+        Friend ReadOnly Property AsClause As InternalSyntax.SimpleAsClauseSyntax
             Get
                 Return Me._asClause
             End Get
@@ -31730,8 +24908,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._asClause
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -31807,56 +24985,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _argumentTypes = DirectCast(reader.ReadValue(), GreenNode)
-          If _argumentTypes isnot Nothing 
-             AdjustFlagsAndWidth(_argumentTypes)
-             Me._argumentTypes = _argumentTypes
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CrefSignatureSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._argumentTypes)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CrefSignatureSyntax), Function(r) New CrefSignatureSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CrefSignatureSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
         End Property
 
-        Friend  ReadOnly Property ArgumentTypes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax)
+        Friend ReadOnly Property ArgumentTypes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of CrefSignaturePartSyntax)(Me._argumentTypes))
             End Get
         End Property
 
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -31871,8 +25016,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -31943,33 +25088,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _modifier = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _modifier isnot Nothing 
-             AdjustFlagsAndWidth(_modifier)
-             Me._modifier = _modifier
-          End If
-          Dim _type = DirectCast(reader.ReadValue(), TypeSyntax)
-          If _type isnot Nothing 
-             AdjustFlagsAndWidth(_type)
-             Me._type = _type
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CrefSignaturePartSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._modifier)
-          writer.WriteValue(Me._type)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CrefSignaturePartSyntax), Function(r) New CrefSignaturePartSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CrefSignaturePartSyntax(Me, parent, startLocation)
         End Function
@@ -31977,7 +25095,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Modifier As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property Modifier As InternalSyntax.KeywordSyntax
             Get
                 Return Me._modifier
             End Get
@@ -31986,7 +25104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Type As InternalSyntax.TypeSyntax
+        Friend ReadOnly Property Type As InternalSyntax.TypeSyntax
             Get
                 Return Me._type
             End Get
@@ -31999,8 +25117,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._type
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -32059,44 +25177,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _operatorKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _operatorKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_operatorKeyword)
-             Me._operatorKeyword = _operatorKeyword
-          End If
-          Dim _operatorToken = DirectCast(reader.ReadValue(), SyntaxToken)
-          If _operatorToken isnot Nothing 
-             AdjustFlagsAndWidth(_operatorToken)
-             Me._operatorToken = _operatorToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CrefOperatorReferenceSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._operatorKeyword)
-          writer.WriteValue(Me._operatorToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CrefOperatorReferenceSyntax), Function(r) New CrefOperatorReferenceSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CrefOperatorReferenceSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property OperatorKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property OperatorKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._operatorKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
+        Friend ReadOnly Property OperatorToken As InternalSyntax.SyntaxToken
             Get
                 Return Me._operatorToken
             End Get
@@ -32109,8 +25200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._operatorToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -32176,56 +25267,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _left = DirectCast(reader.ReadValue(), NameSyntax)
-          If _left isnot Nothing 
-             AdjustFlagsAndWidth(_left)
-             Me._left = _left
-          End If
-          Dim _dotToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dotToken isnot Nothing 
-             AdjustFlagsAndWidth(_dotToken)
-             Me._dotToken = _dotToken
-          End If
-          Dim _right = DirectCast(reader.ReadValue(), CrefOperatorReferenceSyntax)
-          If _right isnot Nothing 
-             AdjustFlagsAndWidth(_right)
-             Me._right = _right
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New QualifiedCrefOperatorReferenceSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._left)
-          writer.WriteValue(Me._dotToken)
-          writer.WriteValue(Me._right)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(QualifiedCrefOperatorReferenceSyntax), Function(r) New QualifiedCrefOperatorReferenceSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.QualifiedCrefOperatorReferenceSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Left As InternalSyntax.NameSyntax
+        Friend ReadOnly Property Left As InternalSyntax.NameSyntax
             Get
                 Return Me._left
             End Get
         End Property
 
-        Friend  ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DotToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dotToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Right As InternalSyntax.CrefOperatorReferenceSyntax
+        Friend ReadOnly Property Right As InternalSyntax.CrefOperatorReferenceSyntax
             Get
                 Return Me._right
             End Get
@@ -32240,8 +25298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._right
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -32303,33 +25361,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _yieldKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _yieldKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_yieldKeyword)
-             Me._yieldKeyword = _yieldKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New YieldStatementSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._yieldKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(YieldStatementSyntax), Function(r) New YieldStatementSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax(Me, parent, startLocation)
         End Function
@@ -32337,7 +25368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Yield" keyword.
         ''' </summary>
-        Friend  ReadOnly Property YieldKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property YieldKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._yieldKeyword
             End Get
@@ -32346,7 +25377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression whose value is being yielded.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -32359,8 +25390,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -32422,33 +25453,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _awaitKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _awaitKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_awaitKeyword)
-             Me._awaitKeyword = _awaitKeyword
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New AwaitExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._awaitKeyword)
-          writer.WriteValue(Me._expression)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(AwaitExpressionSyntax), Function(r) New AwaitExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.AwaitExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -32456,7 +25460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Await" keyword.
         ''' </summary>
-        Friend  ReadOnly Property AwaitKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property AwaitKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._awaitKeyword
             End Get
@@ -32465,7 +25469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The expression being awaited.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -32478,8 +25482,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._expression
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -32530,16 +25534,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New KeywordSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(KeywordSyntax), Function(r) New KeywordSyntax(r))
-        End Sub
-
         Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode
             Return new KeywordSyntax(Me.Kind, GetDiagnostics, GetAnnotations, text, trivia, GetTrailingTrivia)
         End Function
@@ -32577,16 +25571,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), text as String, leadingTrivia As GreenNode, trailingTrivia As GreenNode)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New PunctuationSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(PunctuationSyntax), Function(r) New PunctuationSyntax(r))
         End Sub
 
         Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode
@@ -32631,23 +25615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._possibleKeywordKind = possibleKeywordKind
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._possibleKeywordKind = CType(reader.ReadInt32(), SyntaxKind)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlNameTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteInt32(Me._possibleKeywordKind)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlNameTokenSyntax), Function(r) New XmlNameTokenSyntax(r))
-        End Sub
-
-        Friend  ReadOnly Property PossibleKeywordKind As SyntaxKind
+        Friend ReadOnly Property PossibleKeywordKind As SyntaxKind
             Get
                 Return Me._possibleKeywordKind
             End Get
@@ -32697,26 +25665,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._value = CType(reader.ReadValue(), String)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlTextTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlTextTokenSyntax), Function(r) New XmlTextTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The text of the attribute or pcdata after normalization.
         ''' </summary>
-        Friend  ReadOnly Property Value As String
+        Friend ReadOnly Property Value As String
             Get
                 Return Me._value
             End Get
@@ -32764,26 +25716,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._value = CType(reader.ReadValue(), String)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolatedStringTextTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolatedStringTextTokenSyntax), Function(r) New InterpolatedStringTextTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The text.
         ''' </summary>
-        Friend  ReadOnly Property Value As String
+        Friend ReadOnly Property Value As String
             Get
                 Return Me._value
             End Get
@@ -32835,29 +25771,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._typeSuffix = CType(reader.ReadInt32(), TypeCharacter)
-          Me._value = CType(reader.ReadValue(), System.Decimal)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DecimalLiteralTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteInt32(Me._typeSuffix)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DecimalLiteralTokenSyntax), Function(r) New DecimalLiteralTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The type suffix or type character that was on the literal, if any. If no suffix
         ''' was present, TypeCharacter.None is returned.
         ''' </summary>
-        Friend  ReadOnly Property TypeSuffix As TypeCharacter
+        Friend ReadOnly Property TypeSuffix As TypeCharacter
             Get
                 Return Me._typeSuffix
             End Get
@@ -32866,7 +25784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The value of the token.
         ''' </summary>
-        Friend  ReadOnly Property Value As System.Decimal
+        Friend ReadOnly Property Value As System.Decimal
             Get
                 Return Me._value
             End Get
@@ -32891,7 +25809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an Date literal token.
+    ''' Represents a Date literal token.
     ''' </summary>
     Friend NotInheritable Class DateLiteralTokenSyntax
         Inherits SyntaxToken
@@ -32914,26 +25832,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._value = CType(reader.ReadValue(), DateTime)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DateLiteralTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DateLiteralTokenSyntax), Function(r) New DateLiteralTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The value of the token.
         ''' </summary>
-        Friend  ReadOnly Property Value As DateTime
+        Friend ReadOnly Property Value As DateTime
             Get
                 Return Me._value
             End Get
@@ -32958,7 +25860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an string literal token.
+    ''' Represents a string literal token.
     ''' </summary>
     Friend NotInheritable Class StringLiteralTokenSyntax
         Inherits SyntaxToken
@@ -32981,27 +25883,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._value = CType(reader.ReadValue(), String)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New StringLiteralTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(StringLiteralTokenSyntax), Function(r) New StringLiteralTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The value of the string, after removing the quotation marks and combining
         ''' doubled quotation marks.
         ''' </summary>
-        Friend  ReadOnly Property Value As String
+        Friend ReadOnly Property Value As String
             Get
                 Return Me._value
             End Get
@@ -33026,7 +25912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an string literal token.
+    ''' Represents a string literal token.
     ''' </summary>
     Friend NotInheritable Class CharacterLiteralTokenSyntax
         Inherits SyntaxToken
@@ -33049,26 +25935,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Me._value = CType(reader.ReadValue(), Char)
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CharacterLiteralTokenSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(CharacterLiteralTokenSyntax), Function(r) New CharacterLiteralTokenSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' The value of the character, after removing the quotation marks.
         ''' </summary>
-        Friend  ReadOnly Property Value As Char
+        Friend ReadOnly Property Value As Char
             Get
                 Return Me._value
             End Get
@@ -33144,27 +26014,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _tokens = DirectCast(reader.ReadValue(), GreenNode)
-          If _tokens isnot Nothing 
-             AdjustFlagsAndWidth(_tokens)
-             Me._tokens = _tokens
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SkippedTokensTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._tokens)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(SkippedTokensTriviaSyntax), Function(r) New SkippedTokensTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.SkippedTokensTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -33175,7 +26024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Tokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
+        Friend ReadOnly Property Tokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
             Get
                 Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me._tokens)
             End Get
@@ -33248,27 +26097,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _content = DirectCast(reader.ReadValue(), GreenNode)
-          If _content isnot Nothing 
-             AdjustFlagsAndWidth(_content)
-             Me._content = _content
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DocumentationCommentTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._content)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DocumentationCommentTriviaSyntax), Function(r) New DocumentationCommentTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DocumentationCommentTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -33276,7 +26104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' If nothing is present, an empty list is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
+        Friend ReadOnly Property Content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)(Me._content)
             End Get
@@ -33372,80 +26200,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _startQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _startQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_startQuoteToken)
-             Me._startQuoteToken = _startQuoteToken
-          End If
-          Dim _reference = DirectCast(reader.ReadValue(), CrefReferenceSyntax)
-          If _reference isnot Nothing 
-             AdjustFlagsAndWidth(_reference)
-             Me._reference = _reference
-          End If
-          Dim _endQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _endQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_endQuoteToken)
-             Me._endQuoteToken = _endQuoteToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlCrefAttributeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._startQuoteToken)
-          writer.WriteValue(Me._reference)
-          writer.WriteValue(Me._endQuoteToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlCrefAttributeSyntax), Function(r) New XmlCrefAttributeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlCrefAttributeSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
         End Property
 
-        Friend  ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._startQuoteToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Reference As InternalSyntax.CrefReferenceSyntax
+        Friend ReadOnly Property Reference As InternalSyntax.CrefReferenceSyntax
             Get
                 Return Me._reference
             End Get
         End Property
 
-        Friend  ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._endQuoteToken
             End Get
@@ -33464,8 +26247,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endQuoteToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -33550,80 +26333,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _name = DirectCast(reader.ReadValue(), XmlNameSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _startQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _startQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_startQuoteToken)
-             Me._startQuoteToken = _startQuoteToken
-          End If
-          Dim _reference = DirectCast(reader.ReadValue(), IdentifierNameSyntax)
-          If _reference isnot Nothing 
-             AdjustFlagsAndWidth(_reference)
-             Me._reference = _reference
-          End If
-          Dim _endQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _endQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_endQuoteToken)
-             Me._endQuoteToken = _endQuoteToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New XmlNameAttributeSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._startQuoteToken)
-          writer.WriteValue(Me._reference)
-          writer.WriteValue(Me._endQuoteToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(XmlNameAttributeSyntax), Function(r) New XmlNameAttributeSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNameAttributeSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property Name As InternalSyntax.XmlNameSyntax
+        Friend ReadOnly Property Name As InternalSyntax.XmlNameSyntax
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
         End Property
 
-        Friend  ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property StartQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._startQuoteToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Reference As InternalSyntax.IdentifierNameSyntax
+        Friend ReadOnly Property Reference As InternalSyntax.IdentifierNameSyntax
             Get
                 Return Me._reference
             End Get
         End Property
 
-        Friend  ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EndQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._endQuoteToken
             End Get
@@ -33642,8 +26380,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._endQuoteToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -33718,39 +26456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _questionMarkToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _questionMarkToken isnot Nothing 
-             AdjustFlagsAndWidth(_questionMarkToken)
-             Me._questionMarkToken = _questionMarkToken
-          End If
-          Dim _whenNotNull = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _whenNotNull isnot Nothing 
-             AdjustFlagsAndWidth(_whenNotNull)
-             Me._whenNotNull = _whenNotNull
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ConditionalAccessExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._questionMarkToken)
-          writer.WriteValue(Me._whenNotNull)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ConditionalAccessExpressionSyntax), Function(r) New ConditionalAccessExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ConditionalAccessExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -33761,7 +26466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -33770,7 +26475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' "?" token.
         ''' </summary>
-        Friend  ReadOnly Property QuestionMarkToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property QuestionMarkToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._questionMarkToken
             End Get
@@ -33780,7 +26485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' ExpressionSyntax node representing the access expression to be executed when
         ''' the object is not null."
         ''' </summary>
-        Friend  ReadOnly Property WhenNotNull As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property WhenNotNull As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._whenNotNull
             End Get
@@ -33795,8 +26500,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._whenNotNull
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -33872,45 +26577,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _nameOfKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _nameOfKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_nameOfKeyword)
-             Me._nameOfKeyword = _nameOfKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _argument = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _argument isnot Nothing 
-             AdjustFlagsAndWidth(_argument)
-             Me._argument = _argument
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New NameOfExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._nameOfKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._argument)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(NameOfExpressionSyntax), Function(r) New NameOfExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.NameOfExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -33918,7 +26584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "NameOf" keyword.
         ''' </summary>
-        Friend  ReadOnly Property NameOfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property NameOfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._nameOfKeyword
             End Get
@@ -33927,7 +26593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "(" token.
         ''' </summary>
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
@@ -33936,7 +26602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The argument.
         ''' </summary>
-        Friend  ReadOnly Property Argument As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Argument As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._argument
             End Get
@@ -33945,7 +26611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ")" token.
         ''' </summary>
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -33962,8 +26628,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -34038,39 +26704,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _dollarSignDoubleQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _dollarSignDoubleQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_dollarSignDoubleQuoteToken)
-             Me._dollarSignDoubleQuoteToken = _dollarSignDoubleQuoteToken
-          End If
-          Dim _contents = DirectCast(reader.ReadValue(), GreenNode)
-          If _contents isnot Nothing 
-             AdjustFlagsAndWidth(_contents)
-             Me._contents = _contents
-          End If
-          Dim _doubleQuoteToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _doubleQuoteToken isnot Nothing 
-             AdjustFlagsAndWidth(_doubleQuoteToken)
-             Me._doubleQuoteToken = _doubleQuoteToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolatedStringExpressionSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._dollarSignDoubleQuoteToken)
-          writer.WriteValue(Me._contents)
-          writer.WriteValue(Me._doubleQuoteToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolatedStringExpressionSyntax), Function(r) New InterpolatedStringExpressionSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterpolatedStringExpressionSyntax(Me, parent, startLocation)
         End Function
@@ -34078,7 +26711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The opening '$"', '$“', or '$”' token.
         ''' </summary>
-        Friend  ReadOnly Property DollarSignDoubleQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DollarSignDoubleQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._dollarSignDoubleQuoteToken
             End Get
@@ -34087,7 +26720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The contents of the interpolated string.
         ''' </summary>
-        Friend  ReadOnly Property Contents As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InterpolatedStringContentSyntax)
+        Friend ReadOnly Property Contents As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InterpolatedStringContentSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InterpolatedStringContentSyntax)(Me._contents)
             End Get
@@ -34096,7 +26729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The closing '"', '”', or '“' token.
         ''' </summary>
-        Friend  ReadOnly Property DoubleQuoteToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property DoubleQuoteToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._doubleQuoteToken
             End Get
@@ -34111,8 +26744,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._doubleQuoteToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -34149,10 +26782,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
         End Sub
 
     End Class
@@ -34193,27 +26822,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-          Dim _textToken = DirectCast(reader.ReadValue(), InterpolatedStringTextTokenSyntax)
-          If _textToken isnot Nothing 
-             AdjustFlagsAndWidth(_textToken)
-             Me._textToken = _textToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolatedStringTextSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._textToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolatedStringTextSyntax), Function(r) New InterpolatedStringTextSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterpolatedStringTextSyntax(Me, parent, startLocation)
         End Function
@@ -34221,7 +26829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The text token.
         ''' </summary>
-        Friend  ReadOnly Property TextToken As InternalSyntax.InterpolatedStringTextTokenSyntax
+        Friend ReadOnly Property TextToken As InternalSyntax.InterpolatedStringTextTokenSyntax
             Get
                 Return Me._textToken
             End Get
@@ -34328,51 +26936,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _openBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_openBraceToken)
-             Me._openBraceToken = _openBraceToken
-          End If
-          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _expression isnot Nothing 
-             AdjustFlagsAndWidth(_expression)
-             Me._expression = _expression
-          End If
-          Dim _alignmentClause = DirectCast(reader.ReadValue(), InterpolationAlignmentClauseSyntax)
-          If _alignmentClause isnot Nothing 
-             AdjustFlagsAndWidth(_alignmentClause)
-             Me._alignmentClause = _alignmentClause
-          End If
-          Dim _formatClause = DirectCast(reader.ReadValue(), InterpolationFormatClauseSyntax)
-          If _formatClause isnot Nothing 
-             AdjustFlagsAndWidth(_formatClause)
-             Me._formatClause = _formatClause
-          End If
-          Dim _closeBraceToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeBraceToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeBraceToken)
-             Me._closeBraceToken = _closeBraceToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolationSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._openBraceToken)
-          writer.WriteValue(Me._expression)
-          writer.WriteValue(Me._alignmentClause)
-          writer.WriteValue(Me._formatClause)
-          writer.WriteValue(Me._closeBraceToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolationSyntax), Function(r) New InterpolationSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterpolationSyntax(Me, parent, startLocation)
         End Function
@@ -34380,7 +26943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The opening curly brace '{' token.
         ''' </summary>
-        Friend  ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openBraceToken
             End Get
@@ -34390,7 +26953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The expression whose formatted value should be embedded in the resultant
         ''' string.
         ''' </summary>
-        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._expression
             End Get
@@ -34402,7 +26965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property AlignmentClause As InternalSyntax.InterpolationAlignmentClauseSyntax
+        Friend ReadOnly Property AlignmentClause As InternalSyntax.InterpolationAlignmentClauseSyntax
             Get
                 Return Me._alignmentClause
             End Get
@@ -34414,7 +26977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property FormatClause As InternalSyntax.InterpolationFormatClauseSyntax
+        Friend ReadOnly Property FormatClause As InternalSyntax.InterpolationFormatClauseSyntax
             Get
                 Return Me._formatClause
             End Get
@@ -34423,7 +26986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The closing curly brace '}' token of the embedded expression.
         ''' </summary>
-        Friend  ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseBraceToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeBraceToken
             End Get
@@ -34442,8 +27005,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._closeBraceToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -34506,33 +27069,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _commaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _commaToken isnot Nothing 
-             AdjustFlagsAndWidth(_commaToken)
-             Me._commaToken = _commaToken
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolationAlignmentClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._commaToken)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolationAlignmentClauseSyntax), Function(r) New InterpolationAlignmentClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterpolationAlignmentClauseSyntax(Me, parent, startLocation)
         End Function
@@ -34540,7 +27076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The comma ',' token.
         ''' </summary>
-        Friend  ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._commaToken
             End Get
@@ -34549,7 +27085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' An expression representing the alignment of the interpolated expression.
         ''' </summary>
-        Friend  ReadOnly Property Value As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Value As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._value
             End Get
@@ -34562,8 +27098,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -34626,33 +27162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _colonToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _colonToken isnot Nothing 
-             AdjustFlagsAndWidth(_colonToken)
-             Me._colonToken = _colonToken
-          End If
-          Dim _formatStringToken = DirectCast(reader.ReadValue(), InterpolatedStringTextTokenSyntax)
-          If _formatStringToken isnot Nothing 
-             AdjustFlagsAndWidth(_formatStringToken)
-             Me._formatStringToken = _formatStringToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New InterpolationFormatClauseSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._colonToken)
-          writer.WriteValue(Me._formatStringToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(InterpolationFormatClauseSyntax), Function(r) New InterpolationFormatClauseSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.InterpolationFormatClauseSyntax(Me, parent, startLocation)
         End Function
@@ -34660,7 +27169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The ':' token.
         ''' </summary>
-        Friend  ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property ColonToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._colonToken
             End Get
@@ -34669,7 +27178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The format string.
         ''' </summary>
-        Friend  ReadOnly Property FormatStringToken As InternalSyntax.InterpolatedStringTextTokenSyntax
+        Friend ReadOnly Property FormatStringToken As InternalSyntax.InterpolatedStringTextTokenSyntax
             Get
                 Return Me._formatStringToken
             End Get
@@ -34682,8 +27191,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._formatStringToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -34717,7 +27226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AdjustFlagsAndWidth(hashToken)
             Me._hashToken = hashToken
 
-             SetFlags(NodeFlags.ContainsDirectives)
+            SetFlags(NodeFlags.ContainsDirectives)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
@@ -34727,7 +27236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AdjustFlagsAndWidth(hashToken)
             Me._hashToken = hashToken
 
-             SetFlags(NodeFlags.ContainsDirectives)
+            SetFlags(NodeFlags.ContainsDirectives)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax)
@@ -34736,28 +27245,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AdjustFlagsAndWidth(hashToken)
             Me._hashToken = hashToken
 
-             SetFlags(NodeFlags.ContainsDirectives)
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-          Dim _hashToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _hashToken isnot Nothing 
-             AdjustFlagsAndWidth(_hashToken)
-             Me._hashToken = _hashToken
-          End If
-          SetFlags(NodeFlags.ContainsDirectives)
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._hashToken)
+            SetFlags(NodeFlags.ContainsDirectives)
         End Sub
 
         ''' <summary>
         ''' The "#" token in a preprocessor directive.
         ''' </summary>
-        Friend  ReadOnly Property HashToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property HashToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._hashToken
             End Get
@@ -34841,45 +27335,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _constKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _constKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_constKeyword)
-             Me._constKeyword = _constKeyword
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), IdentifierTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-          Dim _equalsToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _equalsToken isnot Nothing 
-             AdjustFlagsAndWidth(_equalsToken)
-             Me._equalsToken = _equalsToken
-          End If
-          Dim _value = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _value isnot Nothing 
-             AdjustFlagsAndWidth(_value)
-             Me._value = _value
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ConstDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._constKeyword)
-          writer.WriteValue(Me._name)
-          writer.WriteValue(Me._equalsToken)
-          writer.WriteValue(Me._value)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ConstDirectiveTriviaSyntax), Function(r) New ConstDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ConstDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -34887,7 +27342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Const" keyword.
         ''' </summary>
-        Friend  ReadOnly Property ConstKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ConstKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._constKeyword
             End Get
@@ -34896,7 +27351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The name of the pre-processing constant being defined.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.IdentifierTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.IdentifierTokenSyntax
             Get
                 Return Me._name
             End Get
@@ -34905,7 +27360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "=" token.
         ''' </summary>
-        Friend  ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property EqualsToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._equalsToken
             End Get
@@ -34915,7 +27370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' An expression representing the value of the pre-processing constant being
         ''' defined.
         ''' </summary>
-        Friend  ReadOnly Property Value As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Value As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._value
             End Get
@@ -34934,8 +27389,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._value
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35024,45 +27479,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 5
-          Dim _elseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseKeyword)
-             Me._elseKeyword = _elseKeyword
-          End If
-          Dim _ifOrElseIfKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifOrElseIfKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifOrElseIfKeyword)
-             Me._ifOrElseIfKeyword = _ifOrElseIfKeyword
-          End If
-          Dim _condition = DirectCast(reader.ReadValue(), ExpressionSyntax)
-          If _condition isnot Nothing 
-             AdjustFlagsAndWidth(_condition)
-             Me._condition = _condition
-          End If
-          Dim _thenKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _thenKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_thenKeyword)
-             Me._thenKeyword = _thenKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New IfDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseKeyword)
-          writer.WriteValue(Me._ifOrElseIfKeyword)
-          writer.WriteValue(Me._condition)
-          writer.WriteValue(Me._thenKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(IfDirectiveTriviaSyntax), Function(r) New IfDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.IfDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -35070,19 +27486,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property IfOrElseIfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfOrElseIfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifOrElseIfKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
+        Friend ReadOnly Property Condition As InternalSyntax.ExpressionSyntax
             Get
                 Return Me._condition
             End Get
@@ -35091,7 +27507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks>
         ''' This child is optional. If it is not present, then Nothing is returned.
         ''' </remarks>
-        Friend  ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ThenKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._thenKeyword
             End Get
@@ -35110,8 +27526,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 4
                     Return Me._thenKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35166,32 +27582,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 2
-          Dim _elseKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _elseKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_elseKeyword)
-             Me._elseKeyword = _elseKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ElseDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._elseKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ElseDirectiveTriviaSyntax), Function(r) New ElseDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ElseKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._elseKeyword
             End Get
@@ -35204,8 +27599,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 1
                     Return Me._elseKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35267,44 +27662,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _endKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _endKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_endKeyword)
-             Me._endKeyword = _endKeyword
-          End If
-          Dim _ifKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _ifKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_ifKeyword)
-             Me._ifKeyword = _ifKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EndIfDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._endKeyword)
-          writer.WriteValue(Me._ifKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EndIfDirectiveTriviaSyntax), Function(r) New EndIfDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EndIfDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._endKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property IfKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._ifKeyword
             End Get
@@ -35319,8 +27687,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._ifKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35382,33 +27750,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _regionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _regionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_regionKeyword)
-             Me._regionKeyword = _regionKeyword
-          End If
-          Dim _name = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _name isnot Nothing 
-             AdjustFlagsAndWidth(_name)
-             Me._name = _name
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New RegionDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._regionKeyword)
-          writer.WriteValue(Me._name)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(RegionDirectiveTriviaSyntax), Function(r) New RegionDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.RegionDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -35416,7 +27757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Region" keyword.
         ''' </summary>
-        Friend  ReadOnly Property RegionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property RegionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._regionKeyword
             End Get
@@ -35425,7 +27766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The label of the code region being defined.
         ''' </summary>
-        Friend  ReadOnly Property Name As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property Name As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._name
             End Get
@@ -35440,8 +27781,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._name
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35503,33 +27844,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _endKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _endKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_endKeyword)
-             Me._endKeyword = _endKeyword
-          End If
-          Dim _regionKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _regionKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_regionKeyword)
-             Me._regionKeyword = _regionKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EndRegionDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._endKeyword)
-          writer.WriteValue(Me._regionKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EndRegionDirectiveTriviaSyntax), Function(r) New EndRegionDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EndRegionDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
@@ -35537,7 +27851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "End" keyword.
         ''' </summary>
-        Friend  ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._endKeyword
             End Get
@@ -35546,7 +27860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' The "Region" keyword.
         ''' </summary>
-        Friend  ReadOnly Property RegionKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property RegionKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._regionKeyword
             End Get
@@ -35561,8 +27875,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._regionKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35653,92 +27967,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 7
-          Dim _externalSourceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _externalSourceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_externalSourceKeyword)
-             Me._externalSourceKeyword = _externalSourceKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _externalSource = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _externalSource isnot Nothing 
-             AdjustFlagsAndWidth(_externalSource)
-             Me._externalSource = _externalSource
-          End If
-          Dim _commaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _commaToken isnot Nothing 
-             AdjustFlagsAndWidth(_commaToken)
-             Me._commaToken = _commaToken
-          End If
-          Dim _lineStart = DirectCast(reader.ReadValue(), IntegerLiteralTokenSyntax)
-          If _lineStart isnot Nothing 
-             AdjustFlagsAndWidth(_lineStart)
-             Me._lineStart = _lineStart
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ExternalSourceDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._externalSourceKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._externalSource)
-          writer.WriteValue(Me._commaToken)
-          writer.WriteValue(Me._lineStart)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ExternalSourceDirectiveTriviaSyntax), Function(r) New ExternalSourceDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ExternalSourceDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property ExternalSourceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ExternalSourceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._externalSourceKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
         End Property
 
-        Friend  ReadOnly Property ExternalSource As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property ExternalSource As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._externalSource
             End Get
         End Property
 
-        Friend  ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._commaToken
             End Get
         End Property
 
-        Friend  ReadOnly Property LineStart As InternalSyntax.IntegerLiteralTokenSyntax
+        Friend ReadOnly Property LineStart As InternalSyntax.IntegerLiteralTokenSyntax
             Get
                 Return Me._lineStart
             End Get
         End Property
 
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -35761,8 +28024,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 6
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35824,44 +28087,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _endKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _endKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_endKeyword)
-             Me._endKeyword = _endKeyword
-          End If
-          Dim _externalSourceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _externalSourceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_externalSourceKeyword)
-             Me._externalSourceKeyword = _externalSourceKeyword
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EndExternalSourceDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._endKeyword)
-          writer.WriteValue(Me._externalSourceKeyword)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EndExternalSourceDirectiveTriviaSyntax), Function(r) New EndExternalSourceDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EndExternalSourceDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EndKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._endKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property ExternalSourceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ExternalSourceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._externalSourceKeyword
             End Get
@@ -35876,8 +28112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._externalSourceKeyword
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -35981,116 +28217,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 9
-          Dim _externalChecksumKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _externalChecksumKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_externalChecksumKeyword)
-             Me._externalChecksumKeyword = _externalChecksumKeyword
-          End If
-          Dim _openParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _openParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_openParenToken)
-             Me._openParenToken = _openParenToken
-          End If
-          Dim _externalSource = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _externalSource isnot Nothing 
-             AdjustFlagsAndWidth(_externalSource)
-             Me._externalSource = _externalSource
-          End If
-          Dim _firstCommaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _firstCommaToken isnot Nothing 
-             AdjustFlagsAndWidth(_firstCommaToken)
-             Me._firstCommaToken = _firstCommaToken
-          End If
-          Dim _guid = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _guid isnot Nothing 
-             AdjustFlagsAndWidth(_guid)
-             Me._guid = _guid
-          End If
-          Dim _secondCommaToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _secondCommaToken isnot Nothing 
-             AdjustFlagsAndWidth(_secondCommaToken)
-             Me._secondCommaToken = _secondCommaToken
-          End If
-          Dim _checksum = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _checksum isnot Nothing 
-             AdjustFlagsAndWidth(_checksum)
-             Me._checksum = _checksum
-          End If
-          Dim _closeParenToken = DirectCast(reader.ReadValue(), PunctuationSyntax)
-          If _closeParenToken isnot Nothing 
-             AdjustFlagsAndWidth(_closeParenToken)
-             Me._closeParenToken = _closeParenToken
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ExternalChecksumDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._externalChecksumKeyword)
-          writer.WriteValue(Me._openParenToken)
-          writer.WriteValue(Me._externalSource)
-          writer.WriteValue(Me._firstCommaToken)
-          writer.WriteValue(Me._guid)
-          writer.WriteValue(Me._secondCommaToken)
-          writer.WriteValue(Me._checksum)
-          writer.WriteValue(Me._closeParenToken)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ExternalChecksumDirectiveTriviaSyntax), Function(r) New ExternalChecksumDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ExternalChecksumDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property ExternalChecksumKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ExternalChecksumKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._externalChecksumKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property OpenParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._openParenToken
             End Get
         End Property
 
-        Friend  ReadOnly Property ExternalSource As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property ExternalSource As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._externalSource
             End Get
         End Property
 
-        Friend  ReadOnly Property FirstCommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property FirstCommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._firstCommaToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Guid As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property Guid As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._guid
             End Get
         End Property
 
-        Friend  ReadOnly Property SecondCommaToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property SecondCommaToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._secondCommaToken
             End Get
         End Property
 
-        Friend  ReadOnly Property Checksum As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property Checksum As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._checksum
             End Get
         End Property
 
-        Friend  ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
+        Friend ReadOnly Property CloseParenToken As InternalSyntax.PunctuationSyntax
             Get
                 Return Me._closeParenToken
             End Get
@@ -36117,8 +28290,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 8
                     Return Me._closeParenToken
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -36193,56 +28366,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _enableKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _enableKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_enableKeyword)
-             Me._enableKeyword = _enableKeyword
-          End If
-          Dim _warningKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _warningKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_warningKeyword)
-             Me._warningKeyword = _warningKeyword
-          End If
-          Dim _errorCodes = DirectCast(reader.ReadValue(), GreenNode)
-          If _errorCodes isnot Nothing 
-             AdjustFlagsAndWidth(_errorCodes)
-             Me._errorCodes = _errorCodes
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New EnableWarningDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._enableKeyword)
-          writer.WriteValue(Me._warningKeyword)
-          writer.WriteValue(Me._errorCodes)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(EnableWarningDirectiveTriviaSyntax), Function(r) New EnableWarningDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.EnableWarningDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property EnableKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property EnableKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._enableKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property WarningKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WarningKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._warningKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property ErrorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)
+        Friend ReadOnly Property ErrorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of IdentifierNameSyntax)(Me._errorCodes))
             End Get
@@ -36259,8 +28399,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._errorCodes
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -36335,56 +28475,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 4
-          Dim _disableKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _disableKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_disableKeyword)
-             Me._disableKeyword = _disableKeyword
-          End If
-          Dim _warningKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _warningKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_warningKeyword)
-             Me._warningKeyword = _warningKeyword
-          End If
-          Dim _errorCodes = DirectCast(reader.ReadValue(), GreenNode)
-          If _errorCodes isnot Nothing 
-             AdjustFlagsAndWidth(_errorCodes)
-             Me._errorCodes = _errorCodes
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New DisableWarningDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._disableKeyword)
-          writer.WriteValue(Me._warningKeyword)
-          writer.WriteValue(Me._errorCodes)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(DisableWarningDirectiveTriviaSyntax), Function(r) New DisableWarningDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.DisableWarningDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property DisableKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property DisableKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._disableKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property WarningKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property WarningKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._warningKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property ErrorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)
+        Friend ReadOnly Property ErrorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)
             Get
                 Return new Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of IdentifierNameSyntax)(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of IdentifierNameSyntax)(Me._errorCodes))
             End Get
@@ -36401,8 +28508,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 3
                     Return Me._errorCodes
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -36464,44 +28571,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 3
-          Dim _referenceKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
-          If _referenceKeyword isnot Nothing 
-             AdjustFlagsAndWidth(_referenceKeyword)
-             Me._referenceKeyword = _referenceKeyword
-          End If
-          Dim _file = DirectCast(reader.ReadValue(), StringLiteralTokenSyntax)
-          If _file isnot Nothing 
-             AdjustFlagsAndWidth(_file)
-             Me._file = _file
-          End If
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New ReferenceDirectiveTriviaSyntax(o)
-
-
-        Friend Overrides Sub WriteTo(writer as ObjectWriter)
-          MyBase.WriteTo(writer)
-          writer.WriteValue(Me._referenceKeyword)
-          writer.WriteValue(Me._file)
-        End Sub
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(ReferenceDirectiveTriviaSyntax), Function(r) New ReferenceDirectiveTriviaSyntax(r))
-        End Sub
-
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
             Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.ReferenceDirectiveTriviaSyntax(Me, parent, startLocation)
         End Function
 
-        Friend  ReadOnly Property ReferenceKeyword As InternalSyntax.KeywordSyntax
+        Friend ReadOnly Property ReferenceKeyword As InternalSyntax.KeywordSyntax
             Get
                 Return Me._referenceKeyword
             End Get
         End Property
 
-        Friend  ReadOnly Property File As InternalSyntax.StringLiteralTokenSyntax
+        Friend ReadOnly Property File As InternalSyntax.StringLiteralTokenSyntax
             Get
                 Return Me._file
             End Get
@@ -36516,8 +28596,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case 2
                     Return Me._file
                 Case Else
-                     Debug.Assert(false, "child index out of range")
-                     Return Nothing
+                    Debug.Assert(false, "child index out of range")
+                    Return Nothing
             End Select
         End Function
 
@@ -36560,17 +28640,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
             MyBase._slotCount = 1
-        End Sub
-
-        Friend Sub New(reader as ObjectReader)
-          MyBase.New(reader)
-            MyBase._slotCount = 1
-        End Sub
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New BadDirectiveTriviaSyntax(o)
-
-
-        Shared Sub New()
-          ObjectBinder.RegisterTypeReader(GetType(BadDirectiveTriviaSyntax), Function(r) New BadDirectiveTriviaSyntax(r))
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -41936,307 +34005,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Partial Class SyntaxFactory
 
-        Friend Shared Function GetNodeTypes() As IEnumerable(Of Object)
-            Return New Object() {
-              GetType(VisualBasicSyntaxNode),
-              GetType(StatementSyntax),
-              GetType(ExecutableStatementSyntax),
-              GetType(DeclarationStatementSyntax),
-              GetType(EmptyStatementSyntax),
-              GetType(EndBlockStatementSyntax),
-              GetType(CompilationUnitSyntax),
-              GetType(OptionStatementSyntax),
-              GetType(ImportsStatementSyntax),
-              GetType(ImportsClauseSyntax),
-              GetType(SimpleImportsClauseSyntax),
-              GetType(ImportAliasClauseSyntax),
-              GetType(XmlNamespaceImportsClauseSyntax),
-              GetType(NamespaceBlockSyntax),
-              GetType(NamespaceStatementSyntax),
-              GetType(TypeBlockSyntax),
-              GetType(ModuleBlockSyntax),
-              GetType(StructureBlockSyntax),
-              GetType(InterfaceBlockSyntax),
-              GetType(ClassBlockSyntax),
-              GetType(EnumBlockSyntax),
-              GetType(InheritsOrImplementsStatementSyntax),
-              GetType(InheritsStatementSyntax),
-              GetType(ImplementsStatementSyntax),
-              GetType(TypeStatementSyntax),
-              GetType(ModuleStatementSyntax),
-              GetType(StructureStatementSyntax),
-              GetType(InterfaceStatementSyntax),
-              GetType(ClassStatementSyntax),
-              GetType(EnumStatementSyntax),
-              GetType(TypeParameterListSyntax),
-              GetType(TypeParameterSyntax),
-              GetType(TypeParameterConstraintClauseSyntax),
-              GetType(TypeParameterSingleConstraintClauseSyntax),
-              GetType(TypeParameterMultipleConstraintClauseSyntax),
-              GetType(ConstraintSyntax),
-              GetType(SpecialConstraintSyntax),
-              GetType(TypeConstraintSyntax),
-              GetType(EnumMemberDeclarationSyntax),
-              GetType(MethodBlockBaseSyntax),
-              GetType(MethodBlockSyntax),
-              GetType(ConstructorBlockSyntax),
-              GetType(OperatorBlockSyntax),
-              GetType(AccessorBlockSyntax),
-              GetType(PropertyBlockSyntax),
-              GetType(EventBlockSyntax),
-              GetType(MethodBaseSyntax),
-              GetType(ParameterListSyntax),
-              GetType(MethodStatementSyntax),
-              GetType(SubNewStatementSyntax),
-              GetType(DeclareStatementSyntax),
-              GetType(DelegateStatementSyntax),
-              GetType(EventStatementSyntax),
-              GetType(OperatorStatementSyntax),
-              GetType(PropertyStatementSyntax),
-              GetType(AccessorStatementSyntax),
-              GetType(ImplementsClauseSyntax),
-              GetType(HandlesClauseSyntax),
-              GetType(EventContainerSyntax),
-              GetType(KeywordEventContainerSyntax),
-              GetType(WithEventsEventContainerSyntax),
-              GetType(WithEventsPropertyEventContainerSyntax),
-              GetType(HandlesClauseItemSyntax),
-              GetType(IncompleteMemberSyntax),
-              GetType(FieldDeclarationSyntax),
-              GetType(VariableDeclaratorSyntax),
-              GetType(AsClauseSyntax),
-              GetType(SimpleAsClauseSyntax),
-              GetType(AsNewClauseSyntax),
-              GetType(ObjectCreationInitializerSyntax),
-              GetType(ObjectMemberInitializerSyntax),
-              GetType(ObjectCollectionInitializerSyntax),
-              GetType(FieldInitializerSyntax),
-              GetType(InferredFieldInitializerSyntax),
-              GetType(NamedFieldInitializerSyntax),
-              GetType(EqualsValueSyntax),
-              GetType(ParameterSyntax),
-              GetType(ModifiedIdentifierSyntax),
-              GetType(ArrayRankSpecifierSyntax),
-              GetType(AttributeListSyntax),
-              GetType(AttributeSyntax),
-              GetType(AttributeTargetSyntax),
-              GetType(AttributesStatementSyntax),
-              GetType(ExpressionStatementSyntax),
-              GetType(PrintStatementSyntax),
-              GetType(WhileBlockSyntax),
-              GetType(UsingBlockSyntax),
-              GetType(SyncLockBlockSyntax),
-              GetType(WithBlockSyntax),
-              GetType(LocalDeclarationStatementSyntax),
-              GetType(LabelStatementSyntax),
-              GetType(GoToStatementSyntax),
-              GetType(LabelSyntax),
-              GetType(StopOrEndStatementSyntax),
-              GetType(ExitStatementSyntax),
-              GetType(ContinueStatementSyntax),
-              GetType(ReturnStatementSyntax),
-              GetType(SingleLineIfStatementSyntax),
-              GetType(SingleLineElseClauseSyntax),
-              GetType(MultiLineIfBlockSyntax),
-              GetType(IfStatementSyntax),
-              GetType(ElseIfBlockSyntax),
-              GetType(ElseIfStatementSyntax),
-              GetType(ElseBlockSyntax),
-              GetType(ElseStatementSyntax),
-              GetType(TryBlockSyntax),
-              GetType(TryStatementSyntax),
-              GetType(CatchBlockSyntax),
-              GetType(CatchStatementSyntax),
-              GetType(CatchFilterClauseSyntax),
-              GetType(FinallyBlockSyntax),
-              GetType(FinallyStatementSyntax),
-              GetType(ErrorStatementSyntax),
-              GetType(OnErrorGoToStatementSyntax),
-              GetType(OnErrorResumeNextStatementSyntax),
-              GetType(ResumeStatementSyntax),
-              GetType(SelectBlockSyntax),
-              GetType(SelectStatementSyntax),
-              GetType(CaseBlockSyntax),
-              GetType(CaseStatementSyntax),
-              GetType(CaseClauseSyntax),
-              GetType(ElseCaseClauseSyntax),
-              GetType(SimpleCaseClauseSyntax),
-              GetType(RangeCaseClauseSyntax),
-              GetType(RelationalCaseClauseSyntax),
-              GetType(SyncLockStatementSyntax),
-              GetType(DoLoopBlockSyntax),
-              GetType(DoStatementSyntax),
-              GetType(LoopStatementSyntax),
-              GetType(WhileOrUntilClauseSyntax),
-              GetType(WhileStatementSyntax),
-              GetType(ForOrForEachBlockSyntax),
-              GetType(ForBlockSyntax),
-              GetType(ForEachBlockSyntax),
-              GetType(ForOrForEachStatementSyntax),
-              GetType(ForStatementSyntax),
-              GetType(ForStepClauseSyntax),
-              GetType(ForEachStatementSyntax),
-              GetType(NextStatementSyntax),
-              GetType(UsingStatementSyntax),
-              GetType(ThrowStatementSyntax),
-              GetType(AssignmentStatementSyntax),
-              GetType(MidExpressionSyntax),
-              GetType(CallStatementSyntax),
-              GetType(AddRemoveHandlerStatementSyntax),
-              GetType(RaiseEventStatementSyntax),
-              GetType(WithStatementSyntax),
-              GetType(ReDimStatementSyntax),
-              GetType(RedimClauseSyntax),
-              GetType(EraseStatementSyntax),
-              GetType(ExpressionSyntax),
-              GetType(LiteralExpressionSyntax),
-              GetType(ParenthesizedExpressionSyntax),
-              GetType(TupleExpressionSyntax),
-              GetType(TupleTypeSyntax),
-              GetType(TupleElementSyntax),
-              GetType(TypedTupleElementSyntax),
-              GetType(NamedTupleElementSyntax),
-              GetType(InstanceExpressionSyntax),
-              GetType(MeExpressionSyntax),
-              GetType(MyBaseExpressionSyntax),
-              GetType(MyClassExpressionSyntax),
-              GetType(GetTypeExpressionSyntax),
-              GetType(TypeOfExpressionSyntax),
-              GetType(GetXmlNamespaceExpressionSyntax),
-              GetType(MemberAccessExpressionSyntax),
-              GetType(XmlMemberAccessExpressionSyntax),
-              GetType(InvocationExpressionSyntax),
-              GetType(NewExpressionSyntax),
-              GetType(ObjectCreationExpressionSyntax),
-              GetType(AnonymousObjectCreationExpressionSyntax),
-              GetType(ArrayCreationExpressionSyntax),
-              GetType(CollectionInitializerSyntax),
-              GetType(CastExpressionSyntax),
-              GetType(CTypeExpressionSyntax),
-              GetType(DirectCastExpressionSyntax),
-              GetType(TryCastExpressionSyntax),
-              GetType(PredefinedCastExpressionSyntax),
-              GetType(BinaryExpressionSyntax),
-              GetType(UnaryExpressionSyntax),
-              GetType(BinaryConditionalExpressionSyntax),
-              GetType(TernaryConditionalExpressionSyntax),
-              GetType(LambdaExpressionSyntax),
-              GetType(SingleLineLambdaExpressionSyntax),
-              GetType(MultiLineLambdaExpressionSyntax),
-              GetType(LambdaHeaderSyntax),
-              GetType(ArgumentListSyntax),
-              GetType(ArgumentSyntax),
-              GetType(OmittedArgumentSyntax),
-              GetType(SimpleArgumentSyntax),
-              GetType(NameColonEqualsSyntax),
-              GetType(RangeArgumentSyntax),
-              GetType(QueryExpressionSyntax),
-              GetType(QueryClauseSyntax),
-              GetType(CollectionRangeVariableSyntax),
-              GetType(ExpressionRangeVariableSyntax),
-              GetType(AggregationRangeVariableSyntax),
-              GetType(VariableNameEqualsSyntax),
-              GetType(AggregationSyntax),
-              GetType(FunctionAggregationSyntax),
-              GetType(GroupAggregationSyntax),
-              GetType(FromClauseSyntax),
-              GetType(LetClauseSyntax),
-              GetType(AggregateClauseSyntax),
-              GetType(DistinctClauseSyntax),
-              GetType(WhereClauseSyntax),
-              GetType(PartitionWhileClauseSyntax),
-              GetType(PartitionClauseSyntax),
-              GetType(GroupByClauseSyntax),
-              GetType(JoinClauseSyntax),
-              GetType(JoinConditionSyntax),
-              GetType(SimpleJoinClauseSyntax),
-              GetType(GroupJoinClauseSyntax),
-              GetType(OrderByClauseSyntax),
-              GetType(OrderingSyntax),
-              GetType(SelectClauseSyntax),
-              GetType(XmlNodeSyntax),
-              GetType(XmlDocumentSyntax),
-              GetType(XmlDeclarationSyntax),
-              GetType(XmlDeclarationOptionSyntax),
-              GetType(XmlElementSyntax),
-              GetType(XmlTextSyntax),
-              GetType(XmlElementStartTagSyntax),
-              GetType(XmlElementEndTagSyntax),
-              GetType(XmlEmptyElementSyntax),
-              GetType(XmlAttributeSyntax),
-              GetType(BaseXmlAttributeSyntax),
-              GetType(XmlStringSyntax),
-              GetType(XmlPrefixNameSyntax),
-              GetType(XmlNameSyntax),
-              GetType(XmlBracketedNameSyntax),
-              GetType(XmlPrefixSyntax),
-              GetType(XmlCommentSyntax),
-              GetType(XmlProcessingInstructionSyntax),
-              GetType(XmlCDataSectionSyntax),
-              GetType(XmlEmbeddedExpressionSyntax),
-              GetType(TypeSyntax),
-              GetType(ArrayTypeSyntax),
-              GetType(NullableTypeSyntax),
-              GetType(PredefinedTypeSyntax),
-              GetType(NameSyntax),
-              GetType(SimpleNameSyntax),
-              GetType(IdentifierNameSyntax),
-              GetType(GenericNameSyntax),
-              GetType(QualifiedNameSyntax),
-              GetType(GlobalNameSyntax),
-              GetType(TypeArgumentListSyntax),
-              GetType(CrefReferenceSyntax),
-              GetType(CrefSignatureSyntax),
-              GetType(CrefSignaturePartSyntax),
-              GetType(CrefOperatorReferenceSyntax),
-              GetType(QualifiedCrefOperatorReferenceSyntax),
-              GetType(YieldStatementSyntax),
-              GetType(AwaitExpressionSyntax),
-              GetType(SyntaxToken),
-              GetType(KeywordSyntax),
-              GetType(PunctuationSyntax),
-              GetType(BadTokenSyntax),
-              GetType(XmlNameTokenSyntax),
-              GetType(XmlTextTokenSyntax),
-              GetType(InterpolatedStringTextTokenSyntax),
-              GetType(IdentifierTokenSyntax),
-              GetType(IntegerLiteralTokenSyntax),
-              GetType(FloatingLiteralTokenSyntax),
-              GetType(DecimalLiteralTokenSyntax),
-              GetType(DateLiteralTokenSyntax),
-              GetType(StringLiteralTokenSyntax),
-              GetType(CharacterLiteralTokenSyntax),
-              GetType(StructuredTriviaSyntax),
-              GetType(SkippedTokensTriviaSyntax),
-              GetType(DocumentationCommentTriviaSyntax),
-              GetType(XmlCrefAttributeSyntax),
-              GetType(XmlNameAttributeSyntax),
-              GetType(ConditionalAccessExpressionSyntax),
-              GetType(NameOfExpressionSyntax),
-              GetType(InterpolatedStringExpressionSyntax),
-              GetType(InterpolatedStringContentSyntax),
-              GetType(InterpolatedStringTextSyntax),
-              GetType(InterpolationSyntax),
-              GetType(InterpolationAlignmentClauseSyntax),
-              GetType(InterpolationFormatClauseSyntax),
-              GetType(DirectiveTriviaSyntax),
-              GetType(SyntaxTrivia),
-              GetType(ConstDirectiveTriviaSyntax),
-              GetType(IfDirectiveTriviaSyntax),
-              GetType(ElseDirectiveTriviaSyntax),
-              GetType(EndIfDirectiveTriviaSyntax),
-              GetType(RegionDirectiveTriviaSyntax),
-              GetType(EndRegionDirectiveTriviaSyntax),
-              GetType(ExternalSourceDirectiveTriviaSyntax),
-              GetType(EndExternalSourceDirectiveTriviaSyntax),
-              GetType(ExternalChecksumDirectiveTriviaSyntax),
-              GetType(EnableWarningDirectiveTriviaSyntax),
-              GetType(DisableWarningDirectiveTriviaSyntax),
-              GetType(ReferenceDirectiveTriviaSyntax),
-              GetType(BadDirectiveTriviaSyntax)
-            }
-        End Function
-
 
         ''' <summary>
         ''' A class to represent an empty statement. This can occur when a colon is on a
@@ -42980,7 +34748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an "End XXX" statement, where XXX is a single keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
         ''' EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
         ''' EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -43783,7 +35551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' one of: NewConstraint, ReferenceConstraint or ValueConstraint.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
         ''' StructureConstraint.
         ''' </param>
@@ -43927,7 +35695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
         ''' One of SubBlock, FunctionBlock.
         ''' </param>
         ''' <param name="subOrFunctionStatement">
@@ -44204,9 +35972,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
-        ''' One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
-        ''' RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+        ''' AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
         ''' </param>
         ''' <param name="accessorStatement">
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -44441,7 +36209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' that BlockStatement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MethodStatementSyntax. One of SubStatement, FunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -44635,7 +36403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A Declare statement that declares an external DLL method.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -44780,7 +36548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A statement that declares a delegate type.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DelegateStatementSyntax. One of DelegateSubStatement,
         ''' DelegateFunctionStatement.
         ''' </param>
@@ -45106,7 +36874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
         ''' AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
         ''' RaiseEventAccessorStatement.
@@ -46167,8 +37935,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' or next keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
-        ''' IdentifierLabel, NumericLabel, NextLabel.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of LabelSyntax. One
+        ''' of IdentifierLabel, NumericLabel, NextLabel.
         ''' </param>
         ''' <param name="labelToken">
         ''' The label name (identifier), line number (integer literal), or next keyword
@@ -46248,7 +38016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' kind of statement this is.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' StopOrEndStatementSyntax. One of StopStatement, EndStatement.
         ''' </param>
         ''' <param name="stopOrEndKeyword">
@@ -46539,10 +38307,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
-        ''' One of ExitDoStatement, ExitForStatement, ExitSubStatement,
-        ''' ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
-        ''' ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+        ''' ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+        ''' ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+        ''' ExitWhileStatement.
         ''' </param>
         ''' <param name="exitKeyword">
         ''' The "Exit" keyword.
@@ -46665,7 +38434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by examining the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
         ''' ContinueForStatement.
         ''' </param>
@@ -47243,7 +39012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an OnError Goto statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
         ''' OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
         ''' </param>
@@ -47841,7 +39610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a relation clause in a Case statement, such as "Is &gt; expression".
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
         ''' CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
         ''' CaseGreaterThanClause.
@@ -48070,7 +39839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
         ''' One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
         ''' DoLoopUntilBlock.
         ''' </param>
@@ -48191,7 +39960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Do statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
         ''' One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
         ''' </param>
         ''' <param name="doKeyword">
@@ -48308,8 +40077,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Loop statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
-        ''' One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+        ''' LoopUntilStatement.
         ''' </param>
         ''' <param name="loopKeyword">
         ''' The "Loop" keyword.
@@ -48403,7 +40173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' indicate which kind of clause.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
         ''' </param>
         ''' <param name="whileOrUntilKeyword">
@@ -49107,7 +40877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by checking the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AssignmentStatementSyntax. One of SimpleAssignmentStatement,
         ''' MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
         ''' MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -49175,7 +40945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -49258,7 +41028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determines which one.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
         ''' RemoveHandlerStatement.
         ''' </param>
@@ -49722,7 +41492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' value from the token.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' LiteralExpressionSyntax. One of CharacterLiteralExpression,
         ''' TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
         ''' DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -50051,7 +41821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a TypeOf...Is or IsNot expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
         ''' </param>
         ''' <param name="typeOfKeyword">
@@ -50168,7 +41938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
         ''' DictionaryAccessExpression.
         ''' </param>
@@ -50288,7 +42058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
         ''' XmlDescendantAccessExpression, XmlAttributeAccessExpression.
         ''' </param>
@@ -51328,7 +43098,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' exact operation being performed is determined by the Operator property.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
         ''' MultiplyExpression, DivideExpression, IntegerDivideExpression,
         ''' ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -51481,7 +43251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Describes a unary operator: Plus, Negate, Not or AddressOf.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
         ''' NotExpression, AddressOfExpression.
         ''' </param>
@@ -51649,7 +43419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a single line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
         ''' SingleLineSubLambdaExpression.
         ''' </param>
@@ -51755,7 +43525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a multi-line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
         ''' MultiLineSubLambdaExpression.
         ''' </param>
@@ -51856,8 +43626,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the header part of a lambda expression
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
-        ''' One of SubLambdaHeader, FunctionLambdaHeader.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
         ''' </param>
         ''' <param name="attributeLists">
         ''' A list of all attribute lists on this declaration. If no attributes were
@@ -52427,7 +44197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -52520,7 +44290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a "Skip" or "Take" query operator. The Kind property tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionClauseSyntax. One of SkipClause, TakeClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -52765,8 +44535,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' whether to order in ascending or descending order.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
-        ''' of AscendingOrdering, DescendingOrdering.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of OrderingSyntax.
+        ''' One of AscendingOrdering, DescendingOrdering.
         ''' </param>
         ''' <param name="expression">
         ''' The expression to sort by.
@@ -53610,8 +45380,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' normalization such as comment, pi and cdata text.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
-        ''' One of XmlTextLiteralToken, XmlEntityLiteralToken,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
         ''' DocumentationCommentLineBreakToken.
         ''' </param>
         ''' <param name="text">
@@ -53649,7 +45419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -53661,7 +45431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -53673,7 +45443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -54050,8 +45820,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' directives, and disabled code.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        ''' WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+        ''' of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
         ''' ConflictMarkerTrivia, LineContinuationTrivia,
         ''' DocumentationCommentExteriorTrivia, DisabledTextTrivia.
         ''' </param>
@@ -55056,7 +46826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an "End XXX" statement, where XXX is a single keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
         ''' EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
         ''' EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -55859,7 +47629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' one of: NewConstraint, ReferenceConstraint or ValueConstraint.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
         ''' StructureConstraint.
         ''' </param>
@@ -56003,7 +47773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
         ''' One of SubBlock, FunctionBlock.
         ''' </param>
         ''' <param name="subOrFunctionStatement">
@@ -56280,9 +48050,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
-        ''' One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
-        ''' RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+        ''' AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
         ''' </param>
         ''' <param name="accessorStatement">
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -56517,7 +48287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' that BlockStatement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MethodStatementSyntax. One of SubStatement, FunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -56711,7 +48481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A Declare statement that declares an external DLL method.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -56856,7 +48626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A statement that declares a delegate type.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DelegateStatementSyntax. One of DelegateSubStatement,
         ''' DelegateFunctionStatement.
         ''' </param>
@@ -57182,7 +48952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
         ''' AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
         ''' RaiseEventAccessorStatement.
@@ -58243,8 +50013,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' or next keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
-        ''' IdentifierLabel, NumericLabel, NextLabel.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of LabelSyntax. One
+        ''' of IdentifierLabel, NumericLabel, NextLabel.
         ''' </param>
         ''' <param name="labelToken">
         ''' The label name (identifier), line number (integer literal), or next keyword
@@ -58324,7 +50094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' kind of statement this is.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' StopOrEndStatementSyntax. One of StopStatement, EndStatement.
         ''' </param>
         ''' <param name="stopOrEndKeyword">
@@ -58615,10 +50385,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
-        ''' One of ExitDoStatement, ExitForStatement, ExitSubStatement,
-        ''' ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
-        ''' ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+        ''' ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+        ''' ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+        ''' ExitWhileStatement.
         ''' </param>
         ''' <param name="exitKeyword">
         ''' The "Exit" keyword.
@@ -58741,7 +50512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by examining the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
         ''' ContinueForStatement.
         ''' </param>
@@ -59319,7 +51090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an OnError Goto statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
         ''' OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
         ''' </param>
@@ -59917,7 +51688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a relation clause in a Case statement, such as "Is &gt; expression".
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
         ''' CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
         ''' CaseGreaterThanClause.
@@ -60146,7 +51917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
         ''' One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
         ''' DoLoopUntilBlock.
         ''' </param>
@@ -60267,7 +52038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Do statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
         ''' One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
         ''' </param>
         ''' <param name="doKeyword">
@@ -60384,8 +52155,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Loop statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
-        ''' One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+        ''' LoopUntilStatement.
         ''' </param>
         ''' <param name="loopKeyword">
         ''' The "Loop" keyword.
@@ -60479,7 +52251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' indicate which kind of clause.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
         ''' </param>
         ''' <param name="whileOrUntilKeyword">
@@ -61183,7 +52955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by checking the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AssignmentStatementSyntax. One of SimpleAssignmentStatement,
         ''' MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
         ''' MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -61251,7 +53023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -61334,7 +53106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determines which one.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
         ''' RemoveHandlerStatement.
         ''' </param>
@@ -61798,7 +53570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' value from the token.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' LiteralExpressionSyntax. One of CharacterLiteralExpression,
         ''' TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
         ''' DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -62127,7 +53899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a TypeOf...Is or IsNot expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
         ''' </param>
         ''' <param name="typeOfKeyword">
@@ -62244,7 +54016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
         ''' DictionaryAccessExpression.
         ''' </param>
@@ -62364,7 +54136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
         ''' XmlDescendantAccessExpression, XmlAttributeAccessExpression.
         ''' </param>
@@ -63404,7 +55176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' exact operation being performed is determined by the Operator property.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
         ''' MultiplyExpression, DivideExpression, IntegerDivideExpression,
         ''' ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -63557,7 +55329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Describes a unary operator: Plus, Negate, Not or AddressOf.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
         ''' NotExpression, AddressOfExpression.
         ''' </param>
@@ -63725,7 +55497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a single line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
         ''' SingleLineSubLambdaExpression.
         ''' </param>
@@ -63831,7 +55603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a multi-line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
         ''' MultiLineSubLambdaExpression.
         ''' </param>
@@ -63932,8 +55704,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the header part of a lambda expression
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
-        ''' One of SubLambdaHeader, FunctionLambdaHeader.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
         ''' </param>
         ''' <param name="attributeLists">
         ''' A list of all attribute lists on this declaration. If no attributes were
@@ -64503,7 +56275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -64596,7 +56368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a "Skip" or "Take" query operator. The Kind property tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionClauseSyntax. One of SkipClause, TakeClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -64841,8 +56613,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' whether to order in ascending or descending order.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
-        ''' of AscendingOrdering, DescendingOrdering.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of OrderingSyntax.
+        ''' One of AscendingOrdering, DescendingOrdering.
         ''' </param>
         ''' <param name="expression">
         ''' The expression to sort by.
@@ -65686,8 +57458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' normalization such as comment, pi and cdata text.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
-        ''' One of XmlTextLiteralToken, XmlEntityLiteralToken,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
         ''' DocumentationCommentLineBreakToken.
         ''' </param>
         ''' <param name="text">
@@ -65725,7 +57497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -65737,7 +57509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -65749,7 +57521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -66126,8 +57898,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' directives, and disabled code.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        ''' WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+        ''' of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
         ''' ConflictMarkerTrivia, LineContinuationTrivia,
         ''' DocumentationCommentExteriorTrivia, DisabledTextTrivia.
         ''' </param>

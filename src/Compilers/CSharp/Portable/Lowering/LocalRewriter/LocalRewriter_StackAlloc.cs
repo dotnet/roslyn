@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = stackAllocNode.Type;
             Debug.Assert(type is { });
 
-            if (rewrittenCount.ConstantValue?.Int32Value == 0)
+            if (rewrittenCount.ConstantValueOpt?.Int32Value == 0)
             {
                 // either default(span) or nullptr
                 return _factory.Default(type);
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
-                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
+                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor_Pointer, out MethodSymbol spanConstructor))
                 {
                     constructorCall = _factory.New((MethodSymbol)spanConstructor.SymbolAsMember(spanType), stackAllocNode, countTemp);
                 }
@@ -118,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression sizeOfExpression = _factory.Sizeof(elementType);
 
-            var sizeConst = sizeOfExpression.ConstantValue;
+            var sizeConst = sizeOfExpression.ConstantValueOpt;
             if (sizeConst != null)
             {
                 int size = sizeConst.Int32Value;
                 Debug.Assert(size > 0);
 
                 // common case: stackalloc int[123]
-                var countConst = countExpression.ConstantValue;
+                var countConst = countExpression.ConstantValueOpt;
                 if (countConst != null)
                 {
                     var count = countConst.Int32Value;

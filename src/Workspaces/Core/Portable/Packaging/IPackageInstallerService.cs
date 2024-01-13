@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
@@ -15,37 +18,44 @@ namespace Microsoft.CodeAnalysis.Packaging
     {
         bool IsEnabled(ProjectId projectId);
 
-        bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
+        bool IsInstalled(ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId,
-            string source, string packageName,
-            string versionOpt, bool includePrerelease,
-            CancellationToken cancellationToken);
+        Task<bool> TryInstallPackageAsync(
+            Workspace workspace, DocumentId documentId,
+            string? source, string packageName,
+            string? version, bool includePrerelease,
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
-        IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
+        ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
         bool CanShowManagePackagesDialog();
         void ShowManagePackagesDialog(string packageName);
 
-        ImmutableArray<PackageSource> GetPackageSources();
+        /// <summary>
+        /// Attempts to get the package sources applicable to the workspace.  Note: this call is made on a best effort
+        /// basis.  If the results are not available (for example, they have not been computed, and doing so would
+        /// require switching to the UI thread), then an empty array can be returned.
+        /// </summary>
+        /// <returns>
+        /// <para>A collection of package sources.</para>
+        /// </returns>
+        ImmutableArray<PackageSource> TryGetPackageSources();
 
         event EventHandler PackageSourcesChanged;
     }
 
-    internal struct PackageSource : IEquatable<PackageSource>
+    [DataContract]
+    internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
     {
-        public readonly string Name;
-        public readonly string Source;
+        [DataMember(Order = 0)]
+        public readonly string Name = name;
 
-        public PackageSource(string name, string source)
-        {
-            Name = name;
-            Source = source;
-        }
+        [DataMember(Order = 1)]
+        public readonly string Source = source;
 
-        public override bool Equals(object obj)
-            => Equals((PackageSource)obj);
+        public override bool Equals(object? obj)
+            => obj is PackageSource source && Equals(source);
 
         public bool Equals(PackageSource other)
             => Name == other.Name && Source == other.Source;

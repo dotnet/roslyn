@@ -4,8 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class EnumDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EnumDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             EnumDeclarationSyntax enumDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, ref spans, options);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
@@ -28,7 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var nextSibling = current.GetNextSibling();
 
                 // Check IsNode to compress blank lines after this node if it is the last child of the parent.
-                var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax;
+                //
+                // Whitespace between type declarations is collapsed in Metadata as Source.
+                var compressEmptyLines = options.IsMetadataAsSource
+                    && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!enumDeclaration.CloseBraceToken.IsMissing)
             {
                 var leadingTrivia = enumDeclaration.CloseBraceToken.LeadingTrivia;
-                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, ref spans);
             }
         }
     }

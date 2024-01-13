@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -275,7 +277,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -368,7 +370,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -619,7 +621,7 @@ namespace EventDeserialization
 
             var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
-            var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
+            var serializationRef = TestMetadata.Net451.SystemRuntimeSerialization;
 
             var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: @"A

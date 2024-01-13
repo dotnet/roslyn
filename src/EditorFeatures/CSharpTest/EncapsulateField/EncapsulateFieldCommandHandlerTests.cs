@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,164 +22,169 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulatePrivateField()
+        public async Task EncapsulatePrivateField()
         {
-            var text = @"
-class C
-{
-    private int f$$ield;
+            var text = """
+                class C
+                {
+                    private int f$$ield;
 
-    private void goo()
-    {
-        field = 3;
-    }
-}";
-            var expected = @"
-class C
-{
-    private int field;
+                    private void goo()
+                    {
+                        field = 3;
+                    }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    private int field;
 
-    public int Field
-    {
-        get
-        {
-            return field;
-        }
+                    public int Field
+                    {
+                        get
+                        {
+                            return field;
+                        }
 
-        set
-        {
-            field = value;
-        }
-    }
+                        set
+                        {
+                            field = value;
+                        }
+                    }
 
-    private void goo()
-    {
-        Field = 3;
-    }
-}";
+                    private void goo()
+                    {
+                        Field = 3;
+                    }
+                }
+                """;
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateNonPrivateField()
+        public async Task EncapsulateNonPrivateField()
         {
-            var text = @"
-class C
-{
-    protected int fi$$eld;
+            var text = """
+                class C
+                {
+                    protected int fi$$eld;
 
-    private void goo()
-    {
-        field = 3;
-    }
-}";
-            var expected = @"
-class C
-{
-    private int field;
+                    private void goo()
+                    {
+                        field = 3;
+                    }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    private int field;
 
-    protected int Field
-    {
-        get
-        {
-            return field;
-        }
+                    protected int Field
+                    {
+                        get
+                        {
+                            return field;
+                        }
 
-        set
-        {
-            field = value;
-        }
-    }
+                        set
+                        {
+                            field = value;
+                        }
+                    }
 
-    private void goo()
-    {
-        Field = 3;
-    }
-}";
+                    private void goo()
+                    {
+                        Field = 3;
+                    }
+                }
+                """;
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void DialogShownIfNotFieldsFound()
+        public async Task DialogShownIfNotFieldsFound()
         {
-            var text = @"
-class$$ C
-{
-    private int field;
+            var text = """
+                class$$ C
+                {
+                    private int field;
 
-    private void goo()
-    {
-        field = 3;
-    }
-}";
+                    private void goo()
+                    {
+                        field = 3;
+                    }
+                }
+                """;
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertError();
+            await state.AssertErrorAsync();
         }
 
-        [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateTwoFields()
+        public async Task EncapsulateTwoFields()
         {
-            var text = @"
-class Program
-{
-    [|static int A = 1;
-    static int B = A;|]
- 
-    static void Main(string[] args)
-    {
-        System.Console.WriteLine(A);
-        System.Console.WriteLine(B);
-    }
-}
-";
-            var expected = @"
-class Program
-{
-    static int A = 1;
-    static int B = A1;
+            var text = """
+                class Program
+                {
+                    [|static int A = 1;
+                    static int B = A;|]
 
-    public static int A1
-    {
-        get
-        {
-            return A;
-        }
+                    static void Main(string[] args)
+                    {
+                        System.Console.WriteLine(A);
+                        System.Console.WriteLine(B);
+                    }
+                }
+                """;
+            var expected = """
+                class Program
+                {
+                    static int A = 1;
+                    static int B = A1;
 
-        set
-        {
-            A = value;
-        }
-    }
+                    public static int A1
+                    {
+                        get
+                        {
+                            return A;
+                        }
 
-    public static int B1
-    {
-        get
-        {
-            return B;
-        }
+                        set
+                        {
+                            A = value;
+                        }
+                    }
 
-        set
-        {
-            B = value;
-        }
-    }
+                    public static int B1
+                    {
+                        get
+                        {
+                            return B;
+                        }
 
-    static void Main(string[] args)
-    {
-        System.Console.WriteLine(A1);
-        System.Console.WriteLine(B1);
-    }
-}
-";
+                        set
+                        {
+                            B = value;
+                        }
+                    }
+
+                    static void Main(string[] args)
+                    {
+                        System.Console.WriteLine(A1);
+                        System.Console.WriteLine(B1);
+                    }
+                }
+                """;
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact]
@@ -187,31 +192,24 @@ class Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
-            using var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
                 <Workspace>
-                    <Submission Language=""C#"" CommonReferences=""true"">  
+                    <Submission Language="C#" CommonReferences="true">  
                         class C
                         {
                             object $$goo;
                         }
                     </Submission>
-                </Workspace> "),
+                </Workspace>
+                """),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new EncapsulateFieldCommandHandler(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ITextBufferUndoManagerProvider>(),
-                workspace.GetService<IAsynchronousOperationListenerProvider>());
+            var handler = workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

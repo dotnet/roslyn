@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -29,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format)
             => SymbolDisplay.ToDisplayString(disposeImplMethod, format);
 
+        protected override bool AllowDelegateAndEnumConstraints(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp7_3;
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)
@@ -39,8 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     baseType.IsParentKind(SyntaxKind.BaseList) &&
                     baseType.Type == interfaceNode)
                 {
-                    if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration) ||
-                        interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.StructDeclaration))
+                    if (interfaceNode.Parent.Parent?.Parent.Kind() is
+                            SyntaxKind.ClassDeclaration or
+                            SyntaxKind.StructDeclaration or
+                            SyntaxKind.RecordDeclaration or
+                            SyntaxKind.RecordStructDeclaration)
                     {
                         var interfaceSymbolInfo = model.GetSymbolInfo(interfaceNode, cancellationToken);
                         if (interfaceSymbolInfo.CandidateReason != CandidateReason.WrongArity)

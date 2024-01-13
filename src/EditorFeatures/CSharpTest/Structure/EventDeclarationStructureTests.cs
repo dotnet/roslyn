@@ -7,147 +7,146 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventDeclarationSyntax>
 {
-    public class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new EventDeclarationStructureProvider();
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new EventDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEvent1()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
+    [Fact]
+    public async Task TestEvent1()
     {
-        add { }
-        remove { }
-    }|}|}
-}";
+        var code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                }
+                """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEvent2()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
-    event EventHandler E2
-    {
-        add { }
-        remove { }
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEvent3()
-        {
-            const string code = @"
-class C
-{
-    $$event EventHandler E
-    {
-        add { }
-        remove { }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
-    event EventHandler E2
+    [Fact]
+    public async Task TestEvent2()
     {
-        add { }
-        remove { }
+        var code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                    event EventHandler E2
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
-}";
 
-            await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(38, 91),
-                    hintSpan: TextSpan.FromBounds(18, 89),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEvent4()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
+    [Fact]
+    public async Task TestEvent3()
     {
-        add { }
-        remove { }
-    }|}|}
+        var code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-    EventHandler E2
-    {
-        get;
-        set;
+                    event EventHandler E2
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
-}";
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEvent5()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
+    [Fact]
+    public async Task TestEvent4()
     {
-        add { }
-        remove { }
-    }|}|}
+        var code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-    EventHandler this[int index]
-    {
-        get => throw null;
-        set => throw null;
+                    EventHandler E2
+                    {
+                        get;
+                        set;
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
-}";
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEventWithComments()
-        {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$event EventHandler E{|textspan2:
+    [Fact]
+    public async Task TestEvent5()
     {
-        add { }
-        remove { }
-    }|}|}
-}";
+        var code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+                    EventHandler this[int index]
+                    {
+                        get => throw null;
+                        set => throw null;
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
+
+    [Fact]
+    public async Task TestEventWithComments()
+    {
+        var code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$event EventHandler E{|textspan2:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

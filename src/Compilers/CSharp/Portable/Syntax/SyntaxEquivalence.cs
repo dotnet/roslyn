@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                     if (((Green.SyntaxToken)before).Text != ((Green.SyntaxToken)after).Text)
                     {
@@ -237,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             using var afterDirectivesEnumerator = ((Green.CSharpSyntaxNode)after).GetDirectives().GetEnumerator();
             while (true)
             {
-                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator, ignoreChildNode);
-                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator, ignoreChildNode);
+                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator);
+                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator);
 
                 if (beforeAnnotation == null || afterAnnotation == null)
                 {
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return false;
                 }
 
-                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator, Func<SyntaxKind, bool>? ignoreChildNode)
+                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator)
                 {
                     while (enumerator.MoveNext())
                     {

@@ -2,20 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+extern alias InteractiveHost;
+
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using System.Collections.Generic;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestResetInteractive : ResetInteractive
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         private readonly bool _buildSucceeds;
 
@@ -33,19 +41,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         internal ImmutableArray<string> NamespacesToImport { get; set; }
 
-        internal bool? Is64Bit { get; set; }
+        internal InteractiveHostPlatform? Platform { get; set; }
 
         internal string ProjectDirectory { get; set; }
 
         public TestResetInteractive(
-            IWaitIndicator waitIndicator,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
+            EditorOptionsService editorOptionsService,
             Func<string, string> createReference,
             Func<string, string> createImport,
             bool buildSucceeds)
-            : base(editorOptionsFactoryService, createReference, createImport)
+            : base(editorOptionsService, createReference, createImport)
         {
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _buildSucceeds = buildSucceeds;
         }
 
@@ -66,20 +74,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64Bit)
+            out InteractiveHostPlatform? platform)
         {
             references = References;
             referenceSearchPaths = ReferenceSearchPaths;
             sourceSearchPaths = SourceSearchPaths;
             projectNamespaces = ProjectNamespaces;
             projectDirectory = ProjectDirectory;
-            is64Bit = Is64Bit;
+            platform = Platform;
             return true;
         }
 
-        protected override IWaitIndicator GetWaitIndicator()
+        protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
         {
-            return _waitIndicator;
+            return _uiThreadOperationExecutor;
         }
 
         protected override Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)

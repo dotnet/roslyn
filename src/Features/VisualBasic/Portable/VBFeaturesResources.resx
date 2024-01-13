@@ -132,9 +132,6 @@
   <data name="Insert_the_missing_0" xml:space="preserve">
     <value>Insert the missing '{0}'.</value>
   </data>
-  <data name="Inline_temporary_variable" xml:space="preserve">
-    <value>Inline temporary variable</value>
-  </data>
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
@@ -224,9 +221,7 @@
   </data>
   <data name="Remove_Me_qualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
-  </data>
-  <data name="Name_can_be_simplified" xml:space="preserve">
-    <value>Name can be simplified</value>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="can_t_determine_valid_range_of_statements_to_extract_out" xml:space="preserve">
     <value>can't determine valid range of statements to extract out</value>
@@ -269,18 +264,6 @@
   </data>
   <data name="no_valid_statement_range_to_extract_out" xml:space="preserve">
     <value>no valid statement range to extract out</value>
-  </data>
-  <data name="Invalid_selection" xml:space="preserve">
-    <value>Invalid selection</value>
-  </data>
-  <data name="Selection_doesn_t_contain_any_valid_token" xml:space="preserve">
-    <value>Selection doesn't contain any valid token</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
@@ -448,9 +431,6 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</valu
   </data>
   <data name="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse" xml:space="preserve">
     <value>Specifies the group that the loop variable in a For Each statement is to traverse.</value>
-  </data>
-  <data name="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query" xml:space="preserve">
-    <value>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</value>
   </data>
   <data name="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces" xml:space="preserve">
     <value>Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces.</value>
@@ -650,9 +630,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</value>
   </data>
   <data name="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first" xml:space="preserve">
     <value>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</value>
-  </data>
-  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
-    <value>Asynchronously waits for the task to finish.</value>
   </data>
   <data name="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order" xml:space="preserve">
     <value>Sets the string comparison method specified in Option Compare to a strict binary sort order.</value>
@@ -967,21 +944,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line" xml:space="preserve">
     <value>Enables reporting of specified warnings in the portion of the source file below the current line.</value>
   </data>
-  <data name="Insert_Await" xml:space="preserve">
-    <value>Insert 'Await'.</value>
-  </data>
-  <data name="Make_0_an_Async_Function" xml:space="preserve">
-    <value>Make {0} an Async Function.</value>
-  </data>
-  <data name="Insert_Missing_Cast" xml:space="preserve">
-    <value>Insert Missing Cast</value>
-  </data>
-  <data name="Convert_0_to_Iterator" xml:space="preserve">
-    <value>Convert {0} to Iterator</value>
-  </data>
-  <data name="Replace_Return_with_Yield" xml:space="preserve">
-    <value>Replace 'Return' with 'Yield</value>
-  </data>
   <data name="Use_the_correct_control_variable" xml:space="preserve">
     <value>Use the correct control variable</value>
   </data>
@@ -1128,9 +1090,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>WithEvents field</value>
     <comment>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="property_accessor" xml:space="preserve">
-    <value>property accessor</value>
-  </data>
   <data name="as_clause" xml:space="preserve">
     <value>as clause</value>
     <comment>{Locked="as"} "as" is a VB keyword and should not be localized.</comment>
@@ -1143,9 +1102,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="attributes" xml:space="preserve">
     <value>attributes</value>
-  </data>
-  <data name="Too_many_arguments_to_0" xml:space="preserve">
-    <value>Too many arguments to '{0}'.</value>
   </data>
   <data name="Type_0_is_not_defined" xml:space="preserve">
     <value>Type '{0}' is not defined.</value>
@@ -1206,12 +1162,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>{0}.set</value>
     <comment>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</comment>
   </data>
-  <data name="Make_Async_Function" xml:space="preserve">
-    <value>Make Async Function</value>
-  </data>
-  <data name="Make_Async_Sub" xml:space="preserve">
-    <value>Make Async Sub</value>
-  </data>
   <data name="Multiple_Types" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
   </data>
@@ -1224,12 +1174,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
   </data>
-  <data name="Add_Obsolete" xml:space="preserve">
-    <value>Add &lt;Obsolete&gt;</value>
-  </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
-    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Import"}</comment>
   </data>
   <data name="Add_Shadows" xml:space="preserve">
     <value>Add 'Shadows'</value>
@@ -1239,7 +1186,33 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Make_0_inheritable" xml:space="preserve">
-    <value>Make '{0}' inheritable</value>
+  <data name="Organize_Imports" xml:space="preserve">
+    <value>Organize Imports</value>
+    <comment>{Locked="Import"}</comment>
+  </data>
+  <data name="Change_to_DirectCast" xml:space="preserve">
+    <value>Change to 'DirectCast'</value>
+  </data>
+  <data name="Change_to_TryCast" xml:space="preserve">
+    <value>Change to 'TryCast'</value>
+  </data>
+  <data name="Remove_shared_keyword_from_module_member" xml:space="preserve">
+    <value>Remove 'Shared' keyword from Module member</value>
+    <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_Events" xml:space="preserve">
+    <value>({0} Events)</value>
+  </data>
+  <data name="Shared_constructor" xml:space="preserve">
+    <value>Shared constructor</value>
+  </data>
+  <data name="Apply_isnot_preferences" xml:space="preserve">
+    <value>Apply IsNot preferences</value>
+  </data>
+  <data name="Apply_object_creation_preferences" xml:space="preserve">
+    <value>Apply object creation preferences</value>
+  </data>
+  <data name="Project_level_Imports" xml:space="preserve">
+    <value>Project level 'Imports'</value>
   </data>
 </root>

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -122,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override sealed bool IsImplicitlyDeclared
+        public sealed override bool IsImplicitlyDeclared
         {
             get
             {
@@ -243,43 +246,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the most nested namespace, if found. Nothing 
         /// if namespace or any part of it can not be found.
         /// </returns>
-        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<string> names)
+        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
         {
             NamespaceSymbol scope = this;
-
-            foreach (string name in names)
+            foreach (ReadOnlyMemory<char> name in names)
             {
-                NamespaceSymbol nextScope = null;
-
-                foreach (NamespaceOrTypeSymbol symbol in scope.GetMembers(name))
-                {
-                    var ns = symbol as NamespaceSymbol;
-
-                    if ((object)ns != null)
-                    {
-                        if ((object)nextScope != null)
-                        {
-                            Debug.Assert((object)nextScope == null, "Why did we run into an unmerged namespace?");
-                            nextScope = null;
-                            break;
-                        }
-
-                        nextScope = ns;
-                    }
-                }
-
-                scope = nextScope;
-
-                if ((object)scope == null)
-                {
-                    break;
-                }
+                scope = scope.GetNestedNamespace(name);
+                if (scope is null)
+                    return null;
             }
 
             return scope;
         }
 
         internal NamespaceSymbol GetNestedNamespace(string name)
+            => GetNestedNamespace(name.AsMemory());
+
+        internal NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
         {
             foreach (var sym in this.GetMembers(name))
             {
@@ -291,6 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+        public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
+
+        public sealed override ImmutableArray<Symbol> GetMembers(string name)
+            => GetMembers(name.AsMemory());
 
         internal NamespaceSymbol GetNestedNamespace(NameSyntax name)
         {
@@ -333,7 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return typesWithExtensionMethods;
             }
         }
-
 
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity

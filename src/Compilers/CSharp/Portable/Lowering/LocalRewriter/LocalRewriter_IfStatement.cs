@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                rewrittenCondition = _instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
             }
 
             var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // add sequence point before the whole statement
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentIfStatement(node, result);
+                result = Instrumenter.InstrumentIfStatement(node, result);
             }
 
             return result;
@@ -90,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt));
                 builder.Add(rewrittenConsequence);
+                builder.Add(BoundSequencePoint.CreateHidden());
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);

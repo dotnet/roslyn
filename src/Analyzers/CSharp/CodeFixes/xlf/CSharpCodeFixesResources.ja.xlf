@@ -2,29 +2,224 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpCodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="translated">追加 [廃止]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add 'await'</source>
+        <target state="translated">'await' の追加</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">括弧を追加します</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">this' を追加します。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="translated">このプロジェクトでアンセーフ コードを許可する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">'out' パラメーターの割り当て</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">'out' パラメーターの割り当て (開始時)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="translated">"{0}" に割り当て</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_return_type_from_0_to_1">
+        <source>Change return type from {0} to {1}</source>
+        <target state="translated">戻り値の型を {0} から {1} に変更する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="translated">"{0}" と比較</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">位置指定 record に変換</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">'typeof' を 'nameof' に変換します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_constraint">
+        <source>Fix constraint</source>
+        <target state="translated">制約の修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Null 許容型として宣言する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">ドキュメントを明示的に継承する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix record declaration</source>
+        <target state="translated">Fix record declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="translated">戻り値の型の修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hide_base_member">
+        <source>Hide base member</source>
+        <target state="translated">基本メンバーを非表示にします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="translated">{0} が void ではなくタスクを返すようにします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="translated">フィールドを 'required' にする</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="translated">メソッドを非同期にします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="translated">メソッドを非同期にする (void を維持)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="translated">プロパティを 'required' にする</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="translated">'ref struct' を作成します</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">キャプチャした変数を引数として渡す</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">次の行にステートメントを配置する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="translated">次の行にトークンを配置する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">中かっこの間の空白行を削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">'in' キーワードを削除します</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">'new' 修飾子の削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
-        <target state="new">Remove unreachable code</target>
+        <target state="translated">到達できないコードを削除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="translated">使用されていない関数を削除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_return_with_yield_return">
+        <source>Replace return with yield return</source>
+        <target state="translated">戻り値を 'yield' の戻り値に置き換える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="translated">クラス '{0}' のシールを解除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="translated">すべての C# プロジェクトを言語バージョン '{0}' にアップグレードする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="translated">このプロジェクトを C# 言語バージョン '{0}' にアップグレードする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="translated">'{0}' を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">コレクション式を使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">挿入された逐語的文字列を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてフィールドを削除する)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてメンバーを削除する)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてプロパティを削除する)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">警告: ローカル関数の宣言にパラメーターを追加すると、無効なコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
     </body>

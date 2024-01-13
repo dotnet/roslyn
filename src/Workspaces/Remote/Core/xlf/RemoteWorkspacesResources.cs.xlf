@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../RemoteWorkspacesResources.resx">
+    <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">Synchronizace prostředků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">Naslouchací proces asynchronní operace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CodeLensReferences">
+        <source>CodeLens references</source>
+        <target state="translated">Odkazy CodeLens</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Dostupnost sémantiky projektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
+        <source>Convert tuple to struct refactoring</source>
+        <target state="translated">Převést řazenou kolekci členů na refaktoring struktury</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DependentTypeFinder">
+        <source>Dependent type finder</source>
+        <target state="translated">Vyhledávání závislých typů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
+        <source>DesignerAttribute discovery</source>
+        <target state="translated">Zjišťování DesignerAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticAnalyzer">
+        <source>Diagnostic analyzer runner</source>
+        <target state="translated">Spouštěč diagnostického analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DocumentHighlights">
+        <source>Document highlights</source>
+        <target state="translated">Zvýraznění dokumentu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Upravit a pokračovat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EncapsulateField">
+        <source>Encapsulate field refactoring</source>
+        <target state="translated">Zabalit refaktoring pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
+        <source>Extension method import completion</source>
+        <target state="translated">Dokončení importu metody rozšíření</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FindUsages">
+        <source>Find usages</source>
+        <target state="translated">Vyhledat využití</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">Plně kvalifikovat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_GlobalNotificationDelivery">
+        <source>Global notification delivery</source>
+        <target state="translated">Doručování globálních oznámení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Míra dědičnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Služba responzivity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">Události řešení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">Chybí zjišťování importů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigateToSearch">
+        <source>Navigate to</source>
+        <target state="translated">Přejít na</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Navigační panel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Zpracovat telemetrii</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProjectTelemetry">
+        <source>Project telemetry collection</source>
+        <target state="translated">Shromažďování telemetrie projektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Renamer">
+        <source>Rename</source>
+        <target state="translated">Přejmenovat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticClassification">
+        <source>Semantic classification</source>
+        <target state="translated">Sémantická klasifikace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">Poskytovatel prostředků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Generování zdroje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Průzkumník trasování zásobníku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolFinder">
+        <source>Symbol finder</source>
+        <target state="translated">Vyhledávání symbolů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolSearchUpdate">
+        <source>Symbol search</source>
+        <target state="translated">Hledání symbolů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Seznam úkolů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">Hledání v testování částí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nepoužité referenční analýzy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Sledování hodnot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
+        <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
+        <target state="translated">Kvůli přechodné chybě není funkce {0} momentálně k dispozici. Zkuste to prosím znovu později: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
+        <source>Feature '{0}' is currently unavailable due to an internal error.</source>
+        <target state="translated">Kvůli vnitřní chybě není funkce {0} momentálně k dispozici.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
+        <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
+        <target state="translated">Funkce {0} není momentálně k dispozici, protože {1} se vypíná.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

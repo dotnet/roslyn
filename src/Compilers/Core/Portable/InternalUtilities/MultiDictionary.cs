@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,7 +15,7 @@ namespace Roslyn.Utilities
     internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K, V>.ValueSet>>
         where K : notnull
     {
-        public struct ValueSet : IEnumerable<V>
+        public readonly struct ValueSet : IEnumerable<V>
         {
             public struct Enumerator : IEnumerator<V>
             {
@@ -217,7 +215,7 @@ namespace Roslyn.Utilities
 
         public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
-        private readonly ValueSet _emptySet = new ValueSet(null, null);
+        private readonly ValueSet _emptySet = new(null, null);
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
@@ -236,6 +234,13 @@ namespace Roslyn.Utilities
         public MultiDictionary(IEqualityComparer<K> comparer)
         {
             _dictionary = new Dictionary<K, ValueSet>(comparer);
+        }
+
+        public void EnsureCapacity(int capacity)
+        {
+#if NETCOREAPP
+            _dictionary.EnsureCapacity(capacity);
+#endif
         }
 
         public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)

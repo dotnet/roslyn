@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    Roslyn ServiceHub (out-of-proc) brokered services.
+
+    Used to generate
+    1) {service-name}.servicehub.service.json files included in Roslyn setup VSIX and in ServiceHub install directory.
+    2) ServiceHub brokered service registrations in pkgdef file.
+
+    Note that brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
+  -->
+  <ItemGroup>
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AssetSynchronization" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAssetSynchronizationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AsynchronousOperationListener" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAsynchronousOperationListenerService+Factory" Audience="AllClientsIncludingGuests"/>
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassification" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DocumentHighlights" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDocumentHighlightsService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EncapsulateField" ClassName="Microsoft.CodeAnalysis.Remote.RemoteEncapsulateFieldService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.KeepAlive" ClassName="Microsoft.CodeAnalysis.Remote.RemoteKeepAliveService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.Renamer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteRenamerService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ConvertTupleToStructCodeRefactoring" ClassName="Microsoft.CodeAnalysis.Remote.RemoteConvertTupleToStructCodeRefactoringService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolFinderService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FindUsages" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFindUsagesService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FullyQualify" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFullyQualifyService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.NavigateToSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteNavigateToSearchService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.NavigationBarItem" ClassName="Microsoft.CodeAnalysis.Remote.RemoteNavigationBarItemService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.MissingImportDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteMissingImportDiscoveryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMethodImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMethodImportCompletionService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.GlobalNotificationDelivery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteGlobalNotificationDeliveryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CodeLensReferences" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCodeLensReferencesService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttributeDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeDiscoveryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.LegacySolutionEventsAggregation" ClassName="Microsoft.CodeAnalysis.Remote.RemoteLegacySolutionEventsAggregationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolSearchUpdate" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TaskList" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTaskListService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EditAndContinue" ClassName="Microsoft.CodeAnalysis.EditAndContinue.RemoteEditAndContinueService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ValueTracking" ClassName="Microsoft.CodeAnalysis.Remote.RemoteValueTrackingService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.InheritanceMargin" ClassName="Microsoft.CodeAnalysis.Remote.RemoteInheritanceMarginService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnusedReferenceAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnusedReferenceAnalysisService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProcessTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProcessTelemetryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteStackTraceExplorerService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnitTestingSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnitTestingSearchService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SourceGeneration" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSourceGenerationService+Factory" />
+  </ItemGroup>
+
+  <!--
+    Roslyn in-proc brokered services.
+  -->
+  <ItemGroup>
+    <InProcService Include="Microsoft.VisualStudio.LanguageServices.SolutionAssetProvider" />
+    <InProcService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService" />
+  </ItemGroup>
+</Project>

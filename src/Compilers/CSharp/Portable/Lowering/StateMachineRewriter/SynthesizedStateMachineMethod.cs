@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -77,10 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kickoffMethod = StateMachineType.KickoffMethod;
                 foreach (var attribute in kickoffMethod.GetAttributes())
                 {
-                    if (attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerHiddenAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerNonUserCodeAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepperBoundaryAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepThroughAttribute))
+                    if (attribute.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepperBoundaryAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
                     {
                         if (builder == null)
                         {

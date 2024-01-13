@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Microsoft.CodeAnalysis.Editing
 {
     public enum OperatorKind
@@ -136,5 +135,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// The name assigned to the UnaryPlus operator.
         /// </summary>
         UnaryPlus,
+
+        /// <summary>
+        /// The name assigned to the UnsignedRightShift operator.
+        /// </summary>
+        UnsignedRightShift,
     }
 }

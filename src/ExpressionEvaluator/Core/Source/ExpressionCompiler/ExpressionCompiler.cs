@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -35,11 +33,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
         private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
         private readonly bool _useReferencedAssembliesOnly;
-
-        static ExpressionCompiler()
-        {
-            FatalError.Handler = FailFast.OnFatalException;
-        }
 
         public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
         {
@@ -85,11 +78,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext inspectionContext)
+        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext? inspectionContext)
         {
             var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
             if (dkmAliases == null)
@@ -114,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         void IDkmClrExpressionCompiler.CompileExpression(
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
-            DkmInspectionContext inspectionContext,
+            DkmInspectionContext? inspectionContext,
             out string? error,
             out DkmCompiledClrInspectionQuery? result)
         {
@@ -143,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -165,6 +158,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
+                        // Concord marks this as nullable but it should always have a value in our scenario.
+                        RoslynDebug.AssertNotNull(lValue.FullName);
+
                         var compileResult = context.CompileAssignment(
                             lValue.FullName,
                             expression.Text,
@@ -184,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -218,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -431,10 +427,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         if (!missingAssemblyIdentities.IsEmpty)
                         {
-                            if (assembliesLoadedInRetryLoop == null)
-                            {
-                                assembliesLoadedInRetryLoop = PooledHashSet<AssemblyIdentity>.GetInstance();
-                            }
+                            assembliesLoadedInRetryLoop ??= PooledHashSet<AssemblyIdentity>.GetInstance();
                             // If any identities failed to add (they were already in the list), then don't retry. 
                             if (assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities))
                             {

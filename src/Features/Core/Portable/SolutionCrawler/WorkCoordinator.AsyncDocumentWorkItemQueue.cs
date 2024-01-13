@@ -12,16 +12,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
-            private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
+            private class AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : AsyncWorkItemQueue<DocumentId>(progressReporter, workspace)
             {
-                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
-
-                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                    : base(progressReporter, workspace)
-                {
-                }
+                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new();
 
                 protected override int WorkItemCount_NoLock => _documentWorkQueue.Count;
 
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -56,36 +51,35 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
+                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph)
                 {
-                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
+                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph);
 
                     var documentMap = _documentWorkQueue[projectId];
 
                     // explicitly iterate so that we can use struct enumerator.
                     // Return the first normal priority work item we find.  If we don't
                     // find any, then just return the first low prio item we saw.
-                    DocumentId lowPriorityDocumentId = null;
-                    foreach (var pair in documentMap)
+                    DocumentId? lowPriorityDocumentId = null;
+                    foreach (var (documentId, workItem) in documentMap)
                     {
-                        var workItem = pair.Value;
                         if (workItem.IsLowPriority)
                         {
-                            lowPriorityDocumentId = pair.Key;
+                            lowPriorityDocumentId = documentId;
                         }
                         else
                         {
-                            return pair.Key;
+                            return documentId;
                         }
                     }
 
@@ -95,10 +89,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
                 {
+                    Contract.ThrowIfNull(item.DocumentId);
+
                     Cancel_NoLock(item.DocumentId);
 
                     // see whether we need to update
                     var key = item.DocumentId;
+
                     // now document work
                     if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out var existingWorkItem))
@@ -107,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Debug.Assert(existingWorkItem.Language == item.Language);
 
                         // replace it
-                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
+                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.AsyncToken);
                         return false;
                     }
 

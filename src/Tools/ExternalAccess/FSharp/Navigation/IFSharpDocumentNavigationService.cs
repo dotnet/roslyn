@@ -2,42 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+
+internal interface IFSharpDocumentNavigationService : IWorkspaceService
 {
-    internal interface IFSharpDocumentNavigationService : IWorkspaceService
-    {
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given position in the specified document.
-        /// </summary>
-        bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan);
+    /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToSpanAsync"/>
+    bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+    /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToPositionAsync"/>
+    bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given line/offset in the specified document.
-        /// </summary>
-        bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset);
-
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given virtual position in the specified document.
-        /// </summary>
-        bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0);
-
-        /// <summary>
-        /// Navigates to the given position in the specified document, opening it if necessary.
-        /// </summary>
-        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null);
-
-        /// <summary>
-        /// Navigates to the given line/offset in the specified document, opening it if necessary.
-        /// </summary>
-        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null);
-
-        /// <summary>
-        /// Navigates to the given virtual position in the specified document, opening it if necessary.
-        /// </summary>
-        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null);
-    }
+    /// <inheritdoc cref="IDocumentNavigationService.GetLocationForSpanAsync"/>
+    bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+    /// <inheritdoc cref="IDocumentNavigationService.GetLocationForPositionAsync"/>
+    bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 }

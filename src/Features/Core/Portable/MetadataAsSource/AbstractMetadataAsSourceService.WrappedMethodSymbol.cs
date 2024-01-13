@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
+        private class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
         {
-            private readonly IMethodSymbol _symbol;
-
-            public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = methodSymbol;
-            }
+            private readonly IMethodSymbol _symbol = methodSymbol;
 
             public int Arity => _symbol.Arity;
 
@@ -28,6 +25,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
             public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsInitOnly => _symbol.IsInitOnly;
+
+            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -65,13 +65,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
 
+            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
+
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
             public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
 
-            public IMethodSymbol ReducedFrom =>
+            public IMethodSymbol ReducedFrom
                     // This implementation feels incorrect!
-                    _symbol.ReducedFrom;
+                    => _symbol.ReducedFrom;
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
                 => _symbol.Construct(typeArguments);
 
-            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
                 => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
@@ -124,6 +126,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
 
             public bool IsConditional => _symbol.IsConditional;
+
+            public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
+
+            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;
         }
     }
 }

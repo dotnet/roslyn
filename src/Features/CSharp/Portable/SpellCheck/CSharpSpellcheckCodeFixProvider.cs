@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         {
             // Don't dive into type argument lists.  We don't want to report spell checking
             // fixes for type args when we're called on an outer generic type.
-            return !(arg is TypeArgumentListSyntax);
+            return arg is not TypeArgumentListSyntax;
         }
 
         protected override bool IsGeneric(SyntaxToken token)

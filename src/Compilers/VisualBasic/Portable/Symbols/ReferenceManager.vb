@@ -52,21 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(simpleAssemblyName, identityComparer, observedMetadata)
             End Sub
 
-            Protected Overrides Function GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol) As AssemblySymbol()
-                Dim refs As New List(Of AssemblySymbol)
-
+            Protected Overrides Sub GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol, referencedAssemblySymbols As List(Of AssemblySymbol))
+                Debug.Assert(referencedAssemblySymbols.IsEmpty())
                 For Each [module] In assemblySymbol.Modules
-                    refs.AddRange([module].GetReferencedAssemblySymbols())
+                    referencedAssemblySymbols.AddRange([module].GetReferencedAssemblySymbols())
                 Next
 
-                For i As Integer = 0 To refs.Count - 1 Step 1
-                    If refs(i).IsMissing Then
-                        refs(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
+                For i As Integer = 0 To referencedAssemblySymbols.Count - 1 Step 1
+                    If referencedAssemblySymbols(i).IsMissing Then
+                        referencedAssemblySymbols(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
                     End If
                 Next
-
-                Return refs.ToArray()
-            End Function
+            End Sub
 
             Protected Overrides Function GetNoPiaResolutionAssemblies(candidateAssembly As AssemblySymbol) As ImmutableArray(Of AssemblySymbol)
                 If TypeOf candidateAssembly Is SourceAssemblySymbol Then
@@ -330,8 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitReferenceResolutions = If(compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions,
                         ImmutableDictionary(Of AssemblyIdentity, PortableExecutableReference).Empty)
 
-                    Dim bindingResult() As BoundInputAssembly = Bind(compilation,
-                                                                     explicitAssemblyData,
+                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
                                                                      modules,
                                                                      explicitReferences,
                                                                      referenceMap,
@@ -355,6 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
                     Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer) = Nothing
                     Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
+                    Dim mergedAssemblyReferencesMapOpt As Dictionary(Of MetadataReference, ImmutableArray(Of MetadataReference)) = Nothing
 
                     BuildReferencedAssembliesAndModulesMaps(
                         bindingResult,
@@ -366,7 +363,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         supersedeLowerVersions,
                         referencedAssembliesMap,
                         referencedModulesMap,
-                        aliasesOfReferencedAssemblies)
+                        aliasesOfReferencedAssemblies,
+                        mergedAssemblyReferencesMapOpt)
 
                     ' Create AssemblySymbols for assemblies that can't use any existing symbols.
                     Dim newSymbols As New List(Of Integer)
@@ -447,7 +445,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     moduleReferences,
                                     assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
                                     aliasesOfReferencedAssemblies,
-                                    assemblySymbol.SourceModule.GetUnifiedAssemblies())
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies(),
+                                    mergedAssemblyReferencesMapOpt)
 
                                 ' Make sure that the given compilation holds on this instance of reference manager.
                                 Debug.Assert(compilation._referenceManager Is Me OrElse hasCircularReference)
@@ -735,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private MustInherit Class AssemblyDataForMetadataOrCompilation
                 Inherits AssemblyData
 
-                Private _assemblies As List(Of AssemblySymbol)
+                Private _assemblies As ImmutableArray(Of AssemblySymbol)
                 Private ReadOnly _identity As AssemblyIdentity
                 Private ReadOnly _referencedAssemblies As ImmutableArray(Of AssemblyIdentity)
                 Private ReadOnly _embedInteropTypes As Boolean
@@ -760,22 +759,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property AvailableSymbols As IEnumerable(Of AssemblySymbol)
+                Public Overrides ReadOnly Property AvailableSymbols As ImmutableArray(Of AssemblySymbol)
                     Get
-                        If (_assemblies Is Nothing) Then
-                            _assemblies = New List(Of AssemblySymbol)()
+                        If (_assemblies.IsDefault) Then
+                            Dim assemblies = ArrayBuilder(Of AssemblySymbol).GetInstance()
 
                             ' This should be done lazy because while we creating
                             ' instances of this type, creation of new SourceAssembly symbols
                             ' might change the set of available AssemblySymbols.
-                            AddAvailableSymbols(_assemblies)
+                            AddAvailableSymbols(assemblies)
+
+                            _assemblies = assemblies.ToImmutableAndFree()
                         End If
 
                         Return _assemblies
                     End Get
                 End Property
 
-                Protected MustOverride Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected MustOverride Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
 
                 Public Overrides ReadOnly Property AssemblyReferences As ImmutableArray(Of AssemblyIdentity)
                     Get
@@ -783,8 +784,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides Function BindAssemblyReferences(assemblies As ImmutableArray(Of AssemblyData), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
-                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
+                Public Overrides Function BindAssemblyReferences(assemblies As MultiDictionary(Of String, (DefinitionData As AssemblyData, DefinitionIndex As Integer)), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
+                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, resolveAgainstAssemblyBeingBuilt:=True, assemblyIdentityComparer:=assemblyIdentityComparer)
                 End Function
 
                 Public NotOverridable Overrides ReadOnly Property IsLinked As Boolean
@@ -864,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected Overrides Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
                     Dim internalsMayBeVisibleToCompilation = Me.InternalsMayBeVisibleToCompilation
 
                     ' accessing cached symbols requires a lock
@@ -966,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New RetargetingAssemblySymbol(Compilation.SourceAssembly, IsLinked)
                 End Function
 
-                Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected Overrides Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
                     assemblies.Add(Compilation.Assembly)
 
                     ' accessing cached symbols requires a lock

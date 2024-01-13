@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,11 +11,18 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
-    /// <summary>
-    /// Calculates Longest Common Subsequence.
-    /// </summary>
-    internal abstract class LongestCommonSubsequence<TSequence>
+    internal abstract class LongestCommonSubsequence
     {
+        /// <summary>
+        /// Limit the number of tokens used to compute distance between sequences of tokens so that 
+        /// we always use the pooled buffers. The combined length of the two sequences being compared
+        /// must be less than <see cref="VBuffer.PooledSegmentMaxDepthThreshold"/>.
+        /// </summary>
+        public const int MaxSequenceLengthForDistanceCalculation = VBuffer.PooledSegmentMaxDepthThreshold / 2;
+
+        // Define the pool in a non-generic base class to allow sharing among instantiations.
+        private static readonly ObjectPool<VBuffer> s_pool = new(() => new VBuffer());
+
         /// <summary>
         /// Underlying storage for <see cref="VArray"/>s allocated on <see cref="VStack"/>.
         /// </summary>
@@ -29,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// 
         /// We pool a few of these linked buffers on <see cref="VStack"/> to conserve allocations.
         /// </remarks>
-        private sealed class VBuffer
+        protected sealed class VBuffer
         {
             /// <summary>
             /// The max stack depth backed by the fist buffer.
@@ -37,14 +46,33 @@ namespace Microsoft.CodeAnalysis.Differencing
             /// For 150 it'd be 91KB, which would be allocated on LOH.
             /// The buffers grow by factor of <see cref="GrowFactor"/>, so the next buffer will be allocated on LOH.
             /// </summary>
-            private const int FirstBufferMaxDepth = 100;
+            public const int FirstSegmentMaxDepth = 100;
 
             // 3 + Sum { d = 1..maxDepth : 2*d+1 } = (maxDepth + 1)^2 + 2
-            private const int FirstBufferLength = (FirstBufferMaxDepth + 1) * (FirstBufferMaxDepth + 1) + 2;
+            private const int FirstSegmentLength = (FirstSegmentMaxDepth + 1) * (FirstSegmentMaxDepth + 1) + 2;
 
-            internal const int GrowFactor = 2;
+            // Segment     Segment        Total buffer
+            // MaxDepth    length            length
+            // ---------------------------------------
+            // 100           10,204           10,204
+            // 150           12,600           22,804
+            // 225           28,275           51,079
+            // 338           63,845          114,924
+            // 507          143,143          258,067
+            // 761          322,580          580,647
+            // 1142         725,805        1,306,452
+            // 1713       1,631,347        2,937,799  <-- last pooled segment
+            // 2570       3,672,245        6,610,044
+            // 3855       8,258,695       14,868,739
+            internal const double GrowFactor = 1.5;
 
-            public VBuffer Previous { get; }
+            /// <summary>
+            /// Do not expand pooled buffers to more than ~12 MB total size (sum of all linked segment sizes).
+            /// This threshold is achieved when <see cref="MaxDepth"/> is greater than <see cref="PooledSegmentMaxDepthThreshold"/> = sqrt(size_limit / sizeof(int)).
+            /// </summary>
+            internal const int PooledSegmentMaxDepthThreshold = 1800;
+
+            public VBuffer Previous { get; private set; }
             public VBuffer Next { get; private set; }
 
             public readonly int MinDepth;
@@ -54,22 +82,22 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             public VBuffer()
             {
-                _array = new int[FirstBufferLength];
-                MaxDepth = FirstBufferMaxDepth;
+                _array = new int[FirstSegmentLength];
+                MaxDepth = FirstSegmentMaxDepth;
             }
 
             public VBuffer(VBuffer previous)
             {
                 Debug.Assert(previous != null);
 
-                int minDepth = previous.MaxDepth + 1;
-                int maxDepth = previous.MaxDepth * GrowFactor;
+                var minDepth = previous.MaxDepth + 1;
+                var maxDepth = (int)(previous.MaxDepth * GrowFactor);
 
                 Debug.Assert(minDepth > 0);
                 Debug.Assert(minDepth <= maxDepth);
 
                 Previous = previous;
-                _array = new int[GetNextBufferLength(minDepth - 1, maxDepth)];
+                _array = new int[GetNextSegmentLength(minDepth - 1, maxDepth)];
                 MinDepth = minDepth;
                 MaxDepth = maxDepth;
 
@@ -86,6 +114,9 @@ namespace Microsoft.CodeAnalysis.Differencing
                 return new VArray(_array, start, length);
             }
 
+            public bool IsTooLargeToPool
+                => MaxDepth > PooledSegmentMaxDepthThreshold;
+
             private static int GetVArrayLength(int depth)
                 => 2 * Math.Max(depth, 1) + 1;
 
@@ -94,20 +125,28 @@ namespace Microsoft.CodeAnalysis.Differencing
                 => (depth == 0) ? 0 : depth * depth + 2;
 
             // Sum { d = previousChunkDepth..maxDepth : 2*d+1 } = (maxDepth + 1)^2 - precedingBufferMaxDepth^2
-            private static int GetNextBufferLength(int precedingBufferMaxDepth, int maxDepth)
+            private static int GetNextSegmentLength(int precedingBufferMaxDepth, int maxDepth)
                 => (maxDepth + 1) * (maxDepth + 1) - precedingBufferMaxDepth * precedingBufferMaxDepth;
+
+            public void Unlink()
+            {
+                Previous.Next = null;
+                Previous = null;
+            }
         }
 
-        private struct VStack
+        protected struct VStack
         {
-            private static readonly ObjectPool<VBuffer> s_bufferPool = new ObjectPool<VBuffer>(() => new VBuffer());
+            private readonly ObjectPool<VBuffer> _bufferPool;
+            private readonly VBuffer _firstBuffer;
 
             private VBuffer _currentBuffer;
             private int _depth;
 
-            public VStack(bool _)
+            public VStack(ObjectPool<VBuffer> bufferPool)
             {
-                _currentBuffer = s_bufferPool.Allocate();
+                _bufferPool = bufferPool;
+                _currentBuffer = _firstBuffer = bufferPool.Allocate();
                 _depth = 0;
             }
 
@@ -116,6 +155,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                 var depth = _depth++;
                 if (depth > _currentBuffer.MaxDepth)
                 {
+                    // If the buffer is not big enough add another segment to the linked list (the constructor takes care of the linking).
+                    // Note that the segments are not pooled on their own. The whole linked list of buffers is pooled.
                     _currentBuffer = _currentBuffer.Next ?? new VBuffer(_currentBuffer);
                 }
 
@@ -125,34 +166,35 @@ namespace Microsoft.CodeAnalysis.Differencing
             public IEnumerable<(VArray Array, int Depth)> ConsumeArrays()
             {
                 var buffer = _currentBuffer;
-                for (int depth = _depth - 1; depth >= 0; depth--)
+                for (var depth = _depth - 1; depth >= 0; depth--)
                 {
                     if (depth < buffer.MinDepth)
                     {
-                        buffer = buffer.Previous;
+                        var previousBuffer = buffer.Previous;
+
+                        // Trim large buffers from the linked list before we return the whole list back into the pool.
+                        if (buffer.IsTooLargeToPool)
+                        {
+                            buffer.Unlink();
+                        }
+
+                        buffer = previousBuffer;
                     }
 
                     yield return (buffer.GetVArray(depth), depth);
                 }
 
-                s_bufferPool.Free(_currentBuffer);
+                _bufferPool.Free(_firstBuffer);
                 _currentBuffer = null;
             }
         }
 
         // VArray struct enables array indexing in range [-d...d].
-        private readonly struct VArray
+        protected readonly struct VArray(int[] buffer, int start, int length)
         {
-            private readonly int[] _buffer;
-            private readonly int _start;
-            private readonly int _length;
-
-            public VArray(int[] buffer, int start, int length)
-            {
-                _buffer = buffer;
-                _start = start;
-                _length = length;
-            }
+            private readonly int[] _buffer = buffer;
+            private readonly int _start = start;
+            private readonly int _length = length;
 
             public void InitializeFrom(VArray other)
             {
@@ -190,12 +232,21 @@ namespace Microsoft.CodeAnalysis.Differencing
             private int Offset => _length / 2;
         }
 
+        protected static VStack CreateStack()
+            => new(s_pool);
+    }
+
+    /// <summary>
+    /// Calculates Longest Common Subsequence.
+    /// </summary>
+    internal abstract class LongestCommonSubsequence<TSequence> : LongestCommonSubsequence
+    {
         protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
 
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            VStack stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            var stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
             var x = oldLength;
             var y = newLength;
@@ -204,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                bool hasNext = varrays.MoveNext();
+                var hasNext = varrays.MoveNext();
                 Debug.Assert(hasNext);
 
                 var (currentV, d) = varrays.Current;
@@ -239,6 +290,11 @@ namespace Microsoft.CodeAnalysis.Differencing
                 x = xStart;
                 y = yStart;
             }
+
+            // make sure we finish the enumeration as it returns the allocated buffers to the pool
+            while (varrays.MoveNext())
+            {
+            }
         }
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
@@ -252,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                bool hasNext = varrays.MoveNext();
+                var hasNext = varrays.MoveNext();
                 Debug.Assert(hasNext);
 
                 var (currentV, d) = varrays.Current;
@@ -338,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             var max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
-            return 1.0 - (double)lcsLength / (double)max;
+            return 1.0 - lcsLength / (double)max;
         }
 
         /// <summary>
@@ -380,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             var reachedEnd = false;
             VArray currentV = default;
 
-            var stack = new VStack(default);
+            var stack = CreateStack();
 
             for (var d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
@@ -406,7 +462,6 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                     // start point
                     var yStart = currentV[kPrev];
-                    var xStart = yStart + kPrev;
 
                     // mid point
                     var yMid = right ? yStart : yStart + 1;

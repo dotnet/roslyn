@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_AddHandler1()
             Dim definition =
 <Workspace>
@@ -63,7 +63,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_AddHandler2()
             Dim definition =
 <Workspace>
@@ -126,7 +126,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_AddHandler3()
             Dim definition =
 <Workspace>
@@ -193,7 +193,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_AddHandler4()
             Dim definition =
 <Workspace>
@@ -268,7 +268,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_AddHandler5()
             Dim definition =
 <Workspace>
@@ -343,7 +343,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_RemoveHandler1()
             Dim definition =
 <Workspace>
@@ -398,7 +398,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_RemoveHandler2()
             Dim definition =
 <Workspace>
@@ -461,7 +461,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_RemoveHandler3()
             Dim definition =
 <Workspace>
@@ -528,7 +528,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_RemoveHandler4()
             Dim definition =
 <Workspace>
@@ -603,7 +603,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBStatements_RemoveHandler5()
             Dim definition =
 <Workspace>

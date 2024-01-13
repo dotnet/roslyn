@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,8 +29,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             public ILocalSymbol LocalSymbol { get; private set; }
             public SyntaxNode OutermostBlock { get; private set; }
             public SyntaxNode InnermostBlock { get; private set; }
-            public SyntaxList<TStatementSyntax> OutermostBlockStatements { get; private set; }
-            public SyntaxList<TStatementSyntax> InnermostBlockStatements { get; private set; }
+            public IReadOnlyList<SyntaxNode> OutermostBlockStatements { get; private set; }
+            public IReadOnlyList<SyntaxNode> InnermostBlockStatements { get; private set; }
             public TStatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
             public int IndexOfDeclarationStatementInInnermostBlock { get; private set; }
             public int IndexOfFirstStatementAffectedInInnermostBlock { get; private set; }
@@ -54,7 +56,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TLocalDeclarationStatementSyntax node,
                 CancellationToken cancellationToken)
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
 
                 DeclarationStatement = node;
 
@@ -70,8 +73,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                OutermostBlock = DeclarationStatement.Parent;
-                if (!syntaxFacts.IsExecutableBlock(OutermostBlock))
+                OutermostBlock = blockFacts.GetStatementContainer(DeclarationStatement);
+                if (!blockFacts.IsExecutableBlock(OutermostBlock))
                 {
                     return false;
                 }
@@ -111,18 +114,18 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                InnermostBlock = syntaxFacts.FindInnermostCommonExecutableBlock(referencingStatements);
+                InnermostBlock = blockFacts.FindInnermostCommonExecutableBlock(referencingStatements);
                 if (InnermostBlock == null)
                 {
                     return false;
                 }
 
-                InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(InnermostBlock);
-                OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(OutermostBlock);
+                InnermostBlockStatements = blockFacts.GetExecutableBlockStatements(InnermostBlock);
+                OutermostBlockStatements = blockFacts.GetExecutableBlockStatements(OutermostBlock);
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));
-                FirstStatementAffectedInInnermostBlock = InnermostBlockStatements.FirstOrDefault(allAffectedStatements.Contains);
+                FirstStatementAffectedInInnermostBlock = InnermostBlockStatements.Cast<TStatementSyntax>().FirstOrDefault(allAffectedStatements.Contains);
 
                 if (FirstStatementAffectedInInnermostBlock == null)
                 {
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 for (var i = originalIndexInBlock; i < firstStatementIndexAffectedInBlock; i++)
                 {
-                    if (!(InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
+                    if (InnermostBlockStatements[i] is not TLocalDeclarationStatementSyntax)
                     {
                         return false;
                     }

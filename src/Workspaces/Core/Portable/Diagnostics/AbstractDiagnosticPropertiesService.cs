@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected abstract Compilation GetCompilation();
 
-        private ImmutableDictionary<string, string> GetAdditionalProperties(
+        private static ImmutableDictionary<string, string> GetAdditionalProperties(
             Diagnostic diagnostic,
             Compilation compilation)
         {

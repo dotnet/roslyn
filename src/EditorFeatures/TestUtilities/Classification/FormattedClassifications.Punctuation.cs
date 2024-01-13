@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification Comma { get; } = New(",");
             public static FormattedClassification Semicolon { get; } = New(";");
             public static FormattedClassification Colon { get; } = New(":");
+            public static FormattedClassification DotDot { get; } = New("..");
 
             [DebuggerStepThrough]
             public static FormattedClassification Text(string text) => New(text);

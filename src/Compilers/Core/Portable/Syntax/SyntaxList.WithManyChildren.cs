@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
     internal partial class SyntaxList
     {
-        internal class WithManyChildren : SyntaxList
+        internal sealed class WithManyChildren : SyntaxList
         {
             private readonly ArrayElement<SyntaxNode?>[] _children;
 

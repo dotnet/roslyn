@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using EnvDTE;
@@ -11,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeClassTests : AbstractFileCodeElementTests
     {
         public FileCodeClassTests()
@@ -43,8 +46,7 @@ public class Bar
             return (CodeClass)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void IsAbstract()
         {
             var cc = GetCodeClass("Goo");
@@ -52,8 +54,7 @@ public class Bar
             Assert.True(cc.IsAbstract);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Bases()
         {
             var cc = GetCodeClass("Goo");
@@ -72,8 +73,7 @@ public class Bar
             Assert.True(bases.Item("object") is CodeClass);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void ImplementedInterfaces()
         {
             var cc = GetCodeClass("Goo");
@@ -93,8 +93,7 @@ public class Bar
             Assert.True(interfaces.Item("ICloneable") is CodeInterface);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void KindTest()
         {
             var cc = GetCodeClass("Goo");
@@ -102,16 +101,14 @@ public class Bar
             Assert.Equal(vsCMElement.vsCMElementClass, cc.Kind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -122,8 +119,7 @@ public class Bar
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeClass("Bar");
@@ -134,16 +130,14 @@ public class Bar
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeClass("Bar");
@@ -154,24 +148,21 @@ public class Bar
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeClass("Bar");
@@ -182,16 +173,14 @@ public class Bar
             Assert.Equal(14, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -202,16 +191,14 @@ public class Bar
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
@@ -222,8 +209,7 @@ public class Bar
             Assert.Equal(15, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeClass("Bar");
@@ -234,16 +220,14 @@ public class Bar
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeClass("Bar");
@@ -251,24 +235,21 @@ public class Bar
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeClass("Bar");
@@ -279,16 +260,14 @@ public class Bar
             Assert.Equal(17, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeClass("Bar");
@@ -299,8 +278,7 @@ public class Bar
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void StartPoint()
         {
             var testObject = GetCodeClass("Bar");
@@ -311,8 +289,7 @@ public class Bar
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void EndPoint()
         {
             var testObject = GetCodeClass("Bar");
@@ -323,8 +300,7 @@ public class Bar
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Accessor()
         {
             var testObject = GetCodeClass("Bar");
@@ -333,6 +309,5 @@ public class Bar
             var z = l.ToList<CodeProperty>();
             Assert.Equal(2, z.Count);
         }
-
     }
 }

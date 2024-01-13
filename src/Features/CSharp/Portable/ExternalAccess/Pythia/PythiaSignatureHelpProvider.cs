@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -21,26 +19,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
     /// Ensure this is ordered before the regular invocation signature help provider.
     /// We must replace the entire list of results, including both Pythia and non-Pythia recommendations.
     /// </summary>
-    [ExportSignatureHelpProvider("PythiaSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    [ExtensionOrder(Before = "InvocationExpressionSignatureHelpProvider")]
-    internal sealed class PythiaSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
+    [ExportSignatureHelpProvider(nameof(PythiaSignatureHelpProvider), LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = nameof(InvocationExpressionSignatureHelpProvider))]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation) : InvocationExpressionSignatureHelpProviderBase
     {
-        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;
+        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation = implementation;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
-            => _lazyImplementation = implementation;
-
-        internal async override Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
+        internal override async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            SymbolInfo currentSymbol,
+            SymbolInfo symbolInfo,
+            IMethodSymbol? currentSymbol,
             CancellationToken cancellationToken)
         {
-            var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
+            var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, symbolInfo, cancellationToken).ConfigureAwait(false);
             return (items.SelectAsArray(item => item.UnderlyingObject), selectedItemIndex);
         }
     }

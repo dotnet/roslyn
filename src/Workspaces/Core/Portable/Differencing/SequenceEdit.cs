@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// Represents an edit operation on a sequence of values.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct SequenceEdit : IEquatable<SequenceEdit>
+    internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
     {
         private readonly int _oldIndex;
         private readonly int _newIndex;
@@ -89,17 +91,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(SequenceEdit sequenceEdit)
         {
-            private readonly SequenceEdit _sequenceEdit;
-
-            public TestAccessor(SequenceEdit sequenceEdit)
-                => _sequenceEdit = sequenceEdit;
-
             internal string GetDebuggerDisplay()
-                => _sequenceEdit.GetDebuggerDisplay();
+                => sequenceEdit.GetDebuggerDisplay();
         }
     }
 }

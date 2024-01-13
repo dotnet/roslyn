@@ -27,11 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return
-                IsUnsafeStatementContext(context) ||
-                IsMemberDeclarationContext(context, cancellationToken);
-        }
+            => IsUnsafeStatementContext(context) || IsMemberDeclarationContext(context, cancellationToken);
 
         private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -42,10 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         private static bool IsUnsafeStatementContext(CSharpSyntaxContext context)
-        {
-            return
-                context.TargetToken.IsUnsafeContext() &&
-                context.IsStatementContext;
-        }
+            => context.TargetToken.IsUnsafeContext() && context.IsStatementContext;
     }
 }

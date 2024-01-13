@@ -2,32 +2,52 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial struct NamingStyle : IEquatable<NamingStyle>
+    [DataContract]
+    internal readonly partial record struct NamingStyle
     {
-        public Guid ID { get; }
-        public string Name { get; }
-        public string Prefix { get; }
-        public string Suffix { get; }
-        public string WordSeparator { get; }
-        public Capitalization CapitalizationScheme { get; }
+        [DataMember(Order = 0)]
+        public Guid ID { get; init; }
+
+        [DataMember(Order = 1)]
+        public string Name { get; init; }
+
+        [DataMember(Order = 2)]
+        public string Prefix { get; init; }
+
+        [DataMember(Order = 3)]
+        public string Suffix { get; init; }
+
+        [DataMember(Order = 4)]
+        public string WordSeparator { get; init; }
+
+        [DataMember(Order = 5)]
+        public Capitalization CapitalizationScheme { get; init; }
 
         public NamingStyle(
-            Guid id, string name = null, string prefix = null, string suffix = null,
-            string wordSeparator = null, Capitalization capitalizationScheme = Capitalization.PascalCase) : this()
+            Guid id,
+            string name = null,
+            string prefix = null,
+            string suffix = null,
+            string wordSeparator = null,
+            Capitalization capitalizationScheme = Capitalization.PascalCase)
         {
             ID = id;
             Name = name;
@@ -35,58 +55,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             Suffix = suffix ?? "";
             WordSeparator = wordSeparator ?? "";
             CapitalizationScheme = capitalizationScheme;
-        }
-
-        public NamingStyle With(
-          Optional<string> name = default,
-          Optional<string> prefix = default,
-          Optional<string> suffix = default,
-          Optional<string> wordSeparator = default,
-          Optional<Capitalization> capitalizationScheme = default)
-        {
-            var newName = name.HasValue ? name.Value : this.Name;
-            var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;
-            var newSuffix = suffix.HasValue ? suffix.Value : this.Suffix;
-            var newWordSeparator = wordSeparator.HasValue ? wordSeparator.Value : this.WordSeparator;
-            var newCapitalizationScheme = capitalizationScheme.HasValue ? capitalizationScheme.Value : this.CapitalizationScheme;
-
-            if (newName == this.Name &&
-                newPrefix == this.Prefix &&
-                newSuffix == this.Suffix &&
-                newWordSeparator == this.WordSeparator &&
-                newCapitalizationScheme == this.CapitalizationScheme)
-            {
-                return this;
-            }
-
-            return new NamingStyle(this.ID,
-                newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is NamingStyle other
-                && Equals(other);
-        }
-
-        public bool Equals(NamingStyle other)
-        {
-            return ID == other.ID
-                && Name == other.Name
-                && Prefix == other.Prefix
-                && Suffix == other.Suffix
-                && WordSeparator == other.WordSeparator
-                && CapitalizationScheme == other.CapitalizationScheme;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(ID.GetHashCode(),
-                Hash.Combine(Name?.GetHashCode() ?? 0,
-                    Hash.Combine(Prefix?.GetHashCode() ?? 0,
-                        Hash.Combine(Suffix?.GetHashCode() ?? 0,
-                            Hash.Combine(WordSeparator?.GetHashCode() ?? 0,
-                                (int)CapitalizationScheme)))));
         }
 
         public string CreateName(ImmutableArray<string> words)
@@ -175,15 +143,15 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
 
             // remove specified Prefix, then look for any other common prefixes
-            name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
+            name = StripCommonPrefixes(name[Prefix.Length..], out var prefix);
 
             if (prefix != string.Empty)
             {
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
-                failureReason = Prefix == string.Empty ?
-                    string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix) :
-                    string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                failureReason = Prefix == string.Empty
+                    ? string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix)
+                    : string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
                 return false;
             }
 
@@ -203,15 +171,15 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
-            => new WordSpanEnumerable(name, nameSpan, WordSeparator);
+            => new(name, nameSpan, WordSeparator);
 
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
 
-        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
-        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
 
-        private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -224,7 +192,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return true;
         };
 
-        private static Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -339,7 +307,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         {
             // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
             // "Test_" will be added back later in this method
-            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name[Prefix.Length..] : name, out _);
 
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
@@ -383,15 +351,20 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     case 't':
                         if (index + 2 < name.Length && name[index + 1] == '_')
                         {
-                            index += 2;
+                            index++;
                             continue;
                         }
 
                         break;
 
                     case '_':
-                        index++;
-                        continue;
+                        if (index + 1 < name.Length && !char.IsDigit(name[index + 1]))
+                        {
+                            index++;
+                            continue;
+                        }
+
+                        break;
 
                     default:
                         break;
@@ -401,8 +374,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 break;
             }
 
-            prefix = name.Substring(0, index);
-            return name.Substring(index);
+            prefix = name[..index];
+            return name[index..];
         }
 
         private string FinishFixingName(string name)
@@ -413,7 +386,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 return name;
             }
 
-            name = name.Substring(Prefix.Length, name.Length - Suffix.Length - Prefix.Length);
+            name = name[Prefix.Length..^Suffix.Length];
             IEnumerable<string> words = new[] { name };
 
             if (!string.IsNullOrEmpty(WordSeparator))
@@ -421,7 +394,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Edge case: the only character(s) in the name is(are) the WordSeparator
-                if (words.Count() == 0)
+                if (!words.Any())
                 {
                     return name;
                 }
@@ -429,12 +402,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
                     var isWord = true;
-                    var parts = StringBreaker.GetParts(name, isWord);
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddParts(name, isWord, ref parts.AsRef());
                     var newWords = new string[parts.Count];
                     for (var i = 0; i < parts.Count; i++)
                     {
-                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
+                        newWords[i] = name[parts[i].Start..parts[i].End];
                     }
+
                     words = newWords;
                 }
             }
@@ -451,9 +426,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
             for (var i = Suffix.Length; i > 0; i--)
             {
-                if (name.EndsWith(Suffix.Substring(0, i)))
+                if (name.EndsWith(Suffix[..i]))
                 {
-                    return name + Suffix.Substring(i);
+                    return name + Suffix[i..];
                 }
             }
 
@@ -467,9 +442,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
             for (var i = 0; i < Prefix.Length; i++)
             {
-                if (name.StartsWith(Prefix.Substring(i)))
+                if (name.StartsWith(Prefix[i..]))
                 {
-                    return Prefix.Substring(0, i) + name;
+                    return Prefix[..i] + name;
                 }
             }
 
@@ -477,7 +452,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         internal XElement CreateXElement()
-            => new XElement(nameof(NamingStyle),
+            => new(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
@@ -486,12 +461,33 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
-            => new NamingStyle(
+            => new(
                 id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
                 name: namingStyleElement.Attribute(nameof(Name)).Value,
                 prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteGuid(ID);
+            writer.WriteString(Name);
+            writer.WriteString(Prefix ?? string.Empty);
+            writer.WriteString(Suffix ?? string.Empty);
+            writer.WriteString(WordSeparator ?? string.Empty);
+            writer.WriteInt32((int)CapitalizationScheme);
+        }
+
+        public static NamingStyle ReadFrom(ObjectReader reader)
+        {
+            return new NamingStyle(
+                reader.ReadGuid(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                (Capitalization)reader.ReadInt32());
+        }
     }
 }

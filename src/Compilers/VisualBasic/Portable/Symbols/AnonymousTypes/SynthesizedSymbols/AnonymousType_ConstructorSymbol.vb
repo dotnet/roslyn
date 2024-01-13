@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeConstructorSymbol
             Inherits SynthesizedConstructorBase
 
-            Private _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New(container As AnonymousTypeTemplateSymbol)
                 MyBase.New(VisualBasicSyntaxTree.DummyReference, container, False, Nothing, Nothing)
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim paramsArr = New ParameterSymbol(fieldsCount - 1) {}
                 For index = 0 To fieldsCount - 1
                     Dim [property] As PropertySymbol = container.Properties(index)
-                    paramsArr(index) = New SynthesizedParameterSimpleSymbol(Me, [property].Type, index, [property].Name)
+                    paramsArr(index) = New AnonymousTypeOrDelegateParameterSymbol(Me, [property].Type, index, isByRef:=False, [property].Name, correspondingInvokeParameterOrProperty:=index)
                 Next
                 Me._parameters = paramsArr.AsImmutableOrNull()
             End Sub
@@ -39,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(compilationState, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                 Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())

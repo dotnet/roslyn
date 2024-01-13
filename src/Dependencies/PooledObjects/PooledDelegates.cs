@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static class DefaultDelegatePool<T>
             where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
 
         private static Releaser GetPooledDelegate<TPooled, TArg, TUnboundDelegate, TBoundDelegate>(TUnboundDelegate unboundDelegate, TArg argument, out TBoundDelegate boundDelegate)
@@ -198,6 +199,18 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             => GetPooledDelegate<FuncWithBoundArgument<TArg, TResult>, TArg, Func<TArg, TResult>, Func<TResult>>(unboundFunction, argument, out boundFunction);
 
         /// <summary>
+        /// Equivalent to <see cref="GetPooledFunction{TArg, TResult}(Func{TArg, TResult}, TArg, out Func{TResult})"/>,
+        /// except typed such that it can be used to create a pooled <see cref="ConditionalWeakTable{TKey,
+        /// TValue}.CreateValueCallback"/>.
+        /// </summary>
+        public static Releaser GetPooledCreateValueCallback<TKey, TArg, TValue>(
+            Func<TKey, TArg, TValue> unboundFunction, TArg argument,
+            out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
+
+        {
+            return GetPooledDelegate<CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>, TArg, Func<TKey, TArg, TValue>, ConditionalWeakTable<TKey, TValue>.CreateValueCallback>(unboundFunction, argument, out boundFunction);
+        }
+        /// <summary>
         /// Gets a <see cref="Func{T, TResult}"/> delegate, which calls <paramref name="unboundFunction"/> with the
         /// specified <paramref name="argument"/>. The resulting <paramref name="boundFunction"/> may be called any
         /// number of times until the returned <see cref="Releaser"/> is disposed.
@@ -313,7 +326,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// omitted, the object will not be returned to the pool. The behavior of this type if <see cref="Dispose"/> is
         /// called multiple times is undefined.</para>
         /// </remarks>
-        public struct Releaser : IDisposable
+        [NonCopyable]
+        public readonly struct Releaser : IDisposable
         {
             private readonly Poolable _pooledObject;
 
@@ -338,6 +352,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             protected AbstractDelegateWithBoundArgument()
             {
                 BoundDelegate = Bind();
+
+                UnboundDelegate = null!;
+                Argument = default!;
             }
 
             public TBoundDelegate BoundDelegate { get; }
@@ -353,8 +370,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             public sealed override void ClearAndFree()
             {
-                Argument = default;
-                UnboundDelegate = null;
+                Argument = default!;
+                UnboundDelegate = null!;
                 DefaultDelegatePool<TSelf>.Instance.Free((TSelf)this);
             }
 
@@ -396,6 +413,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 => () => UnboundDelegate(Argument);
         }
 
+        private sealed class CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>
+            : AbstractDelegateWithBoundArgument<
+                CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>,
+                TArg,
+                Func<TKey, TArg, TValue>,
+                ConditionalWeakTable<TKey, TValue>.CreateValueCallback>
+            where TKey : class
+            where TValue : class
+        {
+            protected override ConditionalWeakTable<TKey, TValue>.CreateValueCallback Bind()
+                => key => UnboundDelegate(key, Argument);
+        }
+
         private sealed class FuncWithBoundArgument<T1, TArg, TResult>
             : AbstractDelegateWithBoundArgument<FuncWithBoundArgument<T1, TArg, TResult>, TArg, Func<T1, TArg, TResult>, Func<T1, TResult>>
         {
@@ -415,6 +445,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             protected override Func<T1, T2, T3, TResult> Bind()
                 => (arg1, arg2, arg3) => UnboundDelegate(arg1, arg2, arg3, Argument);
+        }
+
+        [AttributeUsage(AttributeTargets.Struct)]
+        private sealed class NonCopyableAttribute : Attribute
+        {
         }
     }
 }

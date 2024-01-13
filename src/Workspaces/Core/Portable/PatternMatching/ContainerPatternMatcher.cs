@@ -5,7 +5,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public ContainerPatternMatcher(
                 string[] patternParts, char[] containerSplitCharacters,
-                CultureInfo culture,
+                bool includeMatchedSpans,
+                CultureInfo? culture,
                 bool allowFuzzyMatching = false)
-                : base(false, culture, allowFuzzyMatching)
+                : base(includeMatchedSpans, culture, allowFuzzyMatching)
             {
                 _containerSplitCharacters = containerSplitCharacters;
 
@@ -41,25 +42,25 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            public override bool AddMatches(string container, ArrayBuilder<PatternMatch> matches)
+            public override bool AddMatches(string? container, ref TemporaryArray<PatternMatch> matches)
             {
                 if (SkipMatch(container))
                 {
                     return false;
                 }
 
-                return AddMatches(container, matches, fuzzyMatch: false) ||
-                       AddMatches(container, matches, fuzzyMatch: true);
+                return AddMatches(container, ref matches, fuzzyMatch: false) ||
+                       AddMatches(container, ref matches, fuzzyMatch: true);
             }
 
-            private bool AddMatches(string container, ArrayBuilder<PatternMatch> matches, bool fuzzyMatch)
+            private bool AddMatches(string container, ref TemporaryArray<PatternMatch> matches, bool fuzzyMatch)
             {
                 if (fuzzyMatch && !_allowFuzzyMatching)
                 {
                     return false;
                 }
 
-                using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var tempContainerMatches);
+                using var tempContainerMatches = TemporaryArray<PatternMatch>.Empty;
 
                 var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
 
@@ -78,9 +79,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         i >= 0;
                         i--, j--)
                 {
-                    var segment = _patternSegments[i];
                     var containerName = containerParts[j];
-                    if (!MatchPatternSegment(containerName, segment, tempContainerMatches, fuzzyMatch))
+                    if (!MatchPatternSegment(containerName, ref _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
                         return false;

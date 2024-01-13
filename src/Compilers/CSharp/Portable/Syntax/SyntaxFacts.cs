@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -94,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PointerType:
                         return ((PointerTypeSyntax)parent).ElementType == node;
 
+                    case FunctionPointerType:
+                        // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
+                        throw ExceptionUtilities.Unreachable();
+
                     case PredefinedType:
                         return true;
 
@@ -147,8 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefType:
                         return ((RefTypeSyntax)parent).Type == node;
 
+                    case ScopedType:
+                        return ((ScopedTypeSyntax)parent).Type == node;
+
                     case Parameter:
-                        return ((ParameterSyntax)parent).Type == node;
+                    case FunctionPointerParameter:
+                        return ((BaseParameterSyntax)parent).Type == node;
 
                     case TypeConstraint:
                         return ((TypeConstraintSyntax)parent).Type == node;
@@ -177,8 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case LocalFunctionStatement:
                         return ((LocalFunctionStatementSyntax)parent).ReturnType == node;
 
+                    case ParenthesizedLambdaExpression:
+                        return ((ParenthesizedLambdaExpressionSyntax)parent).ReturnType == node;
+
                     case SimpleBaseType:
                         return true;
+
+                    case PrimaryConstructorBaseType:
+                        return ((PrimaryConstructorBaseTypeSyntax)parent).Type == node;
 
                     case CrefParameter:
                         return true;
@@ -196,6 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
 
+                    case RecursivePattern:
+                        return ((RecursivePatternSyntax)parent).Type == node;
+
                     case TupleElement:
                         return ((TupleElementSyntax)parent).Type == node;
 
@@ -204,6 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+
+                    case TypePattern:
+                        return ((TypePatternSyntax)parent).Type == node;
                 }
             }
 
@@ -219,14 +241,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != null)
             {
-                node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
+                node = SyntaxFactory.GetStandaloneExpression(node);
                 var parent = node.Parent;
                 if (parent != null)
                 {
                     switch (parent.Kind())
                     {
                         case UsingDirective:
-                            return ((UsingDirectiveSyntax)parent).Name == node;
+                            return ((UsingDirectiveSyntax)parent).NamespaceOrType == node;
 
                         case QualifiedName:
                             // left of QN is namespace or type.  Note: when you have "a.b.c()", then
@@ -302,11 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case InvocationExpression:
                 case TupleExpression:
                 case ObjectCreationExpression:
+                case ImplicitObjectCreationExpression:
                 case ObjectInitializerExpression:
                 case ElementAccessExpression:
                 case Attribute:
                 case BaseConstructorInitializer:
                 case ThisConstructorInitializer:
+                case PrimaryConstructorBaseType:
                     return true;
                 default:
                     return false;
@@ -386,6 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case UnsignedRightShiftAssignmentExpression:
                 case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:
@@ -427,8 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, [NotNullWhen(true)] out DeclarationExpressionSyntax? parent)
         {
-            parent = node.Parent as DeclarationExpressionSyntax;
-            return node == parent?.Type;
+            parent = node.ModifyingScopedOrRefTypeOrSelf().Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type.SkipScoped(out _).SkipRef();
         }
 
         /// <summary>
@@ -488,6 +513,107 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
         {
             return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
+        }
+
+        internal static bool IsExpressionBodied(this BaseMethodDeclarationSyntax declaration)
+        {
+            return declaration.Body == null && declaration.ExpressionBody != null;
+        }
+
+        internal static bool IsVarArg(this BaseMethodDeclarationSyntax declaration)
+        {
+            return IsVarArg(declaration.ParameterList);
+        }
+
+        internal static bool IsVarArg(this ParameterListSyntax parameterList)
+        {
+            return parameterList.Parameters.Any(static p => p.IsArgList);
+        }
+
+        internal static bool IsTopLevelStatement([NotNullWhen(true)] GlobalStatementSyntax? syntax)
+        {
+            return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;
+        }
+
+        internal static bool IsSimpleProgramTopLevelStatement(GlobalStatementSyntax? syntax)
+        {
+            return IsTopLevelStatement(syntax) && syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular;
+        }
+
+        internal static bool HasAwaitOperations(SyntaxNode node)
+        {
+            // Do not descend into functions
+            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).Any(
+                            node =>
+                            {
+                                switch (node)
+                                {
+                                    case AwaitExpressionSyntax _:
+                                    case LocalDeclarationStatementSyntax local when local.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case CommonForEachStatementSyntax @foreach when @foreach.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case UsingStatementSyntax @using when @using.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            });
+        }
+
+        private static bool IsNestedFunction(SyntaxNode child)
+            => IsNestedFunction(child.Kind());
+
+        private static bool IsNestedFunction(SyntaxKind kind)
+            => kind is SyntaxKind.LocalFunctionStatement
+                or SyntaxKind.AnonymousMethodExpression
+                or SyntaxKind.SimpleLambdaExpression
+                or SyntaxKind.ParenthesizedLambdaExpression;
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/66970", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
+        internal static bool HasYieldOperations(SyntaxNode? node)
+        {
+            if (node is null)
+                return false;
+
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            stack.Push(node.Green);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
+
+                if (current is null)
+                    continue;
+
+                // Do not descend into functions and expressions
+                if (IsNestedFunction((SyntaxKind)current.RawKind) ||
+                    current is Syntax.InternalSyntax.ExpressionSyntax)
+                {
+                    continue;
+                }
+
+                if (current is Syntax.InternalSyntax.YieldStatementSyntax)
+                {
+                    stack.Free();
+                    return true;
+                }
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (!child.IsToken)
+                        stack.Push(child);
+                }
+            }
+
+            stack.Free();
+            return false;
+        }
+
+        internal static bool HasReturnWithExpression(SyntaxNode? node)
+        {
+            // Do not descend into functions and expressions
+            return node is object &&
+                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).Any(n => n is ReturnStatementSyntax { Expression: { } });
         }
     }
 }

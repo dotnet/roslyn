@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
+    [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
     public partial class LinkedFileDiffMergingTests
     {
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18432")]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestChangeSignature()
         {
             TestLinkedFileSet(
@@ -90,7 +92,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestRename()
         {
             TestLinkedFileSet(

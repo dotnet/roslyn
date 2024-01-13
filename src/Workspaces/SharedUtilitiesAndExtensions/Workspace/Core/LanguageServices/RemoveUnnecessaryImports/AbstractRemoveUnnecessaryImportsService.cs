@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -17,54 +18,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         IRemoveUnnecessaryImportsService,
         IEqualityComparer<T> where T : SyntaxNode
     {
-        protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+        protected abstract IUnnecessaryImportsProvider<T> UnnecessaryImportsProvider { get; }
 
-        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
+        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
+            => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken);
 
-        public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
-
-        protected SyntaxToken StripNewLines(Document document, SyntaxToken token)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var trimmedLeadingTrivia = token.LeadingTrivia.SkipWhile(t => syntaxFacts.IsEndOfLineTrivia(t)).ToList();
-
-            // If the list ends with 3 newlines remove the last one until there's only 2 newlines to end the leading trivia.
-            while (trimmedLeadingTrivia.Count >= 3 &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^3]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^2]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^1]))
-            {
-                trimmedLeadingTrivia.RemoveAt(trimmedLeadingTrivia.Count - 1);
-            }
-
-            return token.WithLeadingTrivia(trimmedLeadingTrivia);
-        }
+        public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
 
         protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
             Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var unnecessaryImports = new HashSet<T>(this);
             unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                model, root, predicate, cancellationToken).Cast<T>());
+                model, span: null, predicate, cancellationToken));
             foreach (var current in document.GetLinkedDocuments())
             {
-                var currentModel = await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var currentRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var currentModel = await current.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                    currentModel, currentRoot, predicate, cancellationToken).Cast<T>());
+                    currentModel, span: null, predicate, cancellationToken));
             }
 
             return unnecessaryImports;
         }
 
-        bool IEqualityComparer<T>.Equals(T x, T y)
-            => x.Span == y.Span;
+        bool IEqualityComparer<T>.Equals(T? x, T? y)
+            => x?.Span == y?.Span;
 
         int IEqualityComparer<T>.GetHashCode(T obj)
             => obj.Span.GetHashCode();

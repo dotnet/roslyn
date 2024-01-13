@@ -95,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -105,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlMemberAccess.Token2 = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -115,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.ColonToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -125,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -135,6 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -145,6 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -155,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -165,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.GreaterThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -175,6 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlBracketedName.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -185,6 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlBracketedName.GreaterThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -199,6 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.StartTag.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -210,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    IsGreaterThanInXmlTag(xmlElement.EndTag, token) Then
                     Return True
                 End If
+
                 Return False
             End If
 

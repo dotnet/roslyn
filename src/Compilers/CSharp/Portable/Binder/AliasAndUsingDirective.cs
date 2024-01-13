@@ -7,15 +7,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct AliasAndUsingDirective
+    internal readonly struct AliasAndUsingDirective
     {
         public readonly AliasSymbol Alias;
-        public readonly UsingDirectiveSyntax UsingDirective;
+        public readonly SyntaxReference? UsingDirectiveReference;
 
-        public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax usingDirective)
+        public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax? usingDirective)
         {
             this.Alias = alias;
-            this.UsingDirective = usingDirective;
+            this.UsingDirectiveReference = usingDirective?.GetReference();
         }
+
+        public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -82,7 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             var start = codeBefore.Length;
             var length = codeToBeReplaced.Length;
-
 
             var code = codeBefore + codeToBeReplaced + codeAfter;
 

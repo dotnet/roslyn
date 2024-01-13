@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 // See comment in DefiniteAssignment.
 #define REFERENCE_STATE
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var slot in state1.Assigned.TrueBits())
             {
-                if (slot < variableBySlot.Length &&
+                if (slot < variableBySlot.Count &&
                     state2opt?.IsAssigned(slot) != false &&
                     variableBySlot[slot].Symbol is { } symbol &&
                     symbol.Kind != SymbolKind.Field)

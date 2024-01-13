@@ -16,24 +16,18 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// i.e. the symbols created from source *and* symbols from references (both project and
         /// metadata).
         /// </summary>
-        private class AllSymbolsProjectSearchScope : ProjectSearchScope
+        private class AllSymbolsProjectSearchScope(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            Project project,
+            bool exact) : ProjectSearchScope(provider, project, exact)
         {
-            public AllSymbolsProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                Project project,
-                bool exact,
-                CancellationToken cancellationToken)
-                : base(provider, project, exact, cancellationToken)
-            {
-            }
-
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
                 var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
+                    _project, searchQuery, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
+                return declarations;
             }
         }
     }

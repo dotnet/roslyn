@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -169,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             Assert.Null(state.ReturnValue);
         }
 
-        [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5279")]
         public async Task TestRunExpressionStatement()
         {
             var state = await CSharpScript.RunAsync(
@@ -209,8 +210,7 @@ d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedStatementNotFollowedBySemicolon()
         {
             var exceptionThrown = false;
@@ -232,8 +232,7 @@ d.Do()"
             Assert.True(exceptionThrown);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedStatementFollowedBySemicolon()
         {
             var state = CSharpScript.RunAsync(@"if (true)
@@ -241,16 +240,14 @@ System.Console.WriteLine(true);", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunStatementFollowedBySpace()
         {
             var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunStatementFollowedByNewLineNoSemicolon()
         {
             var state = CSharpScript.RunAsync(@"
@@ -260,8 +257,7 @@ System.Console.WriteLine(true)
             Assert.Null(state.Exception);
         }
 
-        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunEmbeddedNoSemicolonFollowedByAnotherStatement()
         {
             var exceptionThrown = false;
@@ -467,6 +463,31 @@ const int z = 3;
             // it should not see any declarations made by the second script.
             var state3 = await state1.ContinueWithAsync("M(5)");
             Assert.Equal(10, state3.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate0()
+        {
+            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var state1 = await state0.ContinueWithAsync("System.Func<int, int, int> adder = Add;");
+            var state2 = await state1.ContinueWithAsync("adder(1, 1)");
+            Assert.Equal(2, state2.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate1()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id<T> { static T Core(T t) => t; public static System.Func<T, T> Get => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id<int>.Get(1)");
+            Assert.Equal(1, state1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate2()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id { static T Core<T>(T t) => t; public static System.Func<T, T> Get<T>() => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id.Get<int>()(1)");
+            Assert.Equal(1, state1.ReturnValue);
         }
 
         [Fact]
@@ -834,7 +855,7 @@ i", options);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
@@ -856,7 +877,7 @@ i", options);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
@@ -871,7 +892,7 @@ i", options);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
@@ -879,7 +900,7 @@ i", options);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
@@ -901,7 +922,7 @@ i", options);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
@@ -915,8 +936,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12348")]
         public void StreamWithOffset()
         {
             var resolver = new StreamOffsetResolver();
@@ -948,6 +968,99 @@ i", options);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenValidCode_ShouldReturnValidResult()
+        {
+            var code = @"
+using System;
+var data = ""data"";
+var reply = data switch {
+    null => ""data are null"",
+    """" => ""data are empty"",
+    _ => data
+};
+
+return reply;
+";
+            var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+            compilation.VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+
+            Assert.Equal("data", result);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenNonExistentVariable_ShouldReturnNameNotInContextCompilationError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,12): error CS0103: The name 'notExistentVariable' does not exist in the current context
+                    // var data = notExistentVariable switch { _ => null };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenInvalidPattern_ShouldReturnUnsupportedTypeForRelationalPatternAndNoImplicitConvErrors()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""data"" switch { < 5 => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,28): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 5").WithArguments("string").WithLocation(1, 28),
+                    // (1,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "5").WithArguments("int", "string").WithLocation(1, 30));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenInvalidArm_ShouldReturnTheNameNotInContextError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""test"" switch { _ => armError };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,33): error CS0103: The name 'armError' does not exist in the current context
+                    // var data = "test" switch { _ => armError };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "armError").WithArguments("armError")
+                        .WithLocation(1, 33));
+            }
+
+            Assert.True(exceptionThrown);
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

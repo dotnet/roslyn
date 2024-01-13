@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SyncLockBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub ApplyAfterSyncLockStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -25,8 +25,8 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedUsing()
+        <WpfFact>
+        Public Sub DoNotApplyForMatchedUsing()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -37,7 +37,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedSyncBlock()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -60,7 +60,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -71,7 +71,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidLocation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC

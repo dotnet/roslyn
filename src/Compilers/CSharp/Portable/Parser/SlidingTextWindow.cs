@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (_characterWindow != null)
             {
                 s_windowPool.Free(_characterWindow);
-                _characterWindow = null;
+                _characterWindow = null!;
                 _strings.Free();
             }
         }
@@ -263,12 +263,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
+        /// Advances the text window if it currently pointing at the <paramref name="c"/> character.  Returns <see
+        /// langword="true"/> if it did advance, <see langword="false"/> otherwise.
+        /// </summary>
+        public bool TryAdvance(char c)
+        {
+            if (PeekChar() != c)
+                return false;
+
+            AdvanceChar();
+            return true;
+        }
+
+        /// <summary>
         /// Advance the current position by n. No guarantee that this position
         /// is valid.
         /// </summary>
         public void AdvanceChar(int n)
         {
             _offset += n;
+        }
+
+        /// <summary>
+        /// Moves past the newline that the text window is currently pointing at.  The text window must be pointing at a
+        /// newline.  If the newline is <c>\r\n</c> then that entire sequence will be skipped.  Otherwise, the text
+        /// window will only advance past a single character.
+        /// </summary>
+        public void AdvancePastNewLine()
+        {
+            AdvanceChar(GetNewLineWidth());
+        }
+
+        /// <summary>
+        /// Gets the length of the newline the text window must be pointing at here.  For <c>\r\n</c> this is <c>2</c>,
+        /// for everything else, this is <c>1</c>.
+        /// </summary>
+        public int GetNewLineWidth()
+        {
+            Debug.Assert(SyntaxFacts.IsNewLine(this.PeekChar()));
+            return GetNewLineWidth(this.PeekChar(), this.PeekChar(1));
+        }
+
+        public static int GetNewLineWidth(char currentChar, char nextChar)
+        {
+            Debug.Assert(SyntaxFacts.IsNewLine(currentChar));
+            return currentChar == '\r' && nextChar == '\n' ? 2 : 1;
         }
 
         /// <summary>
@@ -335,283 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        public bool IsUnicodeEscape()
-        {
-            if (this.PeekChar() == '\\')
-            {
-                var ch2 = this.PeekChar(1);
-                if (ch2 == 'U' || ch2 == 'u')
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public char PeekCharOrUnicodeEscape(out char surrogateCharacter)
-        {
-            if (this.IsUnicodeEscape())
-            {
-                return this.PeekUnicodeEscape(out surrogateCharacter);
-            }
-            else
-            {
-                surrogateCharacter = InvalidCharacter;
-                return this.PeekChar();
-            }
-        }
-
-        public char PeekUnicodeEscape(out char surrogateCharacter)
-        {
-            int position = this.Position;
-
-            // if we're peeking, then we don't want to change the position
-            SyntaxDiagnosticInfo info;
-            var ch = this.ScanUnicodeEscape(peek: true, surrogateCharacter: out surrogateCharacter, info: out info);
-            Debug.Assert(info == null, "Never produce a diagnostic while peeking.");
-            this.Reset(position);
-            return ch;
-        }
-
-        public char NextCharOrUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
-        {
-            var ch = this.PeekChar();
-            Debug.Assert(ch != InvalidCharacter, "Precondition established by all callers; required for correctness of AdvanceChar() call.");
-            if (ch == '\\')
-            {
-                var ch2 = this.PeekChar(1);
-                if (ch2 == 'U' || ch2 == 'u')
-                {
-                    return this.ScanUnicodeEscape(peek: false, surrogateCharacter: out surrogateCharacter, info: out info);
-                }
-            }
-
-            surrogateCharacter = InvalidCharacter;
-            info = null;
-            this.AdvanceChar();
-            return ch;
-        }
-
-        public char NextUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
-        {
-            return ScanUnicodeEscape(peek: false, surrogateCharacter: out surrogateCharacter, info: out info);
-        }
-
-        private char ScanUnicodeEscape(bool peek, out char surrogateCharacter, out SyntaxDiagnosticInfo info)
-        {
-            surrogateCharacter = InvalidCharacter;
-            info = null;
-
-            int start = this.Position;
-            char character = this.PeekChar();
-            Debug.Assert(character == '\\');
-            this.AdvanceChar();
-
-            character = this.PeekChar();
-            if (character == 'U')
-            {
-                uint uintChar = 0;
-
-                this.AdvanceChar();
-                if (!SyntaxFacts.IsHexDigit(this.PeekChar()))
-                {
-                    if (!peek)
-                    {
-                        info = CreateIllegalEscapeDiagnostic(start);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < 8; i++)
-                    {
-                        character = this.PeekChar();
-                        if (!SyntaxFacts.IsHexDigit(character))
-                        {
-                            if (!peek)
-                            {
-                                info = CreateIllegalEscapeDiagnostic(start);
-                            }
-
-                            break;
-                        }
-
-                        uintChar = (uint)((uintChar << 4) + SyntaxFacts.HexValue(character));
-                        this.AdvanceChar();
-                    }
-
-                    if (uintChar > 0x0010FFFF)
-                    {
-                        if (!peek)
-                        {
-                            info = CreateIllegalEscapeDiagnostic(start);
-                        }
-                    }
-                    else
-                    {
-                        character = GetCharsFromUtf32(uintChar, out surrogateCharacter);
-                    }
-                }
-            }
-            else
-            {
-                Debug.Assert(character == 'u' || character == 'x');
-
-                int intChar = 0;
-                this.AdvanceChar();
-                if (!SyntaxFacts.IsHexDigit(this.PeekChar()))
-                {
-                    if (!peek)
-                    {
-                        info = CreateIllegalEscapeDiagnostic(start);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        char ch2 = this.PeekChar();
-                        if (!SyntaxFacts.IsHexDigit(ch2))
-                        {
-                            if (character == 'u')
-                            {
-                                if (!peek)
-                                {
-                                    info = CreateIllegalEscapeDiagnostic(start);
-                                }
-                            }
-
-                            break;
-                        }
-
-                        intChar = (intChar << 4) + SyntaxFacts.HexValue(ch2);
-                        this.AdvanceChar();
-                    }
-
-                    character = (char)intChar;
-                }
-            }
-
-            return character;
-        }
-
-        /// <summary>
-        /// Given that the next character is an ampersand ('&amp;'), attempt to interpret the
-        /// following characters as an XML entity.  On success, populate the out parameters
-        /// with the low and high UTF-16 surrogates for the character represented by the
-        /// entity.
-        /// </summary>
-        /// <param name="ch">e.g. '&lt;' for &amp;lt;.</param>
-        /// <param name="surrogate">e.g. '\uDC00' for &amp;#x10000; (ch == '\uD800').</param>
-        /// <returns>True if a valid XML entity was consumed.</returns>
-        /// <remarks>
-        /// NOTE: Always advances, even on failure.
-        /// </remarks>
-        public bool TryScanXmlEntity(out char ch, out char surrogate)
-        {
-            Debug.Assert(this.PeekChar() == '&');
-
-            ch = '&';
-            this.AdvanceChar();
-
-            surrogate = InvalidCharacter;
-
-            switch (this.PeekChar())
-            {
-                case 'l':
-                    if (AdvanceIfMatches("lt;"))
-                    {
-                        ch = '<';
-                        return true;
-                    }
-                    break;
-                case 'g':
-                    if (AdvanceIfMatches("gt;"))
-                    {
-                        ch = '>';
-                        return true;
-                    }
-                    break;
-                case 'a':
-                    if (AdvanceIfMatches("amp;"))
-                    {
-                        ch = '&';
-                        return true;
-                    }
-                    else if (AdvanceIfMatches("apos;"))
-                    {
-                        ch = '\'';
-                        return true;
-                    }
-                    break;
-                case 'q':
-                    if (AdvanceIfMatches("quot;"))
-                    {
-                        ch = '"';
-                        return true;
-                    }
-                    break;
-                case '#':
-                    {
-                        this.AdvanceChar(); //#
-
-                        uint uintChar = 0;
-
-                        if (AdvanceIfMatches("x"))
-                        {
-                            char digit;
-                            while (SyntaxFacts.IsHexDigit(digit = this.PeekChar()))
-                            {
-                                this.AdvanceChar();
-
-                                // disallow overflow
-                                if (uintChar <= 0x7FFFFFF)
-                                {
-                                    uintChar = (uintChar << 4) + (uint)SyntaxFacts.HexValue(digit);
-                                }
-                                else
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            char digit;
-                            while (SyntaxFacts.IsDecDigit(digit = this.PeekChar()))
-                            {
-                                this.AdvanceChar();
-
-                                // disallow overflow
-                                if (uintChar <= 0x7FFFFFF)
-                                {
-                                    uintChar = (uintChar << 3) + (uintChar << 1) + (uint)SyntaxFacts.DecValue(digit);
-                                }
-                                else
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-
-                        if (AdvanceIfMatches(";"))
-                        {
-                            ch = GetCharsFromUtf32(uintChar, out surrogate);
-                            return true;
-                        }
-
-                        break;
-                    }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// If the next characters in the window match the given string,
         /// then advance past those characters.  Otherwise, do nothing.
         /// </summary>
-        private bool AdvanceIfMatches(string desired)
+        internal bool AdvanceIfMatches(string desired)
         {
             int length = desired.Length;
 
@@ -625,13 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             AdvanceChar(length);
             return true;
-        }
-
-        private SyntaxDiagnosticInfo CreateIllegalEscapeDiagnostic(int start)
-        {
-            return new SyntaxDiagnosticInfo(start - this.LexemeStartPosition,
-                this.Position - start,
-                ErrorCode.ERR_IllegalEscape);
         }
 
         public string Intern(StringBuilder text)

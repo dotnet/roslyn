@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -81,7 +83,7 @@ public class N : D.K<M>
 {}
 ";
 
-            CompileAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), symbolValidator: module =>
             {
                 var dump = DumpTypeInfo(module).ToString();
 
@@ -204,7 +206,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -240,7 +242,8 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            // ILVerify: Assembly or module not found: netModule1
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -468,7 +471,7 @@ abstract public class A
                 Assert.Same(m5.TypeParameters[0], m5.Parameters[0].Type);
                 Assert.Same(m5.TypeParameters[1], m5.Parameters[1].Type);
 
-                Assert.Equal(6, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
+                Assert.Equal(10, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
             });
         }
 
@@ -523,7 +526,7 @@ static class C
                     Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1291,7 +1294,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoProperty);
+                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
                 }
             }
             else
@@ -1377,7 +1380,7 @@ class C : B<string>
             var sourceType = type as SourceNamedTypeSymbol;
             if ((object)sourceType != null)
             {
-                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
+                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field.GetCciAdapter();
                 Assert.False(fieldDefinition.IsSpecialName);
                 Assert.False(fieldDefinition.IsRuntimeSpecial);
             }
@@ -1400,7 +1403,7 @@ class C : B<string>
             {
                 field = sourceType.EnumValueField;
                 Assert.NotNull(field);
-                Assert.Equal(field.Name, WellKnownMemberNames.EnumBackingFieldName);
+                Assert.Equal(WellKnownMemberNames.EnumBackingFieldName, field.Name);
                 Assert.False(field.IsStatic);
                 Assert.False(field.IsConst);
                 Assert.False(field.IsReadOnly);
@@ -1412,9 +1415,9 @@ class C : B<string>
 
                 var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
-                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
+                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type.GetCciAdapter();
                 var fieldDefinition = typeDefinition.GetFields(context).First();
-                Assert.Same(fieldDefinition, field); // Dev10: value__ field is the first field.
+                Assert.Same(fieldDefinition.GetInternalSymbol(), field); // Dev10: value__ field is the first field.
                 Assert.True(fieldDefinition.IsSpecialName);
                 Assert.True(fieldDefinition.IsRuntimeSpecial);
                 context.Diagnostics.Verify();
@@ -1927,6 +1930,7 @@ public class E
         public void RefEmit_IL1()
         {
             CompileAndVerify(@"
+using System.Globalization;
 class C 
 { 
     public static void Main() 
@@ -1944,8 +1948,8 @@ class C
         System.Console.WriteLine(k);
         System.Console.WriteLine(b);
         System.Console.WriteLine(c);
-        System.Console.WriteLine(f);
-        System.Console.WriteLine(d);
+        System.Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
         System.Console.WriteLine(s);
         System.Console.WriteLine(x);
     }
@@ -2223,7 +2227,7 @@ class Program
         public unsafe void PEHeaders1()
         {
             var options = EmitOptions.Default.WithFileAlignment(0x2000);
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             var peStream = CreateCompilationWithMscorlib40(
                 syntax,
@@ -2412,7 +2416,7 @@ class Program
                 WithHighEntropyVirtualAddressSpace(true).
                 WithSubsystemVersion(SubsystemVersion.WindowsXP);
 
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             var peStream = CreateCompilationWithMscorlib40(
                 syntax,
@@ -2705,7 +2709,6 @@ class User
     }
 }";
 
-
             CompileAndVerify(
                 source: code,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -2813,7 +2816,6 @@ public static class Program
             Assert.False(parentParameters[1].IsMetadataIn);
             Assert.False(parentParameters[2].IsMetadataIn);
             Assert.False(parentParameters[3].IsMetadataIn);
-
 
             var expectedOutput =
 @"Parent called

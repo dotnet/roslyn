@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class GlobalAssemblyCacheTests
     {
-        [MonoOnlyFact("https://github.com/dotnet/roslyn/issues/6179")]
+        [Fact]
         public void GetAssemblyIdentities()
         {
             var gac = GlobalAssemblyCache.Instance;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var n = new AssemblyName("System.Core");
             n.Version = new Version(4, 0, 0, 0);
-            n.SetPublicKeyToken(new byte[] { 0xb7, 0x7a, 0x5c, 0x56, 0x19, 0x34, 0xe0, 0x89 });
+            n.SetPublicKeyToken([0xb7, 0x7a, 0x5c, 0x56, 0x19, 0x34, 0xe0, 0x89]);
             names = gac.GetAssemblyIdentities(n).ToArray();
 
             Assert.True(names.Length >= 1, "At least System.Core");
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, names.Length);
         }
 
-        [MonoOnlyFact("https://github.com/dotnet/roslyn/pull/39369")]
+        [Fact]
         public void GetFacadeAssemblyIdentities()
         {
             var gac = GlobalAssemblyCache.Instance;

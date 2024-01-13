@@ -7,6 +7,8 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             ' Is this VB 9? If so, we shouldn't remove line continuations because implicit line continuation was introduced in VB 10.
             Dim parseOptions = TryCast(document.Project.ParseOptions, VisualBasicParseOptions)
             If parseOptions?.LanguageVersion <= LanguageVersion.VisualBasic9 Then
@@ -35,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End If
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 
@@ -74,21 +76,21 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                      Dim token = n
 
                                                      ' replace token if needed
-                                                     If _tokens.ContainsKey(token) Then
-                                                         token = _tokens(token)
+                                                     Dim remappedToken As SyntaxToken = Nothing
+                                                     If _tokens.TryGetValue(token, remappedToken) Then
+                                                         token = remappedToken
                                                      End If
 
                                                      ' replace leading trivia if needed
                                                      Dim current = token
-                                                     If _leading.ContainsKey(token) Then
-                                                         Dim leading = _leading(token)
-                                                         current = current.WithLeadingTrivia(leading)
+                                                     Dim triviaList As SyntaxTriviaList = Nothing
+                                                     If _leading.TryGetValue(token, triviaList) Then
+                                                         current = current.WithLeadingTrivia(triviaList)
                                                      End If
 
                                                      ' replace trailing trivia if needed
-                                                     If _trailing.ContainsKey(token) Then
-                                                         Dim trailing = _trailing(token)
-                                                         current = current.WithTrailingTrivia(trailing)
+                                                     If _trailing.TryGetValue(token, triviaList) Then
+                                                         current = current.WithTrailingTrivia(triviaList)
                                                      End If
 
                                                      Return current
@@ -228,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ReplaceLeadingTrivia(token2, leadingTrivia.Where(Function(t) t.Kind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
             End Sub
 
-            Private Function RemoveTrailingColonTrivia(token1 As SyntaxToken, trailing As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveTrailingColonTrivia(token1 As SyntaxToken, trailing As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 If token1.Kind <> SyntaxKind.ColonToken OrElse trailing.Count = 0 Then
                     Return trailing
                 End If
@@ -250,11 +252,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                        GetLeadingTrivia(token2).ToFullString().GetNumberOfLineBreaks()
             End Function
 
-            Private Function IsLabelToken(token As SyntaxToken) As Boolean
+            Private Shared Function IsLabelToken(token As SyntaxToken) As Boolean
                 Return TypeOf token.Parent Is LabelStatementSyntax
             End Function
 
-            Private Function PartOfSinglelineConstruct(token As SyntaxToken) As Boolean
+            Private Shared Function PartOfSinglelineConstruct(token As SyntaxToken) As Boolean
                 Dim node = token.Parent
                 While node IsNot Nothing
                     If TypeOf node Is SingleLineIfStatementSyntax OrElse
@@ -275,6 +277,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         last.Kind <> SyntaxKind.ColonTrivia Then
                         Yield t
                     End If
+
                     last = t
                 Next
             End Function
@@ -290,6 +293,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If colon Then
                             Continue For
                         End If
+
                         colon = True
                     End If
 
@@ -301,6 +305,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If colon Then
                             Continue For
                         End If
+
                         colon = True
                     End If
 

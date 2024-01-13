@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -11,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_InvalidExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -33,7 +35,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: 'Console')
+            IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'Console')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'Console' does not contain a definition for 'WriteLine2'
@@ -346,23 +348,24 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaratorOperation (Symbol: var x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = () => F()')
-  Initializer: 
-    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () => F()')
-      IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-            Expression: 
-              IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                Instance Receiver: 
+    IVariableDeclaratorOperation (Symbol: System.Action x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = () => F()')
+  Initializer:
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= () => F()')
+      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: '() => F()')
+        Target:
+          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '() => F()')
+            IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'F()')
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'F()')
+                Expression:
+                  IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F()')
+                    Instance Receiver:
+                      null
+                    Arguments(0)
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'F()')
+                ReturnedValue:
                   null
-                Arguments(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var /*<bind>*/x = () => F()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = () => F()").WithArguments("lambda expression").WithLocation(8, 23)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -387,20 +390,19 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')
-  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
-      Expression: 
-        IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F()')
-          Instance Receiver: 
+    IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '() => F()')
+  IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'F()')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'F()')
+      Expression:
+        IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F()')
+          Instance Receiver:
             null
           Arguments(0)
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'F()')
+      ReturnedValue:
+        null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var x = /*<bind>*/() => F()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = /*<bind>*/() => F()").WithArguments("lambda expression").WithLocation(8, 13)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -426,7 +428,7 @@ IFieldInitializerOperation (Field: System.Int32 Program.x) (OperationKind.FieldI
     Operand: 
       IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+            IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0119: 'Program' is a type, which is not valid in the given context
@@ -508,7 +510,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X[], IsInvalid) (Syn
   Dimension Sizes(1):
       IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+            IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ { 1 } }')
       Element Values(1):
@@ -589,7 +591,7 @@ public class C
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid) (Syntax: 'string.Form ... format: """")')
   Children(3):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'string')
+      IOperation:  (OperationKind.None, Type: System.String) (Syntax: 'string')
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
 ";

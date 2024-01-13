@@ -2,39 +2,164 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Přidat za blok prázdný řádek</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_both">
         <source>Add both</source>
-        <target state="new">Add both</target>
+        <target state="translated">Přidat obojí</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_default_case">
         <source>Add default case</source>
-        <target state="new">Add default case</target>
+        <target state="translated">Přidat výchozí malá a velká písmena</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Přidat banner souboru</target>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Přidat explicitní přetypování</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="new">Fix Name Violation: {0}</target>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
+        <target state="translated">Přidat hlavičku souboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="translated">Přidat název členu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="translated">Přidat chybějící uzly parametrů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="translated">Přidat parametr do {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">Přidat parametr do {0} (a přepsání/implementace)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">Přidat do {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">Alias nejednoznačného typu {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">Převést typ na {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Opravit všechny výskyty v</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">Opravit porušení názvu: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Nastavit třídu jako abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">Nastavit jako statickou</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">Nastavit metodu jako synchronní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">Nastavit typ jako částečný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">Podpisy souvisejících metod nalezené v metadatech se nebudou aktualizovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="translated">Odebrat modifikátor async</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Odebrat nadbytečné prázdné řádky</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="new">Remove redundant assignment</target>
+        <target state="translated">Odebrat redundantní přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="translated">Odebrat značku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="translated">Potlačit nebo konfigurovat problémy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="translated">Vzít {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="translated">Vzít obojí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="translated">Vzít dolní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="translated">Vzít horní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="translated">Aktualizovat formát potlačení</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
-        <target state="new">Use discard '_'</target>
+        <target state="translated">Použít zahození _</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
-        <target state="new">Use discarded local</target>
+        <target state="translated">Použít zahozenou místní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="new">{0} (may change semantics)</target>
         <note />
       </trans-unit>
     </body>

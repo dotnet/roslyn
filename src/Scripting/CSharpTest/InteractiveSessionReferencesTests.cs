@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -21,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
         /// Test adding a reference to NetStandard 2.0 library.
         /// Validates that we resolve all references correctly in the first and the subsequent submissions.
         /// </summary>
-        [Fact]
-        [WorkItem(345, "https://github.com/dotnet/try/issues/345")]
+        [Fact, WorkItem("https://github.com/dotnet/try/issues/345")]
         public async Task LibraryReference_NetStandard20()
         {
             var libSource = @"

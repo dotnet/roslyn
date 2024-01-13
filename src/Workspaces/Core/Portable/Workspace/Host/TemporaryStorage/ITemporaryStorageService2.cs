@@ -4,22 +4,23 @@
 
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
     /// This service allows you to access temporary storage.
     /// </summary>
-    internal interface ITemporaryStorageService2 : ITemporaryStorageService
+    internal interface ITemporaryStorageService2 : ITemporaryStorageServiceInternal
     {
         /// <summary>
         /// Attach to existing <see cref="ITemporaryStreamStorage"/> with given name.
         /// </summary>
-        ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken = default);
+        ITemporaryStreamStorageInternal AttachTemporaryStreamStorage(string storageName, long offset, long size);
 
         /// <summary>
         /// Attach to existing <see cref="ITemporaryTextStorage"/> with given name.
         /// </summary>
-        ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken = default);
+        ITemporaryTextStorageInternal AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding);
     }
 }

@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml.Features.OrganizeImports;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
@@ -24,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
             _removeService = removeService;
         }
 
-        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
+        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
+            => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken: cancellationToken);
 
         public Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
+            Document document, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
         {
             return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
         }

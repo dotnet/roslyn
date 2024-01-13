@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -343,15 +346,15 @@ unsafe interface I
                 // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M7(A<A<int>.B1[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
-                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                // (9,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<string>.B1')
                 //     void M2(A<string>.B1** o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
-                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                // (10,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<A<int>.B2>.B1')
                 //     void M3(A<A<int>.B2>.B1* o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
@@ -361,9 +364,9 @@ unsafe interface I
                 // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
                 //     void M1(A<A<int>*>.B1 o);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
-                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                // (8,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<int>')
                 //     void M1(A<A<int>*>.B1 o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -664,7 +667,7 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class;
     static partial void M3(A<T> a);
     static partial void M4<U, V>() where U : A<V>;
-    static partial A<U> M5<U>();
+    internal static partial A<U> M5<U>();
 }
 partial class B<T> where T : struct
 {
@@ -672,13 +675,9 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class { }
     static partial void M3(A<T> a) { }
     static partial void M4<U, V>() where U : A<V> { }
-    static partial A<U> M5<U>() { return null; }
+    internal static partial A<U> M5<U>() { return null; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(11, 25),
-                // (19,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(19, 25),
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (10,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("A<T>", "T", "V").WithLocation(10, 28),
                 // (18,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
@@ -687,8 +686,8 @@ partial class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "a").WithArguments("A<T>", "T", "U").WithLocation(8, 36),
                 // (8,51): error CS0453: The type 'A<int>' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "b").WithArguments("A<T>", "T", "A<int>").WithLocation(8, 51),
-                // (19,25): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 25));
+                // (19,34): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 34));
         }
 
         [ClrOnlyFact]
@@ -1009,7 +1008,7 @@ class C
     fixed int F[C<C<T>>.G];
     const int G = 1;
 }";
-            CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F").WithLocation(4, 15),
                 // (4,19): error CS0310: 'C<T>' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
@@ -1096,12 +1095,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -1482,45 +1481,63 @@ B.M");
             compilation.VerifyIL("C<T1, T2>.M<U1, U2>(T1, T2, U1, U2)",
 @"
 {
-  // Code size      145 (0x91)
+  // Code size      193 (0xc1)
   .maxstack  2
+  .locals init (T1 V_0,
+            U1 V_1)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarga.s   V_0
-  IL_0004:  constrained. ""T1""
-  IL_000a:  callvirt   ""object I.P.get""
-  IL_000f:  constrained. ""T1""
-  IL_0015:  callvirt   ""void I.P.set""
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T1""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T1""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldobj      ""T1""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
   IL_001a:  ldarga.s   V_0
   IL_001c:  constrained. ""T1""
-  IL_0022:  callvirt   ""void I.M()""
-  IL_0027:  ldarg.1
-  IL_0028:  box        ""T2""
-  IL_002d:  ldarg.1
-  IL_002e:  box        ""T2""
-  IL_0033:  callvirt   ""object A.P.get""
-  IL_0038:  callvirt   ""void A.P.set""
-  IL_003d:  ldarg.1
-  IL_003e:  box        ""T2""
-  IL_0043:  callvirt   ""void A.M()""
-  IL_0048:  ldarga.s   V_2
-  IL_004a:  ldarga.s   V_2
-  IL_004c:  constrained. ""U1""
-  IL_0052:  callvirt   ""object I.P.get""
-  IL_0057:  constrained. ""U1""
-  IL_005d:  callvirt   ""void I.P.set""
-  IL_0062:  ldarga.s   V_2
-  IL_0064:  constrained. ""U1""
-  IL_006a:  callvirt   ""void I.M()""
-  IL_006f:  ldarg.3
-  IL_0070:  box        ""U2""
-  IL_0075:  ldarg.3
-  IL_0076:  box        ""U2""
-  IL_007b:  callvirt   ""object A.P.get""
-  IL_0080:  callvirt   ""void A.P.set""
-  IL_0085:  ldarg.3
-  IL_0086:  box        ""U2""
-  IL_008b:  callvirt   ""void A.M()""
-  IL_0090:  ret
+  IL_0022:  callvirt   ""object I.P.get""
+  IL_0027:  constrained. ""T1""
+  IL_002d:  callvirt   ""void I.P.set""
+  IL_0032:  ldarga.s   V_0
+  IL_0034:  constrained. ""T1""
+  IL_003a:  callvirt   ""void I.M()""
+  IL_003f:  ldarg.1
+  IL_0040:  box        ""T2""
+  IL_0045:  ldarg.1
+  IL_0046:  box        ""T2""
+  IL_004b:  callvirt   ""object A.P.get""
+  IL_0050:  callvirt   ""void A.P.set""
+  IL_0055:  ldarg.1
+  IL_0056:  box        ""T2""
+  IL_005b:  callvirt   ""void A.M()""
+  IL_0060:  ldarga.s   V_2
+  IL_0062:  ldloca.s   V_1
+  IL_0064:  initobj    ""U1""
+  IL_006a:  ldloc.1
+  IL_006b:  box        ""U1""
+  IL_0070:  brtrue.s   IL_007a
+  IL_0072:  ldobj      ""U1""
+  IL_0077:  stloc.1
+  IL_0078:  ldloca.s   V_1
+  IL_007a:  ldarga.s   V_2
+  IL_007c:  constrained. ""U1""
+  IL_0082:  callvirt   ""object I.P.get""
+  IL_0087:  constrained. ""U1""
+  IL_008d:  callvirt   ""void I.P.set""
+  IL_0092:  ldarga.s   V_2
+  IL_0094:  constrained. ""U1""
+  IL_009a:  callvirt   ""void I.M()""
+  IL_009f:  ldarg.3
+  IL_00a0:  box        ""U2""
+  IL_00a5:  ldarg.3
+  IL_00a6:  box        ""U2""
+  IL_00ab:  callvirt   ""object A.P.get""
+  IL_00b0:  callvirt   ""void A.P.set""
+  IL_00b5:  ldarg.3
+  IL_00b6:  box        ""U2""
+  IL_00bb:  callvirt   ""void A.M()""
+  IL_00c0:  ret
 }");
         }
 
@@ -1573,19 +1590,28 @@ S[0]");
             compilation.VerifyIL("C.M<T, U>(T, U)",
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       61 (0x3d)
   .maxstack  4
+  .locals init (T V_0)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldc.i4.0
-  IL_0003:  box        ""int""
-  IL_0008:  ldarg.1
-  IL_0009:  box        ""U""
-  IL_000e:  ldc.i4.1
-  IL_000f:  box        ""int""
-  IL_0014:  callvirt   ""object A.this[object].get""
-  IL_0019:  constrained. ""T""
-  IL_001f:  callvirt   ""void I.this[object].set""
-  IL_0024:  ret
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldc.i4.0
+  IL_001b:  box        ""int""
+  IL_0020:  ldarg.1
+  IL_0021:  box        ""U""
+  IL_0026:  ldc.i4.1
+  IL_0027:  box        ""int""
+  IL_002c:  callvirt   ""object A.this[object].get""
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I.this[object].set""
+  IL_003c:  ret
 }");
         }
 
@@ -3229,12 +3255,21 @@ partial class C
         where T2 : I<T1>;
 }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): warning CS8826: Partial method declarations 'void C.M<T, U>(T t, U u)' and 'void C.M<X, Y>(X x, Y y)' have signature differences.
+                //     partial void M<X, Y>(X x, Y y)
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M<T, U>(T t, U u)", "void C.M<X, Y>(X x, Y y)").WithLocation(7, 18),
                 // (13,9): error CS0103: The name 't' does not exist in the current context
+                //         t.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(13, 9),
                 // (14,9): error CS0103: The name 'u' does not exist in the current context
+                //         u.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u").WithArguments("u").WithLocation(14, 9),
                 // (16,18): error CS0756: A partial method may not have multiple defining declarations
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18));
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18),
+                // (16,18): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(16, 18));
         }
 
         [WorkItem(542331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
@@ -3349,7 +3384,12 @@ class C2 : IT<A>
 class C<T> : IT<T>
 {
     void M<U>() where U : T { }
-}";
+}
+class C3 : I
+{
+    public virtual void M<T>() where T : A { }
+}
+";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
@@ -3366,7 +3406,10 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C").WithArguments("IT<T>", "?", "T", "T").WithLocation(8, 7),
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
-                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7),
+                // (14,25): error CS0425: The constraints for type parameter 'T' of method 'C3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public virtual void M<T>() where T : A { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "C3.M<T>()", "T", "I.M<T>()").WithLocation(14, 25));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
             var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
@@ -3866,7 +3909,7 @@ class C : I
                     NamedTypeSymbol iEquatable = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
                     Assert.False(iEquatable.IsErrorType());
                     Assert.Equal(1, iEquatable.Arity);
-                    Assert.Null(compilation.GetTypeByMetadataName("System.IEquatable`1"));
+                    Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"));
 
                     NamedTypeSymbol iQueryable_T = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
                     Assert.True(iQueryable_T.IsErrorType());
@@ -3881,35 +3924,35 @@ class C : I
                     AssemblySymbol asm = i2.ContainingAssembly;
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3923,7 +3966,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3937,35 +3980,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
@@ -3979,35 +4022,35 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4021,7 +4064,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4035,35 +4078,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4084,7 +4127,7 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4101,10 +4144,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4115,10 +4155,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4164,10 +4201,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4206,24 +4240,15 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4234,10 +4259,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 2);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4255,10 +4277,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4`2", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4269,17 +4288,11 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I4`2", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4297,10 +4310,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
                 };
 
             CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Mscorlib40);
@@ -4535,10 +4545,11 @@ class B
             compilation.VerifyIL("B.M1<T>(T)",
 @"
 {
-  // Code size      166 (0xa6)
+  // Code size      216 (0xd8)
   .maxstack  4
   .locals init (int V_0,
-  T& V_1)
+            T& V_1,
+            T V_2)
   IL_0000:  ldarga.s   V_0
   IL_0002:  dup
   IL_0003:  constrained. ""T""
@@ -4562,43 +4573,61 @@ class B
   IL_0031:  constrained. ""T""
   IL_0037:  callvirt   ""void I.this[int].set""
   IL_003c:  ldarga.s   V_0
-  IL_003e:  dup
-  IL_003f:  constrained. ""T""
-  IL_0045:  callvirt   ""int I.P.get""
-  IL_004a:  ldc.i4.2
-  IL_004b:  add
-  IL_004c:  constrained. ""T""
-  IL_0052:  callvirt   ""void I.P.set""
-  IL_0057:  ldarga.s   V_0
-  IL_0059:  stloc.1
-  IL_005a:  ldloc.1
-  IL_005b:  ldc.i4.0
-  IL_005c:  ldloc.1
-  IL_005d:  ldc.i4.0
-  IL_005e:  constrained. ""T""
-  IL_0064:  callvirt   ""int I.this[int].get""
-  IL_0069:  ldc.i4.2
-  IL_006a:  add
-  IL_006b:  constrained. ""T""
-  IL_0071:  callvirt   ""void I.this[int].set""
-  IL_0076:  ldstr      ""{0}, {1}""
-  IL_007b:  ldarga.s   V_0
-  IL_007d:  constrained. ""T""
-  IL_0083:  callvirt   ""int I.P.get""
-  IL_0088:  box        ""int""
-  IL_008d:  ldarga.s   V_0
+  IL_003e:  stloc.1
+  IL_003f:  ldloc.1
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  initobj    ""T""
+  IL_0048:  ldloc.2
+  IL_0049:  box        ""T""
+  IL_004e:  brtrue.s   IL_0058
+  IL_0050:  ldobj      ""T""
+  IL_0055:  stloc.2
+  IL_0056:  ldloca.s   V_2
+  IL_0058:  ldloc.1
+  IL_0059:  constrained. ""T""
+  IL_005f:  callvirt   ""int I.P.get""
+  IL_0064:  ldc.i4.2
+  IL_0065:  add
+  IL_0066:  constrained. ""T""
+  IL_006c:  callvirt   ""void I.P.set""
+  IL_0071:  ldarga.s   V_0
+  IL_0073:  stloc.1
+  IL_0074:  ldloc.1
+  IL_0075:  ldloca.s   V_2
+  IL_0077:  initobj    ""T""
+  IL_007d:  ldloc.2
+  IL_007e:  box        ""T""
+  IL_0083:  brtrue.s   IL_008d
+  IL_0085:  ldobj      ""T""
+  IL_008a:  stloc.2
+  IL_008b:  ldloca.s   V_2
+  IL_008d:  ldc.i4.0
+  IL_008e:  ldloc.1
   IL_008f:  ldc.i4.0
   IL_0090:  constrained. ""T""
   IL_0096:  callvirt   ""int I.this[int].get""
-  IL_009b:  box        ""int""
-  IL_00a0:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00a5:  ret
+  IL_009b:  ldc.i4.2
+  IL_009c:  add
+  IL_009d:  constrained. ""T""
+  IL_00a3:  callvirt   ""void I.this[int].set""
+  IL_00a8:  ldstr      ""{0}, {1}""
+  IL_00ad:  ldarga.s   V_0
+  IL_00af:  constrained. ""T""
+  IL_00b5:  callvirt   ""int I.P.get""
+  IL_00ba:  box        ""int""
+  IL_00bf:  ldarga.s   V_0
+  IL_00c1:  ldc.i4.0
+  IL_00c2:  constrained. ""T""
+  IL_00c8:  callvirt   ""int I.this[int].get""
+  IL_00cd:  box        ""int""
+  IL_00d2:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00d7:  ret
 }
 ");
             compilation.VerifyIL("B.M2<T>(T)",
 @"
 {
-  // Code size      164 (0xa4)
+  // Code size      172 (0xac)
   .maxstack  4
   .locals init (int V_0,
                 T& V_1)
@@ -4627,37 +4656,39 @@ class B
   IL_003c:  ldarga.s   V_0
   IL_003e:  stloc.1
   IL_003f:  ldloc.1
-  IL_0040:  ldloc.1
-  IL_0041:  constrained. ""T""
-  IL_0047:  callvirt   ""int I.P.get""
-  IL_004c:  ldc.i4.2
-  IL_004d:  add
-  IL_004e:  constrained. ""T""
-  IL_0054:  callvirt   ""void I.P.set""
-  IL_0059:  ldarga.s   V_0
-  IL_005b:  stloc.1
-  IL_005c:  ldloc.1
-  IL_005d:  ldc.i4.0
-  IL_005e:  ldloc.1
-  IL_005f:  ldc.i4.0
-  IL_0060:  constrained. ""T""
-  IL_0066:  callvirt   ""int I.this[int].get""
-  IL_006b:  ldc.i4.2
-  IL_006c:  add
-  IL_006d:  constrained. ""T""
-  IL_0073:  callvirt   ""void I.this[int].set""
-  IL_0078:  ldstr      ""{0}, {1}""
-  IL_007d:  ldarg.0
-  IL_007e:  box        ""T""
-  IL_0083:  callvirt   ""int I.P.get""
-  IL_0088:  box        ""int""
-  IL_008d:  ldarg.0
-  IL_008e:  box        ""T""
-  IL_0093:  ldc.i4.0
-  IL_0094:  callvirt   ""int I.this[int].get""
-  IL_0099:  box        ""int""
-  IL_009e:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00a3:  ret
+  IL_0040:  ldobj      ""T""
+  IL_0045:  box        ""T""
+  IL_004a:  ldloc.1
+  IL_004b:  constrained. ""T""
+  IL_0051:  callvirt   ""int I.P.get""
+  IL_0056:  ldc.i4.2
+  IL_0057:  add
+  IL_0058:  callvirt   ""void I.P.set""
+  IL_005d:  ldarga.s   V_0
+  IL_005f:  stloc.1
+  IL_0060:  ldloc.1
+  IL_0061:  ldobj      ""T""
+  IL_0066:  box        ""T""
+  IL_006b:  ldc.i4.0
+  IL_006c:  ldloc.1
+  IL_006d:  ldc.i4.0
+  IL_006e:  constrained. ""T""
+  IL_0074:  callvirt   ""int I.this[int].get""
+  IL_0079:  ldc.i4.2
+  IL_007a:  add
+  IL_007b:  callvirt   ""void I.this[int].set""
+  IL_0080:  ldstr      ""{0}, {1}""
+  IL_0085:  ldarg.0
+  IL_0086:  box        ""T""
+  IL_008b:  callvirt   ""int I.P.get""
+  IL_0090:  box        ""int""
+  IL_0095:  ldarg.0
+  IL_0096:  box        ""T""
+  IL_009b:  ldc.i4.0
+  IL_009c:  callvirt   ""int I.this[int].get""
+  IL_00a1:  box        ""int""
+  IL_00a6:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00ab:  ret
 }
 ");
             compilation.VerifyIL("B.M3<T>(T)",
@@ -5622,14 +5653,11 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
-                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
-                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
                 // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
@@ -5657,7 +5685,7 @@ public class Base2 : Base1<Object>
 {
     public override void Goo<G>(G d) { Console.WriteLine(""Base2""); }
 }",
-                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: TestOptions.DebugDll);
             var csVerifier = CompileAndVerify(csCompilation);
             csVerifier.VerifyDiagnostics();
 
@@ -5755,8 +5783,7 @@ class B : A<S>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
-        [WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
         public void ConstraintGenericForPoint()
         {
             var source = @"
@@ -5771,14 +5798,46 @@ class F<T> : A where T : F<object*>.I
 class G<T> : A where T : G<void*>.I
 {
 }
-class c
+class @c
 {
     static void Main() { }
 }
 ";
             // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_WithUnsafeContext()
+        {
+            var source = @"
+class A
+{
+    public interface I { }
+}
+unsafe class F<T> : A where T : F<object*>.I
+{
+}
+
+unsafe class G<T> : A where T : G<void*>.I
+{
+}
+class @c
+{
+    static void Main() { }
+}
+";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class F<T> : A where T : F<object*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class G<T> : A where T : G<void*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6396,8 +6455,7 @@ public interface IC<T> : IB where T : IB { }";
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("IA", "e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 7));
         }
 
-        [WorkItem(577251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
         public void Bug577251()
         {
             var source =
@@ -6412,7 +6470,17 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T>() where T : IA<C<int>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
+                // (9,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U>() where U : IA<E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E*").WithLocation(9, 37));
+
             source =
 @"interface IA<T> { }
 interface IB
@@ -6425,7 +6493,50 @@ class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T, U>() where T : IA<C<U>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
+                // (9,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U, V>() where U : IA<C<V>.E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<V>.E*").WithLocation(9, 40));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_UnsafeContext()
+        {
+            var source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T>() where T : IA<C<int>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U>() where U : IA<E*[]> { }
+}
+class D : C<int>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+
+            source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T, U>() where T : IA<C<U>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U, V>() where U : IA<C<V>.E*[]> { }
+}
+class D<T> : C<T>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
@@ -6831,8 +6942,7 @@ partial class Class4
                 );
         }
 
-        [Fact]
-        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
         public void IntPointerConstraintIntroducedBySubstitution()
         {
             string source = @"
@@ -6853,12 +6963,460 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int *>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'int*' may not be used as a type argument
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_UnsafeContext()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+unsafe class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R2").WithLocation(6, 14),
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Original()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static T GetService<T>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(12, 9),
+                // (13,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(13, 9),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(14, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_DoubleTypeArg()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static T1 GetService<T1, T2>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(12, 9),
+                // (12,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(12, 18),
+                // (13,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(13, 9),
+                // (13,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(13, 18),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(14, 9),
+                // (14,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(14, 18)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Instance()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+interface J
+{
+    object GetService<T>();
+}
+
+interface K
+{
+    object GetService<T1, T2>();
+}
+
+static class Program
+{
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+
+    static void M(J provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+    
+    static void M(K provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (20,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(20, 9),
+                // (20,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(20, 18),
+                // (21,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(21, 9),
+                // (21,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(21, 18),
+                // (26,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(26, 9),
+                // (27,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(27, 9),
+                // (32,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(32, 9),
+                // (32,18): error CS0305: Using the generic method 'K.GetService<T1, T2>()' requires 2 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetService<>").WithArguments("K.GetService<T1, T2>()", "method", "2").WithLocation(32, 18),
+                // (33,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(33, 9),
+                // (33,18): error CS0305: Using the generic method 'K.GetService<T1, T2>()' requires 2 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetService<>").WithArguments("K.GetService<T1, T2>()", "method", "2").WithLocation(33, 18)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Extension()
+        {
+            var source =
+@"interface I{}
+
+static class Program
+{
+    static void GetServiceA(this I obj){}
+    static T GetServiceB<T>(this I obj) => default;
+    static T1 GetServiceC<T1, T2>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetServiceA<>();
+        provider.GetServiceA<>().ToString();
+        
+        provider.GetServiceB<>();
+        provider.GetServiceB<>().ToString();
+        
+        provider.GetServiceC<>();
+        provider.GetServiceC<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(11, 9),
+                // (11,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(11, 18),
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(12, 9),
+                // (12,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(12, 18),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(14, 9),
+                // (15,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(15, 9),
+                // (17,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceC<>").WithLocation(17, 9),
+                // (17,18): error CS1061: 'I' does not contain a definition for 'GetServiceC' and no accessible extension method 'GetServiceC' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceC<>").WithArguments("I", "GetServiceC").WithLocation(17, 18),
+                // (18,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceC<>").WithLocation(18, 9),
+                // (18,18): error CS1061: 'I' does not contain a definition for 'GetServiceC' and no accessible extension method 'GetServiceC' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceC<>").WithArguments("I", "GetServiceC").WithLocation(18, 18)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Static()
+        {
+            var source =
+@"static class Program
+{
+    static object GetServiceA(){ return null; }
+    static T GetServiceB<T>() => default;
+    static T1 GetServiceC<T1, T2>() => default;
+    
+    static void M()
+    {
+        GetServiceA<>();
+        GetServiceA<>().ToString();
+        GetServiceB<>();
+        GetServiceB<>().ToString();
+        GetServiceC<>();
+        GetServiceC<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,9): error CS0308: The non-generic method 'Program.GetServiceA()' cannot be used with type arguments
+                //         GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceA<>").WithArguments("Program.GetServiceA()", "method").WithLocation(9, 9),
+                // (10,9): error CS0308: The non-generic method 'Program.GetServiceA()' cannot be used with type arguments
+                //         GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceA<>").WithArguments("Program.GetServiceA()", "method").WithLocation(10, 9),
+                // (11,9): error CS0305: Using the generic method group 'GetServiceB' requires 1 type arguments
+                //         GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceB<>").WithArguments("GetServiceB", "method group", "1").WithLocation(11, 9),
+                // (12,9): error CS0305: Using the generic method group 'GetServiceB' requires 1 type arguments
+                //         GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceB<>").WithArguments("GetServiceB", "method group", "1").WithLocation(12, 9),
+                // (13,9): error CS0305: Using the generic method 'Program.GetServiceC<T1, T2>()' requires 2 type arguments
+                //         GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method 'Program.GetServiceC<T1, T2>()' requires 2 type arguments
+                //         GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(14, 9)
+            );
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_1()
+        {
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+";
+            var metadataComp = CreateEmptyCompilation(code, new[] { MscorlibRef_v20 }, assemblyName: "assembly1");
+            metadataComp.VerifyDiagnostics();
+            var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
+                new[] { metadataComp.EmitToImageReference() },
+                targetFramework: TargetFramework.Mscorlib45);
+
+            // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+            DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
+
+            // These are unification use-site diagnostics. The original stackoverflow bug here came from checking constraints as part of
+            // unification diagnostic calculation, so we want to verify that these are present to make sure we're testing the correct scenario.
+            comp.VerifyDiagnostics(
+                    expectedDiagnostic,
+                    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                    expectedDiagnostic
+                );
+
+            CompileAndVerify(
+                comp.WithOptions(comp.Options.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)),
+                expectedOutput: "C+D");
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
+            Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_2()
+        {
+            var remappedCode = @"public class F {}";
+
+            var remappedComp11 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("1.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var remappedComp12 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("2.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+
+public class G : F {}
+";
+
+            var metadataComp = CreateCompilation(code, new[] { remappedComp11.EmitToImageReference() }, assemblyName: "intermediate", targetFramework: TargetFramework.NetStandard20);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(typeof(C.D).FullName);
+System.Console.WriteLine(typeof(G).FullName);
+",
+                new[] { metadataComp.EmitToImageReference(), remappedComp12.EmitToImageReference() },
+                targetFramework: TargetFramework.NetStandard20);
+
+            comp.VerifyDiagnostics(
+                // warning CS1701: Assuming assembly reference 'remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'intermediate' matches identity 'remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'remapped', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "intermediate", "remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "remapped").WithLocation(1, 1)
+            );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_01()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_02()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> where T : new() { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0310: 'N' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ISetup<T>'
+                // interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Base").WithArguments("ISetup<T>", "T", "N").WithLocation(5, 11)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
     }
 }

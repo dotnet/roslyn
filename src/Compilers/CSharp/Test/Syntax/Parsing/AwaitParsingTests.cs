@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -223,7 +225,10 @@ class C
         };
     }
 }
-");
+",
+                // (9,21): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //                 int await;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(9, 21));
 
             N(SyntaxKind.CompilationUnit);
             {

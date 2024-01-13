@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -82,10 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             compilation = previousMetadataContext.Compilation;
-            if (compilation == null)
-            {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
-            }
+            compilation ??= metadataBlocks.ToCompilation(moduleVersionId, kind);
 
             var context = EvaluationContext.CreateTypeContext(
                 compilation,

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
@@ -18,10 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+            var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
             return analyzer.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
@@ -29,10 +28,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+            var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
             return analyzer.AnalyzeDocumentSemanticsAsync(document, cancellationToken);

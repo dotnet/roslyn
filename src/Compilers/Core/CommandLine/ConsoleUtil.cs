@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         /// <summary>
-        /// This will update the <see cref="Console.Out"/> value to have UTF8 encoding for the duration of the 
+        /// This will update the <see cref="Console.Out"/> value to have UTF-8 encoding for the duration of the 
         /// provided call back.  The newly created <see cref="TextWriter"/> will be passed down to the callback.
         /// </summary>
         internal static T RunWithUtf8Output<T>(Func<TextWriter, T> func)

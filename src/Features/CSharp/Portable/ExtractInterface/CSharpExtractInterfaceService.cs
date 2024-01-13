@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -15,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
@@ -30,33 +34,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
         protected override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
-            var typeDeclaration = token.GetAncestor<TypeDeclarationSyntax>();
+            var span = new TextSpan(position, 0);
+            var typeDeclarationNode = await document.TryGetRelevantNodeAsync<TypeDeclarationSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-            if (typeDeclaration == null ||
-                typeDiscoveryRule == TypeDiscoveryRule.TypeDeclaration)
+            // If TypeDiscoverRule is set to TypeDeclaration, a position anywhere inside of the
+            // declaration enclosure is valid. In this case check to see if there is a type declaration ancestor
+            // of the focused node.
+            if (typeDeclarationNode == null && typeDiscoveryRule == TypeDiscoveryRule.TypeDeclaration)
             {
-                return typeDeclaration;
+                var relevantNode = await document.TryGetRelevantNodeAsync<SyntaxNode>(span, cancellationToken).ConfigureAwait(false);
+                return relevantNode.GetAncestor<TypeDeclarationSyntax>();
             }
 
-            var spanStart = typeDeclaration.Identifier.SpanStart;
-            var spanEnd = typeDeclaration.TypeParameterList != null ? typeDeclaration.TypeParameterList.Span.End : typeDeclaration.Identifier.Span.End;
-            var span = new TextSpan(spanStart, spanEnd - spanStart);
+            return typeDeclarationNode;
 
-            return span.IntersectsWith(position) ? typeDeclaration : null;
-        }
-
-        internal override string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace)
-        {
-            if (typeParameters.IsEmpty())
-            {
-                return string.Empty;
-            }
-
-            var typeParameterList = SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameters.Select(p => SyntaxFactory.TypeParameter(p.Name))));
-            return Formatter.Format(typeParameterList, workspace).ToString();
         }
 
         internal override string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions)
@@ -78,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         protected override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
             Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds,
             INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom,
-            IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
+            IEnumerable<ISymbol> includedMembers, ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
             CancellationToken cancellationToken)
         {
             // In C#, member implementations do not always need

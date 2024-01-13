@@ -4,71 +4,66 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
-using Microsoft.CodeAnalysis.PooledObjects;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Handles the get code actions command.
+    /// Handles the initial request for code actions. Leaves the Edit and Command properties of the returned
+    /// VSCodeActions blank, as these properties should be populated by the CodeActionsResolveHandler only when the user
+    /// requests them.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, object[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentCodeActionName)]
+    internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
+        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IGlobalOptionService _globalOptions;
+
+        internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
+        internal const string RunFixAllCodeActionCommandName = "roslyn.client.fixAllCodeAction";
+        internal const string RunNestedCodeActionCommandName = "roslyn.client.nestedCodeAction";
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        public CodeActionsHandler(
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            IGlobalOptionService globalOptions)
         {
+            _codeFixService = codeFixService;
+            _codeRefactoringService = codeRefactoringService;
+            _globalOptions = globalOptions;
         }
 
-        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
+
+        public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var codeActions = await GetCodeActionsAsync(solution,
-                request.TextDocument.Uri,
-                request.Range,
-                cancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            Contract.ThrowIfNull(document);
 
-            // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
+            var options = _globalOptions.GetCodeActionOptionsProvider();
+            var clientCapability = context.GetRequiredClientCapabilities();
 
-            var result = new ArrayBuilder<object>();
-            foreach (var codeAction in codeActions)
-            {
-                // Always return the Command instead of a precalculated set of workspace edits. 
-                // The edits will be calculated when the code action is either previewed or 
-                // invoked.
-
-                // It's safe for the client to pass back the range/filename in the command to run
-                // on the server because the client will always re-issue a get code actions request
-                // before invoking a preview or running the command on the server.
-
-                result.Add(
-                    new LSP.Command
-                    {
-                        CommandIdentifier = RunCodeActionCommandName,
-                        Title = codeAction.Title,
-                        Arguments = new object[]
-                        {
-                                new RunCodeActionParams
-                                {
-                                    CodeActionParams = request,
-                                    Title = codeAction.Title
-                                }
-                        }
-                    });
-            }
-
-            return result.ToArrayAndFree();
+            var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
+                request, document, options, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
+            return codeActions;
         }
     }
 }

@@ -29,15 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override SyntaxNode Rewrite(SyntaxNode root, ISet<MemberAccessExpressionSyntax> memberAccessNodes)
             => new Rewriter(memberAccessNodes).Visit(root);
 
-        private class Rewriter : CSharpSyntaxRewriter
+        private class Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes) : CSharpSyntaxRewriter
         {
-            private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
+            private readonly ISet<MemberAccessExpressionSyntax> _memberAccessNodes = memberAccessNodes;
 
-            public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-                => this.memberAccessNodes = memberAccessNodes;
-
-            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node)
+            public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+                => _memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

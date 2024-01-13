@@ -33,4 +33,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     End Class
 End Namespace
 
-

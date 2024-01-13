@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceService
     {
-        public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             try
             {
-                var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = newDocument.Project.Services.GetService<ISyntaxFactsService>();
                 if (syntaxFactsService == null)
                 {
                     // somehow, we can't get the service. without it, there is nothing we can do.
@@ -62,14 +62,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // explicitly parse them
-                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    Contract.ThrowIfNull(oldRoot);
+                    Contract.ThrowIfNull(newRoot);
                 }
+
                 // at this point, we must have these version already calculated
                 if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
                     !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // quicker common case
@@ -90,13 +94,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        private static SyntaxNode GetChangedMember(
+        private static SyntaxNode? GetChangedMember(
             ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
         {
             // if either old or new tree contains skipped text, re-analyze whole document
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return newMember;
         }
 
-        private static SyntaxNode GetBestGuessChangedMember(
+        private static SyntaxNode? GetBestGuessChangedMember(
             ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
         {
             // if either old or new tree contains skipped text, re-analyze whole document

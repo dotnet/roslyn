@@ -2,82 +2,95 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
+namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+
+using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
+internal sealed class CSharpUseObjectInitializerCodeFixProvider :
+    AbstractUseObjectInitializerCodeFixProvider<
+        SyntaxKind,
+        ExpressionSyntax,
+        StatementSyntax,
+        BaseObjectCreationExpressionSyntax,
+        MemberAccessExpressionSyntax,
+        ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax,
+        VariableDeclaratorSyntax,
+        CSharpUseNamedMemberInitializerAnalyzer>
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
-    internal class CSharpUseObjectInitializerCodeFixProvider :
-        AbstractUseObjectInitializerCodeFixProvider<
-            SyntaxKind,
-            ExpressionSyntax,
-            StatementSyntax,
-            ObjectCreationExpressionSyntax,
-            MemberAccessExpressionSyntax,
-            ExpressionStatementSyntax,
-            VariableDeclaratorSyntax>
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpUseObjectInitializerCodeFixProvider()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpUseObjectInitializerCodeFixProvider()
-        {
-        }
+    }
 
-        protected override StatementSyntax GetNewStatement(
-            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
-        {
-            return statement.ReplaceNode(
-                objectCreation,
-                GetNewObjectCreation(objectCreation, matches));
-        }
+    protected override CSharpUseNamedMemberInitializerAnalyzer GetAnalyzer()
+        => CSharpUseNamedMemberInitializerAnalyzer.Allocate();
 
-        private ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
-        {
-            return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(matches));
-        }
+    protected override StatementSyntax GetNewStatement(
+        StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
+        ImmutableArray<ObjectInitializerMatch> matches)
+    {
+        return statement.ReplaceNode(
+            objectCreation,
+            GetNewObjectCreation(objectCreation, matches));
+    }
 
-        private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+    private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+        BaseObjectCreationExpressionSyntax objectCreation,
+        ImmutableArray<ObjectInitializerMatch> matches)
+    {
+        return UseInitializerHelpers.GetNewObjectCreation(
+            objectCreation, CreateExpressions(objectCreation, matches));
+    }
+
+    private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+        BaseObjectCreationExpressionSyntax objectCreation,
+        ImmutableArray<ObjectInitializerMatch> matches)
+    {
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+        UseInitializerHelpers.AddExistingItems<ObjectInitializerMatch, ExpressionSyntax>(
+            objectCreation, nodesAndTokens, addTrailingComma: true, static (_, e) => e);
+
+        for (var i = 0; i < matches.Length; i++)
         {
-            var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            for (var i = 0; i < matches.Length; i++)
+            var match = matches[i];
+            var expressionStatement = match.Statement;
+            var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+            var trivia = match.MemberAccessExpression.GetLeadingTrivia();
+
+            var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
+
+            var newAssignment = assignment.WithLeft(
+                match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia));
+
+            if (i < matches.Length - 1)
             {
-                var match = matches[i];
-                var expressionStatement = match.Statement;
-                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                nodesAndTokens.Add(newAssignment);
+                var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
+                    .WithTriviaFrom(expressionStatement.SemicolonToken);
 
-                var newAssignment = assignment.WithLeft(
-                    match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
-
-                if (i < matches.Length - 1)
-                {
-                    nodesAndTokens.Add(newAssignment);
-                    var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
-                        .WithTriviaFrom(expressionStatement.SemicolonToken);
-
-                    nodesAndTokens.Add(commaToken);
-                }
-                else
-                {
-                    newAssignment = newAssignment.WithTrailingTrivia(
-                        expressionStatement.GetTrailingTrivia());
-                    nodesAndTokens.Add(newAssignment);
-                }
+                nodesAndTokens.Add(commaToken);
             }
-
-            return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
+            else
+            {
+                newAssignment = newAssignment.WithTrailingTrivia(
+                    expressionStatement.GetTrailingTrivia());
+                nodesAndTokens.Add(newAssignment);
+            }
         }
+
+        return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
     }
 }

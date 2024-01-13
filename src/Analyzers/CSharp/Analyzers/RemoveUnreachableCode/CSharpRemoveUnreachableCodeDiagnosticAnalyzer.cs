@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -15,16 +14,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnreachableCode,
                    option: null,
+                   fadingOption: FadingOptions.FadeOutUnreachableCode,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    configurable: false)
         {
@@ -38,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
 
-            var tree = context.SemanticModel.SyntaxTree;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -56,20 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
+            var diagnostics = semanticModel.GetDiagnostics(context.FilterSpan, cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (diagnostic.Id == CS0162)
                 {
-                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan, fadeCode);
+                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan);
                 }
             }
         }
 
         private void ProcessUnreachableDiagnostic(
-            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
+            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan)
         {
             var node = root.FindNode(sourceSpan);
 
@@ -110,27 +111,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // fix off of.
             var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
-            if (!firstUnreachableStatement.IsParentKind(SyntaxKind.Block) &&
-                !firstUnreachableStatement.IsParentKind(SyntaxKind.SwitchSection))
-            {
-                // Can't actually remove this statement (it's an embedded statement in something 
-                // like an 'if-statement').  Just fade the code out, but don't offer to remove it.
-                if (fadeOutCode)
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
-                }
-                return;
-            }
-
             // 'additionalLocations' is how we always pass along the locaiton of the first unreachable
             // statement in this group.
-            var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
+            var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                firstStatementLocation,
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                additionalLocations: ImmutableArray<Location>.Empty,
+                additionalUnnecessaryLocations: additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
@@ -138,11 +128,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
 
-                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
+                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                context.ReportDiagnostic(
-                    Diagnostic.Create(descriptor, location, additionalLocations, s_subsequentSectionProperties));
+                var additionalUnnecessaryLocations = ImmutableArray.Create(location);
+
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    location,
+                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                    additionalLocations,
+                    additionalUnnecessaryLocations,
+                    s_subsequentSectionProperties));
             }
         }
     }

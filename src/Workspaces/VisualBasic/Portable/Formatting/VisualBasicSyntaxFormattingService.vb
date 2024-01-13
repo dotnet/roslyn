@@ -3,59 +3,34 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-#If Not CODE_STYLE Then
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-#End If
+Imports Microsoft.CodeAnalysis.Indentation
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-#If Not CODE_STYLE Then
     <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFormattingService
-#Else
-    Friend Class VisualBasicSyntaxFormattingService
-#End If
-        Inherits AbstractSyntaxFormattingService
+        Inherits VisualBasicSyntaxFormatting
+        Implements ISyntaxFormattingService
 
-        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
-
-#If CODE_STYLE Then
-        Public Shared ReadOnly Instance As New VisualBasicSyntaxFormattingService
-#End If
-
-#If Not CODE_STYLE Then
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-#Else
-        Public Sub New()
-#End If
-            _rules = ImmutableList.Create(Of AbstractFormattingRule)(
-                New StructuredTriviaFormattingRule(),
-                New ElasticTriviaFormattingRule(),
-                New AdjustSpaceFormattingRule(),
-                New AlignTokensFormattingRule(),
-                New NodeBasedFormattingRule(),
-                DefaultOperationProvider.Instance)
         End Sub
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
-            Return _rules
+        Public Function ShouldFormatOnTypedCharacter(document As ParsedDocument, typedChar As Char, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFormattingService.ShouldFormatOnTypedCharacter
+            Return False
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
-            Return New AggregatedFormattingResult(node, results, formattingSpans)
+        Public Function GetFormattingChangesOnTypedCharacter(document As ParsedDocument, caretPosition As Integer, indentationOptions As IndentationOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnTypedCharacter
+            Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, options As AnalyzerConfigOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
-            Return New VisualBasicFormatEngine(root, options, formattingRules, token1, token2).Format(cancellationToken)
+        Public Function GetFormattingChangesOnPaste(document As ParsedDocument, textSpan As TextSpan, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnPaste
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (type.TypeKind == TypeKind.Enum)
             {
-                type = ((INamedTypeSymbolInternal)type).EnumUnderlyingType;
+                type = ((INamedTypeSymbolInternal)type).EnumUnderlyingType!;
             }
 
             return (type.SpecialType, symValue) switch

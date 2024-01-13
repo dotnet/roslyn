@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,6 @@ namespace Microsoft.CodeAnalysis
         // Strings for the RuleSet node
         private const string RuleSetNodeName = "RuleSet";
         private const string RuleSetNameAttributeName = "Name";
-        private const string RuleSetDescriptionAttributeName = "Description";
         private const string RuleSetToolsVersionAttributeName = "ToolsVersion";
 
         // Strings for the Rules node
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis
 
             return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Load the rules from the XML node
@@ -147,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A list of rule objects with data from the given XML node</returns>
         private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XElement rulesNode)
         {
-            string analyzerId = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
-            string ruleNamespace = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
+            _ = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
+            _ = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
 
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
 
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (ruleNode.Name == RuleNodeName)
                 {
-                    rules.Add(ReadRule(ruleNode, analyzerId, ruleNamespace));
+                    rules.Add(ReadRule(ruleNode));
                 }
                 else
                 {
@@ -173,10 +174,8 @@ namespace Microsoft.CodeAnalysis
         /// Load the rule from the XML node
         /// </summary>
         /// <param name="ruleNode">The rule node from which to create a rule object</param>
-        /// <param name="analyzer">The analyzer this rule belongs to</param>
-        /// <param name="space">The namespace this rule belongs to</param>
         /// <returns>A rule object with data from the given XML node</returns>
-        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XElement ruleNode, string analyzer, string space)
+        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XElement ruleNode)
         {
             string ruleId = ReadNonEmptyAttribute(ruleNode, RuleIdAttributeName);
             ReportDiagnostic action = ReadAction(ruleNode, allowDefault: false);

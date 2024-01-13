@@ -41,8 +41,8 @@ This set of Jenkins legs is considered functional and must pass on every merge:
 
 ## Big Items
 
-These are the big items that are broken and need some wokr
+These are the big items that are broken and need some work
 
 - RepoUtil: needs to understand PackageReference and can be massively simplified now
-- Delete the DeployCompilerGeneratorToolsRuntime project.  Not neeeded anymor 
+- Delete the DeployCompilerGeneratorToolsRuntime project.  Not needed anymore 
 

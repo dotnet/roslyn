@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddConstructorTo(destination As TypeBlockSyntax,
                                                 constructor As IMethodSymbol,
-                                                options As CodeGenerationOptions,
+                                                options As CodeGenerationContextInfo,
                                                 availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim constructorDeclaration = GenerateConstructorDeclaration(constructor, GetDestination(destination), options)
 
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function GenerateConstructorDeclaration(constructor As IMethodSymbol,
                                                               destination As CodeGenerationDestination,
-                                                              options As CodeGenerationOptions) As StatementSyntax
+                                                              options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(constructor, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 .WithModifiers(GenerateModifiers(constructor, destination, options)) _
                 .WithParameterList(ParameterGenerator.GenerateParameterList(constructor.Parameters, options))
 
-            Dim hasNoBody = Not options.GenerateMethodBodies
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies
 
             Dim declaration =
                 If(hasNoBody,
@@ -53,11 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return AddAnnotationsTo(constructor, AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))
-        End Function
-
-        Private Function GenerateArgumentList(arguments As IList(Of SyntaxNode)) As ArgumentListSyntax
-            Return SyntaxFactory.ArgumentList(
-                arguments:=SyntaxFactory.SeparatedList(arguments.Select(AddressOf ArgumentGenerator.GenerateArgument)))
         End Function
 
         Private Function GenerateStatements(constructor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
@@ -84,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.List(statements)
         End Function
 
-        Private Function GenerateModifiers(constructor As IMethodSymbol, destination As CodeGenerationDestination, options As CodeGenerationOptions) As SyntaxTokenList
+        Private Function GenerateModifiers(constructor As IMethodSymbol, destination As CodeGenerationDestination, options As CodeGenerationContextInfo) As SyntaxTokenList
             Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
                 If constructor.IsStatic Then

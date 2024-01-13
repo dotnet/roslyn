@@ -11,18 +11,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class TypeAccessibility : Inherits BasicTestBase
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
 
             TestTypeAccessibilityHelper(assembly.Modules(0))
         End Sub
-
 
         Private Sub TestTypeAccessibilityHelper(module0 As ModuleSymbol)
 
@@ -101,7 +99,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(module0, obj.Locations.Single().MetadataModule)
 
         End Sub
-
 
     End Class
 

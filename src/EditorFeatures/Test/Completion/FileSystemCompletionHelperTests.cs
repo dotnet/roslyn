@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
     public class FileSystemCompletionHelperTests
     {
-        private void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
+        private static void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
         {
             AssertEx.Equal(
                 expected,
-                actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.Properties["Description"]}'"),
+                actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.GetProperty(CommonCompletionItem.DescriptionProperty)}'"),
                 itemInspector: c => $"@\"{c}\"");
 
             Assert.True(actual.All(i => i.Rules == TestFileSystemCompletionHelper.CompletionRules));

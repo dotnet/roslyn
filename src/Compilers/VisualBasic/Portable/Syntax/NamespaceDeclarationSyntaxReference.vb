@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Function Translate(reference As SyntaxReference, cancellationToken As CancellationToken) As SyntaxNode
-            Dim node = reference.GetSyntax()
+            Dim node = reference.GetSyntax(cancellationToken)
 
             ' If the node is a name syntax, it's something like "X" or "X.Y" in :
             '    Namespace X.Y.Z

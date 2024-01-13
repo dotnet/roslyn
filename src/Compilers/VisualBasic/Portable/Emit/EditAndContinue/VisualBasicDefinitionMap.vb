@@ -21,33 +21,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits DefinitionMap
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
+        Private ReadOnly _previousSourceToMetadata As VisualBasicSymbolMatcher
         Private ReadOnly _mapToMetadata As VisualBasicSymbolMatcher
         Private ReadOnly _mapToPrevious As VisualBasicSymbolMatcher
 
         Public Sub New(edits As IEnumerable(Of SemanticEdit),
                        metadataDecoder As MetadataDecoder,
+                       previousSourceToMetadata As VisualBasicSymbolMatcher,
                        mapToMetadata As VisualBasicSymbolMatcher,
-                       mapToPrevious As VisualBasicSymbolMatcher)
+                       mapToPrevious As VisualBasicSymbolMatcher,
+                       baseline As EmitBaseline)
 
-            MyBase.New(edits)
+            MyBase.New(edits, baseline)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
             Debug.Assert(mapToMetadata IsNot Nothing)
 
             _metadataDecoder = metadataDecoder
+            _previousSourceToMetadata = previousSourceToMetadata
             _mapToMetadata = mapToMetadata
             _mapToPrevious = If(mapToPrevious, mapToMetadata)
         End Sub
 
-        Protected Overrides ReadOnly Property MapToMetadataSymbolMatcher As SymbolMatcher
+        Public Overrides ReadOnly Property SourceToMetadataSymbolMatcher As SymbolMatcher
             Get
                 Return _mapToMetadata
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property MapToPreviousSymbolMatcher As SymbolMatcher
+        Public Overrides ReadOnly Property SourceToPreviousSymbolMatcher As SymbolMatcher
             Get
                 Return _mapToPrevious
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousSourceToMetadataSymbolMatcher As SymbolMatcher
+            Get
+                Return _previousSourceToMetadata
             End Get
         End Property
 
@@ -65,74 +75,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
+        Private Shared Function IsParentDisplayClassFieldName(name As String) As Boolean
+            Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal)
+        End Function
+
         Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return _mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEEventSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEFieldSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEMethodSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEPropertySymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbolInternal
+        Protected Overrides Function TryGetStateMachineType(methodHandle As MethodDefinitionHandle) As ITypeSymbolInternal
             Dim typeName As String = Nothing
-            If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
-               _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
-
+            If _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, typeName) Then
                 Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
             End If
 
             Return Nothing
+        End Function
+
+        Protected Overrides Function GetMethodSymbol(methodHandle As MethodDefinitionHandle) As IMethodSymbolInternal
+            Return DirectCast(_metadataDecoder.GetSymbolForILToken(methodHandle), IMethodSymbolInternal)
         End Function
 
         Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbolInternal,
@@ -144,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(TypeOf stateMachineType.ContainingAssembly Is PEAssemblySymbol)
 
             Dim hoistedLocals = New Dictionary(Of EncHoistedLocalInfo, Integer)()
-            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)
+            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)(DirectCast(Cci.SymbolEquivalentEqualityComparer.Instance, IEqualityComparer(Of Cci.IReference)))
             Dim maxAwaiterSlotIndex = -1
 
             For Each member In DirectCast(stateMachineType, TypeSymbol).GetMembers()
@@ -152,14 +113,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim name = member.Name
                     Dim slotIndex As Integer
 
-                    Select Case GeneratedNames.GetKind(name)
+                    Select Case GeneratedNameParser.GetKind(name)
                         Case GeneratedNameKind.StateMachineAwaiterField
 
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
-                                Dim field = DirectCast(member, IFieldSymbol)
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
+                                Dim field = DirectCast(member, FieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters(DirectCast(field.Type, Cci.ITypeReference)) = slotIndex
+                                awaiters(DirectCast(field.Type.GetCciAdapter(), Cci.ITypeReference)) = slotIndex
 
                                 If slotIndex > maxAwaiterSlotIndex Then
                                     maxAwaiterSlotIndex = slotIndex
@@ -167,18 +128,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             End If
 
                         Case GeneratedNameKind.HoistedSynthesizedLocalField,
-                             GeneratedNameKind.StateMachineHoistedUserVariableField
+                             GeneratedNameKind.HoistedWithLocalPrefix,
+                             GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField
 
-                            Dim _name As String = Nothing
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
-                               GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
-                                Dim field = DirectCast(member, IFieldSymbol)
+                            Dim variableName As String = Nothing
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedWithLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(name, variableName, slotIndex) Then
+                                Dim field = DirectCast(member, FieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
                                     Continue For
                                 End If
 
-                                Dim key = New EncHoistedLocalInfo(localSlotDebugInfo(slotIndex), DirectCast(field.Type, Cci.ITypeReference))
+                                Dim key = New EncHoistedLocalInfo(localSlotDebugInfo(slotIndex), DirectCast(field.Type.GetCciAdapter(), Cci.ITypeReference))
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
                                 hoistedLocals(key) = slotIndex
@@ -230,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
+                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type.GetCciAdapter(), Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If
@@ -251,5 +214,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray.Create(result)
         End Function
 
+        Protected Overrides Function TryParseDisplayClassOrLambdaName(
+            name As String,
+            <Out> ByRef suffixIndex As Integer,
+            <Out> ByRef idSeparator As Char,
+            <Out> ByRef isDisplayClass As Boolean,
+            <Out> ByRef isDisplayClassParentField As Boolean,
+            <Out> ByRef hasDebugIds As Boolean) As Boolean
+
+            idSeparator = GeneratedNameConstants.IdSeparator
+
+            isDisplayClass = name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
+            If isDisplayClass Then
+                suffixIndex = GeneratedNameConstants.DisplayClassPrefix.Length
+                isDisplayClassParentField = False
+                hasDebugIds = name.Length > suffixIndex
+                Return True
+            End If
+
+            If name.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                suffixIndex = GeneratedNameConstants.LambdaMethodNamePrefix.Length
+                isDisplayClassParentField = False
+                hasDebugIds = name.Length > suffixIndex
+                Return True
+            End If
+
+            If IsParentDisplayClassFieldName(name) Then
+                suffixIndex = -1
+                isDisplayClassParentField = True
+                hasDebugIds = False
+                Return True
+            End If
+
+            Return False
+        End Function
     End Class
 End Namespace

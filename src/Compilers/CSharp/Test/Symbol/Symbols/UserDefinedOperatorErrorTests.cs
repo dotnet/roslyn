@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -182,6 +184,7 @@ partial class C
     public public public static int operator & (C c1, C c2) { return 0; }
     extern static public int operator ^ (C c1, C c2) { return 1; }
     static public int operator + (C c1);
+    new public static int operator >>> (C c1, int c2) { return 0; }
 }
 ";
 
@@ -192,10 +195,10 @@ partial class C
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial public static int operator + (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial public static int operator + (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (5,34): error CS0106: The modifier 'abstract' is not valid for this item
@@ -239,7 +242,10 @@ partial class C
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "^").WithArguments("C.operator ^(C, C)").WithLocation(13, 39),
                 // (14,32): error CS0501: 'C.operator +(C)' must declare a body because it is not marked abstract, extern, or partial
                 //     static public int operator + (C c1);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)").WithLocation(14, 32)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)").WithLocation(14, 32),
+                // (15,36): error CS0106: The modifier 'new' is not valid for this item
+                //     new public static int operator >>> (C c1, int c2) { return 0; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, ">>>").WithArguments("new").WithLocation(15, 36)
                 );
         }
 

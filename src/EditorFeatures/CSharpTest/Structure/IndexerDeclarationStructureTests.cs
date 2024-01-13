@@ -7,104 +7,102 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<IndexerDeclarationSyntax>
 {
-    public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<IndexerDeclarationSyntax>
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
+
+    [Fact]
+    public async Task TestIndexer1()
     {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
+        var code = """
+                class C
+                {
+                    {|hint:$$public string this[int index]{|textspan:
+                    {
+                        get { }
+                    }|}|}
+                }
+                """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexer1()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$public string this[int index]{|textspan:
-    {
-        get { }
-    }|}|}
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexer2()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$public string this[int index]{|textspan:
-    {
-        get { }
-    }|}|}
-    int Value => 0;
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexer3()
-        {
-            const string code = @"
-class C
-{
-    $$public string this[int index]
-    {
-        get { }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
-    int Value => 0;
-}";
-
-            await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(47, 80),
-                    hintSpan: TextSpan.FromBounds(18, 78),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexerWithComments()
-        {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$public string this[int index]{|textspan2:
+    [Fact]
+    public async Task TestIndexer2()
     {
-        get { }
-    }|}|}
-}";
+        var code = """
+                class C
+                {
+                    {|hint:$$public string this[int index]{|textspan:
+                    {
+                        get { }
+                    }|}|}
+                    int Value => 0;
+                }
+                """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexerWithWithExpressionBodyAndComments()
-        {
-            const string code = @"
-class C
-{
-    {|span:// Goo
-    // Bar|}
-    $$public string this[int index] => 0;
-}";
+    [Fact]
+    public async Task TestIndexer3()
+    {
+        var code = """
+                class C
+                {
+                    {|hint:$$public string this[int index]{|textspan:
+                    {
+                        get { }
+                    }|}|}
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
+                    int Value => 0;
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
+
+    [Fact]
+    public async Task TestIndexerWithComments()
+    {
+        var code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$public string this[int index]{|textspan2:
+                    {
+                        get { }
+                    }|}|}
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
+
+    [Fact]
+    public async Task TestIndexerWithWithExpressionBodyAndComments()
+    {
+        var code = """
+                class C
+                {
+                    {|span:// Goo
+                    // Bar|}
+                    $$public string this[int index] => 0;
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Goo ...", autoCollapse: true));
     }
 }

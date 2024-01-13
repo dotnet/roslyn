@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -9,15 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// are two possible scopes: one for the namespace, and another for any using statements
     /// in the namespace. The namespace scope is searched before the using scope.
     /// </summary>
-    internal struct ExtensionMethodScope
+    internal readonly struct ExtensionMethodScope
     {
         public readonly Binder Binder;
-        public readonly bool SearchUsingsNotNamespace;
 
-        public ExtensionMethodScope(Binder binder, bool searchUsingsNotNamespace)
+        public ExtensionMethodScope(Binder binder)
         {
             this.Binder = binder;
-            this.SearchUsingsNotNamespace = searchUsingsNotNamespace;
         }
     }
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An enumerable collection of extension method scopes in search
     /// order, from the given Binder, out through containing Binders.
     /// </summary>
-    internal struct ExtensionMethodScopes
+    internal readonly struct ExtensionMethodScopes
     {
         private readonly Binder _binder;
 
@@ -68,17 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var binder = _current.Binder;
-                if (!_current.SearchUsingsNotNamespace)
-                {
-                    // Return a scope for the same Binder that was previously exposed
-                    // for the namespace, this time exposed for the usings.
-                    _current = new ExtensionMethodScope(binder, searchUsingsNotNamespace: true);
-                }
-                else
-                {
-                    // Return a scope for the next Binder that supports extension methods.
-                    _current = GetNextScope(binder.Next);
-                }
+                // Return a scope for the next Binder that supports extension methods.
+                _current = GetNextScope(binder.Next);
             }
 
             return (_current.Binder != null);
@@ -90,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (scope.SupportsExtensionMethods)
                 {
-                    return new ExtensionMethodScope(scope, searchUsingsNotNamespace: false);
+                    return new ExtensionMethodScope(scope);
                 }
             }
 

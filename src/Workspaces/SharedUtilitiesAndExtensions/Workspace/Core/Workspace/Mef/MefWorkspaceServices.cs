@@ -2,15 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
+
+[assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    internal class MefWorkspaceServices : HostWorkspaceServices
+    internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
         private readonly IMefHostExportProvider _exportProvider;
         private readonly Workspace _workspace;
@@ -29,10 +37,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             _exportProvider = host;
             _workspace = workspace;
-            _services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-                .Concat(host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                            .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata)))
-                .ToImmutableArray();
+
+            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
+            var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
+                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata));
+
+            _services = services.Concat(factories).ToImmutableArray();
         }
 
         public override HostServices HostServices
@@ -42,7 +52,18 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        public override Workspace Workspace => _workspace;
+        internal string WorkspaceKind => _workspace.Kind;
+
+        public override Workspace Workspace
+        {
+            get
+            {
+                //#if !CODE_STYLE
+                //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
+                //#endif
+                return _workspace;
+            }
+        }
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
@@ -74,9 +95,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-
+            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides all other layers and workspace kind:
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
             {
                 return service;
             }
@@ -144,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var currentServicesMap = _languageServicesMap;
             if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
             {
-                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
+                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
             }
 
             if (languageServices.HasServices)
@@ -164,7 +192,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             foreach (var language in this.SupportedLanguages)
             {
+#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
+#pragma warning restore RS0030 // Do not used banned APIs
                 if (services.TryGetService(typeof(TLanguageService), out var service))
                 {
                     if (filter(service.Metadata.Data))
@@ -177,5 +207,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
             => _languageServicesMap.TryGetValue(languageName, out languageServices);
+
+        internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+        {
+            public (string type, string layer)[] Metadata
+                => services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+        }
     }
 }

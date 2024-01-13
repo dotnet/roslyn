@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -22,65 +21,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.NameColon, SyntaxKind.NameEquals);
 
-        override protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected override void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
-                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context);
                     break;
                 case SyntaxKind.NameEquals:
-                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context);
                     break;
             }
         }
 
-        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context)
         {
-            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (nameColon.Parent is not ArgumentSyntax argument)
             {
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
+            var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
-            if (!preference.Value ||
-                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
+            var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
+            if (!preference.Value
+                || ShouldSkipAnalysis(context, preference.Notification)
+                || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
 
             // Create a normal diagnostic
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    nameColon.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations: null,
-                    properties: null));
-
-            // Also fade out the part of the name-colon syntax
-            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)));
+                DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    nameColon.GetLocation(),
+                    preference.Notification,
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
-        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
         {
-            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
+            if (nameEquals.Parent is not AnonymousObjectMemberDeclaratorSyntax anonCtor)
             {
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            var preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames;
             if (!preference.Value ||
                 !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
@@ -88,21 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
 
             // Create a normal diagnostic
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    nameEquals.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations: null,
-                    properties: null));
-
-            // Also fade out the part of the name-equals syntax
-            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)));
+                DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    nameEquals.GetLocation(),
+                    preference.Notification,
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
         }
     }
 }

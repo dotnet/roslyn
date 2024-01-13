@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class INamespaceSymbolExtensions
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> s_namespaceToNameMap =
-            new ConditionalWeakTable<INamespaceSymbol, List<string>>();
-        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>>.CreateValueCallback s_getNameParts = GetNameParts;
+            new();
 
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();
@@ -148,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this INamespaceSymbol globalNamespace,
             string namespaceName)
         {
-            INamespaceSymbol? namespaceSymbol = globalNamespace;
+            var namespaceSymbol = globalNamespace;
             foreach (var name in namespaceName.Split('.'))
             {
                 var members = namespaceSymbol.GetMembers(name);
@@ -161,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     break;
                 }
             }
+
             return namespaceSymbol;
         }
 

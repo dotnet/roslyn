@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -210,6 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetReturnTypeAttributes();
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+            => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
         public sealed override Symbol AssociatedSymbol
         {
             get
@@ -232,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -247,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, SubstituteParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, SubstituteParameters());
                 }
 
                 return _lazyParameters;
@@ -348,18 +352,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         private int ComputeHashCode()
         {
             int code = this.OriginalDefinition.GetHashCode();
+            int containingHashCode;
 
             // If the containing type of the original definition is the same as our containing type
             // it's possible that we will compare equal to the original definition under certain conditions 
             // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
             // the original definition for the hashcode when we know equality is possible
-            var containingHashCode = _containingType.GetHashCode();
+            containingHashCode = _containingType.GetHashCode();
             if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
                 wasConstructedForAnnotations(this))
             {
@@ -463,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return code;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            return _underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
     }
 }

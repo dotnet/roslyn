@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
-        Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind)
+        Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind, VisualBasicSimplifierOptions)
 
         Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
             SyntaxKind.QualifiedName,
@@ -34,42 +35,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 codeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
         End Function
 
-        Protected Overrides Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
+        Protected Overrides Function AnalyzeCodeBlock(context As CodeBlockAnalysisContext, root As SyntaxNode) As ImmutableArray(Of Diagnostic)
+            Debug.Assert(context.CodeBlock.DescendantNodesAndSelf().Contains(root))
+
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
-            Dim syntaxTree = semanticModel.SyntaxTree
-            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
-
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
-            simplifier.Visit(context.CodeBlock)
-            If Not simplifier.HasDiagnostics Then
-                Return
+            Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), cancellationToken)) Then
+                Return ImmutableArray(Of Diagnostic).Empty
             End If
 
-            For Each diagnostic In simplifier.Diagnostics
-                context.ReportDiagnostic(diagnostic)
-            Next
-        End Sub
-
-        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector))
-            Dim semanticModel = context.SemanticModel
-            Dim cancellationToken = context.CancellationToken
-
-            Dim syntaxTree = semanticModel.SyntaxTree
-            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
-            Dim root = syntaxTree.GetRoot(cancellationToken)
-
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(root)
-            If Not simplifier.HasDiagnostics Then
-                Return
+            Return simplifier.Diagnostics
+        End Function
+
+        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, root As SyntaxNode, codeBlockIntervalTree As TextSpanIntervalTree) As ImmutableArray(Of Diagnostic)
+            Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), context.CancellationToken)) Then
+                Return ImmutableArray(Of Diagnostic).Empty
             End If
 
-            For Each diagnostic In simplifier.Diagnostics
-                context.ReportDiagnostic(diagnostic)
-            Next
-        End Sub
+            Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, context.SemanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, context.CancellationToken)
+            simplifier.Visit(root)
+            Return simplifier.Diagnostics
+        End Function
 
         Private Shared Function IsNodeKindInteresting(node As SyntaxNode) As Boolean
             Return s_kindsOfInterest.Contains(node.Kind)
@@ -80,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Function
 
         Friend Overrides Function CanSimplifyTypeNameExpression(
-                model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
+                model As SemanticModel, node As SyntaxNode, options As VisualBasicSimplifierOptions,
                 ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
                 cancellationToken As CancellationToken) As Boolean
             issueSpan = Nothing
@@ -99,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Dim replacementSyntax As ExpressionSyntax = Nothing
-            If Not ExpressionSimplifier.Instance.TrySimplify(expression, model, optionSet, replacementSyntax, issueSpan, cancellationToken) Then
+            If Not ExpressionSimplifier.Instance.TrySimplify(expression, model, options, replacementSyntax, issueSpan, cancellationToken) Then
                 Return False
             End If
 
@@ -111,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 inDeclaration = False
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Dim method = model.GetMemberGroup(expression)
+                Dim method = model.GetMemberGroup(expression, cancellationToken)
                 If method.Length = 1 Then
                     Dim symbol = method.First()
                     If (symbol.IsOverrides Or symbol.IsOverridable) And memberAccess.Expression.Kind = SyntaxKind.MyClassExpression Then
@@ -123,10 +115,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Return True
-        End Function
-
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
         End Function
     End Class
 End Namespace

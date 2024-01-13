@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -247,7 +249,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if ((object)node.MethodOpt == null)
+            if (node.Method is MethodSymbol method)
+            {
+                if (_inExpressionLambda)
+                {
+                    if (method.Name == WellKnownMemberNames.CheckedDivisionOperatorName)
+                    {
+                        Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
+                    }
+                    else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    }
+                }
+            }
+            else
             {
                 CheckUnsafeType(node.Left);
                 CheckUnsafeType(node.Right);
@@ -258,16 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             BoundExpression left = node.Left;
 
-            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            if (!node.Operator.Kind.IsDynamic() && node.LeftConversion is BoundConversion { Conversion: { IsIdentity: false, Exists: true } conversion })
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                left = new BoundConversion(left.Syntax, left, conversion, node.Operator.Kind.IsChecked(),
                                            explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
             }
 
@@ -293,25 +314,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is doing something like "if (0xFFFFFFFFU == 0)" -- these are likely to be machine-
             // generated code. 
 
-            if (node.Left.ConstantValue != null && node.Right.ConstantValue == null && node.Right.Kind == BoundKind.Conversion)
+            if (node.Left.ConstantValueOpt != null && node.Right.ConstantValueOpt == null && node.Right.Kind == BoundKind.Conversion)
             {
-                CheckVacuousComparisons(node, node.Left.ConstantValue, node.Right);
+                CheckVacuousComparisons(node, node.Left.ConstantValueOpt, node.Right);
             }
 
-            if (node.Right.ConstantValue != null && node.Left.ConstantValue == null && node.Left.Kind == BoundKind.Conversion)
+            if (node.Right.ConstantValueOpt != null && node.Left.ConstantValueOpt == null && node.Left.Kind == BoundKind.Conversion)
             {
-                CheckVacuousComparisons(node, node.Right.ConstantValue, node.Left);
+                CheckVacuousComparisons(node, node.Right.ConstantValueOpt, node.Left);
             }
 
             if (node.OperatorKind == BinaryOperatorKind.ObjectEqual || node.OperatorKind == BinaryOperatorKind.ObjectNotEqual)
             {
                 TypeSymbol t;
-                if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+                if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValueOpt != null && node.Left.ConstantValueOpt.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the left hand side to type '{0}'
                     _diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
                 }
-                else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValue != null && node.Right.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
+                else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValueOpt != null && node.Right.ConstantValueOpt.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the right hand side to type '{0}'
                     _diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
@@ -428,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue))
+                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue, out _))
                 {
                     Error(ErrorCode.WRN_VacuousIntegralComp, tree, conversion.Operand.Type);
                     return;
@@ -504,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when they are non-constants, or when one is a constant, that we would similarly warn 
             // when both are constants.
 
-            if (node.ConstantValue != null)
+            if (node.ConstantValueOpt != null)
             {
                 return;
             }
@@ -562,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ConstantValue constVal = operand.ConstantValue;
+            ConstantValue constVal = operand.ConstantValueOpt;
 
             if (constVal == null || !constVal.IsIntegral)
             {
@@ -577,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // * a conversion with no cast in source code that goes from a smaller
         //   signed type to a larger signed or unsigned type.
         //
-        // * an conversion (with or without a cast) from a smaller
+        // * a conversion (with or without a cast) from a smaller
         //   signed type to a larger unsigned type.
 
         private static ulong FindSurprisingSignExtensionBits(BoundExpression expr)
@@ -792,16 +813,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
+                    if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                     {
-                        if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
-                        }
-                        else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
-                        }
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
+                    }
+                    else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
+                    {
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
                     }
                     break;
                 case BinaryOperatorKind.Or:

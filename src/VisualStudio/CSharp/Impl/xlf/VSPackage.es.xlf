@@ -33,13 +33,16 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
 Enable full solution analysis;
 Perform editor feature analysis in external process;
 Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
 Using directives;
 Place system directives first when sorting usings;
 Separate using directive groups;
@@ -50,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -78,17 +84,28 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostrar diagnóstico para archivos cerrados;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Subrayar variables reasignadas;
+Mostrar sugerencias insertadas;
+Mostrar diagnóstico para archivos cerrados;
 Colorear expresión regular; 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
 Habilitar la navegación a orígenes descompilados;
-Directivas Using;
-Poner directivas del sistema primero cuando se organicen instrucciones Using;
+Usar siempre servidores de símbolo predeterminados para la navegación;
+Directivas using;
+Poner directivas del sistema primero cuando se organicen instrucciones using;
 Separar grupos de directivas using;
 Sugerir directivas using para los tipos en los ensamblados de referencia;
 Sugerir directivas using para los tipos en los paquetes NuGet;
@@ -97,19 +114,22 @@ Resaltar referencias al símbolo bajo el cursor;
 Resaltar palabras clave relacionadas bajo el cursor;
 Esquematización;
 Especificar el modo de esquematización al abrir los archivos;
+Contraer #regions al abrir los archivos;
+Contraer instrucciones usings al abrir los archivos;
+Contraer implementaciones de metadatos al abrir los archivos;
 Mostrar separadores de líneas de procedimientos;
 Mostrar esquematización para construcciones a nivel de declaración;
 Mostrar esquematización para construcciones a nivel de código;
 Mostrar esquematización para regiones de preprocesador y comentarios;
-Contraer regiones cuando se contraiga a las definiciones;
+Contraer regiones cuando se contraigan las definiciones;
 Atenuación;
 Atenuar directivas using no usadas;
 Atenuar código inaccesible;
-Guías de estructura de bloque;
+Bloquear guías de estructura;
 Mostrar guías para construcciones a nivel de declaración;
 Mostrar guías para construcciones a nivel de código;
 Ayuda del editor;
-Generar comentarios de documentación XML con ///;
+Generar comentarios de documentación XML para ///;
 Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */;
 Mostrar vista previa para seguimiento de cambio de nombre;
 Dividir literales de cadena al presionar Entrar;
@@ -125,7 +145,16 @@ preferir propiedades de lanzamiento;
 preferir propiedades automáticas;
 regex;
 expresión regular;
-Usar colores mejorados;</target>
+Colorear las expresiones regulares;
+Resaltar los componentes relacionados bajo el cursor;
+Informar de las expresiones regulares no válidas;
+JSON;
+Colorear las cadenas JSON;
+Informar de las cadenas JSON no válidas;
+Detectar y ofrecer funciones del editor para las cadenas JSON;
+Utilizar colores mejorados;
+Esquema de colores del editor;
+Margen de herencia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -276,6 +305,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -286,11 +316,13 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
+        <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
 Mostrar lista de finalización después de escribir un carácter;
 Mostrar lista de finalización después de eliminar un carácter;
+Mostrar lista de finalización en las listas de argumentos automáticamente (experimental);
 Resaltar partes coincidentes de elementos de la lista de finalización;
 Mostrar filtros de elementos de finalización;
+Completar automáticamente la instrucción al introducir punto y coma;
 Comportamiento de los fragmentos de código;
 No incluir nunca fragmentos de código;
 Incluir siempre fragmentos de código;
@@ -299,7 +331,8 @@ Comportamiento de la tecla Entrar;
 No agregar nunca una línea nueva al presionar Entrar;
 Agregar solo una nueva línea con Entrar al final de palabras;
 Agregar siempre una línea nueva al presionar Entrar;
-Mostrar sugerencias de nombre;</target>
+Mostrar sugerencias de nombre;
+Mostrar elementos de espacios de nombres no importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

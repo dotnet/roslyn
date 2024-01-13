@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -183,7 +185,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -256,7 +258,8 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -336,7 +339,8 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -485,7 +489,7 @@ class Program
 
         }
 
-        [Fact]
+        [Fact, WorkItem(66365, "https://github.com/dotnet/roslyn/issues/66365")]
         public void InvokeOnThisBaseMethods()
         {
             var text = @"
@@ -508,20 +512,26 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
+            // We may be able to optimize this case (ie. avoid defensive copy) since the struct and the caller are in the same module
+            // Tracked by https://github.com/dotnet/roslyn/issues/66365
             comp.VerifyIL("Program.S1.Test()", @"
 {
-  // Code size       39 (0x27)
+  // Code size       47 (0x2f)
   .maxstack  1
+  .locals init (Program.S1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""Program.S1""
   IL_0006:  box        ""Program.S1""
   IL_000b:  call       ""System.Type object.GetType()""
   IL_0010:  call       ""void System.Console.Write(object)""
   IL_0015:  ldarg.0
-  IL_0016:  constrained. ""Program.S1""
-  IL_001c:  callvirt   ""string object.ToString()""
-  IL_0021:  call       ""void System.Console.Write(string)""
-  IL_0026:  ret
+  IL_0016:  ldobj      ""Program.S1""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  constrained. ""Program.S1""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  call       ""void System.Console.Write(string)""
+  IL_002e:  ret
 }");
         }
 
@@ -699,34 +709,34 @@ class Program
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (19,24): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             void F() { x = i;} // Error           
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(19, 24),
-                // (20,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (20,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             Action a = () => { x = i;}; // Error 
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(20, 32),
-                // (26,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (26,24): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             void F() { this = arg;} // Error
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(26, 24),
-                // (27,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (27,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             Action a = () => { this = arg;}; // Error 
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(27, 32),
-                // (33,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (33,24): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             void F() { this = default;} // Error
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(33, 24),
-                // (34,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (34,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             Action a = () => { this = default;}; // Error 
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(34, 32),
-                // (40,37): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (40,37): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             void F() { TakesRef(ref this);} // Error
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(40, 37),
-                // (41,45): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (41,45): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             Action a = () => { TakesRef(ref this);}; // Error 
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(41, 45),
-                // (47,37): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (47,37): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             void F() { TakesRef(ref this.x);} // Error
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(47, 37),
-                // (48,45): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (48,45): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             Action a = () => { TakesRef(ref this.x);}; // Error 
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(48, 45)
                 );
@@ -2158,30 +2168,40 @@ public struct S
             var comp = CompileAndVerify(csharp);
             comp.VerifyDiagnostics();
 
-            // ToString/GetHashCode/Equals should pass the address of 'this' (not a temp). GetType should box 'this'.
+            // GetType should box 'this'.
             comp.VerifyIL("S.M", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       82 (0x52)
   .maxstack  2
+  .locals init (S V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""S""
   IL_0006:  box        ""S""
   IL_000b:  call       ""System.Type object.GetType()""
   IL_0010:  pop
   IL_0011:  ldarg.0
-  IL_0012:  constrained. ""S""
-  IL_0018:  callvirt   ""string object.ToString()""
-  IL_001d:  pop
-  IL_001e:  ldarg.0
-  IL_001f:  constrained. ""S""
-  IL_0025:  callvirt   ""int object.GetHashCode()""
-  IL_002a:  pop
-  IL_002b:  ldarg.0
-  IL_002c:  ldnull
-  IL_002d:  constrained. ""S""
-  IL_0033:  callvirt   ""bool object.Equals(object)""
-  IL_0038:  pop
-  IL_0039:  ret
+  IL_0012:  ldobj      ""S""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""S""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  pop
+  IL_0026:  ldarg.0
+  IL_0027:  ldobj      ""S""
+  IL_002c:  stloc.0
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  constrained. ""S""
+  IL_0035:  callvirt   ""int object.GetHashCode()""
+  IL_003a:  pop
+  IL_003b:  ldarg.0
+  IL_003c:  ldobj      ""S""
+  IL_0041:  stloc.0
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  ldnull
+  IL_0045:  constrained. ""S""
+  IL_004b:  callvirt   ""bool object.Equals(object)""
+  IL_0050:  pop
+  IL_0051:  ret
 }");
         }
 

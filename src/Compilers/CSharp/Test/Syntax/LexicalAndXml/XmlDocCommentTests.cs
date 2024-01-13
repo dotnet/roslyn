@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,7 +51,7 @@ public class C
 }");
             using (new EnsureEnglishUICulture())
             {
-                var diags = new DiagnosticBag();
+                var diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 var badStream = new BrokenStream();
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
 
@@ -60,9 +62,10 @@ public class C
                     diags,
                     default(CancellationToken));
 
-                diags.Verify(
+                diags.DiagnosticBag.Verify(
                     // error CS1569: Error writing to XML documentation file: I/O error occurred.
                     Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                diags.Free();
             }
         }
 
@@ -3184,7 +3187,7 @@ public class Program
 /// </summary>
 ")});
 
-            var diags = DiagnosticBag.GetInstance();
+            var diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
@@ -3200,7 +3203,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
@@ -3213,7 +3216,7 @@ public class Program
 
             diags.ToReadOnlyAndFree().Verify();
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
@@ -3229,7 +3232,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
@@ -3248,7 +3251,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
@@ -3279,11 +3282,6 @@ public class Program
         private void VerifyDiagnostics(CSharpSyntaxNode node, List<TestError> errors)
         {
             VerifyDiagnostics(node.ErrorsAndWarnings(), errors);
-        }
-
-        private void VerifyDiagnostics(SyntaxToken token, List<TestError> errors)
-        {
-            VerifyDiagnostics(token.ErrorsAndWarnings(), errors);
         }
 
         private void VerifyDiagnostics(SyntaxTrivia trivia, List<TestError> errors)

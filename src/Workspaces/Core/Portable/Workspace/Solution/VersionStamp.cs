@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// VersionStamp should be only used to compare versions returned by same API.
     /// </summary>
-    public readonly struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
+    public readonly struct VersionStamp : IEquatable<VersionStamp>
     {
         public static VersionStamp Default => default;
 
@@ -68,13 +66,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of a VersionStamp.
         /// </summary>
         public static VersionStamp Create()
-            => new VersionStamp(DateTime.UtcNow);
+            => new(DateTime.UtcNow);
 
         /// <summary>
         /// Creates a new instance of a version stamp based on the specified DateTime.
         /// </summary>
         public static VersionStamp Create(DateTime utcTimeLastModified)
-            => new VersionStamp(utcTimeLastModified);
+            => new(utcTimeLastModified);
 
         /// <summary>
         /// compare two different versions and return either one of the versions if there is no collision, otherwise, create a new version
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             => !left.Equals(right);
 
         /// <summary>
-        /// check whether given persisted version is re-usable
+        /// Check whether given persisted version is re-usable. Used by VS for Mac
         /// </summary>
         internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
         {
@@ -188,11 +186,6 @@ namespace Microsoft.CodeAnalysis
 
             return baseVersion._utcLastModified == persistedVersion._utcLastModified;
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-            => WriteTo(writer);
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -232,28 +225,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(VersionStamp versionStamp)
         {
-            private readonly VersionStamp _versionStamp;
-
-            public TestAccessor(in VersionStamp versionStamp)
-                => _versionStamp = versionStamp;
 
             /// <summary>
             /// True if this VersionStamp is newer than the specified one.
             /// </summary>
             internal bool IsNewerThan(in VersionStamp version)
             {
-                if (_versionStamp._utcLastModified > version._utcLastModified)
+                if (versionStamp._utcLastModified > version._utcLastModified)
                 {
                     return true;
                 }
 
-                if (_versionStamp._utcLastModified == version._utcLastModified)
+                if (versionStamp._utcLastModified == version._utcLastModified)
                 {
-                    return GetGlobalVersion(_versionStamp) > GetGlobalVersion(version);
+                    return GetGlobalVersion(versionStamp) > GetGlobalVersion(version);
                 }
 
                 return false;

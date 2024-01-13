@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Globalization;
 using System.IO;
 using System.Reflection.Metadata;
@@ -129,6 +131,9 @@ class Program
     <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
         <forwardIterator name=""&lt;Goo&gt;d__0"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
@@ -265,6 +270,12 @@ class Program
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""101"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""32"" />
+          <state number=""2"" offset=""57"" />
+          <state number=""3"" offset=""122"" />
+          <state number=""4"" offset=""151"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
@@ -340,6 +351,11 @@ class Test<T>
           <slot kind=""5"" offset=""42"" />
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""42"" />
+          <state number=""1"" offset=""117"" />
+          <state number=""2"" offset=""155"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -570,16 +586,30 @@ public class Test
           <slot kind=""5"" offset=""104"" />
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""11"" />
+          <state number=""1"" offset=""68"" />
+          <state number=""-4"" offset=""104"" />
+          <state number=""2"" offset=""160"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"">
       <customDebugInfo>
         <forwardIterator name=""&lt;get_IterProp&gt;d__3"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""16"" />
+          <state number=""2"" offset=""48"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""IterMethod"">
       <customDebugInfo>
         <forwardIterator name=""&lt;IterMethod&gt;d__4"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+          <state number=""2"" offset=""45"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test"" name=""Main"">
@@ -648,23 +678,6 @@ public class Test
         <entry offset=""0x12e"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
@@ -680,6 +693,23 @@ public class Test
         <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""1"" />
         <entry offset=""0x5c"" hidden=""true"" document=""1"" />
         <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -954,6 +984,16 @@ class C
           <slot kind=""3"" offset=""367"" />
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""53"" />
+          <state number=""1"" offset=""67"" />
+          <state number=""-4"" offset=""149"" />
+          <state number=""2"" offset=""163"" />
+          <state number=""-5"" offset=""216"" />
+          <state number=""3"" offset=""237"" />
+          <state number=""-6"" offset=""266"" />
+          <state number=""4"" offset=""280"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1301,6 +1341,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1383,6 +1426,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""35"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1562,7 +1608,8 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        [Fact]
+        [WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
         public void PortableStateMachineDebugInfo()
         {
             string src = @"
@@ -1571,7 +1618,10 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
+
+            // Since metadata references are captured in pdb debug information make sure to specify
+            // the target framework so the test always has the same debug information output
+            var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();
@@ -1582,22 +1632,25 @@ public class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
+            Assert.True(result.Success);
             pdbStream.Position = 0;
-            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
-            {
-                var mdReader = provider.GetMetadataReader();
-                var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var mdReader = provider.GetMetadataReader();
+            var writer = new StringWriter();
+            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            visualizer.WriteMethodDebugInformation();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5: #22
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4: nil  
+5:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
@@ -1608,14 +1661,12 @@ MethodDebugInformation (index: 0x31, size: 40):
   IL_0030: <hidden>
   IL_0037: (5, 44) - (5, 45)
 }
-6: nil
-7: nil
-8: nil
-9: nil
-a: nil
-",
-                    writer.ToString());
-            }
+6: nil  
+7: nil  
+8: nil  
+9: nil  
+a: nil",
+                writer.ToString());
         }
     }
 }

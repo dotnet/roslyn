@@ -238,7 +238,6 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
 
         <Fact>
         Public Sub EmitMetadataOnly()
-            ' Check that Compilation.EmitMetadataOnly works.
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
@@ -297,6 +296,295 @@ End Class
                 CompilationUtils.AssertNoErrors(emitResult.Diagnostics)
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted")
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_NoDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should be emitted&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+"﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should still emit
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should still emit
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "<summary>").WithArguments("Element is missing an end tag.").WithLocation(4, 9),
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("Expected beginning '<' for an XML tag.").WithLocation(4, 40),
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected.").WithLocation(4, 40))
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SemanticWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;&lt;see cref="T"/&gt;&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.WRN_XMLDocCrefAttributeNotFound1, "cref=""T""").WithArguments("T").WithLocation(4, 23))
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary><see cref=""!:T""/></summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should emit&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_ParseDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should emit&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -402,7 +690,8 @@ End Class"
 
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsILVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -784,6 +1073,7 @@ End Function",
             End If
         End Sub
 
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
@@ -857,7 +1147,7 @@ End Function",
             Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
             Return comp.EmitToArray(refonlyOptions, metadataPEStream:=Nothing, manifestResources:=manifestResources)
         End Function
-
+#End If
         <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
             Dim hash_resources =
@@ -1035,6 +1325,52 @@ Public Class C
 End Class
 ",
 Sub(comp) comp.AssertTheseDiagnostics())
+        End Sub
+
+        <Fact, WorkItem(49470, "https://github.com/dotnet/roslyn/issues/49470")>
+        Public Sub RefAssemblyClient_EventBackingField()
+            Dim lib_vb = "
+Imports System
+
+Public Class Button
+    Public Event Click As EventHandler
+End Class
+
+Public Class Base
+    Protected WithEvents Button1 As Button
+End Class
+"
+            Dim source_vb = "
+Imports System
+
+Public Class Derived
+    Inherits Base
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+    End Sub
+End Class
+"
+            Dim libComp = CreateCompilationWithMscorlib40({Parse(lib_vb)}, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Assert.Equal({"Sub Base..ctor()",
+                         "Base._Button1 As Button",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         libComp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+
+            Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Dim libImage = libComp.EmitToImageReference(options)
+
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libImage})
+            AssertNoDiagnostics(comp)
+
+            ' The logic in PENamedTypeSymbol.CreateFields chooses not to import the field, but its presence still matters.
+            Assert.Equal({"Sub Base..ctor()",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         comp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
         End Sub
 
         Private Sub VerifyRefAssemblyClient(lib_vb As String, client_vb As String, validator As Action(Of VisualBasicCompilation), Optional debugFlag As Integer = -1)
@@ -1555,7 +1891,6 @@ Imports System
                                  expectedOutput:=<![CDATA[
 Keep calm and carry on.]]>)
 
-
         End Sub
 
         <Fact>
@@ -1616,7 +1951,6 @@ ABC.
 Life is 42.
 This is a elderberries.
 All done.]]>)
-
 
         End Sub
 
@@ -1722,7 +2056,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestReferences.NetFx.v2_0_50727.mscorlib}, Nothing)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net20.mscorlib}, Nothing)
             Dim metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray())
 
             ' this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
@@ -1943,7 +2277,6 @@ End Module
             Assert.Equal(&H2000UL, peHeaders.PEHeader.SizeOfHeapCommit)
         End Sub
 
-
         <Fact()>
         Public Sub CheckDllCharacteristicsHighEntropyVA()
             Dim source =
@@ -2043,7 +2376,6 @@ End Module
         End Sub
 
 #End Region
-
 
         <Fact()>
         Public Sub Bug10273()
@@ -2207,7 +2539,6 @@ Imports System
             CompileAndVerify(source,
                              sourceSymbolValidator:=sourceSymbolValidator,
                              symbolValidator:=peSymbolValidator)
-
 
         End Sub
 
@@ -2440,7 +2771,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2452,7 +2783,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2501,7 +2832,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2513,7 +2844,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                      ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2934,8 +3265,8 @@ end namespace
                     Dim assembly = [module].ContainingAssembly
                     Dim ns = DirectCast([module].GlobalNamespace.GetMembers("N").Single, NamespaceSymbol)
                     Dim namedType = DirectCast(ns.GetMembers("C1").Single, NamedTypeSymbol)
-                    Dim type = DirectCast(namedType, Microsoft.Cci.ITypeDefinition)
-                    Dim method = DirectCast(namedType.GetMembers("goo1").Single, Microsoft.Cci.IMethodDefinition)
+                    Dim type = DirectCast(namedType.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
+                    Dim method = DirectCast(namedType.GetMembers("goo1").Single.GetCciAdapter(), Microsoft.Cci.IMethodDefinition)
 
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
@@ -2948,7 +3279,7 @@ end namespace
                     ' Verify Assembly security attributes
                     Assert.Equal(2, assemblySecurityAttributes.Count)
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "SecurityPermissionAttribute")
-                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
                     Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
@@ -2972,7 +3303,7 @@ end namespace
 
                     ' Get System.Security.Permissions.PrincipalPermissionAttribute
                     emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "PrincipalPermissionAttribute")
-                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(principalPermAttr)
 
                     ' Verify type security attributes: different security action
@@ -3477,7 +3808,6 @@ Public Interface I(Of W As Structure) : End Interface
                     Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint,
                                  flags And GenericParameterAttributes.DefaultConstructorConstraint)
 
-
                     Dim metadataReader = metadata.MetadataReader
                     Dim constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints()
                     Assert.Equal(1, constraints.Count)
@@ -3531,7 +3861,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
-
 
             Dim useSource =
 <compilation>
@@ -3624,7 +3953,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3637,7 +3965,6 @@ End interface
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
-
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -3678,7 +4005,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3687,7 +4013,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -3741,7 +4066,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3777,7 +4101,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3786,7 +4109,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -3836,7 +4158,6 @@ End interface
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3871,7 +4192,6 @@ End interface
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
             Dim imageRef = refCompilation.EmitToImageReference()
 
-
             Dim useSource =
 <compilation>
     <file name="b.vb">
@@ -3880,7 +4200,6 @@ public interface IUsePlatform
 End interface
 </file>
 </compilation>
-
 
             Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
@@ -3929,7 +4248,6 @@ End interface
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
-
 
             Dim useSource =
 <compilation>

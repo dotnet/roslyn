@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -76,7 +74,7 @@ namespace Microsoft.Cci
             if (name.Equals(MvidSectionName, StringComparison.Ordinal))
             {
                 Debug.Assert(_withMvidSection);
-                return SerializeMvidSection(location);
+                return SerializeMvidSection();
             }
 
             return base.SerializeSection(name, location);
@@ -89,7 +87,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobBuilder SerializeMvidSection(SectionLocation location)
+        private BlobBuilder SerializeMvidSection()
         {
             var sectionBuilder = new BlobBuilder();
 

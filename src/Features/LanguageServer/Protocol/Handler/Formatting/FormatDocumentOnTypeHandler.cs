@@ -2,72 +2,83 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
-    internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
+    [Method(Methods.TextDocumentOnTypeFormattingName)]
+    internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentOnTypeHandler()
+        public FormatDocumentOnTypeHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities? clientCapabilities,
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+
+        public async Task<TextEdit[]?> HandleRequestAsync(
+            DocumentOnTypeFormattingParams request,
+            RequestContext context,
             CancellationToken cancellationToken)
         {
-            var edits = new ArrayBuilder<TextEdit>();
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
-            if (document != null)
+            var document = context.Document;
+            if (document is null)
+                return null;
+
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+
+            if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
             {
-                var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-                if (string.IsNullOrEmpty(request.Character))
-                {
-                    return edits.ToArrayAndFree();
-                }
-
-                IList<TextChange>? textChanges;
-                if (SyntaxFacts.IsNewLine(request.Character[0]))
-                {
-                    textChanges = await GetFormattingChangesOnReturnAsync(formattingService, document, position, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    textChanges = await GetFormattingChangesAsync(formattingService, document, request.Character[0], position, cancellationToken).ConfigureAwait(false);
-                }
-
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                if (textChanges != null)
-                {
-                    edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
-                }
+                return Array.Empty<TextEdit>();
             }
 
+            var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
+            {
+                return Array.Empty<TextEdit>();
+            }
+
+            // We should use the options passed in by LSP instead of the document's options.
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
+            var indentationOptions = new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+            };
+
+            var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
+            if (textChanges.IsEmpty)
+            {
+                return Array.Empty<TextEdit>();
+            }
+
+            var edits = new ArrayBuilder<TextEdit>();
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text)));
             return edits.ToArrayAndFree();
         }
-
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(IEditorFormattingService formattingService, Document document, int position, CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
-
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, char typedChar, int position, CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesAsync(document, typedChar, position, cancellationToken);
     }
 }

@@ -1,0 +1,17 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+    <PropertyGroup>
+        <RestoreSources Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
+          $(RestoreSources);
+          https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json;
+          https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json;
+        </RestoreSources>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <!-- Add explicit Newtonsoft.Json dependency to override the implicit 10.0.1 version brought in by Microsoft.DevDiv.Optimization.Data.PowerShell -->
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'" />
+        <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'"/>
+    </ItemGroup>
+
+</Project>

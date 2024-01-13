@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitCastExpression(CastExpressionSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
                     newNode: base.VisitCastExpression(node),
                     simplifier: s_simplifyCast);

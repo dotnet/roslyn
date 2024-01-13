@@ -25,17 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsAnyExpressionContext)
-            {
-                return true;
-            }
-
-            if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+            if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ||
+                context.PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword))
             {
                 return false;
             }
 
             return InMemberDeclarationContext(position, context, cancellationToken)
+                || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
                 || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
         }
 
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 || context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken)
                 || context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
         }

@@ -232,7 +232,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             ' "Compilation 2 Assembly"
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
@@ -257,8 +257,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
         Public Sub M2MMultiTargetingMsCorLib02()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib02">
@@ -307,7 +306,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             '
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
@@ -332,8 +331,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
         Public Sub M2MMultiTargetingMsCorLib03()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib03">
@@ -384,7 +382,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).ToList()

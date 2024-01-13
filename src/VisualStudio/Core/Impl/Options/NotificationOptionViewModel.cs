@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.VisualStudio.Imaging.Interop;
 
@@ -12,10 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// </summary>
     internal class NotificationOptionViewModel
     {
-        public NotificationOptionViewModel(NotificationOption notification, ImageMoniker moniker)
+        public NotificationOptionViewModel(NotificationOption2 notification, ImageMoniker moniker)
         {
             Notification = notification;
-            Name = notification.Name;
+            Name = notification.Severity.GetDisplayString();
             Moniker = moniker;
         }
 
@@ -23,6 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public string Name { get; }
 
-        public NotificationOption Notification { get; }
+        public NotificationOption2 Notification { get; }
     }
 }

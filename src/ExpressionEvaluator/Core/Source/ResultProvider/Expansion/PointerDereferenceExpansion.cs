@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -48,9 +50,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var value = pointer.Dereference(inspectionContext);
             var wasExceptionThrown = value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
 
-            var expansion = wasExceptionThrown ?
-                null :
-                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None, supportsFavorites: false);
+            var expansion = wasExceptionThrown
+                ? null
+                : resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None, supportsFavorites: false);
             var parentFullName = parent.ChildFullNamePrefix;
             var fullName = parentFullName == null ? null : $"*{parentFullName}";
             var editableValue = resultProvider.Formatter2.GetEditableValueString(value, inspectionContext, elementTypeAndInfo.Info);

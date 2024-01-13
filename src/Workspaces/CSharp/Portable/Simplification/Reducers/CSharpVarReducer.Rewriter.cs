@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -29,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // Definitely do not simplify us if we were told to not simplify.
-                if (typeSyntax.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                if (typeSyntax.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                 {
                     return typeSyntax;
                 }
 
                 var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
-                    typeSyntax, this.SemanticModel, this.OptionSet, this.CancellationToken);
+                    typeSyntax, this.SemanticModel, this.Options, this.CancellationToken);
 
                 if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
                 {

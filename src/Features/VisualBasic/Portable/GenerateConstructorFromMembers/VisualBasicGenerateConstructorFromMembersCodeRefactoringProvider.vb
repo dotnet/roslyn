@@ -4,11 +4,13 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
+Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), [Shared]>
@@ -29,13 +31,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
             MyBase.New(pickMembersService_forTesting)
         End Sub
 
+        Protected Overrides Function ContainingTypesOrSelfHasUnsafeKeyword(containingType As INamedTypeSymbol) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function ToDisplayString(parameter As IParameterSymbol, format As SymbolDisplayFormat) As String
             Return SymbolDisplay.ToDisplayString(parameter, format)
         End Function
 
-        Protected Overrides Function PrefersThrowExpression(options As DocumentOptionSet) As Boolean
+        Protected Overrides Function PrefersThrowExpressionAsync(document As Document, fallbackOptions As SimplifierOptionsProvider, cancellationToken As CancellationToken) As ValueTask(Of Boolean)
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
-            Return False
+            Return ValueTaskFactory.FromResult(False)
+        End Function
+
+        Protected Overrides Function TryMapToWritableInstanceField([property] As IPropertySymbol, cancellationToken As CancellationToken) As IFieldSymbol
+            Return Nothing
         End Function
     End Class
 End Namespace

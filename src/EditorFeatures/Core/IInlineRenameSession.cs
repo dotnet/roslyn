@@ -2,10 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class InlineRenameSessionInfo
+    internal sealed class InlineRenameSessionInfo
     {
         /// <summary>
         /// Whether or not the entity at the selected location can be renamed.
@@ -46,6 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Dismisses the rename session, completing the rename operation across all files.
         /// </summary>
-        void Commit(bool previewChanges = false);
+        Task CommitAsync(bool previewChanges, CancellationToken cancellationToken);
     }
 }

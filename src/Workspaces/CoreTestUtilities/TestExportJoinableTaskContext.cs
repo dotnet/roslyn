@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -22,15 +21,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Export]
     internal partial class TestExportJoinableTaskContext
     {
+        public readonly IDispatcherTaskJoiner? DispatcherTaskJoiner;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestExportJoinableTaskContext()
+        public TestExportJoinableTaskContext(
+            [Import(AllowDefault = true)] IDispatcherTaskJoiner? dispatcherTaskJoiner = null)
         {
+            DispatcherTaskJoiner = dispatcherTaskJoiner;
+
             var synchronizationContext = SynchronizationContext.Current;
             try
             {
                 SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-                (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
+                (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext(dispatcherTaskJoiner);
                 ResetThreadAffinity(JoinableTaskContext.Factory);
             }
             finally
@@ -39,15 +43,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext()
+        private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext(IDispatcherTaskJoiner? dispatcherTaskJoiner)
         {
             Thread mainThread;
             SynchronizationContext synchronizationContext;
-            if (SynchronizationContext.Current is DispatcherSynchronizationContext)
+
+            var currentContext = SynchronizationContext.Current;
+            if (currentContext is not null)
             {
+                Contract.ThrowIfFalse(dispatcherTaskJoiner?.IsDispatcherSynchronizationContext(currentContext) == true);
+
                 // The current thread is the main thread, and provides a suitable synchronization context
                 mainThread = Thread.CurrentThread;
-                synchronizationContext = SynchronizationContext.Current;
+                synchronizationContext = currentContext;
             }
             else
             {
@@ -55,12 +63,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // synchronization context of the current thread will behave in a manner consistent with main thread
                 // synchronization contexts, so we use DenyExecutionSynchronizationContext to track any attempted
                 // use of it.
-                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(SynchronizationContext.Current);
+                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(currentContext);
                 mainThread = denyExecutionSynchronizationContext.MainThread;
                 synchronizationContext = denyExecutionSynchronizationContext;
             }
 
+#pragma warning disable VSSDK005 // Use ThreadHelper.JoinableTaskContext singleton - N/A, used for test code
             return (new JoinableTaskContext(mainThread, synchronizationContext), synchronizationContext);
+#pragma warning restore VSSDK005 // Use ThreadHelper.JoinableTaskContext singleton - N/A, used for test code
         }
 
         [Export]
@@ -86,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     },
                     null);
 
-                return innerSynchronizationContext;
+                return innerSynchronizationContext == asyncTestSyncContext ? null : innerSynchronizationContext;
             }
             else
             {
@@ -111,8 +121,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
                 if (type != null)
                 {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, thread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, taskScheduler);
+                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, thread);
+                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, taskScheduler);
 
                     break;
                 }

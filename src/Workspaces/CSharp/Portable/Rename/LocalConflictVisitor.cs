@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // before visiting nested statements
             foreach (var statement in statements)
             {
-                if (statement.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax declarationStatement))
+                if (statement is LocalDeclarationStatementSyntax declarationStatement)
                 {
                     foreach (var declarator in declarationStatement.Declaration.Variables)
                     {

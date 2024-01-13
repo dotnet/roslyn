@@ -30,6 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return expression;
             }
 
+            // Throw expressions are not permitted to be parenthesized:
+            //
+            //     "a" ?? throw new ArgumentNullException()
+            //
+            // is legal whereas
+            //
+            //     "a" ?? (throw new ArgumentNullException())
+            //
+            // is not.
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                return expression;
+            }
+
             var result = ParenthesizeWorker(expression, includeElasticTrivia);
             return addSimplifierAnnotation
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)
@@ -48,6 +62,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
 
             return parenthesized.WithTriviaFrom(expression);
+        }
+
+        public static PatternSyntax Parenthesize(
+            this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            var withoutTrivia = pattern.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedPattern(withoutTrivia)
+                : SyntaxFactory.ParenthesizedPattern(
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            var result = parenthesized.WithTriviaFrom(pattern);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
         }
 
         public static CastExpressionSyntax Cast(
@@ -73,9 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             if (targetType.ContainsAnonymousType())
-            {
                 return expression;
-            }
+
+            if (targetType.IsSystemVoid())
+                return expression;
 
             if (targetType.Kind == SymbolKind.DynamicType)
             {
@@ -110,6 +142,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return castExpression;
+        }
+        /// <summary>
+        /// DeterminesCheck if we're in an interesting situation like this:
+        /// <code>
+        ///     int i = 5;
+        ///     i.          // -- here
+        ///     List ml = new List();
+        /// </code>
+        /// The problem is that "i.List" gets parsed as a type.  In this case we need to try binding again as if "i" is
+        /// an expression and not a type.  In order to do that, we need to speculate as to what 'i' meant if it wasn't
+        /// part of a local declaration's type.
+        /// <para/>
+        /// Another interesting case is something like:
+        /// <code>
+        ///      stringList.
+        ///      await Test2();
+        /// </code>
+        /// Here "stringList.await" is thought of as the return type of a local function.
+        /// </summary>
+        public static bool ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(
+            this ExpressionSyntax name,
+            SemanticModel semanticModel,
+            out SymbolInfo leftHandBinding,
+            out ITypeSymbol? container)
+        {
+            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
+                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+                name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
+            {
+                leftHandBinding = semanticModel.GetSpeculativeSymbolInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
+
+                container = semanticModel.GetSpeculativeTypeInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
+                return true;
+            }
+
+            leftHandBinding = default;
+            container = null;
+            return false;
         }
     }
 }

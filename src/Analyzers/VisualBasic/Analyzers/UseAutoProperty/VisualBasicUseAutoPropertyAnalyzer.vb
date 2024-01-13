@@ -4,13 +4,25 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseAutoPropertyAnalyzer
-        Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
+        Inherits AbstractUseAutoPropertyAnalyzer(Of
+            SyntaxKind,
+            PropertyBlockSyntax,
+            ConstructorBlockSyntax,
+            FieldDeclarationSyntax,
+            ModifiedIdentifierSyntax,
+            ExpressionSyntax,
+            IdentifierNameSyntax)
+
+        Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
+
+        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -24,43 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Sub AnalyzeCompilationUnit(context As SemanticModelAnalysisContext, root As SyntaxNode, analysisResults As List(Of AnalysisResult))
-            AnalyzeMembers(context, DirectCast(root, CompilationUnitSyntax).Members, analysisResults)
-        End Sub
-
-        Private Sub AnalyzeMembers(context As SemanticModelAnalysisContext,
-                                   members As SyntaxList(Of StatementSyntax),
-                                   analysisResults As List(Of AnalysisResult))
-            For Each member In members
-                AnalyzeMember(context, member, analysisResults)
-            Next
-        End Sub
-
-        Private Sub AnalyzeMember(context As SemanticModelAnalysisContext,
-                                  member As StatementSyntax,
-                                  analysisResults As List(Of AnalysisResult))
-
-            If member.Kind() = SyntaxKind.NamespaceBlock Then
-                Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
-                AnalyzeMembers(context, namespaceBlock.Members, analysisResults)
-            End If
-
-            ' If we have a class or struct or module, recurse inwards.
-            If member.IsKind(SyntaxKind.ClassBlock) OrElse
-               member.IsKind(SyntaxKind.StructureBlock) OrElse
-               member.IsKind(SyntaxKind.ModuleBlock) Then
-
-                Dim typeBlock = DirectCast(member, TypeBlockSyntax)
-                AnalyzeMembers(context, typeBlock.Members, analysisResults)
-            End If
-
-            Dim propertyDeclaration = TryCast(member, PropertyBlockSyntax)
-            If propertyDeclaration IsNot Nothing Then
-                AnalyzeProperty(context, propertyDeclaration, analysisResults)
-            End If
-        End Sub
-
-        Protected Overrides Sub RegisterIneligibleFieldsAction(analysisResults As List(Of AnalysisResult), ineligibleFields As HashSet(Of IFieldSymbol), compilation As Compilation, cancellationToken As CancellationToken)
+        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As HashSet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -89,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return declarator?.Initializer?.Value
         End Function
 
-        Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
+        Private Shared Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
             If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
@@ -142,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                        Dim symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol
                         If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
                             Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
                         End If
@@ -153,71 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetNodeToFade(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
-            Return Utilities.GetNodeToRemove(identifier)
-        End Function
-
-        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, compilation As Compilation, cancellationToken As CancellationToken) As Boolean
-            If propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
-                ' If this property already has a setter, then we can definitely simplify it to an auto-prop 
-                Return True
-            End If
-
-            ' the property doesn't have a setter currently. check all the types the field is 
-            ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the property widely 
-            ' (in accessibility terms) in a way the user would not want.
-            Dim containingType = field.ContainingType
-            For Each ref In containingType.DeclaringSyntaxReferences
-                Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
-                If containingNode IsNot Nothing Then
-#Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim refSemanticModel = If(containingNode.SyntaxTree Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(containingNode.SyntaxTree))
-#Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, refSemanticModel, cancellationToken) Then
-                        Return False
-                    End If
-                End If
-            Next
-
-            ' No problem simplifying this field.
-            Return True
-        End Function
-
-        Private Function IsWrittenOutsideOfConstructorOrProperty(field As IFieldSymbol,
-                                                                 propertyDeclaration As PropertyBlockSyntax,
-                                                                 node As SyntaxNode,
-                                                                 semanticModel As SemanticModel,
-                                                                 cancellationToken As CancellationToken) As Boolean
-            cancellationToken.ThrowIfCancellationRequested()
-
-            If node Is propertyDeclaration Then
-                Return False
-            End If
-
-            If node.Kind() = SyntaxKind.ConstructorBlock Then
-                Return False
-            End If
-
-            If node.Kind() = SyntaxKind.IdentifierName Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(node)
-                If field.Equals(symbolInfo.Symbol) Then
-                    If DirectCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken) Then
-                        Return True
-                    End If
-                End If
-            Else
-                For Each child In node.ChildNodesAndTokens
-                    If child.IsNode Then
-                        If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, child.AsNode(), semanticModel, cancellationToken) Then
-                            Return True
-                        End If
-                    End If
-                Next
-            End If
-
-            Return False
+        Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
+            Return GetNodeToRemove(identifier)
         End Function
     End Class
 End Namespace

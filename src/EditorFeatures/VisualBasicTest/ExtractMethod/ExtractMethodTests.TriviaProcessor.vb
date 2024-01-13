@@ -2,14 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         <[UseExportProvider]>
+        <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
         Public Class TriviaProcessor
 
-            <WorkItem(539281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539281")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539281")>
             Public Async Function TestCommentBeforeCode() As Threading.Tasks.Task
                 Dim code = <text>Class C
     Sub M()
@@ -32,8 +31,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(545173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545173")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545173")>
             Public Async Function LineContinuation() As Threading.Tasks.Task
                 Dim code = <text>Module Program
     Sub Main
@@ -56,8 +54,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(544568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544568")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544568")>
             Public Async Function LineContinuation2() As Threading.Tasks.Task
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -100,8 +97,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(529797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529797")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529797")>
             Public Async Function ImplicitLineContinuation() As Threading.Tasks.Task
                 Dim code = <text>Imports System.Linq
 Module A
@@ -126,8 +122,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(529797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529797")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529797")>
             Public Async Function ImplicitLineContinuation2() As Threading.Tasks.Task
                 Dim code = <text>Imports System.Linq
 Module A

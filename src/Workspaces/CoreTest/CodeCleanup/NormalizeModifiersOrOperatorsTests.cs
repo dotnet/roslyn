@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -14,10 +16,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
     public class NormalizeModifiersOrOperatorsTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task PartialMethod()
         {
             var code = @"[|Class A
@@ -34,7 +36,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task PartialClass()
         {
             var code = @"[|Public Partial Class A
@@ -47,7 +48,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task DefaultProperty()
         {
             var code = @"[|Class Class1
@@ -74,7 +74,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Accessors()
         {
             var code = @"[|Public Module M
@@ -131,7 +130,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Structure()
         {
             var code = @"[|Public Partial Structure S
@@ -144,7 +142,6 @@ End Structure";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Interface()
         {
             var code = @"[|Public Interface O
@@ -175,7 +172,6 @@ End Interface";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Class()
         {
             var code = @"[|MustInherit Public  Class C
@@ -188,7 +184,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Enum()
         {
             var code = @"[|Public Class O
@@ -223,7 +218,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Method()
         {
             var code = @"[|Public Class O
@@ -242,7 +236,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Declare()
         {
             var code = @"[|Class C
@@ -257,7 +250,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Delegate()
         {
             var code = @"[|Public Class O
@@ -284,7 +276,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Event()
         {
             var code = @"[|Public Class O
@@ -299,7 +290,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Operator()
         {
             var code = @"[|Public Structure abc
@@ -316,7 +306,6 @@ End Structure";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Property()
         {
             var code = @"[|Class Class1
@@ -331,7 +320,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Accessor()
         {
             var code = @"[|Class Class1
@@ -360,7 +348,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task IncompleteMember()
         {
             var code = @"[|Class Program
@@ -375,7 +362,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Field()
         {
             var code = @"[|Class Program
@@ -390,7 +376,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NotOverridable_Overridable_Overrides()
         {
             var code = @"[|Public Class Program
@@ -423,7 +408,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task MustOverride_MustInherit()
         {
             var code = @"[|MustInherit Public Class Program
@@ -438,7 +422,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Overloads()
         {
             var code = @"[|Public MustInherit Class Program
@@ -461,7 +444,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NotInheritable()
         {
             var code = @"[|NotInheritable Public Class Program
@@ -474,7 +456,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Shared_Shadow_ReadOnly_Const()
         {
             var code = @"[|Class C
@@ -515,7 +496,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task WriteOnly()
         {
             var code = @"[|Class C
@@ -536,7 +516,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task WithEvent_Custom_Dim()
         {
             var code = @"[|Imports System
@@ -585,7 +564,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Widening_Narrowing()
         {
             var code = @"[|Public Structure digit
@@ -610,7 +588,6 @@ End Structure";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Static_Const_Dim()
         {
             var code = @"[|Class A
@@ -630,9 +607,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal1()
         {
             var code = @"[|Class A
@@ -648,9 +623,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal2()
         {
             var code = @"[|Class A
@@ -666,9 +639,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal_LineContinuation()
         {
             var code = @"[|Class A
@@ -682,7 +653,7 @@ End Class|]";
             var expected = @"Class A
     Sub Method( _
         ByVal _
- _
+              _
             t As String, ByRef t1 As String)
     End Sub
 End Class";
@@ -691,7 +662,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveDim()
         {
             var code = @"[|Class A
@@ -706,7 +676,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveDim_LineContinuation()
         {
             var code = @"[|Class A
@@ -719,7 +688,7 @@ End Class|]";
             var expected = @"Class A
     Private _
         Shared _
- _
+               _
             a As Integer = 1
 End Class";
 
@@ -727,7 +696,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanGreaterThan()
         {
             var code = @"[|Class A
@@ -748,7 +716,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task GreaterThanEquals()
         {
             var code = @"[|Class A
@@ -769,7 +736,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanEquals()
         {
             var code = @"[|Class A
@@ -790,7 +756,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanEquals_LineContinuation()
         {
             var code = @"[|Class A
@@ -815,9 +780,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
         public async Task NormalizedOperator_StructuredTrivia()
         {
             var code = @"[|#If VBC_VER => 9.0|]";
@@ -827,10 +790,8 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
-        public async Task DontRemoveByVal()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        public async Task DoNotRemoveByVal()
         {
             var code = @"[|Module Program
     Sub Main(
@@ -851,9 +812,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
         public async Task NormalizeOperator_Text()
         {
             var code = @"[|Module Program
@@ -875,9 +834,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
         public async Task NormalizeOperator_OperatorStatement()
         {
             var code = @"[|Class S
@@ -891,9 +848,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
         public async Task Reorder_OperatorTokenAndModifiers()
         {
             var code = @"[|Class S
@@ -907,9 +862,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
         public async Task SkippedTokenOperator()
         {
             var code = @"[|Module M
@@ -927,9 +880,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         public async Task ReorderAsyncModifier()
         {
             var code = @"[|Module M
@@ -963,9 +914,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         public async Task ReorderIteratorModifier()
         {
             var code = @"[|Module M
@@ -999,9 +948,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
         public async Task ReorderDuplicateModifiers()
         {
             var code = @"[|Module M
@@ -1027,9 +974,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
         public async Task TestBadOperatorToken()
         {
             var code = @"[|Module Test
@@ -1049,9 +994,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1534")]
         public async Task TestColonEqualsToken()
         {
             var code = @"[|Module Program
@@ -1069,15 +1012,14 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators or PredefinedCodeCleanupProviderNames.Format);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], CodeCleanupOptions.GetDefault(document.Project.Services), codeCleanups);
 
             Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
         }

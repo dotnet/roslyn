@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../RemoteWorkspacesResources.resx">
+    <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">Sincronização de ativos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">Ouvinte de operação assíncrona</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CodeLensReferences">
+        <source>CodeLens references</source>
+        <target state="translated">Referências CodeLens</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Disponibilidade da semântica do projeto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
+        <source>Convert tuple to struct refactoring</source>
+        <target state="translated">Converter a tupla em refatoração de struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DependentTypeFinder">
+        <source>Dependent type finder</source>
+        <target state="translated">Localizador de tipo dependente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
+        <source>DesignerAttribute discovery</source>
+        <target state="translated">Descoberta de DesignerAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticAnalyzer">
+        <source>Diagnostic analyzer runner</source>
+        <target state="translated">Executor do analisador de diagnóstico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DocumentHighlights">
+        <source>Document highlights</source>
+        <target state="translated">Documentos em destaques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Editar e Continuar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EncapsulateField">
+        <source>Encapsulate field refactoring</source>
+        <target state="translated">Encapsular a refatoração de campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
+        <source>Extension method import completion</source>
+        <target state="translated">Conclusão da importação do método de extensão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FindUsages">
+        <source>Find usages</source>
+        <target state="translated">Localizar usos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">Totalmente qualificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_GlobalNotificationDelivery">
+        <source>Global notification delivery</source>
+        <target state="translated">Entrega de notificação global</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Margem de herança</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Serviço Keep alive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">Eventos da Solução</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">Descoberta de importação ausente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigateToSearch">
+        <source>Navigate to</source>
+        <target state="translated">Navegar para</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Barra de navegação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Telemetria de processo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProjectTelemetry">
+        <source>Project telemetry collection</source>
+        <target state="translated">Coleção de telemetria do projeto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Renamer">
+        <source>Rename</source>
+        <target state="translated">Renomear</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticClassification">
+        <source>Semantic classification</source>
+        <target state="translated">Classificação semântica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">Provedor de ativos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Geração de origem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Explorador de Rastreamento de Pilha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolFinder">
+        <source>Symbol finder</source>
+        <target state="translated">Localizador de símbolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolSearchUpdate">
+        <source>Symbol search</source>
+        <target state="translated">Pesquisa de símbolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Lista de tarefas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">Pesquisa de teste de unidade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Análise de referência não usada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Rastreamento de Valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
+        <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
+        <target state="translated">O recurso '{0}' não está disponível no momento devido a um erro intermitente. Faça uma nova tentativa mais tarde: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
+        <source>Feature '{0}' is currently unavailable due to an internal error.</source>
+        <target state="translated">O recurso '{0}' não está disponível no momento devido a um erro interno.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
+        <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
+        <target state="translated">O recurso '{0}' não está disponível no momento porque o {1} está sendo desligado.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

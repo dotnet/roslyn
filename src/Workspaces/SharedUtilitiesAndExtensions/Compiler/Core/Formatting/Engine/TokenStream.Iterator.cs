@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -11,45 +10,33 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        private class Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
+        public readonly struct Iterator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
         {
-            private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+            public Enumerator GetEnumerator()
+                => new(tokensIncludingZeroWidth);
 
-            public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
-                => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-
-            public IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>> GetEnumerator()
-                => new Enumerator(_tokensIncludingZeroWidth);
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-                => GetEnumerator();
-
-            private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
+            public struct Enumerator
             {
-                private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+                private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
                 private readonly int _maxCount;
 
-                private ValueTuple<int, SyntaxToken, SyntaxToken> _current;
+                private (int index, SyntaxToken currentToken, SyntaxToken nextToken) _current;
                 private int _index;
 
-                public Enumerator(List<SyntaxToken> tokensIncludingZeroWidth)
+                public Enumerator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
                 {
                     _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
                     _maxCount = _tokensIncludingZeroWidth.Count - 1;
 
                     _index = 0;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
-                }
-
-                public void Dispose()
-                {
+                    _current = default;
                 }
 
                 public bool MoveNext()
                 {
                     if (_index < _maxCount)
                     {
-                        _current = ValueTuple.Create(_index, _tokensIncludingZeroWidth[_index], _tokensIncludingZeroWidth[_index + 1]);
+                        _current = (_index, _tokensIncludingZeroWidth[_index], _tokensIncludingZeroWidth[_index + 1]);
                         _index++;
                         return true;
                     }
@@ -60,30 +47,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 private bool MoveNextRare()
                 {
                     _index = _maxCount + 1;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _current = default;
                     return false;
                 }
 
-                public ValueTuple<int, SyntaxToken, SyntaxToken> Current => _current;
-
-                object System.Collections.IEnumerator.Current
-                {
-                    get
-                    {
-                        if (_index == 0 || _index == _maxCount + 1)
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-                        return Current;
-                    }
-                }
-
-                void System.Collections.IEnumerator.Reset()
-                {
-                    _index = 0;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
-                }
+                public readonly (int index, SyntaxToken currentToken, SyntaxToken nextToken) Current => _current;
             }
         }
     }

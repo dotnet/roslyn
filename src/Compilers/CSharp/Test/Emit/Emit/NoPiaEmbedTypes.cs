@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if !NET472
 #pragma warning disable IDE0055 // Fix formatting
 #endif
@@ -1159,7 +1161,6 @@ class UsePia4
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -1719,7 +1720,6 @@ interface UsePia5 : ITest29
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -1777,9 +1777,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -1817,7 +1817,7 @@ class UsePia
 }";
 
             DiagnosticDescription[] expected = {
-                // (10,16): error CS0144: Cannot create an instance of the abstract class or interface 'ITest28'
+                // (10,16): error CS0144: Cannot create an instance of the abstract type or interface 'ITest28'
                 //         return new ITest28();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new ITest28()").WithArguments("ITest28")
                                                };
@@ -2054,7 +2054,6 @@ class UsePia
     }
 }";
 
-
             DiagnosticDescription[] expected = {
                 // (10,20): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
                 //         return new ITest28(1);
@@ -2122,7 +2121,6 @@ class UsePia
     }
 }";
 
-
             DiagnosticDescription[] expected = {
                 // (20,16): error CS0656: Missing compiler required member 'System.Guid..ctor'
                 //         return new ITest28();
@@ -2189,7 +2187,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -2306,7 +2303,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -2701,7 +2697,6 @@ class UsePia5 : ITest29, ITest30
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -2774,7 +2769,6 @@ class UsePia5 : ITest29, ITest30
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -2839,7 +2833,6 @@ class UsePia
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -2900,7 +2893,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -2968,7 +2960,6 @@ class UsePia5 : ITest30
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -2993,7 +2984,7 @@ class UsePia5 : ITest30
         }
 
         [Fact]
-        public void DispIdAttribute()
+        public void DispIdAttribute_01()
         {
             string pia = @"
 using System;
@@ -3035,7 +3026,6 @@ class UsePia5 : ITest30
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -3057,6 +3047,221 @@ class UsePia5 : ITest30
             CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
             CompileAndVerify(compilation2, symbolValidator: metadataValidator);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void DispIdAttribute_02()
+        {
+            string dispId = @"
+namespace System.Runtime.InteropServices
+{
+    public class DispIdAttribute : System.Attribute
+    {
+        public DispIdAttribute (int dispId){}
+    }
+}
+";
+            var dispIdDefinition = CreateCompilation(dispId, options: TestOptions.ReleaseDll, assemblyName: "DispId").EmitToImageReference(aliases: ImmutableArray.Create("dispId"));
+
+            string pia = @"
+extern alias dispId;
+
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest30
+{
+    [dispId::System.Runtime.InteropServices.DispIdAttribute(124)]
+    void M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, references: new[] { dispIdDefinition }, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+
+            CompileAndVerify(piaCompilation).VerifyDiagnostics();
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+}
+
+class UsePia5 : ITest30
+{
+    public void M1()
+    {
+    }
+} 
+";
+
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
+
+            var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+
+            System.Action<ModuleSymbol> metadataValidator =
+                delegate (ModuleSymbol module)
+                {
+                    ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+
+                    var itest30 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest30").Single();
+
+                    var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
+
+                    var attr = m1.GetAttributes("System.Runtime.InteropServices", "DispIdAttribute").Single();
+                    Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString());
+                };
+
+            CompileAndVerify(compilation1.AddReferences(dispIdDefinition), symbolValidator: metadataValidator).VerifyDiagnostics();
+
+            compilation1.VerifyEmitDiagnostics(
+                // error CS0012: The type 'DispIdAttribute' is defined in an assembly that is not referenced. You must add a reference to assembly 'DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("System.Runtime.InteropServices.DispIdAttribute", "DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                );
+
+            CompileAndVerify(compilation2.AddReferences(dispIdDefinition), symbolValidator: metadataValidator).VerifyDiagnostics();
+
+            compilation2.VerifyEmitDiagnostics(
+                // error CS0012: The type 'DispIdAttribute' is defined in an assembly that is not referenced. You must add a reference to assembly 'DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("System.Runtime.InteropServices.DispIdAttribute", "DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void DispIdAttribute_03()
+        {
+            var empty = CreateCompilation("", options: TestOptions.ReleaseDll).EmitToImageReference();
+
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest30
+{
+    [System.Runtime.InteropServices.DispIdAttribute(""124"")]
+    void M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, references: new[] { empty }, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+
+            piaCompilation.VerifyDiagnostics(
+                // (12,53): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //     [System.Runtime.InteropServices.DispIdAttribute("124")]
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""124""").WithArguments("1", "string", "int").WithLocation(12, 53)
+                );
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+}
+
+class UsePia5 : ITest30
+{
+    public void M1()
+    {
+    }
+} 
+";
+
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
+
+            System.Action<ModuleSymbol> metadataValidator =
+                delegate (ModuleSymbol module)
+                {
+                    ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+
+                    var itest30 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest30").Single();
+
+                    var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
+
+                    Assert.Empty(m1.GetAttributes());
+                };
+
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
+
+            CompileAndVerify(compilation1.AddReferences(empty), symbolValidator: metadataValidator);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void DispIdAttribute_04()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest30
+{
+    [System.Runtime.InteropServices.DispIdAttribute(124, Something = 10)]
+    void M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+
+            piaCompilation.VerifyDiagnostics(
+                // (12,58): error CS0246: The type or namespace name 'Something' could not be found (are you missing a using directive or an assembly reference?)
+                //     [System.Runtime.InteropServices.DispIdAttribute(124, Something = 10)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Something").WithArguments("Something").WithLocation(12, 58)
+                );
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+}
+
+class UsePia5 : ITest30
+{
+    public void M1()
+    {
+    }
+} 
+";
+
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
+
+            System.Action<ModuleSymbol> metadataValidator =
+                delegate (ModuleSymbol module)
+                {
+                    ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+
+                    var itest30 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest30").Single();
+
+                    var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
+
+                    Assert.Empty(m1.GetAttributes());
+                };
+
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3100,7 +3305,6 @@ class UsePia5 : ITest30
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3166,7 +3370,6 @@ class UsePia5 : ITest30
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3235,7 +3438,6 @@ class UsePia5 : ITest30
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3331,7 +3533,6 @@ class UsePia5 : ITest30
             var compilation1 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaReference, SystemRef });
 
-
             System.Action<ModuleSymbol> metadataValidator =
                 delegate (ModuleSymbol module)
                 {
@@ -3387,7 +3588,6 @@ class UsePia5
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3454,7 +3654,6 @@ class UsePia5
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -3512,7 +3711,6 @@ class UsePia
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -3559,7 +3757,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3643,7 +3840,6 @@ class UsePia
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true),
                                                       new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation1.EmitToImageReference(embedInteropTypes: true),
                                                       piaCompilation2.EmitToImageReference(embedInteropTypes: true)});
@@ -3707,7 +3903,6 @@ class ITest34
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -3961,7 +4156,6 @@ interface IUsePia6 : ITest35
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -4046,7 +4240,6 @@ class UsePia7 : UsePia6, ITest35
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -4124,7 +4317,6 @@ class UsePia
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -4189,7 +4381,6 @@ class UsePia7 : ITest33
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
@@ -4256,7 +4447,6 @@ class UsePia
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true), CSharpRef });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true), CSharpRef });
 
@@ -4317,7 +4507,6 @@ class UsePia
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true), CSharpRef });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true), CSharpRef });
 
@@ -4377,7 +4566,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true), CSharpRef });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true), CSharpRef });
@@ -4444,7 +4632,6 @@ class UsePia
 
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true), CSharpRef });
-
 
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true), CSharpRef });
@@ -4598,7 +4785,7 @@ class UsePia5
             var compilation1 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             VerifyEmitDiagnostics(compilation1, false, expected);
@@ -4606,9 +4793,9 @@ class UsePia5
             var compilation2 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true) });
 
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataType(ref fullName, out isNoPiaLocalType));
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref fullName, out isNoPiaLocalType));
             Assert.True(isNoPiaLocalType);
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             VerifyEmitDiagnostics(compilation2, false, expected);
@@ -4616,7 +4803,7 @@ class UsePia5
             var compilation3 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             CompileAndVerify(compilation3);
@@ -4624,9 +4811,9 @@ class UsePia5
             var compilation4 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
 
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataType(ref fullName, out isNoPiaLocalType));
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref fullName, out isNoPiaLocalType));
             Assert.True(isNoPiaLocalType);
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             CompileAndVerify(compilation4);
@@ -4706,11 +4893,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -5183,11 +5370,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
@@ -5448,7 +5635,6 @@ namespace NoPiaTestApp
             var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-
             var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
@@ -5569,7 +5755,6 @@ namespace NetImplNS2
 
             var compilation1 = CreateCompilation(consumer2, options: TestOptions.ReleaseDll,
                 references: new MetadataReference[] { piaRef1 });
-
 
             var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseDll,
                 references: new MetadataReference[] { piaRef2 });

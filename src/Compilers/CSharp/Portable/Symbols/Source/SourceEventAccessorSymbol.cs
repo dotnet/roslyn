@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,11 +24,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations,
+            Location location,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            bool isAdder)
-            : base(@event.containingType, syntaxReference, locations)
+            bool isAdder,
+            bool isIterator,
+            bool isNullableAnalysisEnabled,
+            bool isExpressionBodied)
+            : base(@event.containingType, syntaxReference, location, isIterator,
+                   (@event.Modifiers, MakeFlags(
+                                                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                                                RefKind.None,
+                                                @event.Modifiers,
+                                                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                returnsVoidIsSet: false,
+                                                isExpressionBodied: isExpressionBodied,
+                                                isExtensionMethod: false,
+                                                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                isVarArg: false,
+                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation,
+                                                hasThisInitializer: false)))
         {
             _event = @event;
 
@@ -51,14 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
-
-            this.MakeFlags(
-                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
-                @event.Modifiers,
-                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                isExtensionMethod: false,
-                isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation);
-
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
 
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
@@ -109,14 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_event.IsWindowsRuntimeEvent)
                 {
                     TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
-                    Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
+                    Binder.ReportUseSite(eventTokenType, diagnostics, this.Location);
 
                     if (this.MethodKind == MethodKind.EventAdd)
                     {
                         // EventRegistrationToken add_E(EventDelegate d);
 
-                        // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
+                        this.SetReturnsVoid(returnsVoid: false);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -128,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // void remove_E(EventRegistrationToken t);
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                        Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                        Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // void remove_E(EventDelegate d);
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                    Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                    Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 
@@ -160,11 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!_lazyReturnType.IsDefault);
                 return base.ReturnsVoid;
             }
-        }
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
         }
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
@@ -195,25 +195,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsVararg
-        {
-            get { return false; }
-        }
-
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         internal Location Location
         {
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 
@@ -241,12 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

@@ -58,22 +58,25 @@ namespace RunTests
             string executable,
             string arguments,
             bool lowPriority = false,
-            string workingDirectory = null,
+            string? workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null,
-            Action<Process> onProcessStartHandler = null,
-            CancellationToken cancellationToken = default) =>
-            CreateProcess(
+            Dictionary<string, string>? environmentVariables = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
+            CancellationToken cancellationToken = default)
+            => CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
+                onOutputDataReceived: onOutputDataReceived,
                 cancellationToken: cancellationToken);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
-            Action<Process> onProcessStartHandler = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
             CancellationToken cancellationToken = default)
         {
             var errorLines = new List<string>();
@@ -85,56 +88,57 @@ namespace RunTests
             process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
+            {
+                if (e.Data != null)
                 {
-                    if (e.Data != null)
-                    {
-                        outputLines.Add(e.Data);
-                    }
-                };
+                    onOutputDataReceived?.Invoke(e);
+                    outputLines.Add(e.Data);
+                }
+            };
 
             process.ErrorDataReceived += (s, e) =>
+            {
+                if (e.Data != null)
                 {
-                    if (e.Data != null)
-                    {
-                        errorLines.Add(e.Data);
-                    }
-                };
+                    errorLines.Add(e.Data);
+                }
+            };
 
             process.Exited += (s, e) =>
+            {
+                // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
+                // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
+                // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
+                Task.Run(() =>
                 {
-                    // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
-                    // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
-                    // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
-                    Task.Run(() =>
-                    {
-                        process.WaitForExit();
-                        var result = new ProcessResult(
-                            process,
-                            process.ExitCode,
-                            new ReadOnlyCollection<string>(outputLines),
-                            new ReadOnlyCollection<string>(errorLines));
-                        tcs.TrySetResult(result);
-                    });
-                };
+                    process.WaitForExit();
+                    var result = new ProcessResult(
+                        process,
+                        process.ExitCode,
+                        new ReadOnlyCollection<string>(outputLines),
+                        new ReadOnlyCollection<string>(errorLines));
+                    tcs.TrySetResult(result);
+                }, cancellationToken);
+            };
 
             var registration = cancellationToken.Register(() =>
+            {
+                if (tcs.TrySetCanceled())
                 {
-                    if (tcs.TrySetCanceled())
+                    // If the underlying process is still running, we should kill it
+                    if (!process.HasExited)
                     {
-                        // If the underlying process is still running, we should kill it
-                        if (!process.HasExited)
+                        try
                         {
-                            try
-                            {
-                                process.Kill();
-                            }
-                            catch (InvalidOperationException)
-                            {
-                                // Ignore, since the process is already dead
-                            }
+                            process.Kill();
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Ignore, since the process is already dead
                         }
                     }
-                });
+                }
+            });
 
             process.Start();
             onProcessStartHandler?.Invoke(process);
@@ -160,10 +164,10 @@ namespace RunTests
         public static ProcessStartInfo CreateProcessStartInfo(
             string executable,
             string arguments,
-            string workingDirectory = null,
+            string? workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null)
+            Dictionary<string, string>? environmentVariables = null)
         {
             var processStartInfo = new ProcessStartInfo(executable, arguments);
 

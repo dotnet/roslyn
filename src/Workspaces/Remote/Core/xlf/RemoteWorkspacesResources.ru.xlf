@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../RemoteWorkspacesResources.resx">
+    <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">Синхронизация ресурсов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">Прослушиватель асинхронных операций</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CodeLensReferences">
+        <source>CodeLens references</source>
+        <target state="translated">Ссылки на CodeLens</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Доступность семантики проекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
+        <source>Convert tuple to struct refactoring</source>
+        <target state="translated">Преобразовать кортеж в рефакторинг структуры</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DependentTypeFinder">
+        <source>Dependent type finder</source>
+        <target state="translated">Поиск зависимых типов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
+        <source>DesignerAttribute discovery</source>
+        <target state="translated">Обнаружение DesignerAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticAnalyzer">
+        <source>Diagnostic analyzer runner</source>
+        <target state="translated">Средство запуска диагностического анализатора</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_DocumentHighlights">
+        <source>Document highlights</source>
+        <target state="translated">Основные моменты документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Изменить и продолжить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EncapsulateField">
+        <source>Encapsulate field refactoring</source>
+        <target state="translated">Рефакторинг инкапсуляции поля</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
+        <source>Extension method import completion</source>
+        <target state="translated">Завершение импорта метода расширения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FindUsages">
+        <source>Find usages</source>
+        <target state="translated">Поиск использований</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">Определить полностью</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_GlobalNotificationDelivery">
+        <source>Global notification delivery</source>
+        <target state="translated">Доставка глобальных уведомлений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Граница наследования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Служба проверки активности</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">События решения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">Отсутствует обнаружение импорта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigateToSearch">
+        <source>Navigate to</source>
+        <target state="translated">Перейти к</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Панель навигации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Телеметрия процессов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProjectTelemetry">
+        <source>Project telemetry collection</source>
+        <target state="translated">Сбор данных телеметрии проекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Renamer">
+        <source>Rename</source>
+        <target state="translated">Переименовать</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticClassification">
+        <source>Semantic classification</source>
+        <target state="translated">Семантическая классификация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">Поставщик ресурсов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Создание источника</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Обозреватель трассировки стека</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolFinder">
+        <source>Symbol finder</source>
+        <target state="translated">Поиск символов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SymbolSearchUpdate">
+        <source>Symbol search</source>
+        <target state="translated">Поиск символов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Список задач</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">Поиск модульного тестирования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Анализ неиспользуемых ссылок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Отслеживание значений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
+        <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
+        <target state="translated">Функция "{0}" сейчас недоступна из-за временной ошибки. Повторите попытку позже: "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
+        <source>Feature '{0}' is currently unavailable due to an internal error.</source>
+        <target state="translated">Функция "{0}" сейчас недоступна из-за внутренней ошибки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
+        <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
+        <target state="translated">Функция "{0}" сейчас недоступна, так как {1} завершает работу.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

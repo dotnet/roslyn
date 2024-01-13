@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -130,7 +132,7 @@ public class C
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
+                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -152,8 +154,7 @@ public class C
             });
         }
 
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationReferencesSystemCore()
         {
             var source = @"
@@ -211,8 +212,7 @@ public class C
         /// this test only covers our ability to identify an assembly to attempt to load, not
         /// our ability to actually load or consume it.
         /// </remarks>
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationDoesNotReferenceSystemCore()
         {
             var source = @"
@@ -420,7 +420,7 @@ class C
                     else
                     {
                         Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -447,7 +447,7 @@ class C
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 });
         }
 
@@ -458,7 +458,7 @@ class C
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.COR_E_BADIMAGEFORMAT);
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 });
         }
 
@@ -478,7 +478,7 @@ class C
             IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var references = ImmutableArray<MetadataBlock>.Empty;
@@ -507,8 +507,7 @@ class C
             Assert.Empty(references);
         }
 
-        [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
         public void PseudoVariableType()
         {
             var source =
@@ -545,7 +544,7 @@ class C
             });
         }
 
-        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds()
         {
@@ -588,7 +587,7 @@ class C
         /// <remarks>
         /// Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         /// </remarks>
-        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds_MultipleParts()
         {
@@ -628,8 +627,7 @@ class C
             });
         }
 
-        [WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
         public void CompileWithRetrySameErrorReported()
         {
             var source = @" 
@@ -667,12 +665,11 @@ class C
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-                Assert.Equal($"error CS0012: { string.Format(CSharpResources.ERR_NoTypeDef, "MissingType", missingIdentity)}", errorMessage);
+                Assert.Equal($"error CS0012: {string.Format(CSharpResources.ERR_NoTypeDef, "MissingType", missingIdentity)}", errorMessage);
             });
         }
 
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void SucceedOnRetry()
         {
             var source = @" 
@@ -720,8 +717,7 @@ class C
             });
         }
 
-        [WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2547")]
         public void TryDifferentLinqLibraryOnRetry()
         {
             var source = @"
@@ -769,7 +765,7 @@ class UseLinq
                                 block = systemCore.MetadataBlock;
                                 break;
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.Unreachable();
                         }
                         uSize = (uint)block.Size;
                         return block.Pointer;
@@ -838,8 +834,7 @@ class UseLinq
 LanguageVersion.CSharp7_1);
         }
 
-        [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")]
         public void NonTupleNoSystemRuntime()
         {
             var source =

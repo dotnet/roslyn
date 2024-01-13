@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal class CaretPreservingEditTransaction : IDisposable
     {
         private readonly IEditorOperations _editorOperations;
-        private readonly ITextUndoHistory _undoHistory;
-        private ITextUndoTransaction _transaction;
+        private readonly ITextUndoHistory? _undoHistory;
+        private ITextUndoTransaction? _transaction;
         private bool _active;
 
         public CaretPreservingEditTransaction(
@@ -20,9 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
+            : this(description, undoHistoryRegistry.GetHistory(textView.TextBuffer), editorOperationsFactoryService.GetEditorOperations(textView))
         {
-            _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-            _undoHistory = undoHistoryRegistry.GetHistory(textView.TextBuffer);
+        }
+
+        public CaretPreservingEditTransaction(string description, ITextUndoHistory? undoHistory, IEditorOperations editorOperations)
+        {
+            _editorOperations = editorOperations;
+            _undoHistory = undoHistory;
             _active = true;
 
             if (_undoHistory != null)
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public static CaretPreservingEditTransaction TryCreate(string description,
+        public static CaretPreservingEditTransaction? TryCreate(string description,
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -53,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             _editorOperations.AddAfterTextBufferChangePrimitive();
-            if (_transaction != null)
-            {
-                _transaction.Complete();
-            }
+            _transaction?.Complete();
 
             EndTransaction();
         }
@@ -68,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
             }
 
-            if (_transaction != null)
-            {
-                _transaction.Cancel();
-            }
+            _transaction?.Cancel();
 
             EndTransaction();
         }
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public IMergeTextUndoTransactionPolicy MergePolicy
+        public IMergeTextUndoTransactionPolicy? MergePolicy
         {
             get
             {

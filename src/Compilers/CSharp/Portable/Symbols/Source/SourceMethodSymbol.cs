@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,12 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
-        /// array of clauses, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
-        /// If a type parameter does not have constraints, the corresponding entry in the array is null.
+        /// array of types, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
         /// </summary>
-        public abstract ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses();
+        public abstract ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes();
 
-        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
+        /// <summary>
+        /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
+        /// array of kinds, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
+        /// </summary>
+        public abstract ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds();
+
+        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
         {
             if (!returnTypeSyntax.HasErrors)
             {
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return method.AreLocalsZeroed;
                 }
-                else if (ContainingType is SourceNamedTypeSymbol type)
+                else if (ContainingType is SourceMemberContainerTypeSymbol type)
                 {
                     return type.AreLocalsZeroed;
                 }
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void ReportAsyncParameterErrors(DiagnosticBag diagnostics, Location location)
+        internal void ReportAsyncParameterErrors(BindingDiagnosticBag diagnostics, Location location)
         {
             foreach (var parameter in Parameters)
             {
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
                 }
-                else if (parameter.Type.IsUnsafe())
+                else if (parameter.Type.IsPointerOrFunctionPointer())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
                 }
@@ -73,7 +77,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             static Location getLocation(ParameterSymbol parameter, Location location)
-                => parameter.Locations.FirstOrDefault() ?? location;
+                => parameter.TryGetFirstLocation() ?? location;
+        }
+
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
         }
     }
 }

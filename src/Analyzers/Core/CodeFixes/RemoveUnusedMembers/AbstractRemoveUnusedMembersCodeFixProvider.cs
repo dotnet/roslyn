@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         /// <summary>
         /// This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
         /// within a field declaration should be removed,
@@ -37,9 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Remove_unused_member, nameof(AnalyzersResources.Remove_unused_member));
             return Task.CompletedTask;
         }
 
@@ -47,12 +43,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Get symbol to be removed.
                 var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var symbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
-                Debug.Assert(symbol != null);
+                Contract.ThrowIfNull(symbol);
 
                 // Get symbol declarations to be removed.
                 foreach (var declReference in declarationService.GetDeclarations(symbol))
@@ -73,6 +69,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     if (symbol.Kind == SymbolKind.Field)
                     {
                         var fieldDeclarator = node.FirstAncestorOrSelf<TFieldDeclarationSyntax>();
+                        Contract.ThrowIfNull(fieldDeclarator);
                         fieldDeclarators.Add(fieldDeclarator);
                     }
                 }
@@ -120,14 +117,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Remove the entire parent declaration instead of individual child declarators within it.
                 declarators.Add(parentDeclaration);
                 declarators.RemoveAll(childDeclarators);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unused_member, createChangedDocument)
-            {
             }
         }
     }

@@ -2,19 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -30,16 +30,23 @@ namespace Microsoft.CodeAnalysis.Text
         internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
+        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128());
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
+
+        /// <summary>
+        /// Backing store of <see cref="GetChecksum"/>
+        /// </summary>
         private ImmutableArray<byte> _lazyChecksum;
-        private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+        private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+
+        private ImmutableArray<byte> _lazyContentHash;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
@@ -339,8 +346,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal static bool IsBinary(string text)
+        internal static bool IsBinary(ReadOnlySpan<char> text)
         {
+#if NETCOREAPP
+            // On .NET Core, Contains has an optimized vectorized implementation, much faster than a custom loop.
+            return text.Contains("\0\0", StringComparison.Ordinal);
+#else
             // PERF: We can advance two chars at a time unless we find a NUL.
             for (int i = 1; i < text.Length;)
             {
@@ -360,7 +371,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return false;
+#endif
         }
+
+        /// <inheritdoc cref="IsBinary(ReadOnlySpan{char})" />
+        internal static bool IsBinary(string text) => IsBinary(text.AsSpan());
 
         /// <summary>
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
@@ -555,6 +570,27 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        /// <summary>
+        /// Cryptographic checksum determined by <see cref="ChecksumAlgorithm"/>.  Computed using the original bytes
+        /// that were used to produce this <see cref="SourceText"/> (if any of the <c>From</c> methods were used that
+        /// take a <c>byte[]</c> or <see cref="Stream"/>).  Otherwise, computed by writing this <see cref="SourceText"/>
+        /// back to a <see cref="Stream"/> (using the provided <see cref="Encoding"/>), and computing the hash off of
+        /// that.
+        /// </summary>
+        /// <remarks>
+        /// Two different <see cref="SourceText"/> instances with the same content (see <see cref="ContentEquals"/>) may
+        /// have different results for this method.  This is because different originating bytes may end up with the
+        /// same final content.  For example, a utf8 stream with a byte-order-mark will produce the same contents as a
+        /// utf8 stream without one.  However, these preamble bytes will be part of the checksum, leading to different
+        /// results.
+        /// <para/>
+        /// Similarly, two different <see cref="SourceText"/> instances with <em>different</em> contents can have the
+        /// same checksum in <em>normal</em> scenarios.  This is because the use of the <see cref="Encoding"/> can lead
+        /// to different characters being mapped to the same sequence of <em>encoded</em> bytes.
+        /// <para/>
+        /// As such, this function should only be used by clients who need to know the exact SHA hash from the original
+        /// content bytes, and for no other purposes. 
+        /// </remarks>
         public ImmutableArray<byte> GetChecksum()
         {
             if (_lazyChecksum.IsDefault)
@@ -566,6 +602,62 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return _lazyChecksum;
+        }
+
+        /// <summary>
+        /// Produces a hash of this <see cref="SourceText"/> based solely on the contents it contains.  Two different
+        /// <see cref="SourceText"/> instances that are <see cref="ContentEquals"/> will have the same content hash. Two
+        /// instances of <see cref="SourceText"/> with different content are virtually certain to not have the same
+        /// hash.  This hash can be used for fingerprinting of text instances, but does not provide cryptographic
+        /// guarantees.
+        /// </summary>
+        /// <remarks>
+        /// This hash is safe to use across platforms and across processes, as long as the same version of Roslyn is
+        /// used in all those locations.  As such, it is safe to use as a fast proxy for comparing text instances in
+        /// different memory spaces.  Different versions of Roslyn may produce different content hashes.
+        /// </remarks>
+        public ImmutableArray<byte> GetContentHash()
+        {
+            if (_lazyContentHash.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyContentHash, computeContentHash());
+            }
+
+            return _lazyContentHash;
+
+            ImmutableArray<byte> computeContentHash()
+            {
+                var hash = s_contentHashPool.Allocate();
+                var charBuffer = s_charArrayPool.Allocate();
+                Debug.Assert(charBuffer.Length == CharBufferSize);
+                try
+                {
+                    // Grab chunks of this SourceText, copying into 'charBuffer'.  Then reinterpret that buffer as a
+                    // Span<byte> and append into the running hash.
+                    for (int index = 0, length = this.Length; index < length; index += CharBufferSize)
+                    {
+                        var charsToCopy = Math.Min(CharBufferSize, length - index);
+                        this.CopyTo(
+                            sourceIndex: index, destination: charBuffer,
+                            destinationIndex: 0, count: charsToCopy);
+
+                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
+                    }
+
+                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
+                    Span<byte> destination = stackalloc byte[128 / 8];
+                    hash.GetHashAndReset(destination);
+                    return destination.ToImmutableArray();
+                }
+                finally
+                {
+                    s_charArrayPool.Free(charBuffer);
+
+                    // Technically not needed.  But adding this reset out of an abundance of paranoia.
+                    hash.Reset();
+                    s_contentHashPool.Free(hash);
+                }
+            }
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
@@ -607,22 +699,25 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = new StringBuilder();
-            var buffer = new char[Math.Min(span.Length, 1024)];
+            var builder = PooledStringBuilder.GetInstance();
+            var buffer = s_charArrayPool.Allocate();
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+            builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
                 int copyLength = Math.Min(buffer.Length, length);
                 this.CopyTo(position, buffer, 0, copyLength);
-                builder.Append(buffer, 0, copyLength);
+                builder.Builder.Append(buffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            return builder.ToString();
+            s_charArrayPool.Free(buffer);
+
+            return builder.ToStringAndFree();
         }
 
         #region Changes
@@ -644,79 +739,95 @@ namespace Microsoft.CodeAnalysis.Text
 
             var segments = ArrayBuilder<SourceText>.GetInstance();
             var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
-            int position = 0;
-
-            foreach (var change in changes)
+            try
             {
-                // there can be no overlapping changes
-                if (change.Span.Start < position)
+                int position = 0;
+
+                foreach (var change in changes)
                 {
-                    // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
-                    // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
-                    // https://github.com/dotnet/roslyn/pull/26339
-                    if (change.Span.End <= changeRanges.Last().Span.Start)
+                    if (change.Span.End > this.Length)
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustBeWithinBoundsOfSourceText, nameof(changes));
+
+                    // there can be no overlapping changes
+                    if (change.Span.Start < position)
                     {
-                        changes = (from c in changes
-                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
-                                   orderby c.Span
-                                   select c).ToList();
-                        return WithChanges(changes);
+                        // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
+                        // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
+                        // https://github.com/dotnet/roslyn/pull/26339
+                        if (change.Span.End <= changeRanges.Last().Span.Start)
+                        {
+                            changes = (from c in changes
+                                       where !c.Span.IsEmpty || c.NewText?.Length > 0
+                                       orderby c.Span
+                                       select c).ToList();
+                            return WithChanges(changes);
+                        }
+
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
                     }
 
-                    throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
+                    var newTextLength = change.NewText?.Length ?? 0;
+
+                    // ignore changes that don't change anything
+                    if (change.Span.Length == 0 && newTextLength == 0)
+                        continue;
+
+                    // if we've skipped a range, add
+                    if (change.Span.Start > position)
+                    {
+                        var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                        CompositeText.AddSegments(segments, subText);
+                    }
+
+                    if (newTextLength > 0)
+                    {
+                        var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
+                        CompositeText.AddSegments(segments, segment);
+                    }
+
+                    position = change.Span.End;
+
+                    changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
                 }
 
-                var newTextLength = change.NewText?.Length ?? 0;
-
-                // ignore changes that don't change anything
-                if (change.Span.Length == 0 && newTextLength == 0)
-                    continue;
-
-                // if we've skipped a range, add
-                if (change.Span.Start > position)
+                // no changes actually happened?
+                if (position == 0 && segments.Count == 0)
                 {
-                    var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                    return this;
+                }
+
+                if (position < this.Length)
+                {
+                    var subText = this.GetSubText(new TextSpan(position, this.Length - position));
                     CompositeText.AddSegments(segments, subText);
                 }
 
-                if (newTextLength > 0)
+                var newText = CompositeText.ToSourceText(segments, this, adjustSegments: true);
+                if (newText != this)
                 {
-                    var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
-                    CompositeText.AddSegments(segments, segment);
+                    return new ChangedText(this, newText, changeRanges.ToImmutable());
                 }
-
-                position = change.Span.End;
-
-                changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
+                else
+                {
+                    return this;
+                }
             }
-
-            // no changes actually happened?
-            if (position == 0 && segments.Count == 0)
+            finally
             {
+                segments.Free();
                 changeRanges.Free();
-                return this;
-            }
-
-            if (position < this.Length)
-            {
-                var subText = this.GetSubText(new TextSpan(position, this.Length - position));
-                CompositeText.AddSegments(segments, subText);
-            }
-
-            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
-            if (newText != this)
-            {
-                return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
-            }
-            else
-            {
-                return this;
             }
         }
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
-        /// </summary>
+        /// </summary>        
+        /// <remarks>
+        /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
+        /// perform better if they are.
+        /// </remarks>
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>        
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);
@@ -1010,13 +1121,19 @@ namespace Microsoft.CodeAnalysis.Text
                 return true;
             }
 
-            // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
-            ImmutableArray<byte> leftChecksum = _lazyChecksum;
-            ImmutableArray<byte> rightChecksum = other._lazyChecksum;
-            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
-            {
-                return leftChecksum.SequenceEqual(rightChecksum);
-            }
+            // Content hashing provides strong enough guarantees (see
+            // https://github.com/Cyan4973/xxHash/wiki/Collision-ratio-comparison#testing-128-bit-hashes-) to be certain
+            // about content equality based solely on hash equality.
+            //
+            // DO NOT examine '_lazyChecksum' in this method.  Checksums (as opposed to hashes) do not provide the same
+            // guarantee.  Indeed, due to the user of lossy encodings, it's easily possible to have source texts with
+            // different contents that produce the same checksums.  As an example, the Encoding.ASCII encoding maps many
+            // System.Char values down to the ascii `?` character, leading to easy collisions at the checksum level.
+
+            var leftContentHash = _lazyContentHash;
+            var rightContentHash = other._lazyContentHash;
+            if (!leftContentHash.IsDefault && !rightContentHash.IsDefault)
+                return leftContentHash.SequenceEqual(rightContentHash);
 
             return ContentEqualsImpl(other);
         }
@@ -1043,24 +1160,19 @@ namespace Microsoft.CodeAnalysis.Text
 
             var buffer1 = s_charArrayPool.Allocate();
             var buffer2 = s_charArrayPool.Allocate();
+            Debug.Assert(buffer1.Length == buffer2.Length);
+            Debug.Assert(buffer1.Length == CharBufferSize);
+
             try
             {
-                int position = 0;
-                while (position < this.Length)
+                for (int position = 0, length = this.Length; position < length; position += CharBufferSize)
                 {
-                    int n = Math.Min(this.Length - position, buffer1.Length);
-                    this.CopyTo(position, buffer1, 0, n);
-                    other.CopyTo(position, buffer2, 0, n);
+                    var count = Math.Min(this.Length - position, CharBufferSize);
+                    this.CopyTo(sourceIndex: position, buffer1, destinationIndex: 0, count);
+                    other.CopyTo(sourceIndex: position, buffer2, destinationIndex: 0, count);
 
-                    for (int i = 0; i < n; i++)
-                    {
-                        if (buffer1[i] != buffer2[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    position += n;
+                    if (!buffer1.AsSpan(0, count).SequenceEqual(buffer2.AsSpan(0, count)))
+                        return false;
                 }
 
                 return true;

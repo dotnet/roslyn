@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
             /// </summary>
             public SymbolUsageResult ToResult()
-                => new SymbolUsageResult(SymbolsWriteBuilder.ToImmutableDictionary(),
+                => new(SymbolsWriteBuilder.ToImmutableDictionary(),
                                          SymbolsReadBuilder.ToImmutableHashSet());
 
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
@@ -183,11 +185,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 // Mark all the current reaching writes of symbol as read.
                 if (SymbolsWriteBuilder.Count != 0)
                 {
-                    var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(symbol);
-                    foreach (var write in currentWrites)
-                    {
-                        SymbolsWriteBuilder[(symbol, write)] = true;
-                    }
+                    CurrentBlockAnalysisData.ForEachCurrentWrite(
+                        symbol,
+                        static (write, arg) =>
+                        {
+                            arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
+                        },
+                        (symbol, self: this));
                 }
 
                 // Mark the current symbol as read.

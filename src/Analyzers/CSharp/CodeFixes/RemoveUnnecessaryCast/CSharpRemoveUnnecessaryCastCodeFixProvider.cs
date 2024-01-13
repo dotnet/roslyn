@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -38,20 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                AnalyzersResources.Remove_Unnecessary_Cast,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, nameof(AnalyzersResources.Remove_Unnecessary_Cast));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var castNodes = diagnostics.SelectAsArray(
                 d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
@@ -69,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private ExpressionSyntax Recurse(ExpressionSyntax old)
+        private static ExpressionSyntax Recurse(ExpressionSyntax old)
         {
             if (old is ParenthesizedExpressionSyntax parenthesizedExpression)
             {
@@ -95,14 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(old);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }

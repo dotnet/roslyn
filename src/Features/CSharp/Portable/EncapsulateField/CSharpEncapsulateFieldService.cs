@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         {
         }
 
-        protected async override Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -103,7 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                     field.ConstantValue,
                     declarator.Initializer));
 
-                var withField = await codeGenService.AddFieldAsync(document.Project.Solution, field.ContainingType, fieldToAdd, new CodeGenerationOptions(), cancellationToken).ConfigureAwait(false);
+                var withField = await codeGenService.AddFieldAsync(
+                    new CodeGenerationSolutionContext(
+                        document.Project.Solution,
+                        CodeGenerationContext.Default,
+                        fallbackOptions),
+                    field.ContainingType,
+                    fieldToAdd,
+                    cancellationToken).ConfigureAwait(false);
                 root = await withField.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();
@@ -115,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             return root;
         }
 
-        protected override async Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -139,20 +149,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             }
 
             return declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
-                                .WhereNotNull()
-                                .Where(f => f.Name.Length != 0);
+                              .WhereNotNull()
+                              .Where(f => f.Name.Length != 0)
+                              .ToImmutableArray();
         }
 
         private bool CanEncapsulate(FieldDeclarationSyntax field)
             => field.Parent is TypeDeclarationSyntax;
 
-        protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field)
+        protected override (string fieldName, string propertyName) GenerateFieldAndPropertyNames(IFieldSymbol field)
         {
             // Special case: if the field is "new", we will preserve its original name and the new keyword.
             if (field.DeclaredAccessibility == Accessibility.Private || IsNew(field))
             {
                 // Create some capitalized version of the field name for the property
-                return Tuple.Create(field.Name, MakeUnique(GeneratePropertyName(field.Name), field.ContainingType));
+                return (field.Name, MakeUnique(GeneratePropertyName(field.Name), field.ContainingType));
             }
             else
             {
@@ -162,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 if (newPropertyName == field.Name)
                 {
                     // If we wind up with the field's old name, give the field the unique version of its current name.
-                    return Tuple.Create(MakeUnique(GenerateFieldName(field.Name), field.ContainingType), newPropertyName);
+                    return (MakeUnique(GenerateFieldName(field.Name), field.ContainingType), newPropertyName);
                 }
 
                 // Otherwise, ensure the property's name is unique.
@@ -172,21 +183,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 // If converting the new property's name into a field name results in the old field name, we're done.
                 if (newFieldName == field.Name)
                 {
-                    return Tuple.Create(newFieldName, newPropertyName);
+                    return (newFieldName, newPropertyName);
                 }
 
                 // Otherwise, ensure the new field name is unique.
-                return Tuple.Create(MakeUnique(newFieldName, field.ContainingType), newPropertyName);
+                return (MakeUnique(newFieldName, field.ContainingType), newPropertyName);
             }
         }
 
-        private bool IsNew(IFieldSymbol field)
-            => field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
+        private static bool IsNew(IFieldSymbol field)
+            => field.DeclaringSyntaxReferences.Any(static d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
-        private string GenerateFieldName(string correspondingPropertyName)
-            => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
+        private static string GenerateFieldName(string correspondingPropertyName)
+            => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName[1..];
 
-        protected string MakeUnique(string baseName, INamedTypeSymbol containingType)
+        protected static string MakeUnique(string baseName, INamedTypeSymbol containingType)
         {
             var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
             return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);

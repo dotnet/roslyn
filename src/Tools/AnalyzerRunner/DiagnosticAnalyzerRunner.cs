@@ -2,30 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Roslyn.Utilities;
 using static AnalyzerRunner.Program;
 
 namespace AnalyzerRunner
 {
-    internal sealed class DiagnosticAnalyzerRunner
+    public sealed class DiagnosticAnalyzerRunner
     {
+        private readonly Workspace _workspace;
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzers;
 
-        public DiagnosticAnalyzerRunner(Options options)
+        public DiagnosticAnalyzerRunner(Workspace workspace, Options options)
         {
+            _workspace = workspace;
             _options = options;
 
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
@@ -34,25 +37,13 @@ namespace AnalyzerRunner
 
         public bool HasAnalyzers => _analyzers.Any(pair => pair.Value.Any());
 
-        public async Task RunAsync(Workspace workspace, CancellationToken cancellationToken)
+        private static Solution SetOptions(Solution solution)
         {
-            if (!HasAnalyzers)
-            {
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(_options.ProfileRoot))
-            {
-                ProfileOptimization.StartProfile(nameof(DiagnosticAnalyzerRunner));
-            }
-
-            var solution = workspace.CurrentSolution;
-
             // Make sure AD0001 and AD0002 are reported as errors
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId)!;
-                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     continue;
 
                 var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
@@ -62,10 +53,38 @@ namespace AnalyzerRunner
                 solution = solution.WithProjectCompilationOptions(projectId, modifiedCompilationOptions);
             }
 
+            return solution;
+        }
+
+        public async Task RunAsync(CancellationToken cancellationToken)
+        {
+            if (!HasAnalyzers)
+            {
+                return;
+            }
+
+            var solution = _workspace.CurrentSolution;
+            solution = SetOptions(solution);
+
+            await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Also runs per document analysis, used by AnalyzerRunner CLI tool
+        internal async Task RunAllAsync(CancellationToken cancellationToken)
+        {
+            if (!HasAnalyzers)
+            {
+                return;
+            }
+
+            var solution = _workspace.CurrentSolution;
+
+            solution = SetOptions(solution);
+
             var stopwatch = PerformanceTracker.StartNew();
 
             var analysisResult = await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
-            var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
+            var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectManyAsArray(pair => pair.Value.GetAllDiagnostics());
 
             Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.GetSummary(preciseMemory: true)}");
             WriteTelemetry(analysisResult);
@@ -75,7 +94,7 @@ namespace AnalyzerRunner
                 // Make sure we have a compilation for each project
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                         continue;
 
                     _ = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -86,7 +105,7 @@ namespace AnalyzerRunner
                 foreach (var projectId in solution.ProjectIds)
                 {
                     var project = solution.GetProject(projectId);
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }
@@ -152,7 +171,7 @@ namespace AnalyzerRunner
 
             if (!string.IsNullOrWhiteSpace(_options.LogFileName))
             {
-                WriteDiagnosticResults(analysisResult.SelectMany(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))).ToImmutableArray(), _options.LogFileName);
+                WriteDiagnosticResults(analysisResult.SelectManyAsArray(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))), _options.LogFileName);
             }
         }
 
@@ -163,12 +182,13 @@ namespace AnalyzerRunner
                 languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
-            Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
             var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -252,7 +272,7 @@ namespace AnalyzerRunner
                 }
                 else if (options.AnalyzerNames.Count == 0)
                 {
-                    if (analyzer.SupportedDiagnostics.Any(diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
+                    if (analyzer.SupportedDiagnostics.Any(static diagnosticDescriptor => diagnosticDescriptor.IsEnabledByDefault))
                     {
                         yield return analyzer;
                     }
@@ -277,7 +297,7 @@ namespace AnalyzerRunner
                     .ToLookup(analyzers => analyzers.Key, analyzers => analyzers.Value)
                     .ToImmutableDictionary(
                         group => group.Key,
-                        group => group.SelectMany(analyzer => analyzer).ToImmutableArray());
+                        group => group.SelectManyAsArray(analyzer => analyzer));
             }
 
             throw new InvalidDataException($"Cannot find {path}.");
@@ -285,7 +305,7 @@ namespace AnalyzerRunner
 
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersFromFile(string path)
         {
-            var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
+            var analyzerReference = new AnalyzerFileReference(Path.GetFullPath(path), AssemblyLoader.Instance);
             var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
             var basicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
             return ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty
@@ -308,7 +328,7 @@ namespace AnalyzerRunner
                 // Make sure we analyze the projects in parallel
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }
@@ -372,11 +392,12 @@ namespace AnalyzerRunner
 
             try
             {
-                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
+                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
-                CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions);
+                var compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
                 var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                 return analystResult;
             }
@@ -387,7 +408,7 @@ namespace AnalyzerRunner
             }
         }
 
-        private static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
+        internal static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
         {
             if (dictionary.IsEmpty)
             {
@@ -448,6 +469,7 @@ namespace AnalyzerRunner
             WriteLine($"Symbol End Actions:             {telemetry.SymbolEndActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Node Actions:            {telemetry.SyntaxNodeActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
+            WriteLine($"Additional File Actions:        {telemetry.AdditionalFileActionsCount}", ConsoleColor.White);
 
             WriteLine($"Suppression Actions:            {telemetry.SuppressionActionsCount}", ConsoleColor.White);
         }
@@ -458,7 +480,7 @@ namespace AnalyzerRunner
             WriteLine($"{analyzerName}:{padding} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
         }
 
-        private struct DocumentAnalyzerPerformance
+        private readonly struct DocumentAnalyzerPerformance
         {
             public DocumentAnalyzerPerformance(double editsPerSecond, long allocatedBytesPerEdit)
             {

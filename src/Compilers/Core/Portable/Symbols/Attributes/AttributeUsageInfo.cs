@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -13,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct AttributeUsageInfo : IEquatable<AttributeUsageInfo>
+    internal readonly struct AttributeUsageInfo : IEquatable<AttributeUsageInfo>
     {
         [Flags()]
         private enum PackedAttributeUsage
@@ -52,9 +50,9 @@ namespace Microsoft.CodeAnalysis
         /// (b) AllowMultiple: false
         /// (c) Inherited: true
         /// </summary>
-        static internal readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
+        internal static readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
 
-        static internal readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
+        internal static readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
 
         internal AttributeUsageInfo(AttributeTargets validTargets, bool allowMultiple, bool inherited)
         {
@@ -80,7 +78,6 @@ namespace Microsoft.CodeAnalysis
                 return (_flags & PackedAttributeUsage.Initialized) == 0;
             }
         }
-
 
         internal AttributeTargets ValidTargets
         {
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return _flags.GetHashCode();
+            return ((int)_flags).GetHashCode();
         }
 
         internal bool HasValidAttributeTargets
@@ -169,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             return new ValidTargetsStringLocalizableErrorArgument(builder.ToArrayAndFree());
         }
 
-        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
+        private readonly struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
             private readonly string[]? _targetResourceIds;
 

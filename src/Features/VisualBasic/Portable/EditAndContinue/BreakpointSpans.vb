@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Dim root = tree.GetRoot(cancellationToken)
-            Return TryGetEnclosingBreakpointSpan(root, position, minLength:=0, breakpointSpan)
+            Return TryGetClosestBreakpointSpan(root, position, minLength:=0, breakpointSpan)
         End Function
 
         Private Function IsBlank(line As TextLine) As Boolean
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' <paramref name="minLength"/> can be used to disambiguate between them. 
         ''' The inner-most available span whose length is at least <paramref name="minLength"/> is returned.
         ''' </param>
-        Public Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
+        Public Function TryGetClosestBreakpointSpan(root As SyntaxNode, position As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
             Dim node = root.FindToken(position).Parent
 
             Dim candidate As TextSpan? = Nothing
@@ -88,20 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return candidate.HasValue
         End Function
 
-        Private Function CreateSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
-            Return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)
-        End Function
-
         Private Function CreateSpan(node As SyntaxNode) As TextSpan
             Return TextSpan.FromBounds(node.SpanStart, node.Span.End)
-        End Function
-
-        Private Function CreateSpan(node1 As SyntaxNode, node2 As SyntaxNode) As TextSpan
-            Return TextSpan.FromBounds(node1.SpanStart, node2.Span.End)
-        End Function
-
-        Private Function CreateSpan(token As SyntaxToken) As TextSpan
-            Return TextSpan.FromBounds(token.SpanStart, token.Span.End)
         End Function
 
         Private Function TryCreateSpan(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As TextSpan?
@@ -201,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return CreateSpan(node)
 
                 Case SyntaxKind.SelectClause
-                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax), position)
+                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax))
 
                 Case SyntaxKind.WhereClause
                     Return TryCreateSpanForWhereClause(DirectCast(node, WhereClauseSyntax))
@@ -429,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TextSpan.FromBounds(clause.Keys.First.SpanStart, clause.Span.End)
         End Function
 
-        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax, position As Integer) As TextSpan?
+        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax) As TextSpan?
             If clause.Variables.Count = 1 Then
                 Return CreateSpan(clause.Variables.Single.Expression)
             End If

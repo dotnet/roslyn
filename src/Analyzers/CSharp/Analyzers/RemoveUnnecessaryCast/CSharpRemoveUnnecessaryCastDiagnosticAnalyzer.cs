@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
@@ -30,6 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
 
         protected override TextSpan GetFadeSpan(ExpressionSyntax node)
             => node is CastExpressionSyntax cast ? TextSpan.FromBounds(cast.OpenParenToken.SpanStart, cast.CloseParenToken.Span.End) :
-               node is BinaryExpressionSyntax binary ? TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End) : throw ExceptionUtilities.Unreachable;
+               node is BinaryExpressionSyntax binary ? TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End) : throw ExceptionUtilities.Unreachable();
     }
 }

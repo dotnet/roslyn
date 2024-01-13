@@ -22,16 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         internal bool IsInAsync;
 
-        internal int QueryDepth;
+        /// <summary>
+        /// If we are forcing that ?[ is parsed as a conditional-access-expression, and not a conditional-expression
+        /// with a collection-expression in it.
+        /// </summary>
+        internal bool ForceConditionalAccessExpression;
 
         /// <summary>
         /// If the end of a query expression statement is commented out, then the following statement may
         /// appear to be part of the query.  When this occurs, identifiers within the following statement
         /// may need to be reinterpreted as query keywords.
         /// </summary>
-        internal bool IsInQuery
-        {
-            get { return QueryDepth > 0; }
-        }
+        internal bool IsInQuery;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static T? GetAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null) where T : SyntaxNode
             => token.Parent?.FirstAncestorOrSelf(predicate);
+
+        public static T GetRequiredAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null) where T : SyntaxNode
+            => GetAncestor(token, predicate) ?? throw new InvalidOperationException("Could not find a valid ancestor");
 
         public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)
             where T : SyntaxNode
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(token.Parent is T parentNode))
+            if (token.Parent is not T parentNode)
             {
                 return false;
             }
@@ -159,5 +160,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
             => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
+
+        public static SyntaxNode GetRequiredParent(this SyntaxToken token)
+            => token.Parent ?? throw new InvalidOperationException("Token's parent was null");
     }
 }

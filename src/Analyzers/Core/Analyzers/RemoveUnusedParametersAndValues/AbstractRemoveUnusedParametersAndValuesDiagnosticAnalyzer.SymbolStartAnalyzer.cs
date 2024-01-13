@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,38 +20,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
-        private sealed partial class SymbolStartAnalyzer
+        private sealed partial class SymbolStartAnalyzer(
+            AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
+            INamedTypeSymbol eventArgsTypeOpt,
+            ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
+            DeserializationConstructorCheck deserializationConstructorCheck,
+            INamedTypeSymbol iCustomMarshaler,
+            SymbolStartAnalysisContext symbolStartAnalysisContext)
         {
-            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer;
+            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer = compilationAnalyzer;
 
-            private readonly INamedTypeSymbol _eventArgsTypeOpt;
-            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
-            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
+            private readonly INamedTypeSymbol _eventArgsTypeOpt = eventArgsTypeOpt;
+            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck = deserializationConstructorCheck;
+            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
+            private readonly INamedTypeSymbol _iCustomMarshaler = iCustomMarshaler;
+            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext = symbolStartAnalysisContext;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
             /// For example, a parameter whose initial value is overwritten before any reads
             /// is an unused parameter with read reference(s).
             /// </summary>
-            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
-
-            public SymbolStartAnalyzer(
-                AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
-                INamedTypeSymbol eventArgsTypeOpt,
-                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                DeserializationConstructorCheck deserializationConstructorCheck)
-            {
-                _compilationAnalyzer = compilationAnalyzer;
-
-                _eventArgsTypeOpt = eventArgsTypeOpt;
-                _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
-                _deserializationConstructorCheck = deserializationConstructorCheck;
-                _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
-                _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
-            }
+            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext context,
@@ -57,6 +53,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
                 var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
+                var iCustomMarshaler = context.Compilation.GetTypeByMetadataName(typeof(ICustomMarshaler).FullName!);
+
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
@@ -69,7 +67,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                     // for unrelated named types.
-                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore,
+                        deserializationConstructorCheck, iCustomMarshaler, symbolStartContext);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
 
@@ -124,13 +123,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 AnalyzerOptions analyzerOptions,
                 CancellationToken cancellationToken)
             {
-                if (!IsUnusedParameterCandidate(parameter))
+                if (!IsUnusedParameterCandidate(parameter, cancellationToken))
                 {
                     return;
                 }
 
                 var location = parameter.Locations[0];
-                var option = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, parameter.Language, location.SourceTree, cancellationToken);
+                var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree).UnusedParameters;
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
                 var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                    option.Notification.Severity, additionalLocations: null, properties: null, message);
+                    option.Notification, additionalLocations: null, properties: null, message);
                 reportDiagnostic(diagnostic);
             }
 
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
-            private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
+            private bool IsUnusedParameterCandidate(IParameterSymbol parameter, CancellationToken cancellationToken)
             {
                 // Ignore certain special parameters/methods.
                 // Note that "method.ExplicitOrImplicitInterfaceImplementations" check below is not a complete check,
@@ -203,13 +202,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 if (parameter.IsImplicitlyDeclared ||
                     parameter.Name == DiscardVariableName ||
-                    !(parameter.ContainingSymbol is IMethodSymbol method) ||
+                    parameter.ContainingSymbol is not IMethodSymbol method ||
                     method.IsImplicitlyDeclared ||
                     method.IsExtern ||
                     method.IsAbstract ||
                     method.IsVirtual ||
                     method.IsOverride ||
                     method.PartialImplementationPart != null ||
+                    method.PartialDefinitionPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
@@ -219,20 +219,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
+                // Ignore parameters of type primary constructors since they map to public properties
+                if (parameter.IsPrimaryConstructor(cancellationToken))
+                {
+                    return false;
+                }
+
                 // Ignore event handler methods "Handler(object, MyEventArgs)"
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
                 if (_eventArgsTypeOpt != null &&
-                    method.Parameters.Length == 2 &&
-                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                    method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsTypeOpt))
+                    method.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, var secondParam] &&
+                    secondParam.Type.InheritsFromOrEquals(_eventArgsTypeOpt))
                 {
                     return false;
                 }
 
                 // Ignore flagging parameters for methods with certain well-known attributes,
                 // which are known to have unused parameters in real world code.
-                if (method.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass)))
+                if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this))
                 {
                     return false;
                 }
@@ -249,7 +254,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (IsSymbolWithSpecialDiscardName(parameter))
+                if (parameter.IsSymbolWithSpecialDiscardName())
+                {
+                    return false;
+                }
+
+                var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken);
+                if (_compilationAnalyzer.ReturnsThrow(methodSyntax))
+                {
+                    return false;
+                }
+
+                // Don't report on valid GetInstance method of ICustomMarshaler.
+                // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
+                if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1, ContainingType: { } containingType } methodSymbol &&
+                    methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
+                    containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
                 {
                     return false;
                 }

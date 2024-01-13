@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
@@ -64,10 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
                     supportsFavorites: false);
                 var expansion = other.Expansion;
-                if (expansion != null)
-                {
-                    expansion.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
-                }
+                expansion?.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
             }
         }
     }

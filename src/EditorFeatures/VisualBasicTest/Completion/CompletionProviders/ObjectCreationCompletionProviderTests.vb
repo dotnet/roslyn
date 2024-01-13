@@ -2,23 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class ObjectCreationCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(ObjectCreationCompletionProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInYieldReturn() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -34,8 +29,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "EntryPointNotFoundException")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInAsyncMethodReturnStatement() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -52,8 +46,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "EntryPointNotFoundException")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(892209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892209")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892209")>
         Public Async Function TestUnwrapNullable() As Task
             Dim markup = <Text><![CDATA[
 Public Class C
@@ -77,7 +70,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "N.S")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotInTrivia() As Task
             Dim markup = <Text><![CDATA[
 Public Class C
@@ -101,8 +94,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "N.S")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")>
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument1() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -123,8 +115,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "List(Of Bar)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")>
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument2() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -141,8 +132,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "List(Of Bar)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")>
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument3() As Task
             Dim markup = <Text><![CDATA[
 Namespace Namespace1
@@ -169,8 +159,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "C(Of B)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21674")>
         Public Async Function PropertyWithSameNameAsOtherType() As Task
             Dim markup = <Text><![CDATA[
 Namespace Namespace1

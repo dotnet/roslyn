@@ -1,0 +1,60 @@
+﻿[$RootKey$\Menus]
+"{6cf2e545-6109-4730-8883-cf43d7aec3e1}"=", Menus.ctmenu, 21"
+
+// [ProvideUIContextRule(
+//      Guids.EncCapableProjectExistsInWorkspaceUIContextString,
+//      name: "Managed Edit and Continue capability",
+//      expression: "CS | VB",
+//      termNames: new[] { "CS", "VB" },
+//      termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
+[$RootKey$\UIContextRules\{0c89ae24-6d19-474c-a3aa-dc3b66fdbb5f}]
+@="Managed Edit and Continue capability"
+"Expression"="CS | VB"
+"CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
+"VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
+"Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
+"Value"=dword:00000000
+"Title"="C#/VB LSP editor (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\SemanticTokens]
+"Description"="Enables the LSP-powered C#/VB semantic tokens experience in the local editor."
+"Value"=dword:00000000
+"Title"="C#/VB LSP semantic tokens experience"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\OOPServerGC]
+"Description"="Run C#/VB out-of-process code analysis with ServerGC."
+"Value"=dword:00000000
+"Title"="Run C#/VB code analysis with ServerGC (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+// Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
+[$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
+"Description"="Enables the LSP-powered diagnostics for managed .Net projects"
+"Value"=dword:00000000
+
+// The option page configuration is duplicated in RoslynPackage
+// [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
+[$RootKey$\ToolWindows\{60a19d42-2dd7-43f3-be90-c7a9cb7d28f4}]
+"Name"="Microsoft.VisualStudio.LanguageServices.ValueTracking.ValueTrackingToolWindow"
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
+// The tool window configuration is duplicated in RoslynPackage
+// [ProvideToolWindow(typeof(StackTraceExplorer.StackTraceExplorerToolWindow))]
+[$RootKey$\ToolWindows\{7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1}]
+"Name"="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerToolWindow"
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
+// 68b46364-d378-42f2-9e72-37d86c5f4468 is the guid for SettingsEditorFactory
+// 6cf2e545-6109-4730-8883-cf43d7aec3e1 is the guid for RoslynPackage
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}]
+"Package"="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\Extensions]
+// dword must be larger that 26 (the priority of the textmate editor)
+// we set it to 100 (64 in hex) here
+"editorconfig"=dword:00000064
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\LogicalViews]
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""

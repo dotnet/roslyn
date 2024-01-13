@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,15 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal readonly struct SymbolUsageResult
+    internal readonly struct SymbolUsageResult(
+        ImmutableDictionary<(ISymbol symbol, IOperation write), bool> symbolWritesMap,
+        ImmutableHashSet<ISymbol> symbolsRead)
     {
-        public SymbolUsageResult(
-            ImmutableDictionary<(ISymbol symbol, IOperation write), bool> symbolWritesMap,
-            ImmutableHashSet<ISymbol> symbolsRead)
-        {
-            SymbolWritesMap = symbolWritesMap;
-            SymbolsRead = symbolsRead;
-        }
 
         /// <summary>
         /// Map from each symbol write to a boolean indicating if the value assinged
@@ -35,12 +32,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         ///        Value = 'true', because value assigned to 'x' here **may be** read on
         ///        some control flow path.
         /// </summary>
-        public ImmutableDictionary<(ISymbol symbol, IOperation write), bool> SymbolWritesMap { get; }
+        public ImmutableDictionary<(ISymbol symbol, IOperation write), bool> SymbolWritesMap { get; } = symbolWritesMap;
 
         /// <summary>
         /// Set of locals/parameters that are read at least once.
         /// </summary>
-        public ImmutableHashSet<ISymbol> SymbolsRead { get; }
+        public ImmutableHashSet<ISymbol> SymbolsRead { get; } = symbolsRead;
 
         public bool HasUnreadSymbolWrites()
             => SymbolWritesMap.Values.Any(value => !value);
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

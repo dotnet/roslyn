@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="localFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ControlFlowGraph GetLocalFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IMethodSymbol localFunction, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (controlFlowGraph == null)
             {
@@ -25,14 +27,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(localFunction));
             }
 
+            ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (controlFlowGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
             }
-            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            while ((currentGraph = currentGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(localFunction));
         }
@@ -41,7 +44,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="anonymousFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ControlFlowGraph GetAnonymousFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (controlFlowGraph == null)
             {
@@ -53,14 +58,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(anonymousFunction));
             }
 
+            ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (controlFlowGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
             }
-            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            while ((currentGraph = currentGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
         }

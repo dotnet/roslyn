@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -60,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         public void AssignToRightShift()
         {
             MakeAssignmentChange(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.RightShiftAssignmentExpression);
+        }
+
+        [Fact]
+        public void AssignToUnsignedRightShift()
+        {
+            MakeAssignmentChange(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.UnsignedRightShiftAssignmentExpression);
         }
 
         [Fact]
@@ -126,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                     return "<<=";
                 case SyntaxKind.RightShiftAssignmentExpression:
                     return ">>=";
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                    return ">>>=";
                 default:
                     throw new Exception("No operator found");
             }

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
@@ -26,7 +27,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             Dim enumerable As NamedTypeSymbol = compilation1.GetTypeByMetadataName("System.Linq.Enumerable")
 
@@ -204,7 +205,6 @@ End Module
     .set void Module1::set_Test3(int32)
   } // end of property Module1::Test3
 } // end of class Module1]]>
-
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
 
@@ -416,7 +416,6 @@ End Module
 } // end of class Module2
 ]]>
 
-
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
@@ -612,7 +611,6 @@ End Module
   } // end of property Module1::Test3
 } // end of class Module1]]>
 
-
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
@@ -806,7 +804,6 @@ End Module
     .set void Module1::set_Test3(int32)
   } // end of property Module1::Test3
 } // end of class Module1]]>
-
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
 
@@ -1004,7 +1001,6 @@ End Module
 .custom ([mscorlib]System.Runtime.CompilerServices.AssemblyAttributesGoHere) instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
 ]]>
 
-
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
@@ -1036,7 +1032,6 @@ End Module
             End Using
 
         End Sub
-
 
         <Fact>
         Public Sub MightContainExtensionMethods_InSource()
@@ -1120,8 +1115,7 @@ Module Module1
     End Sub
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
-
+    </compilation>, {Net40.SystemCore})
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module1")
 
@@ -1211,7 +1205,7 @@ Class Module2
     End Sub
 End Class
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             Dim module2 As NamedTypeSymbol = compilation2.GetTypeByMetadataName("Module2")
 
@@ -1280,7 +1274,7 @@ End Module
 &lt;System.Runtime.CompilerServices.Extension()&gt; 'D
 Delegate Sub D()
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             For Each type As NamedTypeSymbol In compilation2.SourceModule.GlobalNamespace.GetTypeMembers()
                 Assert.False(type.MightContainExtensionMethods)
@@ -1359,8 +1353,7 @@ Module Module1
 End Module
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
-
+    </compilation>, {Net40.SystemCore})
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module2+Module1")
 
@@ -1413,7 +1406,6 @@ End Module
         </file>
     </compilation>)
 
-
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module1")
 
             Assert.True(module1.MightContainExtensionMethods)
@@ -1427,7 +1419,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)
@@ -1455,8 +1447,7 @@ Module Module2
 End Module
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
-
+    </compilation>, {Net40.SystemCore})
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module1")
 
@@ -1471,7 +1462,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)
@@ -1500,7 +1491,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1531,7 +1522,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1564,7 +1555,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1596,7 +1587,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1626,7 +1617,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1655,7 +1646,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             references:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1715,7 +1706,7 @@ End Module
     </compilation>
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
-                                                                                                       {SystemCoreRef,
+                                                                                                       {Net40.SystemCore,
                                                                                                         New VisualBasicCompilationReference(compilation2),
                                                                                                         New VisualBasicCompilationReference(compilation3)},
                                                                                                        TestOptions.ReleaseExe)
@@ -1734,7 +1725,7 @@ End Namespace
     </compilation>)
 
             Dim compilation1_1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
-                                                                                                        {SystemCoreRef,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                          TestOptions.ReleaseExe)
 
@@ -1757,7 +1748,6 @@ BC30560: 'ExtensionAttribute' is ambiguous in the namespace 'System.Runtime.Comp
     <System.Runtime.CompilerServices.Extension()> 'Test1
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
-
 </expected>)
 
             Dim compilation3_2 = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -1772,12 +1762,11 @@ End Namespace
     </compilation>)
 
             Dim compilation1_2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
-                                                                                                        {SystemCoreRef,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_2)},
                                                                                                          TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1_2, expectedOutput:="345")
-
 
             Dim compilation1_3_Def =
     <compilation name="EmitExtensionAttribute7_3">
@@ -1797,7 +1786,7 @@ End Module
     </compilation>
 
             Dim compilation1_3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1_3_Def,
-                                                                                                        {SystemCoreRef,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                         TestOptions.ReleaseExe)
 
@@ -1842,10 +1831,9 @@ End Namespace
     </compilation>
 
             Dim compilation1_4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1_4_Def,
-                                                                                                        {SystemCoreRef,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                         TestOptions.ReleaseExe)
-
 
             CompileAndVerify(compilation1_4, expectedOutput:="345")
 
@@ -1895,7 +1883,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef,
+    </compilation>, {Net40.SystemCore,
                      New VisualBasicCompilationReference(compilation2),
                      New VisualBasicCompilationReference(compilation3)})
 
@@ -1927,7 +1915,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef,
+    </compilation>, {Net40.SystemCore,
                      New VisualBasicCompilationReference(compilation2),
                      New VisualBasicCompilationReference(compilation3)})
 
@@ -1957,7 +1945,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef})
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.SystemCore})
             Dim assembly = compilation.SourceModule.ContainingAssembly
             Dim securityAttributes = assembly.GetAttributes()
             Debug.Assert(securityAttributes.Length = 1)
@@ -2276,7 +2264,7 @@ End Module
 Class C
         End Class
         ]]></file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected><![CDATA[
@@ -2403,7 +2391,7 @@ Module M
 
 End Module
         ]]></file>
-    </compilation>, references:={SystemCoreRef})
+    </compilation>, references:={Net40.SystemCore})
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
@@ -2434,7 +2422,8 @@ End Module
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40680: The test hook is blocked by this issue.
+        <WorkItem(40680, "https://github.com/dotnet/roslyn/issues/40680")>
         Public Sub ScriptExtensionMethods()
             Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices
@@ -2452,7 +2441,7 @@ o.F()]]>
 
         <Fact>
         Public Sub InteractiveExtensionMethods()
-            Dim references = {MscorlibRef, SystemCoreRef}
+            Dim references = {Net40.mscorlib, Net40.SystemCore}
 
             Dim source0 = "
 Imports System.Runtime.CompilerServices
@@ -2498,7 +2487,7 @@ public static class Extensions
     {
         System.Console.Write(p);
     }
-}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+}", referencedAssemblies:={Net40.mscorlib, Net40.SystemCore}, parseOptions:=options).EmitToImageReference()
 
             Dim vb = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
@@ -2527,7 +2516,7 @@ public static class Extensions
     {
         System.Console.Write(p);
     }
-}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+}", referencedAssemblies:={Net40.mscorlib, Net40.SystemCore}, parseOptions:=options).EmitToImageReference()
 
             Dim vb = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
@@ -2546,8 +2535,35 @@ End Module
             CompileAndVerify(vb, expectedOutput:="5")
         End Sub
 
+        <Fact>
+        <WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")>
+        Public Sub ReduceExtensionMethodOnReceiverTypeSystemVoid()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Structure C
+End Structure
+Module E
+    <Extension()>
+    Friend Sub ExtMethod(o As ValueType)
+    End Sub
+End Module
+]]></file>
+</compilation>, {Net40.SystemCore})
+
+            Dim extensionMethod = DirectCast(compilation.GetSymbolsWithName("ExtMethod", SymbolFilter.Member).Single(), IMethodSymbol)
+            Assert.NotNull(extensionMethod)
+
+            Dim reducedMethodOnC = extensionMethod.ReduceExtensionMethod(compilation.GetTypeByMetadataName("C"))
+            Assert.NotNull(reducedMethodOnC)
+            Assert.Equal("Sub System.ValueType.ExtMethod()", reducedMethodOnC.ToTestDisplayString())
+
+            Dim reducedMethodOnVoid = extensionMethod.ReduceExtensionMethod(compilation.GetSpecialType(SpecialType.System_Void))
+            Assert.Null(reducedMethodOnVoid)
+        End Sub
     End Class
 
 End Namespace
-
 

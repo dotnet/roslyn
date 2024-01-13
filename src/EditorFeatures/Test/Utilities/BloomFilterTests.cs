@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public class BloomFilterTests
     {
-        private IEnumerable<string> GenerateStrings(int count)
+        private static IEnumerable<string> GenerateStrings(int count)
         {
             for (var i = 1; i <= count; i++)
             {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private string GenerateString(int value)
+        private static string GenerateString(int value)
         {
             const string Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var builder = new StringBuilder();
@@ -39,16 +41,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return builder.ToString();
         }
 
-        private void Test(bool isCaseSensitive)
+        private static void Test(bool isCaseSensitive)
         {
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            var strings = GenerateStrings(2000).Skip(500).Take(1000).ToSet(comparer);
+            var strings = new HashSet<string>(GenerateStrings(2000).Skip(500).Take(1000), comparer);
             var testStrings = GenerateStrings(100000);
 
             for (var d = 0.1; d >= 0.0001; d /= 10)
             {
-                var filter = new BloomFilter(strings.Count, d, isCaseSensitive);
-                filter.AddRange(strings);
+                var filter = new BloomFilter(d, isCaseSensitive, strings);
 
                 var correctCount = 0.0;
                 var incorrectCount = 0.0;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             for (var d = 0.1; d >= 0.0001; d /= 10)
             {
-                var filter = new BloomFilter(0, d, isCaseSensitive: true);
+                var filter = new BloomFilter(d, isCaseSensitive: true, new());
                 Assert.False(filter.ProbablyContains(string.Empty));
                 Assert.False(filter.ProbablyContains("a"));
                 Assert.False(filter.ProbablyContains("b"));
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void TestSerialization()
         {
             var stream = new MemoryStream();
-            var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
+            var bloomFilter = new BloomFilter(0.001, isCaseSensitive: false, new() { "Hello, World" });
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void TestSerialization2()
         {
             var stream = new MemoryStream();
-            var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
+            var bloomFilter = new BloomFilter(0.001, new HashSet<string>() { "Hello, World" }, new HashSet<long>() { long.MaxValue, -1, 0, 1, long.MinValue });
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             for (var d = 0.1; d >= 0.0001; d /= 10)
             {
-                var filter = new BloomFilter(d, new string[] { }, longs);
+                var filter = new BloomFilter(d, new(), longs);
 
                 var correctCount = 0.0;
                 var incorrectCount = 0.0;
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private HashSet<long> CreateLongs(List<int> ints)
+        private static HashSet<long> CreateLongs(List<int> ints)
         {
             var result = new HashSet<long>();
 

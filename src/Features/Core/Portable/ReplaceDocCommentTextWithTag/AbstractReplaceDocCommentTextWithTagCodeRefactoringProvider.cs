@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,32 +25,24 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start, findInsideTrivia: true);
 
             if (!IsXmlTextToken(token))
-            {
                 return;
-            }
 
             if (!token.FullSpan.Contains(span))
-            {
                 return;
-            }
 
             if (IsInXMLAttribute(token))
-            {
                 return;
-            }
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var singleWordSpan = ExpandSpan(sourceText, span, fullyQualifiedName: false);
             var singleWordText = sourceText.ToString(singleWordSpan);
             if (singleWordText == "")
-            {
                 return;
-            }
 
             // First see if they're on an appropriate keyword. 
             if (IsKeyword(singleWordText))
@@ -60,12 +52,10 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             }
 
             // Not a keyword, see if it semantically means anything in the current context.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = GetEnclosingSymbol(semanticModel, span.Start, cancellationToken);
             if (symbol == null)
-            {
                 return;
-            }
 
             // See if we can expand the term out to a fully qualified name. Do this
             // first in case the user has something like X.memberName.  We don't want 
@@ -84,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
             // Check if the single word could be binding to a type parameter or parameter
             // for the current symbol.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var parameter = symbol.GetParameters().FirstOrDefault(p => syntaxFacts.StringComparer.Equals(p.Name, singleWordText));
             if (parameter != null)
             {
@@ -134,42 +124,41 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return true;
         }
 
-        private ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static ISymbol? GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position);
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (semanticModel.GetDeclaredSymbol(node) is ISymbol declaration)
-                {
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is ISymbol declaration)
                     return declaration;
-                }
             }
 
             return null;
         }
 
-        private void RegisterRefactoring(
+        private static void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Use_0, replacement),
-                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)),
+                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c),
+                    nameof(FeaturesResources.Use_0) + "_" + replacement),
                 expandedSpan);
         }
 
-        private async Task<Document> ReplaceTextAsync(
+        private static async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.Replace(span, replacement);
 
             return document.WithText(newText);
         }
 
-        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
+        private static TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
         {
             if (span.Length != 0)
             {
@@ -193,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(startInclusive, endExclusive);
         }
 
-        private bool ShouldExpandSpanForwardOneCharacter(
+        private static bool ShouldExpandSpanForwardOneCharacter(
             SourceText sourceText, int endExclusive, bool fullyQualifiedName)
         {
             var currentChar = sourceText[endExclusive];
@@ -214,7 +203,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return false;
         }
 
-        private bool ShouldExpandSpanBackwardOneCharacter(
+        private static bool ShouldExpandSpanBackwardOneCharacter(
             SourceText sourceText, int startInclusive, bool fullyQualifiedName)
         {
             Debug.Assert(startInclusive > 0);
@@ -231,14 +220,6 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

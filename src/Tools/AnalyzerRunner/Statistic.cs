@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace AnalyzerRunner
 {
-    internal struct Statistic
+    internal readonly struct Statistic
     {
         public Statistic(int numberOfNodes, int numberOfTokens, int numberOfTrivia)
         {

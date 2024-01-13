@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -90,12 +92,10 @@ namespace Microsoft.Cci
         //    CHAR    NameString[ 1 ];
         //} IMAGE_RESOURCE_DIRECTORY_STRING, *PIMAGE_RESOURCE_DIRECTORY_STRING;
 
-
         //typedef struct _IMAGE_RESOURCE_DIR_STRING_U {
         //    WORD    Length;
         //    WCHAR   NameString[ 1 ];
         //} IMAGE_RESOURCE_DIR_STRING_U, *PIMAGE_RESOURCE_DIR_STRING_U;
-
 
         ////
         //// Each resource data entry describes a leaf node in the resource directory

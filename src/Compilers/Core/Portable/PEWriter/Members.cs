@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -28,7 +27,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -56,6 +55,12 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        Unmanaged = SignatureCallingConvention.Unmanaged,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
@@ -68,7 +73,54 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+    }
+
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureCallingConventionMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
+
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
+        {
+            if (!convention.IsValid())
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
+        }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+        {
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
+        }
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>
@@ -207,13 +259,24 @@ namespace Microsoft.Cci
         ITypeReference GetType(EmitContext context);
 
         /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// True if the field contains a managed pointer.
+        /// </summary>
+        bool IsByReference { get; }
+
+        /// <summary>
         /// The Field being referred to.
         /// </summary>
         IFieldDefinition? GetResolvedField(EmitContext context);
 
-
         ISpecializedFieldReference? AsSpecializedFieldReference { get; }
-
 
         /// <summary>
         /// True, if field is an IContextualNamedEntity, even if field reference implements the interface,
@@ -419,12 +482,28 @@ namespace Microsoft.Cci
         /// Returns types of awaiter slots allocated on the state machine,
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+        ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
-        ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
-        ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        ImmutableArray<EncClosureInfo> ClosureDebugInfo { get; }
+        ImmutableArray<EncLambdaInfo> LambdaDebugInfo { get; }
 
-        DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
+        /// <summary>
+        /// Ordered by <see cref="LambdaRuntimeRudeEditInfo.LambdaId"/>.
+        /// </summary>
+        ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits { get; }
+
+        StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
+
+        /// <summary>
+        /// Code coverage spans produced by <see cref="InstrumentationKind.TestCoverage"/> instrumentation.
+        /// <see cref="ImmutableArray{SourceSpan}.Empty"/> if not applicable.
+        /// </summary>
+        ImmutableArray<SourceSpan> CodeCoverageSpans { get; }
+
+        /// <summary>
+        /// True if this is a body of a Primary Constructor.
+        /// </summary>
+        bool IsPrimaryConstructor { get; }
     }
 
     /// <summary>
@@ -433,27 +512,25 @@ namespace Microsoft.Cci
     internal interface IMethodDefinition : ITypeDefinitionMember, IMethodReference
     {
         /// <summary>
+        /// True if the method definition has a body.
+        /// </summary>
+        /// <remarks>
+        /// Returns true regardless of whether the body ends up actually emitted or not.
+        /// </remarks>
+        bool HasBody { get; }
+
+        /// <summary>
         /// A container for a list of IL instructions providing the implementation (if any) of this method.
         /// </summary>
         /// <remarks>
-        /// When emitting metadata-only assemblies this returns null even if <see cref="Cci.Extensions.HasBody"/> returns true.
+        /// When emitting metadata-only assemblies this returns null even if <see cref="HasBody"/> returns true.
         /// </remarks>
-        IMethodBody GetBody(EmitContext context);
+        IMethodBody? GetBody(EmitContext context);
 
         /// <summary>
         /// If the method is generic then this list contains the type parameters.
         /// </summary>
-        IEnumerable<IGenericMethodParameter> GenericParameters
-        {
-            get;
-            // ^ requires this.IsGeneric;
-        }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
+        IEnumerable<IGenericMethodParameter> GenericParameters { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
@@ -856,17 +933,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The number of generic parameters of the method. Zero if the referenced method is not generic.
         /// </summary>
-        ushort GenericParameterCount
-        {
-            get;
-            // ^ ensures !this.IsGeneric ==> result == 0;
-            // ^ ensures this.IsGeneric ==> result > 0;
-        }
-
-        /// <summary>
-        /// True if the method has generic parameters;
-        /// </summary>
-        bool IsGeneric { get; }
+        ushort GenericParameterCount { get; }
 
         /// <summary>
         /// The method being referred to.
@@ -919,17 +986,22 @@ namespace Microsoft.Cci
         new string Name { get; }
     }
 
-    internal static class Extensions
+    /// <summary>
+    /// Default implementations for interface methods.
+    /// </summary>
+    internal static class DefaultImplementations
     {
-        internal static bool HasBody(this IMethodDefinition methodDef)
+        internal static bool HasBody(IMethodDefinition methodDef)
         {
             // Method definition has body if it is a non-abstract, non-extern method.
             // Additionally, methods within COM types have no body.
 
-            return !methodDef.IsAbstract && !methodDef.IsExternal &&
-                (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
+            return !methodDef.IsAbstract && !methodDef.IsExternal && !methodDef.ContainingTypeDefinition.IsComObject;
         }
+    }
 
+    internal static class Extensions
+    {
         /// <summary>
         /// When emitting ref assemblies, some members will not be included.
         /// </summary>
@@ -946,15 +1018,36 @@ namespace Microsoft.Cci
                 return true;
             }
 
+            bool acceptBasedOnVisibility = true;
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return context.IncludePrivateMembers;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers;
+                    break;
                 case TypeMemberVisibility.Assembly:
                 case TypeMemberVisibility.FamilyAndAssembly:
-                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    break;
             }
-            return true;
+
+            if (acceptBasedOnVisibility)
+            {
+                return true;
+            }
+
+            if (method?.IsStatic == true)
+            {
+                foreach (var methodImplementation in method.ContainingTypeDefinition.GetExplicitImplementationOverrides(context))
+                {
+                    if (methodImplementation.ImplementingMethod == method)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

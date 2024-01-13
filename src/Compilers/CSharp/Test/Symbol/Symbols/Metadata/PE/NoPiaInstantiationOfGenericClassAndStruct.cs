@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -188,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             //Test a static property that takes Generic(Of NoPIAType)
 
-
             var localTypeSource = @"public class NoPIAGenerics 
 {
    TypeRefs1 typeRef = null;
@@ -202,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(SymbolKind.ErrorType, importedProperty.Type.Kind);
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Type);
         }
-
 
         [Fact]
         public void NoPiaIllegalGenericInstantiationSymbolForStaticMethodThatTakesGenericOfPiaType()

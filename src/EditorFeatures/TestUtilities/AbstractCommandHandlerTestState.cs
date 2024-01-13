@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,25 +21,18 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     internal abstract class AbstractCommandHandlerTestState : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
         private readonly ITextView _textView;
         private readonly DisposableTextView? _createdTextView;
         private readonly ITextBuffer _subjectBuffer;
-
-        public AbstractCommandHandlerTestState(
-            XElement workspaceElement,
-            ComposableCatalog extraParts,
-            string? workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(excludedTypes: null, extraParts), workspaceKind)
-        {
-        }
 
         /// <summary>
         /// This can use input files with an (optionally) annotated span 'Selection' and a cursor position ($$),
@@ -66,35 +56,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
-            ExportProvider exportProvider,
-            string? workspaceKind,
+            TestComposition composition,
+            string? workspaceKind = null,
             bool makeSeparateBufferForCursor = false,
             ImmutableArray<string> roles = default)
         {
-            this.Workspace = TestWorkspace.CreateWorkspace(
+            Workspace = EditorTestWorkspace.CreateWorkspace(
                 workspaceElement,
-                exportProvider: exportProvider,
+                composition: composition,
                 workspaceKind: workspaceKind);
 
             if (makeSeparateBufferForCursor)
             {
                 var languageName = Workspace.Projects.First().Language;
                 var contentType = Workspace.Services.GetLanguageServices(languageName).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType();
-                _createdTextView = EditorFactory.CreateView(exportProvider, contentType, roles);
+                _createdTextView = EditorFactory.CreateView(Workspace.ExportProvider, contentType, roles);
                 _textView = _createdTextView.TextView;
                 _subjectBuffer = _textView.TextBuffer;
             }
             else
             {
-                var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue || d.SelectedSpans.Any(ss => ss.IsEmpty));
                 _textView = cursorDocument.GetTextView();
                 _subjectBuffer = cursorDocument.GetTextBuffer();
+
+                var cursorPosition = cursorDocument.CursorPosition ?? cursorDocument.SelectedSpans.First(ss => ss.IsEmpty).Start;
+                _textView.Caret.MoveTo(
+                    new SnapshotPoint(_subjectBuffer.CurrentSnapshot, cursorPosition));
 
                 if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
                 {
                     var firstSpan = selectionSpanList.First();
                     var lastSpan = selectionSpanList.Last();
-                    var cursorPosition = cursorDocument.CursorPosition!.Value;
 
                     Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
                                 || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
@@ -123,13 +116,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     }
 
                     _textView.Selection.Select(
-                            new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
-                            isReversed: isReversed);
+                        new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
+                        isReversed: isReversed);
                 }
             }
 
             this.EditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(_textView);
             this.UndoHistoryRegistry = GetService<ITextUndoHistoryRegistry>();
+
+            _textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart);
         }
 
         public void Dispose()
@@ -140,22 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public T GetService<T>()
             => Workspace.GetService<T>();
-
-        internal static ExportProvider GetExportProvider(IList<Type>? excludedTypes, ComposableCatalog extraParts)
-        {
-            excludedTypes = excludedTypes ?? Type.EmptyTypes;
-
-            if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
-            {
-                return TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
-            }
-
-            var baseCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
-
-            var filteredCatalog = baseCatalog.WithoutPartsOfTypes(excludedTypes);
-
-            return ExportProviderCache.GetOrCreateExportProviderFactory(filteredCatalog.WithParts(extraParts)).CreateExportProvider();
-        }
 
         public virtual ITextView TextView
         {
@@ -235,8 +214,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var lineCaretPosition = bufferCaretPosition - line.Start.Position;
 
             var text = line.GetText();
-            var textBeforeCaret = text.Substring(0, lineCaretPosition);
-            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+            var textBeforeCaret = text[..lineCaretPosition];
+            var textAfterCaret = text[lineCaretPosition..];
 
             return (textBeforeCaret, textAfterCaret);
         }
@@ -261,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
+            await provider.WaitAllDispatcherOperationAndTasksAsync(Workspace, FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)
@@ -320,6 +299,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void SendPageDown(Action<PageDownKeyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
+
+        public void SendCopy(Action<CopyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+            => commandHandler(new CopyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
 
         public void SendCut(Action<CutCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new CutCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());

@@ -26,7 +26,7 @@ Class Program
 End Class
 
     </file>
-</compilation>, {SystemCoreRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
 
             compilation.AssertTheseDiagnostics(<errors>
 BC50001: Unused import statement.
@@ -34,7 +34,6 @@ Imports System.IO
 ~~~~~~~~~~~~~~~~~
                                                </errors>, suppressInfos:=False)
         End Sub
-
 
         <Fact()>
         Public Sub TestSpeculativeBindingDoesNotAffectUsedUsings()
@@ -90,7 +89,7 @@ Imports System.Reflection
 <Assembly: AssemblyKeyFile("]]><%= snkPath %><![CDATA[")>
 ]]>
     </file>
-</compilation>, references:={SystemCoreRef}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
+</compilation>, references:={TestMetadata.Net40.SystemCore}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
 
             Dim libCompilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Lib">

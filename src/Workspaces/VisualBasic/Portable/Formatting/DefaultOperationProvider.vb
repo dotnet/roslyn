@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -19,26 +18,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared ReadOnly Instance As New DefaultOperationProvider()
 
+        Private ReadOnly _options As SyntaxFormattingOptions
+
         Private Sub New()
+            MyClass.New(VisualBasicSyntaxFormattingOptions.Default)
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextSuppressOperationAction)
+        Private Sub New(options As SyntaxFormattingOptions)
+            _options = options
         End Sub
 
-        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAnchorIndentationOperationAction)
+        Public Overrides Function WithOptions(options As SyntaxFormattingOptions) As AbstractFormattingRule
+            If _options.SeparateImportDirectiveGroups = options.SeparateImportDirectiveGroups Then
+                Return Me
+            End If
+
+            Return New DefaultOperationProvider(options)
+        End Function
+
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextIndentBlockOperationAction)
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAlignTokensOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextAction As NextIndentBlockOperationAction)
+        End Sub
+
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken,
-                currentToken As SyntaxToken,
-                options As AnalyzerConfigOptions,
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
@@ -60,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' indentation for the line
             Dim previousStatement As StatementSyntax = Nothing
             If previousToken.IsLastTokenOfStatement(statement:=previousStatement) AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
-                Return AdjustNewLinesBetweenStatements(previousStatement, currentToken, options)
+                Return AdjustNewLinesBetweenStatements(previousStatement, currentToken)
             End If
 
             If previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
@@ -103,10 +116,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Shared Function AdjustNewLinesBetweenStatements(
+        Private Function AdjustNewLinesBetweenStatements(
                 previousStatement As StatementSyntax,
-                currentToken As SyntaxToken,
-                options As AnalyzerConfigOptions) As AdjustNewLinesOperation
+                currentToken As SyntaxToken) As AdjustNewLinesOperation
 
             ' if the user is separating import-groups, And we're between two imports, and these
             ' imports *should* be separated, then do so (if the imports were already properly
@@ -118,10 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim previousImports = DirectCast(previousStatement, ImportsStatementSyntax)
                 Dim currentImports = DirectCast(currentToken.Parent, ImportsStatementSyntax)
 
-                Dim separateGroups = False
-                Dim succeeded = options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, separateGroups)
-                If succeeded AndAlso
-                   separateGroups AndAlso
+                If _options.SeparateImportDirectiveGroups AndAlso
                    ImportsOrganizer.NeedsGrouping(previousImports, currentImports) Then
 
                     Dim [imports] = DirectCast(previousImports.Parent, CompilationUnitSyntax).Imports
@@ -164,11 +173,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Return previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) OrElse nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
             Dim xmlDeclaration = TryCast(currentToken.Parent, XmlDeclarationSyntax)
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
@@ -196,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then

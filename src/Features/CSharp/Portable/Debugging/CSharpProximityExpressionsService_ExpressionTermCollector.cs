@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -184,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // is NOT another dot/arrow.  This allows the expression 'a.b.c.d' to
             // add both 'a.b.c.d' and 'a.b.c', but not 'a.b' and 'a'.
             if (IsValidTerm(flags) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression))
+                memberAccessExpression.Parent?.Kind() is not SyntaxKind.SimpleMemberAccessExpression and not SyntaxKind.PointerMemberAccessExpression)
             {
                 terms.Add(ConvertToString(memberAccessExpression.Expression));
             }
@@ -251,9 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
         private static void AddInvocationExpressionTerms(InvocationExpressionSyntax invocationExpression, IList<string> terms, ref ExpressionType expressionType)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             // Invocations definitely have side effects.  So we assume this
             // is invalid initially;
             expressionType = ExpressionType.Invalid;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             ExpressionType leftFlags = ExpressionType.Invalid, rightFlags = ExpressionType.Invalid;
 
             AddSubExpressionTerms(invocationExpression.Expression, terms, ref leftFlags);
@@ -276,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // Is our expression a valid term?
             AddIfValidTerm(prefixUnaryExpression.Operand, flags, terms);
 
-            if (prefixUnaryExpression.IsKind(SyntaxKind.LogicalNotExpression, SyntaxKind.BitwiseNotExpression, SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (prefixUnaryExpression.Kind() is SyntaxKind.LogicalNotExpression or SyntaxKind.BitwiseNotExpression or SyntaxKind.UnaryMinusExpression or SyntaxKind.UnaryPlusExpression)
             {
                 // We're a valid expression if our subexpression is...
                 expressionType = flags & ExpressionType.ValidExpression;

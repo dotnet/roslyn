@@ -1434,7 +1434,7 @@ End Class
 0]]>)
         End Sub
 
-        ' Parse an Attribute instance that takes a generic type with an generic argument that is a multi-dimensional array
+        ' Parse an Attribute instance that takes a generic type with a generic argument that is a multi-dimensional array
         <Fact>
         Public Sub Generic()
             CompileAndVerify(
@@ -1454,7 +1454,6 @@ End Class
     </file>
 </compilation>).VerifyDiagnostics()
         End Sub
-
 
         <Fact()>
         Public Sub MDArrayTypeRef()
@@ -1483,7 +1482,6 @@ SM
 ]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
-
 
     End Class
 

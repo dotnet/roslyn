@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (editDistance1 > 0)
             {
                 var editDistance4 = EditDistance.GetEditDistance(s, t, editDistance1 - 1);
-                Assert.Equal(editDistance4, EditDistance.BeyondThreshold);
+                Assert.Equal(EditDistance.BeyondThreshold, editDistance4);
             }
         }
 
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void EditDistance11()
         {
             var editDistance = EditDistance.GetEditDistance("book", "moons", 1);
-            Assert.Equal(editDistance, EditDistance.BeyondThreshold);
+            Assert.Equal(EditDistance.BeyondThreshold, editDistance);
             VerifyEditDistance("book", "moons", 3);
         }
 
@@ -132,8 +134,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyEditDistance("aaaabbbb", "bbbbcccc", 8);
         }
 
-        public static readonly string[] Top1000 = new string[]
-            {
+        public static readonly string[] Top1000 =
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+            [
                 "a","able","about","above","act","add","afraid","after","again","against","age","ago","agree","air","all",
                 "allow","also","always","am","among","an","and","anger","animal","answer","any","appear","apple","are",
                 "area","arm","arrange","arrive","art","as","ask","at","atom","baby","back","bad","ball","band","bank",
@@ -209,8 +212,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "who","whole","whose","why","wide","wife","wild","will","win","wind","window","wing","winter","wire",
                 "wish","with","woman","women","wonder","wont","wood","word","work","world","would","write","written",
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
-            };
-
+            ];
+#pragma warning restore format
 
         [Fact]
         public void Top1000Test()

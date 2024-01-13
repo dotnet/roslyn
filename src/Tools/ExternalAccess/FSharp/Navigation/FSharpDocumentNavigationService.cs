@@ -2,76 +2,51 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+
+[ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpDocumentNavigationService(IThreadingContext threadingContext)
+    : IFSharpDocumentNavigationService
 {
-    [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
-    internal class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
+    public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpDocumentNavigationService()
-        {
-        }
+        var service = workspace.Services.GetService<IDocumentNavigationService>();
+        return threadingContext.JoinableTaskFactory.Run(() =>
+            service.CanNavigateToSpanAsync(workspace, documentId, textSpan, cancellationToken));
+    }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given position in the specified document.
-        /// </summary>
-        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentId, textSpan);
-        }
+    public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+    {
+        var service = workspace.Services.GetService<IDocumentNavigationService>();
+        return threadingContext.JoinableTaskFactory.Run(() =>
+            service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken));
+    }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given line/offset in the specified document.
-        /// </summary>
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset);
-        }
+    public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        var service = workspace.Services.GetService<IDocumentNavigationService>();
+        return threadingContext.JoinableTaskFactory.Run(() =>
+            service.TryNavigateToSpanAsync(
+                threadingContext, workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
+    }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given virtual position in the specified document.
-        /// </summary>
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace);
-        }
-
-        /// <summary>
-        /// Navigates to the given position in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentId, textSpan, options);
-        }
-
-        /// <summary>
-        /// Navigates to the given line/offset in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options);
-        }
-
-        /// <summary>
-        /// Navigates to the given virtual position in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options);
-        }
+    public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+    {
+        var service = workspace.Services.GetService<IDocumentNavigationService>();
+        return threadingContext.JoinableTaskFactory.Run(() =>
+            service.TryNavigateToPositionAsync(
+                threadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
     }
 }

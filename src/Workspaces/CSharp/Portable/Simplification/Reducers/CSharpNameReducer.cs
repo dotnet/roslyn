@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -11,35 +13,36 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpNameReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
+
+        private static readonly Func<SyntaxNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
 
         public CSharpNameReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<SyntaxNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxNode SimplifyName(
             SyntaxNode node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             SyntaxNode replacementNode;
-            TextSpan issueSpan;
 
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            if (node is QualifiedCrefSyntax crefSyntax)
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(
-                        crefSyntax, semanticModel, optionSet,
-                        out var crefReplacement, out issueSpan, cancellationToken))
+                        crefSyntax, semanticModel, options,
+                        out var crefReplacement, out _, cancellationToken))
                 {
                     return node;
                 }
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out issueSpan, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, options, out var expressionReplacement, out _, cancellationToken))
                 {
                     return node;
                 }

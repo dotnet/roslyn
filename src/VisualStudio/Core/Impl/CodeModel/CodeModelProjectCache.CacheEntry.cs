@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal sealed partial class CodeModelProjectCache
     {
-        private struct CacheEntry
+        private readonly struct CacheEntry
         {
             // NOTE: The logic here is a little bit tricky.  We can't just keep a WeakReference to
             // something like a ComHandle, since it's not something that our clients keep alive.

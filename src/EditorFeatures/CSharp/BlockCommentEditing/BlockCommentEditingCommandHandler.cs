@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -35,18 +33,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService)
         {
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
@@ -55,18 +56,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-            => TryHandleReturnKey(args.SubjectBuffer, args.TextView);
+            => TryHandleReturnKey(args.SubjectBuffer, args.TextView, context.OperationContext.UserCancellationToken);
 
-        private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView)
+        private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            if (!_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
                 return false;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
             if (caretPosition == null)
                 return false;
 
-            var textToInsert = GetTextToInsert(caretPosition.Value);
+            var textToInsert = GetTextToInsert(caretPosition.Value, subjectBuffer, _editorOptionsService, cancellationToken);
             if (textToInsert == null)
                 return false;
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return true;
         }
 
-        private Span GetReplacementSpan(SnapshotPoint caretPosition)
+        private static Span GetReplacementSpan(SnapshotPoint caretPosition)
         {
             // We want to replace all the whitespace following the caret.  This is standard <enter> behavior in VS that
             // we want to mimic.
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return Span.FromBounds(start, end);
         }
 
-        private string? GetTextToInsert(SnapshotPoint caretPosition)
+        private static string? GetTextToInsert(SnapshotPoint caretPosition, ITextBuffer buffer, EditorOptionsService editorOptionsService, CancellationToken cancellationToken)
         {
             var currentLine = caretPosition.GetContainingLine();
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             }
 
             // Now do more expensive syntactic check to see if we're actually in the block comment.
-            if (!IsCaretInsideBlockCommentSyntax(caretPosition, out var blockComment, out var newLine))
+            if (!IsCaretInsideBlockCommentSyntax(caretPosition, buffer, editorOptionsService, out var blockComment, out var newLine, cancellationToken))
                 return null;
 
             var textSnapshot = caretPosition.Snapshot;
@@ -264,8 +265,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         public static bool IsCaretInsideBlockCommentSyntax(
             SnapshotPoint caretPosition,
+            ITextBuffer buffer,
+            EditorOptionsService editorOptionsService,
             out SyntaxTrivia trivia,
-            [NotNullWhen(true)] out string? newLine)
+            [NotNullWhen(true)] out string? newLine,
+            CancellationToken cancellationToken)
         {
             trivia = default;
             newLine = null;
@@ -275,14 +279,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (document == null)
                 return false;
 
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
-            trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+            trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, cancellationToken);
 
-            var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+            var isBlockComment = trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia;
             if (isBlockComment)
             {
-                var options = document.Project.Solution.Options;
-                newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+                newLine = buffer.GetLineFormattingOptions(editorOptionsService, explicitFormat: false).NewLine;
 
                 var span = trivia.FullSpan;
                 if (span.Start < caretPosition && caretPosition < span.End)

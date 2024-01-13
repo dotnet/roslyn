@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -47,15 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         SynthesizedExplicitImplementations = 1 << 13,
         StartMemberChecks = 1 << 14,
         FinishMemberChecks = 1 << 15,
-        MembersCompleted = 1 << 16, // this should be the last (highest-value) part
+        MembersCompletedChecksStarted = 1 << 16,
+        MembersCompleted = 1 << 17, // this should be the last (highest-value) part
 
-        All = (1 << 17) - 1,
+        All = (1 << 18) - 1,
 
         // This is the work we can do if ForceComplete is scoped to a particular SyntaxTree.
         NamedTypeSymbolWithLocationAll = Attributes | StartBaseType | FinishBaseType | StartInterfaces | FinishInterfaces | EnumUnderlyingType |
             TypeArguments | TypeParameters | Members | TypeMembers | SynthesizedExplicitImplementations | StartMemberChecks | FinishMemberChecks,
 
-        NamedTypeSymbolAll = NamedTypeSymbolWithLocationAll | MembersCompleted,
+        NamedTypeSymbolAll = NamedTypeSymbolWithLocationAll | MembersCompletedChecksStarted | MembersCompleted,
 
         // For Usings
         StartValidatingImports = 1 << 4,
@@ -78,16 +81,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishMethodChecks = 1 << 14,
         MethodSymbolAll = Attributes | ReturnTypeAttributes | Parameters | Type | TypeParameters | StartMethodChecks | FinishMethodChecks | StartAsyncMethodChecks | FinishAsyncMethodChecks,
 
+        // For complex parameter symbols
+        StartDefaultSyntaxValue = 1 << 11,
+        EndDefaultSyntaxValue = 1 << 12,
+        EndDefaultSyntaxValueDiagnostics = 1 << 13,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics,
+
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,
 
         // For property symbols
-        StartPropertyParameters = 1 << 4,
-        FinishPropertyParameters = 1 << 5,
-        StartPropertyType = 1 << 6,
-        FinishPropertyType = 1 << 7,
-        PropertySymbolAll = Attributes | StartPropertyParameters | FinishPropertyParameters | StartPropertyType | FinishPropertyType,
+        StartPropertyEnsureSignature = 1 << 4,
+        FinishPropertyEnsureSignature = 1 << 5,
+        StartPropertyParameters = 1 << 6,
+        FinishPropertyParameters = 1 << 7,
+        StartPropertyType = 1 << 8,
+        FinishPropertyType = 1 << 9,
+        PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

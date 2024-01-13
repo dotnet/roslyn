@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class PreprocessorIfTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub ApplyAfterHashIf()
             VerifyStatementEndConstructApplied(
                 before:="#If True Then",
@@ -17,16 +17,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterHashIfWhenEndIfExists()
+        <WpfFact>
+        Public Sub DoNotApplyAfterHashIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:="#If True Then
 #End If",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(537976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537976")>
-        Public Sub DontApplyAfterHashElseIfWhenEndIfExists()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537976")>
+        Public Sub DoNotApplyAfterHashElseIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:="#If True Then
 #ElseIf True Then

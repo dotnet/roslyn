@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyleRules
+    internal class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
     {
-        public ImmutableArray<NamingRule> NamingRules { get; }
+        public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
 
         private readonly ImmutableArray<SymbolKind> _symbolKindsThatCanBeOverridden =
             ImmutableArray.Create(
                 SymbolKind.Method,
                 SymbolKind.Property,
                 SymbolKind.Event);
-
-        public NamingStyleRules(ImmutableArray<NamingRule> namingRules)
-            => NamingRules = namingRules;
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {
@@ -49,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (symbol is IMethodSymbol method)
             {
-                return method.MethodKind == MethodKind.Ordinary ||
-                       method.MethodKind == MethodKind.LocalFunction;
+                return method.MethodKind is MethodKind.Ordinary or
+                       MethodKind.LocalFunction;
             }
 
             if (symbol is IPropertySymbol property)
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return true;
         }
 
-        private bool DoesSymbolImplementAnotherSymbol(ISymbol symbol)
+        private static bool DoesSymbolImplementAnotherSymbol(ISymbol symbol)
         {
             if (symbol.IsStatic)
             {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var containingType = symbol.ContainingType;
-            if (containingType.TypeKind != TypeKind.Class && containingType.TypeKind != TypeKind.Struct)
+            if (containingType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return false;
             }
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         /// This does not handle the case where a method in a base type implicitly implements an
         /// interface method on behalf of one of its derived types.
         /// </summary>
-        private bool IsInterfaceImplementation(ISymbol symbol)
+        private static bool IsInterfaceImplementation(ISymbol symbol)
         {
             if (symbol.DeclaredAccessibility != Accessibility.Public)
             {

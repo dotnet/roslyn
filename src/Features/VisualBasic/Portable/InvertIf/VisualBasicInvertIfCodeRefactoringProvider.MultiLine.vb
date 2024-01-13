@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertMultiLineIf), [Shared]>
     Friend NotInheritable Class VisualBasicInvertMultiLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of MultiLineIfBlockSyntax)
 
@@ -51,9 +51,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
             If falseStatementOpt.Count > 0 Then
                 updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatementOpt))
+            ElseIf HasComment(ifNode.ElseBlock) Then
+                ' If the original else block has leading trivia
+                ' then we need to mantain that trivia for the new statement.
+                ' This should be attached to the "EndIf" statement now
+                ' because that will make it show up in the else block
+                Dim newEndIfStatement = SyntaxFactory.EndIfStatement().WithLeadingTrivia(ifNode.ElseBlock.GetLeadingTrivia())
+                updatedIf = updatedIf.WithEndIfStatement(newEndIfStatement)
+                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock())
+            Else
+                updatedIf = updatedIf.WithElseBlock(Nothing)
             End If
 
             Return updatedIf
+        End Function
+
+        Private Shared Function HasComment(elseBlock As ElseBlockSyntax) As Boolean
+            Return elseBlock IsNot Nothing AndAlso elseBlock.GetLeadingTrivia().Any(Function(trivia) trivia.IsKind(SyntaxKind.CommentTrivia))
         End Function
     End Class
 End Namespace

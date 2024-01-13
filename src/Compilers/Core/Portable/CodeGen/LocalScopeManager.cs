@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -224,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public virtual void FinishFilterCondition(ILBuilder builder)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool IsExceptionHandler
@@ -601,6 +603,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _lastFilterConditionBlock = builder.FinishFilterCondition();
             }
 
+            public BasicBlock LastFilterConditionBlock => _lastFilterConditionBlock;
+
             public override void ClosingScope(ILBuilder builder)
             {
                 switch (_type)
@@ -853,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal struct ScopeBounds
+        internal readonly struct ScopeBounds
         {
             internal readonly int Begin; // inclusive
             internal readonly int End;   // exclusive

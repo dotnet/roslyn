@@ -7,6 +7,9 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
@@ -29,14 +32,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter = New Rewriter(spans, cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 
@@ -50,7 +53,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
             Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
-                VisualBasicCodeStyleOptions.PreferredModifierOrderDefault.ToArray()
+                {SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
+                SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
+                SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
+                SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
+                SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
+                SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
+                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword}
 
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
@@ -62,13 +71,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
                 }
 
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
+            Private ReadOnly _spans As TextSpanIntervalTree
             Private ReadOnly _cancellationToken As CancellationToken
+
+            Shared Sub New()
+                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder.Value)
+            End Sub
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
-                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
+                _spans = New TextSpanIntervalTree(spans)
                 _cancellationToken = cancellationToken
             End Sub
 
@@ -277,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' this will put operator token and modifier tokens in right order
             ''' </summary>
-            Private Function OperatorStatementSpecialFixup(node As OperatorStatementSyntax) As OperatorStatementSyntax
+            Private Shared Function OperatorStatementSpecialFixup(node As OperatorStatementSyntax) As OperatorStatementSyntax
                 ' first check whether operator is missing
                 If Not node.OperatorToken.IsMissing Then
                     Return node
@@ -311,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' check whether given operator statement is valid or not
             ''' </summary>
-            Private Function ValidOperatorStatement(node As OperatorStatementSyntax) As Boolean
+            Private Shared Function ValidOperatorStatement(node As OperatorStatementSyntax) As Boolean
                 Dim parsableStatementText = node.NormalizeWhitespace().ToString()
                 Dim parsableCompilationUnit = "Class C" + vbCrLf + parsableStatementText + vbCrLf + "End Operator" + vbCrLf + "End Class"
                 Dim parsedNode = SyntaxFactory.ParseCompilationUnit(parsableCompilationUnit)
@@ -322,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' normalize operator
             ''' </summary>
-            Private Function NormalizeOperator(
+            Private Shared Function NormalizeOperator(
                 [operator] As SyntaxToken,
                 checker As Func(Of SyntaxToken, Boolean),
                 triviaListGetter As Func(Of SyntaxToken, SyntaxTriviaList),
@@ -376,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' reorder modifiers in the list
             ''' </summary>
-            Private Function ReorderModifiers(modifiers As SyntaxTokenList) As SyntaxTokenList
+            Private Shared Function ReorderModifiers(modifiers As SyntaxTokenList) As SyntaxTokenList
                 ' quick check - if there is only one or less modifier, return as it is
                 If modifiers.Count <= 1 Then
                     Return modifiers
@@ -469,21 +482,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' remove "Dim" keyword if present
             ''' </summary>
-            Private Function RemoveDimKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList)) As T
+            Private Shared Function RemoveDimKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList)) As T
                 Return RemoveModifierKeyword(node, modifiersGetter, SyntaxKind.DimKeyword)
-            End Function
-
-            ''' <summary>
-            ''' remove ByVal keyword from parameter list
-            ''' </summary>
-            Private Function RemoveByValKeyword(node As ParameterListSyntax, parameterIndex As Integer) As ParameterListSyntax
-                Return RemoveModifierKeyword(node, Function(n) n.Parameters(parameterIndex).Modifiers, SyntaxKind.ByValKeyword)
             End Function
 
             ''' <summary>
             ''' remove a modifier from the given node
             ''' </summary>
-            Private Function RemoveModifierKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList), modifierKind As SyntaxKind) As T
+            Private Shared Function RemoveModifierKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList), modifierKind As SyntaxKind) As T
                 Dim modifiers = modifiersGetter(node)
 
                 ' "Dim" doesn't exist
@@ -509,14 +515,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       throw ExceptionUtilities.UnexpectedValue(o)
+                                       Throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 
             ''' <summary>
             ''' check whether given modifiers are in right order (in sync with ModifierKindsInOrder list)
             ''' </summary>
-            Private Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
+            Private Shared Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
                 Dim startIndex = 0
                 For Each modifier In modifiers
                     Dim newIndex = s_modifierKindsInOrder.IndexOf(modifier.Kind, startIndex)

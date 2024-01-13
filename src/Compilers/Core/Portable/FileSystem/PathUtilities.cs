@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -21,11 +21,11 @@ namespace Roslyn.Utilities
     {
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
-        internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
+        internal static char DirectorySeparatorChar => Path.DirectorySeparatorChar;
         internal const char AltDirectorySeparatorChar = '/';
         internal const string ParentRelativeDirectory = "..";
         internal const string ThisDirectory = ".";
-        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
+        internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
@@ -95,6 +95,11 @@ namespace Roslyn.Utilities
             return FileNameUtilities.GetExtension(path);
         }
 
+        public static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
+
         public static string ChangeExtension(string path, string? extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);
@@ -105,7 +110,7 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
@@ -118,11 +123,13 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
+        [return: NotNullIfNotNull(nameof(path))]
         internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
@@ -174,13 +181,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         private static string? GetPathRoot(string? path, bool isUnixLike)
         {
             if (path == null)
@@ -438,6 +445,34 @@ namespace Roslyn.Utilities
             return root + relativePath;
         }
 
+        /// <summary>
+        /// Combines paths with the same semantics as <see cref="Path.Combine(string, string)"/>
+        /// but does not throw on null paths or paths with invalid characters.
+        /// </summary>
+        /// <param name="root">First path: absolute, relative, or null.</param>
+        /// <param name="path">Second path: absolute, relative, or null.</param>
+        /// <returns>
+        /// The combined paths. If <paramref name="path"/> contains an absolute path, returns <paramref name="path"/>.
+        /// </returns>
+        /// <remarks>
+        /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
+        /// </remarks>
+        [return: NotNullIfNotNull(nameof(path))]
+        public static string? CombinePaths(string? root, string? path)
+        {
+            if (RoslynString.IsNullOrEmpty(root))
+            {
+                return path;
+            }
+
+            if (RoslynString.IsNullOrEmpty(path))
+            {
+                return root;
+            }
+
+            return IsAbsolute(path) ? path : CombinePathsUnchecked(root, path);
+        }
+
         private static string RemoveTrailingDirectorySeparator(string path)
         {
             if (path.Length > 0 && IsDirectorySeparator(path[path.Length - 1]))
@@ -476,7 +511,7 @@ namespace Roslyn.Utilities
         /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
+        public static bool ContainsPathComponent(string? path, string component, bool ignoreCase)
         {
             var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)
@@ -507,6 +542,9 @@ namespace Roslyn.Utilities
         public static string GetRelativePath(string directory, string fullPath)
         {
             string relativePath = string.Empty;
+
+            directory = TrimTrailingSeparators(directory);
+            fullPath = TrimTrailingSeparators(fullPath);
 
             if (IsChildPath(directory, fullPath))
             {
@@ -649,7 +687,7 @@ namespace Roslyn.Utilities
                 {
                     if (!IsDirectorySeparator(ch))
                     {
-                        hc = Hash.Combine((int)char.ToUpperInvariant(ch), hc);
+                        hc = Hash.Combine(char.ToUpperInvariant(ch), hc);
                     }
                 }
             }
@@ -732,8 +770,58 @@ namespace Roslyn.Utilities
         /// If the current environment uses the '\' directory separator, replaces all uses of '\'
         /// in the given string with '/'. Otherwise, returns the string.
         /// </summary>
+        /// <remarks>
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig.NormalizeWithForwardSlash
+        /// Both methods should be kept in sync.
+        /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
+        /// <summary>
+        /// Takes an absolute path and attempts to expand any '..' or '.' into their equivalent representation.
+        /// </summary>
+        /// <returns>An equivalent path that does not contain any '..' or '.' path parts, or the original path.</returns>
+        /// <remarks>
+        /// This method handles unix and windows drive rooted absolute paths only (i.e /a/b or x:\a\b). Passing any other kind of path
+        /// including relative, drive relative, unc, or windows device paths will simply return the original input. 
+        /// </remarks>
+        public static string ExpandAbsolutePathWithRelativeParts(string p)
+        {
+            bool isDriveRooted = !IsUnixLikePlatform && IsDriveRootedAbsolutePath(p);
+            if (!isDriveRooted && !(p.Length > 1 && p[0] == AltDirectorySeparatorChar))
+            {
+                // if this isn't a regular absolute path we can't expand it correctly
+                return p;
+            }
+
+            // GetPathParts also removes any instances of '.'
+            var parts = GetPathParts(p);
+
+            // For drive rooted paths we need to skip the volume specifier, but remember it for re-joining later
+            var volumeSpecifier = isDriveRooted ? p.Substring(0, 2) : string.Empty;
+
+            // Skip the root directory
+            var toSkip = isDriveRooted ? 2 : 1;
+            Debug.Assert(parts[toSkip - 1] == string.Empty);
+
+            var resolvedParts = ArrayBuilder<string>.GetInstance();
+            foreach (var part in parts.Skip(toSkip))
+            {
+                if (!part.Equals(ParentRelativeDirectory))
+                {
+                    resolvedParts.Push(part);
+                }
+                // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
+                else if (resolvedParts.Count > 0)
+                {
+                    resolvedParts.Pop();
+                }
+            }
+
+            var expandedPath = volumeSpecifier + '/' + string.Join("/", resolvedParts);
+            resolvedParts.Free();
+            return expandedPath;
+        }
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 

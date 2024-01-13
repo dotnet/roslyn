@@ -4,13 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        public static List<T> Combine<T>(this List<T> list1, List<T> list2)
+        [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
+        public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
         {
             if (list1 == null)
             {
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 
-        private static readonly char[] s_trimChars = new char[] { '\r', '\n' };
+        private static readonly char[] s_trimChars = ['\r', '\n'];
 
         public static string AdjustIndentForXmlDocExteriorTrivia(
             this string triviaText,
@@ -164,7 +167,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             var isEmptyString = false;
             var builder = StringBuilderPool.Allocate();
 
-            var trimmedTriviaText = triviaText.TrimEnd(s_trimChars);
             var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(triviaText);
             if (nonWhitespaceCharIndex == -1)
             {
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             for (var i = 0; i < text.Length; i++)
             {
-                if (text[i] != ' ' && text[i] != '\t')
+                if (text[i] is not ' ' and not '\t')
                 {
                     return i;
                 }
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static TextChange SimpleDiff(this TextChange textChange, string text)
         {
             var span = textChange.Span;
-            var newText = textChange.NewText;
+            var newText = textChange.NewText ?? "";
 
             var i = 0;
             for (; i < span.Length; i++)
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (i > 0)
             {
                 span = new TextSpan(span.Start + i, span.Length - i);
-                newText = newText.Substring(i);
+                newText = newText[i..];
             }
 
             return new TextChange(span, newText);
@@ -282,11 +284,22 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+            if (annotation == SyntaxAnnotation.ElasticAnnotation)
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
+                var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
+                return AggregateSpans(tokens.Select(GetElasticSpan));
+            }
+
+            return EnumerateAnnotatedSpans(node, annotation);
+
+            static IEnumerable<TextSpan> EnumerateAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
+            {
+                foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+                {
+                    var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    yield return GetSpan(firstToken, lastToken);
+                }
             }
         }
 
@@ -306,12 +319,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-        }
-
-        internal static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
-        {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
         }
 
         internal static TextSpan GetElasticSpan(SyntaxToken token)
@@ -345,6 +352,44 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return aggregateSpans;
+        }
+
+        internal static int GetAdjustedIndentationDelta(
+            this IndentBlockOperation operation, IHeaderFacts headerFacts, SyntaxNode root, SyntaxToken indentationAnchor)
+        {
+            if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
+            {
+                // Absolute positioning is absolute
+                return operation.IndentationDeltaOrPosition;
+            }
+
+            if (!operation.Option.IsOn(IndentBlockOption.IndentIfConditionOfAnchorToken))
+            {
+                // No adjustment operations are being applied
+                return operation.IndentationDeltaOrPosition;
+            }
+
+            // Consider syntax forms similar to the following:
+            //
+            //   if (conditionLine1
+            //     conditionLine2)
+            //
+            // Adjustments may be requested for conditionLine2 in cases where the anchor for relative indentation is the
+            // first token of the containing statement (in this case, the 'if' token).
+            if (headerFacts.IsOnIfStatementHeader(root, operation.BaseToken.SpanStart, out var conditionStatement)
+                || headerFacts.IsOnWhileStatementHeader(root, operation.BaseToken.SpanStart, out conditionStatement))
+            {
+                if (conditionStatement.GetFirstToken() == indentationAnchor)
+                {
+                    // The node is located within the condition of a conditional block statement (or
+                    // syntactically-similar), uses a relative anchor to the block statement, and has requested an
+                    // additional indentation adjustment for this case.
+                    return operation.IndentationDeltaOrPosition + 1;
+                }
+            }
+
+            // No adjustments were necessary/applicable
+            return operation.IndentationDeltaOrPosition;
         }
     }
 }

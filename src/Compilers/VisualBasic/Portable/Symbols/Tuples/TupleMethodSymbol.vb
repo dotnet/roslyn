@@ -128,10 +128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo()
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingMethod.GetUseSiteErrorInfo())
-            Return useSiteDiagnostic
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MyBase.GetUseSiteInfo()
+            MyBase.MergeUseSiteInfo(useSiteInfo, Me._underlyingMethod.GetUseSiteInfo())
+            Return useSiteInfo
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -146,5 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other Is Me OrElse
                 (other IsNot Nothing AndAlso TypeSymbol.Equals(Me._containingType, other._containingType, TypeCompareKind.ConsiderEverything) AndAlso Me._underlyingMethod.ConstructedFrom = other._underlyingMethod.ConstructedFrom)
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return _underlyingMethod.HasSetsRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

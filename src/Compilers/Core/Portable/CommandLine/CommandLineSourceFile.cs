@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// Describes a source file specification stored on command line arguments.
     /// </summary>
     [DebuggerDisplay("{Path,nq}")]
-    public struct CommandLineSourceFile
+    public readonly struct CommandLineSourceFile
     {
         public CommandLineSourceFile(string path, bool isScript) :
             this(path, isScript, false)

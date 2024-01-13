@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 
@@ -21,34 +21,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 IThreadingContext threadingContext,
                 SuggestedActionsSourceProvider sourceProvider,
                 Workspace workspace,
+                Solution originalSolution,
                 ITextBuffer subjectBuffer,
                 object provider,
                 PreviewChangesCodeAction codeAction)
-                : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
+                : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
             {
             }
 
-            public static async Task<SuggestedAction> CreateAsync(
-                SuggestedActionWithNestedFlavors suggestedAction, CancellationToken cancellationToken)
+            public static SuggestedAction Create(SuggestedActionWithNestedFlavors suggestedAction)
             {
-                var previewResult = await suggestedAction.GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
-                if (previewResult == null)
-                {
-                    return null;
-                }
-
-                var changeSummary = previewResult.ChangeSummary;
-                if (changeSummary == null)
-                {
-                    return null;
-                }
-
                 return new PreviewChangesSuggestedAction(
                     suggestedAction.ThreadingContext,
-                    suggestedAction.SourceProvider, suggestedAction.Workspace,
-                    suggestedAction.SubjectBuffer, suggestedAction.Provider,
+                    suggestedAction.SourceProvider,
+                    suggestedAction.Workspace,
+                    suggestedAction.OriginalSolution,
+                    suggestedAction.SubjectBuffer,
+                    suggestedAction.Provider,
                     new PreviewChangesCodeAction(
-                        suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary));
+                        suggestedAction.Workspace, suggestedAction.CodeAction, suggestedAction.GetPreviewResultAsync));
             }
         }
     }

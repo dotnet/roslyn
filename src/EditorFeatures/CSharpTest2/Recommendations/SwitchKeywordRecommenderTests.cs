@@ -9,192 +9,313 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class SwitchKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtRoot_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact]
         public async Task TestEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
+                """
+                if (true) {
+                }
+                $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSwitchBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (E) {
-  case 0:
-    $$"));
+                """
+                switch (E) {
+                  case 0:
+                    $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterSwitch1()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"switch $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterExpression()
             => await VerifyKeywordAsync(AddInsideMethod(@"_ = expr $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterExpression_InMethodWithArrowBody()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    bool M() => this $$
-}");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    bool M() => this $$
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterForeachVar()
             => await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterTuple()
             => await VerifyKeywordAsync(AddInsideMethod(@"_ = (expr, expr) $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterSwitch2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"switch ($$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterSwitch()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-   default:
-}
-$$"));
+                """
+                switch (expr) {
+                   default:
+                }
+                $$
+                """));
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterMethodReference()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        var v = Console.WriteLine $$");
+                class C {
+                    void M() {
+                        var v = Console.WriteLine $$
+                """);
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterAnonymousMethod()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action a = delegate { } $$");
+                class C {
+                    void M() {
+                        Action a = delegate { } $$
+                """);
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda1()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action b = (() => 0) $$");
+                class C {
+                    void M() {
+                        Action b = (() => 0) $$
+                """);
         }
 
-        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda2()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action b = () => {} $$");
+                class C {
+                    void M() {
+                        Action b = () => {} $$
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+        public async Task TestMissingAfterNumericLiteral()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1$$
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+        public async Task TestMissingAfterNumericLiteralAndDot()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1.$$
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+        public async Task TestMissingAfterNumericLiteralDotAndSpace()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1. $$
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
+        public async Task TestMissingInCaseClause1()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class A
+                {
+
+                }
+
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case A $$
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
+        public async Task TestMissingInCaseClause2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                namespace N
+                {
+                    class A
+                    {
+
+                    }
+                }
+
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case N.A $$
+                        }
+                    }
+                }
+                """);
         }
     }
 }

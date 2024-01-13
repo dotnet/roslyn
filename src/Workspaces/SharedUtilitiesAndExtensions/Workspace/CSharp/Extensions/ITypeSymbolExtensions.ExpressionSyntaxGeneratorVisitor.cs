@@ -12,16 +12,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new ExpressionSyntaxGeneratorVisitor();
+            private static readonly ExpressionSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
+            private static readonly ExpressionSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
-            private ExpressionSyntaxGeneratorVisitor()
-            {
-            }
+            private readonly bool _nameOnly;
+
+            private ExpressionSyntaxGeneratorVisitor(bool nameOnly)
+                => _nameOnly = nameOnly;
+
+            public static ExpressionSyntaxGeneratorVisitor Create(bool nameOnly)
+                => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
+                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_nameOnly))!;
 
-            private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
+            private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -32,11 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                if (!_nameOnly && TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
+                if (typeSyntax is not SimpleNameSyntax)
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingType.Accept(this);
+                        var container = symbol.ContainingType.Accept(this)!;
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -65,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!;
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -90,12 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!;
                     return CreateMemberAccessExpression(symbol, container, syntax);
                 }
             }
 
-            private ExpressionSyntax CreateMemberAccessExpression(
+            private static MemberAccessExpressionSyntax CreateMemberAccessExpression(
                 ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(SyntaxFactory.MemberAccessExpression(

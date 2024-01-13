@@ -10,19 +10,19 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// it holds onto space and wrapping operation need to run between two tokens.
     /// </summary>
-    internal struct TokenPairWithOperations
+    internal readonly struct TokenPairWithOperations
     {
         public TokenStream TokenStream { get; }
-        public AdjustSpacesOperation SpaceOperation { get; }
-        public AdjustNewLinesOperation LineOperation { get; }
+        public AdjustSpacesOperation? SpaceOperation { get; }
+        public AdjustNewLinesOperation? LineOperation { get; }
 
         public int PairIndex { get; }
 
         public TokenPairWithOperations(
             TokenStream tokenStream,
             int tokenPairIndex,
-            AdjustSpacesOperation spaceOperations,
-            AdjustNewLinesOperation lineOperations)
+            AdjustSpacesOperation? spaceOperations,
+            AdjustNewLinesOperation? lineOperations)
             : this()
         {
             Contract.ThrowIfNull(tokenStream);

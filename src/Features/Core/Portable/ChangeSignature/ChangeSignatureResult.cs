@@ -2,25 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal sealed class ChangeSignatureResult
+    internal sealed class ChangeSignatureResult(
+        bool succeeded,
+        Solution? updatedSolution = null,
+        string? name = null,
+        Glyph? glyph = null,
+        bool previewChanges = false,
+        ChangeSignatureFailureKind? changeSignatureFailureKind = null,
+        string? confirmationMessage = null)
     {
-        public bool Succeeded { get; }
-        public Solution? UpdatedSolution { get; }
-        public string? Name { get; }
-        public Glyph? Glyph { get; }
-        public bool PreviewChanges { get; }
+        [MemberNotNullWhen(true, nameof(UpdatedSolution))]
+        public bool Succeeded { get; } = succeeded;
+        public Solution? UpdatedSolution { get; } = updatedSolution;
+        public Glyph? Glyph { get; } = glyph;
+        public bool PreviewChanges { get; } = previewChanges;
+        public ChangeSignatureFailureKind? ChangeSignatureFailureKind { get; } = changeSignatureFailureKind;
+        public string? ConfirmationMessage { get; } = confirmationMessage;
 
-        public ChangeSignatureResult(bool succeeded, Solution? updatedSolution = null, string? name = null, Glyph? glyph = null, bool previewChanges = false)
-        {
-            Succeeded = succeeded;
-            UpdatedSolution = updatedSolution;
-            Name = name;
-            Glyph = glyph;
-            PreviewChanges = previewChanges;
-        }
+        /// <summary>
+        /// Name of the symbol. Needed here for the Preview Changes dialog.
+        /// </summary>
+        public string? Name { get; } = name;
     }
 }

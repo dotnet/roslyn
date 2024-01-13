@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Composition;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
             _provider = provider;
         }
 
-        public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var mappedTriggerReason = FSharpSignatureHelpTriggerReasonHelpers.ConvertFrom(triggerInfo.TriggerReason);
             var mappedTriggerInfo = new FSharpSignatureHelpTriggerInfo(mappedTriggerReason, triggerInfo.TriggerCharacter);

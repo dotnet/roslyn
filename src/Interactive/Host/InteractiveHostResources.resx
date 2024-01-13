@@ -154,7 +154,7 @@
     <value>Failed to launch '{0}' process (exit code: {1}) with output: </value>
   </data>
   <data name="Failed_to_create_a_remote_process_for_interactive_code_execution" xml:space="preserve">
-    <value>Failed to create a remote process for interactive code execution.</value>
+    <value>Failed to create a remote process for interactive code execution: '{0}'</value>
   </data>
   <data name="Failed_to_initialize_remote_interactive_process" xml:space="preserve">
     <value>Failed to initialize remote interactive process.</value>

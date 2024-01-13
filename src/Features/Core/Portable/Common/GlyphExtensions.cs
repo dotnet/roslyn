@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             return Glyph.None;
         }
 
-        private static Accessibility GetAccessibility(ImmutableArray<string> tags)
+        public static Accessibility GetAccessibility(ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
             {

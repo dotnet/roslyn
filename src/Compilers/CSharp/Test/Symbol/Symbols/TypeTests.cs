@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
@@ -88,19 +91,19 @@ interface B {
             Assert.Equal(Accessibility.Internal, s.DeclaredAccessibility);
         }
 
-        [Fact]
-        public void InheritedTypesCrossTrees()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void InheritedTypesCrossTrees(string ob, string cb)
         {
-            var text = @"namespace MT {
+            var text = @"namespace MT " + ob + @"
     public interface IGoo { void Goo(); }
     public interface IGoo<T, R> { R Goo(T t); }
-}
+" + cb + @"
 ";
-            var text1 = @"namespace MT {
+            var text1 = @"namespace MT " + ob + @"
     public interface IBar<T> : IGoo { void Bar(T t); }
-}
+" + cb + @"
 ";
-            var text2 = @"namespace NS {
+            var text2 = @"namespace NS " + ob + @"
     using System;
     using MT;
     public class A<T> : IGoo<T, string>, IBar<string> {
@@ -110,11 +113,11 @@ interface B {
     }
 
     public class B : A<int> {}
-}
+" + cb + @"
 ";
-            var text3 = @"namespace NS {
+            var text3 = @"namespace NS " + ob + @"
     public class C : B {}
-}
+" + cb + @"
 ";
 
             var comp = CreateCompilation(new[] { text, text1, text2, text3 });
@@ -530,7 +533,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -1450,9 +1453,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"
@@ -2323,6 +2326,315 @@ public class TestClass : TestClass.IInnerInterface
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromSource()
+        {
+            var sourceComp = CreateCompilation(@"
+class C
+{
+    void M1() { }
+    void M2(params object[] p) { }
+    void M3(__arglist) { }
+}");
+
+            sourceComp.VerifyDiagnostics();
+            var c = sourceComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromMetadata()
+        {
+            var metadataComp = CreateCompilationWithIL("", ilSource: @"
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .method public hidebysig instance void M1 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig instance void M2 (object[] p) cil managed 
+    {
+        .param [1] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+
+    .method public hidebysig instance vararg void M3 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}");
+
+            metadataComp.VerifyDiagnostics();
+            var c = metadataComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
+        }
+
+        [Fact]
+        public void TypeMissingIdentifier_Members()
+        {
+            const string source =
+                """
+                namespace N;
+                
+                public class
+                {
+                    public void F();
+                }
+                public class
+                {
+                    public void F();
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // 0.cs(3,13): error CS1001: Identifier expected
+                // public class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 13),
+                // 0.cs(5,17): error CS0501: '.F()' must declare a body because it is not marked abstract, extern, or partial
+                //     public void F();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("N..F()").WithLocation(5, 17),
+                // 0.cs(7,13): error CS1001: Identifier expected
+                // public class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 13),
+                // 0.cs(8,1): error CS0101: The namespace 'N' already contains a definition for ''
+                // {
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "").WithArguments("", "N").WithLocation(8, 1),
+                // 0.cs(9,17): error CS0501: '.F()' must declare a body because it is not marked abstract, extern, or partial
+                //     public void F();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("N..F()").WithLocation(9, 17),
+                // 0.cs(9,17): error CS0111: Type '' already defines a member called 'F' with the same parameter types
+                //     public void F();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "F").WithArguments("F", "N.").WithLocation(9, 17)
+                );
+
+            var outerNamespace = comp.GlobalNamespace.GetNestedNamespace("N");
+
+            var namespaceMembers = outerNamespace.GetMembers();
+
+            var uniqueMethods = new HashSet<MethodSymbol>();
+
+            foreach (var member in namespaceMembers)
+            {
+                Assert.True(member is NamedTypeSymbol);
+                var namedType = member as NamedTypeSymbol;
+
+                Assert.Equal(string.Empty, namedType.Name);
+
+                var typeMembers = namedType.GetMembers();
+                Assert.Equal(3, typeMembers.Length);
+
+                var method = typeMembers.OfType<MethodSymbol>().First(m => m is { MethodKind: not MethodKind.Constructor });
+                Assert.Equal("F", method.Name);
+
+                Assert.True(uniqueMethods.Add(method));
+            }
+
+            Assert.Equal(1, namespaceMembers.Length);
+        }
+
+        [Fact]
+        public void TypeMissingIdentifier_Nested()
+        {
+            const string source =
+                """
+                namespace N;
+                
+                public partial class
+                {
+                    partial class;
+                    partial struct;
+                    partial interface;
+                    partial enum { }
+                
+                    partial record;
+                    partial record class;
+                    partial record struct;
+                
+                    readonly partial record struct;
+                }
+                file partial class
+                {
+                    partial class;
+                    partial struct;
+                    partial interface;
+                    partial enum { }
+                
+                    partial record;
+                    partial record class;
+                    partial record struct;
+                
+                    readonly partial record struct;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1001: Identifier expected
+                // public partial class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21),
+                // (4,1): error CS9052: File-local type '' cannot use accessibility modifiers.
+                // {
+                Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "").WithArguments("N.").WithLocation(4, 1),
+                // (5,18): error CS1001: Identifier expected
+                //     partial class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(5, 18),
+                // (5,18): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial class;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(5, 18),
+                // (6,19): error CS1001: Identifier expected
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 19),
+                // (6,19): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(6, 19),
+                // (6,19): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(6, 19),
+                // (7,22): error CS1001: Identifier expected
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(7, 22),
+                // (7,22): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(7, 22),
+                // (7,22): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(7, 22),
+                // (8,18): error CS1001: Identifier expected
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(8, 18),
+                // (8,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(8, 18),
+                // (8,18): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(8, 18),
+                // (8,18): error CS0102: The type '' already contains a definition for ''
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("N.", "").WithLocation(8, 18),
+                // (10,19): error CS1001: Identifier expected
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(10, 19),
+                // (10,19): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(10, 19),
+                // (10,19): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(10, 19),
+                // (11,25): error CS1001: Identifier expected
+                //     partial record class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(11, 25),
+                // (12,26): error CS1001: Identifier expected
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(12, 26),
+                // (12,26): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(12, 26),
+                // (12,26): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(12, 26),
+                // (14,35): error CS1001: Identifier expected
+                //     readonly partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(14, 35),
+                // (16,19): error CS1001: Identifier expected
+                // file partial class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(16, 19),
+                // (18,18): error CS1001: Identifier expected
+                //     partial class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(18, 18),
+                // (19,19): error CS1001: Identifier expected
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(19, 19),
+                // (20,22): error CS1001: Identifier expected
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(20, 22),
+                // (21,18): error CS1001: Identifier expected
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(21, 18),
+                // (21,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(21, 18),
+                // (21,18): error CS0542: '': member names cannot be the same as their enclosing type
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(21, 18),
+                // (21,18): error CS0102: The type '' already contains a definition for ''
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("N.", "").WithLocation(21, 18),
+                // (23,19): error CS1001: Identifier expected
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(23, 19),
+                // (24,25): error CS1001: Identifier expected
+                //     partial record class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(24, 25),
+                // (25,26): error CS1001: Identifier expected
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(25, 26),
+                // (27,35): error CS1001: Identifier expected
+                //     readonly partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(27, 35)
+                );
+
+            var outerNamespace = comp.GlobalNamespace.GetNestedNamespace("N");
+
+            var namespaceMembers = outerNamespace.GetMembers();
+
+            var uniqueTypes = new HashSet<TypeSymbol>();
+
+            foreach (var member in namespaceMembers)
+            {
+                Assert.True(member is NamedTypeSymbol);
+                var namedType = member as NamedTypeSymbol;
+
+                Assert.Equal(string.Empty, namedType.Name);
+
+                var typeMembers = namedType.GetMembers();
+
+                var nestedTypes = typeMembers.OfType<TypeSymbol>().ToArray();
+                Assert.Equal(7, nestedTypes.Length);
+
+                foreach (var nestedType in nestedTypes)
+                {
+                    Assert.True(uniqueTypes.Add(nestedType));
+                }
+            }
+
+            Assert.Equal(7, uniqueTypes.Count);
         }
     }
 }

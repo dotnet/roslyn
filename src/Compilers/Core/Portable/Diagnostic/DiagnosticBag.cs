@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -169,31 +167,31 @@ namespace Microsoft.CodeAnalysis
         /// Seal the bag so no further errors can be added, while clearing it and returning the old set of errors.
         /// Return the bag to the pool.
         /// </summary>
-        public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>() where TDiagnostic : Diagnostic
+        public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>(bool forceResolution = true) where TDiagnostic : Diagnostic
         {
             ConcurrentQueue<Diagnostic>? oldBag = _lazyBag;
             Free();
 
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            return ToReadOnlyCore<TDiagnostic>(oldBag, forceResolution);
         }
 
-        public ImmutableArray<Diagnostic> ToReadOnlyAndFree()
+        public ImmutableArray<Diagnostic> ToReadOnlyAndFree(bool forceResolution = true)
         {
-            return ToReadOnlyAndFree<Diagnostic>();
+            return ToReadOnlyAndFree<Diagnostic>(forceResolution);
         }
 
-        public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>() where TDiagnostic : Diagnostic
+        public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>(bool forceResolution = true) where TDiagnostic : Diagnostic
         {
             ConcurrentQueue<Diagnostic>? oldBag = _lazyBag;
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            return ToReadOnlyCore<TDiagnostic>(oldBag, forceResolution);
         }
 
-        public ImmutableArray<Diagnostic> ToReadOnly()
+        public ImmutableArray<Diagnostic> ToReadOnly(bool forceResolution = true)
         {
-            return ToReadOnly<Diagnostic>();
+            return ToReadOnly<Diagnostic>(forceResolution);
         }
 
-        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic>? oldBag) where TDiagnostic : Diagnostic
+        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic>? oldBag, bool forceResolution) where TDiagnostic : Diagnostic
         {
             if (oldBag == null)
             {
@@ -204,16 +202,22 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TDiagnostic diagnostic in oldBag) // Cast should be safe since all diagnostics should be from same language.
             {
-                if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
+                if (forceResolution)
                 {
-                    Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
+                    if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
+                    {
+                        Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
+                        builder.Add(diagnostic);
+                    }
+                }
+                else
+                {
                     builder.Add(diagnostic);
                 }
             }
 
             return builder.ToImmutableAndFree();
         }
-
 
         /// <remarks>
         /// Generally, this should only be called by the creator (modulo pooling) of the bag (i.e. don't use bags to communicate -
@@ -260,6 +264,8 @@ namespace Microsoft.CodeAnalysis
             // PERF: don't make a defensive copy - callers are internal and won't modify the bag.
             return _lazyBag ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
+
+        internal int Count => _lazyBag?.Count ?? 0;
 
         public override string ToString()
         {

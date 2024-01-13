@@ -11,15 +11,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct AliasAndExternAliasDirective
+    internal readonly struct AliasAndExternAliasDirective
     {
         public readonly AliasSymbol Alias;
-        public readonly ExternAliasDirectiveSyntax ExternAliasDirective;
+        public readonly SyntaxReference? ExternAliasDirectiveReference;
+        public readonly bool SkipInLookup;
 
-        public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax externAliasDirective)
+        public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax? externAliasDirective, bool skipInLookup)
         {
             this.Alias = alias;
-            this.ExternAliasDirective = externAliasDirective;
+            this.ExternAliasDirectiveReference = externAliasDirective?.GetReference();
+            this.SkipInLookup = skipInLookup;
         }
+
+        public ExternAliasDirectiveSyntax? ExternAliasDirective => (ExternAliasDirectiveSyntax?)ExternAliasDirectiveReference?.GetSyntax();
     }
 }

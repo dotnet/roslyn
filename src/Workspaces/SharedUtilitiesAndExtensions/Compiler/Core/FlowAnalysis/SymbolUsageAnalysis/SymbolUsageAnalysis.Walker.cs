@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private CancellationToken _cancellationToken;
             private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
 
-            private static readonly ObjectPool<Walker> s_visitorPool = new ObjectPool<Walker>(() => new Walker());
+            private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
             private Walker() { }
 
             public static void AnalyzeOperationsAndUpdateData(
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         pendingWrites.Free();
                     }
+
                     _pendingWritesMap.Free();
                     _pendingWritesMap = null;
                 }
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    var isUsedCompountAssignment = operation.IsAnyCompoundAssignment() &&
+                    var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
                         operation.Parent?.Kind != OperationKind.ExpressionStatement;
 
                     foreach (var (symbolOpt, write) in pendingWrites)
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             Debug.Assert(symbolOpt != null);
                             OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
-                            if (isUsedCompountAssignment)
+                            if (isUsedCompoundAssignment)
                             {
                                 OnReadReferenceFound(symbolOpt);
                             }
@@ -252,7 +255,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public override void VisitParameterReference(IParameterReferenceOperation operation)
-                => OnReferenceFound(operation.Parameter, operation);
+            {
+                if (operation.Parameter.IsPrimaryConstructor(_cancellationToken))
+                {
+                    // Bail out for primary constructor parameters.
+                    return;
+                }
+
+                OnReferenceFound(operation.Parameter, operation);
+            }
 
             public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
             {
@@ -280,7 +291,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                if (operation.DeclaredSymbol != null)
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+            {
+                base.VisitRecursivePattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitListPattern(IListPatternOperation operation)
+            {
+                base.VisitListPattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);
                 }
@@ -302,6 +333,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             _currentAnalysisData.ResetState();
                         }
+
                         break;
 
                     case MethodKind.LocalFunction:
@@ -420,7 +452,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             // We don't support lambda target analysis for operation tree
                             // and control flow graph should have replaced 'AnonymousFunction' nodes
                             // with 'FlowAnonymousFunction' nodes.
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
 
                         case OperationKind.FlowAnonymousFunction:
                             _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
@@ -436,6 +468,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         case OperationKind.LocalReference:
@@ -453,6 +486,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         default:
@@ -526,7 +560,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             break;
 
                         default:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                     }
                 }
             }

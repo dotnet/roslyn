@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundNullableIsTrueOperator
+    Partial Friend Class BoundNullableIsTrueOperator
 
 #If DEBUG Then
         Private Sub Validate()

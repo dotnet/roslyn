@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +15,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.Build.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -25,15 +25,39 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ManagedToolTask
     {
+        private enum CompilationKind
+        {
+            /// <summary>
+            /// Compilation occurred using the command line tool by normal processes, typically because 
+            /// the customer opted out of the compiler server
+            /// </summary>
+            Tool,
+
+            /// <summary>
+            /// Compilation occurred using the command line tool because the server was unable to complete
+            /// the request
+            /// </summary>
+            ToolFallback,
+
+            /// <summary>
+            /// Compilation occurred in the compiler server process
+            /// </summary>
+            Server,
+
+            /// <summary>
+            /// Fatal error caused compilation to not even occur.
+            /// </summary>
+            FatalError,
+        }
+
         private CancellationTokenSource? _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // If there is a crash, the runtime error is output to stderr and
             // we want MSBuild to print it out regardless of verbosity.
             LogStandardErrorAsError = true;
@@ -170,6 +194,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(FileAlignment)] = value; }
             get { return _store.GetOrDefault(nameof(FileAlignment), 0); }
+        }
+
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
         }
 
         public bool HighEntropyVA
@@ -315,6 +345,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(SharedCompilationId)]; }
         }
 
+        public bool SkipAnalyzers
+        {
+            set { _store[nameof(SkipAnalyzers)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipAnalyzers), false); }
+        }
+
         public bool SkipCompilerExecution
         {
             set { _store[nameof(SkipCompilerExecution)] = value; }
@@ -433,16 +469,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(LangVersion)]; }
         }
 
+        public bool ReportIVTs
+        {
+            set { _store[nameof(ReportIVTs)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
+        }
+
         #endregion
-
-        // ToolExe delegates back to ToolName if the override is not
-        // set.  So, if ToolExe == ToolName, we know ToolExe is not
-        // explicitly overridden.  So, if both ToolPath is unset and
-        // ToolExe == ToolName, we know nothing is overridden, and
-        // we can use our own csc.
-        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
-
-        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         /// <summary>
         /// Method for testing only
@@ -452,16 +485,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateFullPathToTool();
         }
 
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
-
-        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
-
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        {
+            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
-                    .Select(arg => new TaskItem(arg)).ToArray();
+                CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
             if (SkipCompilerExecution)
@@ -471,66 +505,57 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var workingDir = CurrentDirectoryToUse();
-                string? tempDir = BuildServerConnection.GetTempPath(workingDir);
+                var requestId = Guid.NewGuid();
+                logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
+
+                string workingDirectory = CurrentDirectoryToUse();
+                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
-                    HasToolBeenOverridden ||
+                    !IsManagedTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
-                using (_sharedCompileCts = new CancellationTokenSource())
+                _sharedCompileCts = new CancellationTokenSource();
+                logger.Log($"CommandLine = '{commandLineCommands}'");
+                logger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
+                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                if (clientDirectory is null || tempDirectory is null)
                 {
-
-                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
-
-                    var clientDir = Path.GetDirectoryName(PathToManagedTool);
-                    if (clientDir is null || tempDir is null)
-                    {
-                        return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-                    }
-
-                    // Note: we can't change the "tool path" printed to the console when we run
-                    // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
-                    // we'll just print our own message that contains the real client location
-                    Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
-
-                    var buildPaths = new BuildPathsAlt(
-                        clientDir: clientDir,
-                        // MSBuild doesn't need the .NET SDK directory
-                        sdkDir: null,
-                        workingDir: workingDir,
-                        tempDir: tempDir);
-
-                    // Note: using ToolArguments here (the property) since
-                    // commandLineCommands (the parameter) may have been mucked with
-                    // (to support using the dotnet cli)
-                    var responseTask = BuildServerConnection.RunServerCompilationAsync(
-                        Language,
-                        RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
-                        GetArguments(ToolArguments, responseFileCommands).ToList(),
-                        buildPaths,
-                        keepAlive: null,
-                        libEnvVariable: LibDirectoryToUse(),
-                        cancellationToken: _sharedCompileCts.Token);
-
-                    responseTask.Wait(_sharedCompileCts.Token);
-
-                    var response = responseTask.Result;
-                    if (response != null)
-                    {
-                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
-                    }
-                    else
-                    {
-                        Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
-
-                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-                    }
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
+
+                // Note: using ToolArguments here (the property) since
+                // commandLineCommands (the parameter) may have been mucked with
+                // (to support using the dotnet cli)
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
+                    requestId,
+                    Language,
+                    GenerateCommandLineArgsList(responseFileCommands),
+                    workingDirectory: workingDirectory,
+                    tempDirectory: tempDirectory,
+                    keepAlive: null,
+                    libDirectory: LibDirectoryToUse());
+
+                var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
+                    ? SharedCompilationId
+                    : BuildServerConnection.GetPipeName(clientDirectory);
+
+                var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    clientDirectory,
+                    logger: logger,
+                    cancellationToken: _sharedCompileCts.Token);
+
+                responseTask.Wait(_sharedCompileCts.Token);
+
+                ExitCode = HandleResponse(requestId, responseTask.Result, pathToTool, responseFileCommands, commandLineCommands, logger);
             }
             catch (OperationCanceledException)
             {
@@ -539,8 +564,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             catch (Exception e)
             {
                 Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                LogErrorOutput(e.ToString());
+                Log.LogErrorFromException(e);
                 ExitCode = -1;
+            }
+            finally
+            {
+                _sharedCompileCts?.Dispose();
+                _sharedCompileCts = null;
             }
 
             return ExitCode;
@@ -608,119 +638,155 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
+        private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
-            if (response.Type != BuildResponse.ResponseType.Completed)
+#if BOOTSTRAP
+            if (!ValidateBootstrapResponse(response))
             {
-                ValidateBootstrapUtil.AddFailedServerConnection();
+                return 1;
+            }
+#endif
+
+            if (response is null)
+            {
+                LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, "could not launch server");
+                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
-
-                    if (LogStandardErrorAsError)
-                    {
-                        LogErrorOutput(completedResponse.ErrorOutput);
-                    }
-                    else
-                    {
-                        LogMessages(completedResponse.ErrorOutput, StandardErrorImportanceToUse);
-                    }
-
+                    LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
+                    LogCompilationMessage(logger, requestId, CompilationKind.Server, "server processed compilation");
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different protocol version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                case BuildResponse.ResponseType.CannotConnect:
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"cannot connect to the server");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
+                    var rejectedResponse = (RejectedBuildResponse)response;
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    var analyzerResponse = (AnalyzerInconsistencyBuildResponse)response;
+                    var combinedMessage = string.Join(", ", analyzerResponse.ErrorMessages.ToArray());
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogErrorOutput($"Received an unrecognized response from the server: {response.Type}");
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
 
-        private void LogErrorOutput(string output)
-        {
-            LogErrorOutput(output, Log);
-        }
+#if BOOTSTRAP
+#pragma warning disable IDE0044
+        /// <summary>
+        /// Keeps track of the number of times the task failed to connect to the compiler 
+        /// server. Even in valid builds this can be greater than zero (connect is
+        /// inherently a race condition). If this gets too high though in a bootstrap build
+        /// it's evidence of a bigger issue the team should be looking at.
+        /// </summary>
+        private static int s_connectFailedCount;
 
-        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
-        {
-            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string line in lines)
-            {
-                string trimmedMessage = line.Trim();
-                if (trimmedMessage != "")
-                {
-                    log.LogError(trimmedMessage);
-                }
-            }
-        }
+#pragma warning restore IDE0044
+
 
         /// <summary>
-        /// Log each of the messages in the given output with the given importance.
-        /// We assume each line is a message to log.
+        /// In bootstrap builds this validates the response. When this returns false it 
+        /// indicates the bootstrap build is incorrect and the compilation should fail.
+        /// </summary>
+        private bool ValidateBootstrapResponse(BuildResponse? response)
+        {
+            // This represents the maximum number of failed connection attempts on the server before we will declare
+            // that the overall build itself failed. Keeping this at zero is not realistic because even in a fully
+            // functioning server connection failures are expected. The server could be too busy to accept connections
+            // fast enough. Anything above this count though is considered worth investigating by the compiler team.
+            //
+            const int maxCannotConnectCount = 2;
+
+            var responseType = response?.Type ?? BuildResponse.ResponseType.CannotConnect;
+            switch (responseType)
+            {
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    Log.LogError($"Analyzer inconsistency building");
+                    return false;
+                case BuildResponse.ResponseType.MismatchedVersion:
+                case BuildResponse.ResponseType.IncorrectHash:
+                    Log.LogError($"Critical error {responseType} when building");
+                    return false;
+                case BuildResponse.ResponseType.Rejected:
+                    Log.LogError($"Compiler request rejected");
+                    return false;
+                case BuildResponse.ResponseType.CannotConnect:
+                    if (Interlocked.Increment(ref s_connectFailedCount) > maxCannotConnectCount)
+                    {
+                        Log.LogError("Too many errors connecting to the server");
+                        return false;
+                    }
+                    return true;
+
+                case BuildResponse.ResponseType.Completed:
+                case BuildResponse.ResponseType.Shutdown:
+                    // Expected messages
+                    break;
+                default:
+                    Log.LogError($"Unexpected response type {responseType}");
+                    return false;
+            }
+
+            return true;
+        }
+#endif
+
+        /// <summary>
+        /// Log the compiler output to MSBuild. Each language will override this to parse their output and log it
+        /// in the language specific manner. This often involves parsing the raw output and formatting it as 
+        /// individual messages for MSBuild.
         /// </summary>
         /// <remarks>
-        /// Should be "private protected" visibility once it is introduced into C#.
+        /// Internal for testing only.
         /// </remarks>
-        internal abstract void LogMessages(string output, MessageImportance messageImportance);
-
-        public string GenerateResponseFileContents()
-        {
-            return GenerateResponseFileCommands();
-        }
+        internal abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
 
         /// <summary>
-        /// Get the command line arguments to pass to the compiler.
+        /// Used to log a message that should go into both the compiler server log as well as the MSBuild logs
+        ///
+        /// These are intended to be processed by automation in the binlog hence do not change the structure of
+        /// the messages here.
         /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
+        private void LogCompilationMessage(ICompilerServerLogger logger, Guid requestId, CompilationKind kind, string diagnostic)
         {
-            var commandLineArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
-            return commandLineArguments.Concat(responseFileArguments).ToArray();
-        }
-
-        /// <summary>
-        /// Returns the command line switch used by the tool executable to specify the response file
-        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
-        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
-        /// </summary>
-        protected override string GenerateResponseFileCommands()
-        {
-            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-            AddResponseFileCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Method for testing only
-        /// </summary>
-        public string GenerateCommandLine()
-        {
-            return GenerateCommandLineCommands();
-        }
-
-        protected sealed override string ToolArguments
-        {
-            get
+            var category = kind switch
             {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
+                CompilationKind.Server => "server",
+                CompilationKind.Tool => "tool",
+                CompilationKind.ToolFallback => "server failed",
+                CompilationKind.FatalError => "fatal error",
+                _ => throw new Exception($"Unexpected value {kind}"),
+            };
+
+            var message = $"CompilerServer: {category} - {diagnostic} - {requestId}";
+            if (kind == CompilationKind.FatalError)
+            {
+                logger.LogError(message);
+                Log.LogError(message);
+            }
+            else
+            {
+                logger.Log(message);
+                Log.LogMessage(message);
             }
         }
 
@@ -728,7 +794,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can't go into a response file and
         /// must go directly onto the command line.
         /// </summary>
-        protected internal virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendWhenTrue("/noconfig", _store, nameof(NoConfig));
         }
@@ -736,7 +802,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal virtual void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             // If outputAssembly is not specified, then an "/out: <name>" option won't be added to
             // overwrite the one resulting from the OutputAssembly member of the CompilerParameters class.
@@ -784,7 +850,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
 
+            commandLine.AppendWhenTrue("/reportivts", _store, nameof(ReportIVTs));
+
             commandLine.AppendSwitchWithInteger("/filealign:", _store, nameof(FileAlignment));
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendSwitchIfNotNull("/keycontainer:", KeyContainer);
             commandLine.AppendSwitchIfNotNull("/keyfile:", KeyFile);
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
@@ -825,6 +894,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
             commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
+            commandLine.AppendPlusOrMinusSwitch("/skipanalyzers", _store, nameof(SkipAnalyzers));
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);
@@ -1011,7 +1081,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// support a particular parameter or variation on a parameter.  So we log a comment,
         /// and set our state so we know not to call the host object to do the actual compilation.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected void CheckHostObjectSupport
             (
             string parameterName,
@@ -1041,7 +1110,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Checks to see whether all of the passed-in references exist on disk before we launch the compiler.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected bool CheckAllReferencesExistOnDisk()
         {
             if (null == References)

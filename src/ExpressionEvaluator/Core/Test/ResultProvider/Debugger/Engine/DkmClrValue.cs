@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 #endregion
@@ -227,7 +229,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var rawValue = RawValue;
             Debug.Assert(rawValue != null || this.Type.GetLmrType().IsVoid(), "In our mock system, this should only happen for void.");
-            return rawValue == null ? null : rawValue.ToString();
+            return rawValue?.ToString();
         }
 
         /// <remarks>
@@ -337,7 +339,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             // we'll return error if there wasn't at least an open paren...
                             if ((openParenIndex >= 0) && method != null)
                             {
-                                var methodValue = method.Invoke(RawValue, new object[] { });
+                                var methodValue = method.Invoke(RawValue, []);
                                 exprValue = new DkmClrValue(
                                     methodValue,
                                     methodValue,
@@ -681,9 +683,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var typeArgs = enumerableType.GenericArguments;
             Debug.Assert(typeArgs.Count <= 1);
-            var proxyTypeName = (typeArgs.Count == 0) ?
-                "System.Linq.SystemCore_EnumerableDebugView" :
-                "System.Linq.SystemCore_EnumerableDebugView`1";
+            var proxyTypeName = (typeArgs.Count == 0)
+                ? "System.Linq.SystemCore_EnumerableDebugView"
+                : "System.Linq.SystemCore_EnumerableDebugView`1";
             DkmClrType proxyType;
             try
             {
@@ -751,7 +753,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
         }
 
-        private unsafe static object Dereference(IntPtr ptr, Type elementType)
+        private static unsafe object Dereference(IntPtr ptr, Type elementType)
         {
             // Only handling a subset of types currently.
             switch (Metadata.Type.GetTypeCode(elementType))

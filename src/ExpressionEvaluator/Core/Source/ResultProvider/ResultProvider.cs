@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System;
@@ -30,15 +33,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </remarks>
     public abstract class ResultProvider : IDkmClrResultProvider
     {
-        static ResultProvider()
-        {
-            FatalError.Handler = FailFast.OnFatalException;
-        }
+        // TODO: There is a potential that these values will conflict with debugger defined flags in future.
+        // It'd be better if we attached these flags to the DkmClrValue object via data items, however DkmClrValue is currently mutable
+        // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
+        // to do so due to mutability.
+        // See https://github.com/dotnet/roslyn/issues/55676.
+        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)(1 << 30);
+        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)(1 << 31);
 
         // Fields should be removed and replaced with calls through DkmInspectionContext.
         // (see https://github.com/dotnet/roslyn/issues/6899).
         internal readonly IDkmClrFormatter2 Formatter2;
         internal readonly IDkmClrFullNameProvider FullNameProvider;
+
+        static ResultProvider()
+        {
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
+        }
 
         internal ResultProvider(IDkmClrFormatter2 formatter2, IDkmClrFullNameProvider fullNameProvider)
         {
@@ -52,10 +63,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
-            if (formatSpecifiers == null)
-            {
-                formatSpecifiers = Formatter.NoFormatSpecifiers;
-            }
+            formatSpecifiers ??= Formatter.NoFormatSpecifiers;
             if (resultFullName != null)
             {
                 ReadOnlyCollection<string> otherSpecifiers;
@@ -94,12 +102,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
-
-        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)0x20000;
-        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)0x40000;
 
         void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -223,9 +228,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 var typeDeclaringMember = row.TypeDeclaringMemberAndInfo;
-                var name = (typeDeclaringMember.Type == null) ?
-                    row.Name :
-                    GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
+                var name = (typeDeclaringMember.Type == null)
+                    ? row.Name
+                    : GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
                 row.Value.SetDataItem(DkmDataCreationDisposition.CreateAlways, new FavoritesDataItem(row.CanFavorite, row.IsFavorite));
                 row.Value.GetResult(
                     workList.InnerWorkList,
@@ -506,9 +511,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // Generate the declared type name without tuple element names.
                 var declaredTypeInfoNoTupleElementNames = declaredTypeInfo.WithNoTupleElementNames();
-                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames) ?
-                    declaredTypeName :
-                    inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
+                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames)
+                    ? declaredTypeName
+                    : inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
                 // Generate the runtime type name with no tuple element names and no dynamic.
                 var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
                 // If the two names are distinct, include both.
@@ -600,12 +605,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers,
                     flags,
                     Formatter2.GetEditableValueString(value, inspectionContext, declaredTypeAndInfo.Info));
-                if (expansion == null)
-                {
-                    expansion = value.HasExceptionThrown()
+                expansion ??= value.HasExceptionThrown()
                         ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags, supportsFavorites: false)
                         : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: supportsFavorites);
-                }
             }
 
             return new EvalResult(
@@ -743,9 +745,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 else
                 {
                     var useDebuggerDisplay = (inspectionContext.EvaluationFlags & NotRoot) != 0;
-                    var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0 ?
-                        ExpansionFlags.IncludeBaseMembers :
-                        ExpansionFlags.All;
+                    var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0
+                        ? ExpansionFlags.IncludeBaseMembers
+                        : ExpansionFlags.All;
                     var favortiesDataItem = value.GetDataItem<FavoritesDataItem>();
                     dataItem = CreateDataItem(
                         inspectionContext,
@@ -1027,9 +1029,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var typeName = fullNameProvider.GetClrTypeName(inspectionContext, typeDeclaringMember.ClrType, typeDeclaringMember.Info) ??
                 inspectionContext.GetTypeName(typeDeclaringMember.ClrType, typeDeclaringMember.Info, Formatter.NoFormatSpecifiers);
-            return typeDeclaringMember.Type.IsInterface ?
-                $"{typeName}.{memberName}" :
-                $"{memberName} ({typeName})";
+            return typeDeclaringMember.Type.IsInterface
+                ? $"{typeName}.{memberName}"
+                : $"{memberName} ({typeName})";
         }
 
         // Track remaining evaluations so that each subsequent evaluation

@@ -1,0 +1,417 @@
+﻿<vs:DialogWindow 
+    x:Uid="ChangeSignatureDialog"
+    x:Name="dialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialog"
+    x:ClassModifier="internal"         
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+    Height="500" Width="700"
+    MinHeight="500" MinWidth="700"
+    Title="{Binding ElementName=dialog, Path=ChangeSignatureDialogTitle}"
+    HasHelpButton="True"
+    ResizeMode="CanResizeWithGrip"
+    ShowInTaskbar="False"
+    HasDialogFrame="True"
+    WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}"
+                                            KeyboardNavigation.IsTabStop="False">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="CellStyle" Value="{StaticResource DataGridCellStyle}" />
+        </Style>
+        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="cellPadding">4 0 8 0</Thickness>
+        <Thickness x:Key="textboxPadding">2</Thickness>
+        <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
+        <RoutedUICommand x:Key="MoveUp" />
+        <RoutedUICommand x:Key="MoveUpFocus" />
+        <RoutedUICommand x:Key="MoveDown" />
+        <RoutedUICommand x:Key="MoveDownFocus" />
+        <RoutedUICommand x:Key="MoveSelectionUp" />
+        <RoutedUICommand x:Key="MoveSelectionDown" />
+        <RoutedUICommand x:Key="ClickOK" />
+        <RoutedUICommand x:Key="ToggleRemovedState" />
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource MoveUpFocus}" Executed="MoveUp_Click_FocusRow" />
+        <CommandBinding Command="{StaticResource MoveUp}" Executed="MoveUp_Click" />
+        <CommandBinding Command="{StaticResource MoveDownFocus}" Executed="MoveDown_Click_FocusRow" />
+        <CommandBinding Command="{StaticResource MoveDown}" Executed="MoveDown_Click" />
+        <CommandBinding Command="{StaticResource ToggleRemovedState}" Executed="ToggleRemovedState" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUpFocus}" />
+        <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDownFocus}" />
+        <KeyBinding Key="Delete" Command="{StaticResource ToggleRemovedState}" />
+        <KeyBinding Key="Return" Command="{StaticResource ClickOK}" />
+    </Window.InputBindings>
+    <Grid Name="ContentGrid" Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="ParametersTextBlock" Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition MinHeight="220"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="400"/>
+                <ColumnDefinition Width="Auto" MinWidth="35"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid 
+                x:Uid="MemberSelectionList"
+                x:Name="Members"
+                AutomationProperties.LabeledBy="{Binding ElementName=ParametersTextBlock}"
+                Grid.Row="0"
+                Grid.Column="0"
+                Margin="0, 3, 0, 0"
+                SelectionMode="Single"
+                SelectionUnit="FullRow"
+                ItemsSource="{Binding AllParameters, Mode=OneWay}"
+                SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                CanUserResizeRows="False"
+                BorderThickness="1"
+                BorderBrush="Gray"
+                RowHeaderWidth="0"
+                GridLinesVisibility="None"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Auto"
+                IsTabStop="True"
+                Style="{StaticResource ResourceKey=DataGridStyle}"
+                GotKeyboardFocus="Members_GotKeyboardFocus">
+                <DataGrid.CommandBindings>
+                    <CommandBinding Command="{StaticResource MoveSelectionUp}" Executed="MoveSelectionUp_Click" />
+                    <CommandBinding Command="{StaticResource MoveSelectionDown}" Executed="MoveSelectionDown_Click" />
+                    <CommandBinding Command="{StaticResource ClickOK}" Executed="OK_Click" />
+                </DataGrid.CommandBindings>
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="Up" Command="{StaticResource MoveSelectionUp}" />
+                    <KeyBinding Key="Down" Command="{StaticResource MoveSelectionDown}" />
+                    <KeyBinding Key="Delete" Command="{StaticResource ToggleRemovedState}" />
+                    <KeyBinding Key="Enter" Command="{StaticResource ClickOK}" />
+                </DataGrid.InputBindings>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Padding" Value="2" />
+                        <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}"
+                                            KeyboardNavigation.IsTabStop="False">
+                                        <ContentPresenter />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type DataGridRow}">
+                                    <Border BorderBrush="{TemplateBinding BorderBrush}" 
+                                            BorderThickness="{TemplateBinding BorderThickness}" 
+                                            Background="{TemplateBinding Background}" 
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                        <SelectiveScrollingGrid>
+                                            <SelectiveScrollingGrid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </SelectiveScrollingGrid.RowDefinitions>
+                                            <SelectiveScrollingGrid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </SelectiveScrollingGrid.ColumnDefinitions>
+                                            <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                            <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1" SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Visibility="{TemplateBinding DetailsVisibility}"/>
+                                            <DataGridRowHeader Grid.RowSpan="1" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                            <Path Name="CustomStrikethrough" Grid.ColumnSpan="4" Visibility="Collapsed" Data="M0.1,0.5 L0.9,0.5" Stretch="Fill" Stroke="{Binding ElementName=dialog, Path=StrikethroughBrush}" StrokeThickness="2" Opacity="0.4"/>
+                                        </SelectiveScrollingGrid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsRemoved}" Value="True">
+                                            <Setter TargetName="CustomStrikethrough" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDisabled}" Value="True">
+                                <Setter Property="Background" Value="{Binding ElementName=dialog, Path=DisabledParameterBackground}"/>
+                                <Setter Property="Foreground" Value="{Binding ElementName=dialog, Path=DisabledParameterForeground}"/>
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding NeedsBottomBorder}" Value="True">
+                                <Setter Property="BorderBrush" Value="Gray"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsRemoved}" Value="True">
+                                <Setter Property="Foreground" Value="{Binding ElementName=dialog, Path=RemovedParameterText}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsRemoved}" Value="False">
+                                <Setter Property="Foreground" Value="{Binding ElementName=dialog, Path=ParameterText}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <!-- This column appears empty to sighted users, but provides an improved screenreader 
+                    experience that avoids moving cell-by-cell through the DataGrid -->
+                    <DataGridTextColumn x:Name="automationHeader" IsReadOnly="True" Width="0">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ElementName=dialog, Path=CurrentParameter}" />
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="indexHeader" Binding="{Binding InitialIndex, Mode=OneWay}" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="modifierHeader" Binding="{Binding Modifier, Mode=OneWay}" IsReadOnly="True">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ModifierAutomationText, Mode=OneWay}"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn x:Name="typeHeader" Width="*" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Type, Mode=OneWay}" />
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <imaging:CrispImage 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" 
+                                        Visibility="{Binding TypeWarningVisibility}"
+                                        vs2:ImageThemingUtilities.ImageBackgroundColor="White"
+                                        Margin="0,0,5,0"
+                                        AutomationProperties.Name="{Binding ElementName=dialog, Path=WarningTypeDoesNotBind}"/>
+                                    <TextBlock Text="{Binding Type, Mode=OneWay}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn x:Name="parameterHeader" Width="*" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ParameterName, Mode=OneWay}" />
+                            </Style>
+                        </DataGridTemplateColumn.CellStyle>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <imaging:CrispImage 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" 
+                                        Visibility="{Binding HasParameterNameConflict, Mode=TwoWay}"
+                                        vs2:ImageThemingUtilities.ImageBackgroundColor="White"
+                                        Margin="0,0,5,0"
+                                        AutomationProperties.Name="{Binding ElementName=dialog, Path=WarningDuplicateParameterName}"/>
+                                    <TextBlock Text="{Binding ParameterName, Mode=OneWay}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding DefaultValue, Mode=OneWay}" Width="*" IsReadOnly="True">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding DefaultAutomationText, Mode=OneWay}"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="callsiteHeader" Binding="{Binding CallSite, Mode=OneWay}" Width="*" IsReadOnly="True">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding CallSiteAutomationText, Mode=OneWay}"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Label x:Name="PreviewMethodSignatureLabel"
+                       Grid.Column="0" 
+                       Margin="0, 9, 0, 0" 
+                       Grid.Row="1" 
+                       Height="Auto" 
+                       Width="Auto" 
+                       Content="{Binding ElementName=dialog, Path=PreviewMethodSignature}"/>
+            <Border Grid.Column="0" 
+                    Margin="0, 3, 0, 0" 
+                    Grid.Row="2" 
+                    Height="80" 
+                    Width="Auto" 
+                    BorderThickness="1" 
+                    BorderBrush="LightGray">
+                <ScrollViewer Name="Scroller"
+                              AutomationProperties.Name="{Binding SignaturePreviewAutomationText}"
+                              AutomationProperties.LabeledBy="{Binding ElementName=PreviewMethodSignatureLabel}"
+                              IsTabStop="False"
+                              Padding="8, 4, 4, 4" 
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" 
+                              Content="{Binding SignatureDisplay}" 
+                              imagingPlatformUI:ImageThemingUtilities.ThemeScrollBars="True"
+                              Background="{DynamicResource {x:Static vs:EnvironmentColors.DesignerBackgroundBrushKey}}"/>
+            </Border>
+            <StackPanel Name="ControlButtonsPanel" Grid.Column="1" Grid.Row="0" Height="Auto" Width="Auto" Margin="0, 3, 0, 0" >
+                <vs:DialogButton Name="UpButton" 
+                                 AutomationProperties.Name="{Binding MoveUpAutomationText}"
+                                 ToolTip="{Binding MoveUpAutomationText}"
+                                 Margin="9 0 0 0"
+                                 IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
+                                 AutomationProperties.AutomationId="UpButton"
+                                 Height="Auto" Width="Auto"
+                                 Command="{StaticResource MoveUp}">
+                    <imaging:CrispImage Name="UpArrowImage" 
+                                        Height="16" 
+                                        Width="16" 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}" 
+                                        Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
+                </vs:DialogButton>
+                <vs:DialogButton Name="DownButton" 
+                                 AutomationProperties.Name="{Binding MoveDownAutomationText}"
+                                 ToolTip="{Binding MoveDownAutomationText}"
+                                 Margin="9 9 0 0"
+                                 IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
+                                 AutomationProperties.AutomationId="DownButton"
+                                 Height="Auto" Width="Auto"
+                                 Command="{StaticResource MoveDown}">
+                    <imaging:CrispImage Name="DownArrowImage" 
+                                        Height="16" 
+                                        Width="16" 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
+                                        Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
+                </vs:DialogButton>
+                <vs:DialogButton
+                        Name="AddButton"
+                        Margin="9 29 0 0"
+                        AutomationProperties.Name="{Binding AddAutomationText}"
+                        Click="Add_Click"
+                        AutomationProperties.AutomationId="AddButton"
+                        Content="{Binding ElementName=dialog, Path=Add}"
+                        Height="Auto" Width="Auto"/>
+                <vs:DialogButton
+                        Name="RemoveButton"
+                        Margin="9 9 0 0"
+                        IsEnabled="{Binding CanRemove, Mode=OneWay}" 
+                        AutomationProperties.Name="{Binding RemoveAutomationText}"
+                        Click="Remove_Click" 
+                        AutomationProperties.AutomationId="RemoveButton" 
+                        Content="{Binding ElementName=dialog, Path=Remove}" 
+                        Height="Auto" Width="Auto"/>
+                <vs:DialogButton
+                        Name="RestoreButton"
+                        Margin="9 29 0 0"
+                        IsEnabled="{Binding CanRestore, Mode=OneWay}" 
+                        Click="Restore_Click" 
+                        AutomationProperties.AutomationId="RestoreButton" 
+                        AutomationProperties.Name="{Binding RestoreAutomationText}"
+                        Content="{Binding ElementName=dialog, Path=Restore}" 
+                        Height="Auto" Width="Auto"/>
+            </StackPanel>
+        </Grid>
+
+        <CheckBox x:Uid="PreviewCheckbox"
+            Grid.Row="2"
+            HorizontalAlignment="Left"
+            Margin="0, 7, 0, 0"
+            Content="{Binding ElementName=dialog, Path=PreviewReferenceChanges}"
+            IsChecked="{Binding PreviewChanges, Mode=OneWayToSource}"
+            ></CheckBox>
+
+        <StackPanel Grid.Row="3" 
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <vs:DialogButton x:Uid="OKButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <vs:DialogButton x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}" 
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

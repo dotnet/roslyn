@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -139,8 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var compilation = GetCompilation();
             var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(name, compilation);
             if (typeSymbol == null ||
-                typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown)
+                typeSymbol.TypeKind is TypeKind.Error or TypeKind.Unknown)
             {
                 return null;
             }

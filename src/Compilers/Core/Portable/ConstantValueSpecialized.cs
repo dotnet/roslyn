@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis
         /// to one.  Conversion of this value to float produces the corresponding
         /// canonical NaN of the float type (IEEE Std 754-2008 section 6.2.3).
         /// </summary>
-        private static double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
+        private static readonly double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
 
         private sealed class ConstantValueBad : ConstantValue
         {
             private ConstantValueBad() { }
 
-            public readonly static ConstantValueBad Instance = new ConstantValueBad();
+            public static readonly ConstantValueBad Instance = new ConstantValueBad();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
@@ -59,14 +59,18 @@ namespace Microsoft.CodeAnalysis
             {
                 return "bad";
             }
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
+            }
         }
 
         private sealed class ConstantValueNull : ConstantValue
         {
             private ConstantValueNull() { }
 
-            public readonly static ConstantValueNull Instance = new ConstantValueNull();
-            public readonly static ConstantValueNull Uninitialized = new ConstantValueNull();
+            public static readonly ConstantValueNull Instance = new ConstantValueNull();
+            public static readonly ConstantValueNull Uninitialized = new ConstantValueNull();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
@@ -120,11 +124,23 @@ namespace Microsoft.CodeAnalysis
             {
                 return ((object)this == (object)Uninitialized) ? "unset" : "null";
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
+            }
         }
 
         private sealed class ConstantValueString : ConstantValue
         {
             private readonly Rope _value;
+            /// <summary>
+            /// Some string constant values can have large costs to realize. To compensate, we realize
+            /// constant values lazily, and hold onto a weak reference. If the next time we're asked for the constant
+            /// value the previous one still exists, we can avoid rerealizing it. But we don't want to root the constant
+            /// value if it's not being used.
+            /// </summary>
+            private WeakReference<string>? _constantValueReference;
 
             public ConstantValueString(string value)
             {
@@ -157,7 +173,19 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return _value.ToString();
+                    string? constantValue = null;
+                    if (_constantValueReference?.TryGetTarget(out constantValue) != true)
+                    {
+                        // Note: we could end up realizing the constant value multiple times if there's
+                        // a race here. Currently, this isn't believed to be an issue, as the assignment
+                        // to _constantValueReference is atomic so the worst that will happen is we return
+                        // different instances of a string constant.
+                        constantValue = _value.ToString();
+                        _constantValueReference = new WeakReference<string>(constantValue);
+                    }
+
+                    Debug.Assert(constantValue != null);
+                    return constantValue;
                 }
             }
 
@@ -182,6 +210,19 @@ namespace Microsoft.CodeAnalysis
             internal override string GetValueToDisplay()
             {
                 return (_value == null) ? "null" : string.Format("\"{0}\"", _value);
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                int formatLength = RopeValue.Length;
+                if (format is not null && int.TryParse(format, out var len))
+                {
+                    formatLength = len;
+                }
+
+                return formatLength < RopeValue.Length ?
+                    @$"""{RopeValue.ToString(Math.Max(formatLength - 3, 0))}...""" :
+                    @$"""{RopeValue}""";
             }
         }
 
@@ -396,6 +437,11 @@ namespace Microsoft.CodeAnalysis
             {
                 get { return true; }
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return $"default({GetPrimitiveTypeName()})";
+            }
         }
 
         private sealed class ConstantValueDecimalZero : ConstantValueDefault
@@ -483,6 +529,7 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueOne Double = new ConstantValueOne(ConstantValueTypeDiscriminator.Double);
             public static readonly ConstantValueOne Decimal = new ConstantValueDecimalOne();
             public static readonly ConstantValueOne Boolean = new ConstantValueOne(ConstantValueTypeDiscriminator.Boolean);
+            public static readonly ConstantValueOne Char = new ConstantValueOne(ConstantValueTypeDiscriminator.Char);
 
             protected ConstantValueOne(ConstantValueTypeDiscriminator discriminator)
                 : base(discriminator)
@@ -534,6 +581,70 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     return 1;
+                }
+            }
+
+            public override int Int32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override uint UInt32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override long Int64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ulong UInt64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override short Int16Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ushort UInt16Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override char CharValue
+            {
+                get
+                {
+                    return (char)1;
+                }
+            }
+
+            public override bool IsOne
+            {
+                get
+                {
+                    return true;
                 }
             }
 
@@ -834,6 +945,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
+
         }
 
         private sealed class ConstantValueSingle : ConstantValueDiscriminated

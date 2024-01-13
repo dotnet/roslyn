@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 
@@ -12,16 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// <summary>
     /// A code action operation for requesting a document be opened in the host environment.
     /// </summary>
-    public sealed class OpenDocumentOperation : CodeActionOperation
+    public sealed class OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false) : CodeActionOperation
     {
-        private readonly DocumentId _documentId;
-        private readonly bool _activate;
-
-        public OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false)
-        {
-            _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
-            _activate = activateIfAlreadyOpen;
-        }
+        private readonly DocumentId _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
 
         public DocumentId DocumentId => _documentId;
 
@@ -29,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (workspace.CanOpenDocuments)
             {
-                workspace.OpenDocument(_documentId, _activate);
+                workspace.OpenDocument(_documentId, activateIfAlreadyOpen);
             }
         }
     }

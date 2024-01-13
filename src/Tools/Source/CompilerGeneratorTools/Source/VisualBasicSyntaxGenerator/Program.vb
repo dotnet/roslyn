@@ -192,7 +192,6 @@ Friend Module Program
         output.WriteLine("' DO NOT HAND EDIT")
     End Sub
 
-
     Private Sub WriteSyntaxHeader(output As StreamWriter, checksum As String)
         WriteHeader(output, checksum)
 

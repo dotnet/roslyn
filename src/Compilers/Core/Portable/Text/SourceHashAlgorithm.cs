@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
@@ -25,10 +23,5 @@ namespace Microsoft.CodeAnalysis.Text
         /// Secure Hash Algorithm 2 with a hash size of 256 bits.
         /// </summary>
         Sha256 = 2,
-    }
-
-    internal static class SourceHashAlgorithmUtils
-    {
-        public const SourceHashAlgorithm DefaultContentHashAlgorithm = SourceHashAlgorithm.Sha256;
     }
 }

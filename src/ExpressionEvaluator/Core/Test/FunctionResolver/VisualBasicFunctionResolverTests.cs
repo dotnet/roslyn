@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -19,8 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         /// Should only handle requests with expected language id or
         /// default language id or causality breakpoints.
         /// </summary>
-        [WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15119")]
         public void LanguageId()
         {
             var source =

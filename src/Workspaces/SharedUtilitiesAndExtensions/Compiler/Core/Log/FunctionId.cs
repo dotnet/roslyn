@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_ApplyChanges = 62,
         Workspace_TryGetDocument = 63,
         Workspace_TryGetDocumentFromInProgressSolution = 64,
-        Workspace_Solution_LinkedFileDiffMergingSession = 65,
-        Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup = 66,
+        // obsolete: Workspace_Solution_LinkedFileDiffMergingSession = 65,
+        // obsolete: Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup = 66,
         Workspace_Solution_Info = 67,
 
         EndConstruct_DoStatement = 68,
@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Formatting_ContextInitialization = 85,
         Formatting_Format = 86,
         Formatting_ApplyResultToBuffer = 87,
-        Formatting_IterateNodes = 88,
-        Formatting_CollectIndentBlock = 89,
-        Formatting_CollectSuppressOperation = 90,
-        Formatting_CollectAlignOperation = 91,
-        Formatting_CollectAnchorOperation = 92,
+        // obsolete: Formatting_IterateNodes = 88,
+        // obsolete: Formatting_CollectIndentBlock = 89,
+        // obsolete: Formatting_CollectSuppressOperation = 90,
+        // obsolete: Formatting_CollectAlignOperation = 91,
+        // obsolete: Formatting_CollectAnchorOperation = 92,
         Formatting_CollectTokenOperation = 93,
         Formatting_BuildContext = 94,
         Formatting_ApplySpaceAndLine = 95,
@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Snippet_OnAfterInsertion = 155,
 
         Misc_NonReentrantLock_BlockingWait = 156,
-        Misc_VisualStudioWaitIndicator_Wait = 157,
         Misc_SaveEventsSink_OnBeforeSave = 158,
 
         TaskList_Refresh = 159,
@@ -279,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinatorRegistrationService_Unregister = 224,
         WorkCoordinatorRegistrationService_Reanalyze = 225,
 
-        WorkCoordinator_SolutionCrawlerOption = 226,
+        // obsolete: WorkCoordinator_SolutionCrawlerOption = 226,
         WorkCoordinator_PersistentStorageAdded = 227,
         WorkCoordinator_PersistentStorageRemoved = 228,
         WorkCoordinator_Shutdown = 229,
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DiagnosticAnalyzerService_Analyzers = 230,
         DiagnosticAnalyzerDriver_AnalyzerCrash = 231,
         DiagnosticAnalyzerDriver_AnalyzerTypeCount = 232,
-        PersistedSemanticVersion_Info = 233,
+        // obsolete: PersistedSemanticVersion_Info = 233,
         StorageDatabase_Exceptions = 234,
         WorkCoordinator_ShutdownTimeout = 235,
         Diagnostics_HyperLink = 236,
@@ -329,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VisualBasic_Interactive_Window = 268,
 
         NonFatalWatson = 269,
-        GlobalOperationRegistration = 270,
+        // GlobalOperationRegistration = 270, No longer fired.
         CommandHandler_FindAllReference = 271,
 
         CodefixInfobar_Enable = 272,
@@ -365,18 +364,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeAnalysisService_GetDesignerAttributesAsync = 294,
 
         ServiceHubRemoteHostClient_CreateAsync = 295,
-        PinnedRemotableDataScope_GetRemotableData = 296,
+        // obsolete: PinnedRemotableDataScope_GetRemotableData = 296,
 
         RemoteHost_Connect = 297,
         RemoteHost_Disconnect = 298,
 
-        RemoteHostClientService_AddGlobalAssetsAsync = 299,
-        RemoteHostClientService_RemoveGlobalAssets = 300,
-        RemoteHostClientService_Enabled = 301,
-        RemoteHostClientService_Restarted = 302,
+        // obsolete: RemoteHostClientService_AddGlobalAssetsAsync = 299,
+        // obsolete: RemoteHostClientService_RemoveGlobalAssets = 300,
+        // obsolete: RemoteHostClientService_Enabled = 301,
+        // obsolete: RemoteHostClientService_Restarted = 302,
 
         RemoteHostService_SynchronizePrimaryWorkspaceAsync = 303,
-        RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
+        // obsolete: RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
 
         AssetStorage_CleanAssets = 305,
         AssetStorage_TryGetAsset = 306,
@@ -395,8 +394,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
 
-        SolutionSynchronizationService_GetRemotableData = 318,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
+        // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
+        // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
 
         SolutionChecksumUpdater_SynchronizePrimaryWorkspace = 320,
 
@@ -405,25 +404,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionService_GetSolutionAsync = 322,
         SolutionService_UpdatePrimaryWorkspaceAsync = 323,
 
-        SnapshotService_RequestAssetAsync = 324,
+        RemoteHostService_GetAssetsAsync = 324,
 
         // obsolete: CompilationService_GetCompilationAsync = 325,
         SolutionCreator_AssetDifferences = 326,
         Extension_InfoBar = 327,
         FxCopAnalyzersInstall = 328,
         AssetStorage_ForceGC = 329,
-        RemoteHost_Bitness = 330,
+        // obsolete: RemoteHost_Bitness = 330,
         Intellisense_Completion = 331,
         MetadataOnlyImage_EmitFailure = 332,
         LiveTableDataSource_OnDiagnosticsUpdated = 333,
         Experiment_KeybindingsReset = 334,
         Diagnostics_GeneratePerformaceReport = 335,
-        Diagnostics_BadAnalyzer = 336,
+        // obsolete: Diagnostics_BadAnalyzer = 336,
         CodeAnalysisService_ReportAnalyzerPerformance = 337,
         PerformanceTrackerService_AddSnapshot = 338,
-        AbstractProject_SetIntelliSenseBuild = 339,
-        AbstractProject_Created = 340,
-        AbstractProject_PushedToWorkspace = 341,
+        // obsolete: AbstractProject_SetIntelliSenseBuild = 339,
+        // obsolete: AbstractProject_Created = 340,
+        // obsolete: AbstractProject_PushedToWorkspace = 341,
         ExternalErrorDiagnosticUpdateSource_AddError = 342,
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync = 343,
         Completion_ExecuteCommand_TypeChar = 344,
@@ -431,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync = 346,
         SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync = 347,
-        Intellisense_Completion_Commit = 348,
+        // obsolete: Intellisense_Completion_Commit = 348,
 
         CodeCleanupInfobar_BarDisplayed = 349,
         CodeCleanupInfobar_ConfigureNow = 350,
@@ -461,12 +460,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Intellisense_AsyncCompletion_Data = 371,
         Intellisense_CompletionProviders_Data = 372,
-        SnapshotService_IsExperimentEnabledAsync = 373,
+        RemoteHostService_IsExperimentEnabledAsync = 373,
         PartialLoad_FullyLoaded = 374,
         Liveshare_UnknownCodeAction = 375,
-        Liveshare_LexicalClassifications = 376,
-        Liveshare_SyntacticClassifications = 377,
-        Liveshare_SyntacticTagger = 378,
+        // obsolete: Liveshare_LexicalClassifications = 376,
+        // obsolete: Liveshare_SyntacticClassifications = 377,
+        // obsolete: Liveshare_SyntacticTagger = 378,
 
         CommandHandler_GoToBase = 379,
 
@@ -477,5 +476,145 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LanguageServer_OnLoadedFailed = 383,
 
         CodeFixes_AddExplicitCast = 384,
+
+        ToolsOptions_GenerateEditorconfig = 385,
+
+        Renamer_RenameSymbolAsync = 386,
+        Renamer_FindRenameLocationsAsync = 387,
+        Renamer_ResolveConflictsAsync = 388,
+
+        ChangeSignature_Data = 400,
+
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,
+
+        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 420,
+
+        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
+        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
+
+        RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
+        // obsolete: FeatureNotAvailable = 441,
+
+        LSPCompletion_MissingLSPCompletionTriggerKind = 450,
+        LSPCompletion_MissingLSPCompletionInvokeKind = 451,
+
+        Workspace_Project_CompilationThrownAway = 460,
+
+        CommandHandler_Paste_ImportsOnPaste = 470,
+
+        // Superseded by LSP_FindDocumentInWorkspace
+        // obsolete: FindDocumentInWorkspace = 480,
+        RegisterWorkspace = 481,
+
+        LSP_RequestCounter = 482,
+        LSP_RequestDuration = 483,
+        LSP_TimeInQueue = 484,
+
+        Intellicode_UnknownIntent = 485,
+
+        LSP_CompletionListCacheMiss = 486,
+
+        InheritanceMargin_TargetsMenuOpen = 487,
+        InheritanceMargin_NavigateToTarget = 488,
+
+        VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
+
+        UnusedReferences_GetUnusedReferences = 490,
+
+        ValueTracking_Command = 491,
+        ValueTracking_TrackValueSource = 492,
+
+        InheritanceMargin_GetInheritanceMemberItems = 493,
+
+        LSP_FindDocumentInWorkspace = 494,
+
+        SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        NavigateTo_CacheItemsMiss = 510,
+
+        AssetService_Perf = 520,
+
+        Inline_Hints_DoubleClick = 530,
+        NavigateToExternalSources = 531,
+
+        StackTraceToolWindow_ShowOnActivated = 540,
+
+        CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
+
+        LSP_UsedForkedSolution = 571,
+
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange = 583,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange = 584,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument = 585,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange = 586,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
+
+        Completion_SemanticSnippets = 589,
+        // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
+
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621,
+
+        // 630-650 for sqlite errors.
+        SQLite_SqlException = 630,
+        SQLite_StorageDisabled = 631,
+
+        // 650-660 for diagnostic/fix related ids.
+        //Diagnostics_AnalyzerPerformanceInfo = 651, - Deprecated due to high volume of events.
+        Diagnostics_AnalyzerPerformanceInfo2 = 652,
+
+        // 660-670 for semantic model reuse service.
+        SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent = 660,
+
+        // 670-680 for newer rename ids
+        Rename_TryApplyRename_WorkspaceChanged = 670,
+        Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange = 671,
+
+        // 680-690 LSP Initialization info ids.
+        LSP_Initialize = 680,
+
+        // 700-799 Performance logging. Typically pairs with Delay/Summary values.
+        //  Summary is a aggregation of all times collected.
+        //  Delay is used as a non-aggregated value for an unexpectedly poor performing scenario.
+        CodeFix_Delay = 700,
+        CodeFix_Summary = 701,
+
+        CodeRefactoring_Delay = 710,
+        CodeRefactoring_Summary = 711,
+
+        PerformAnalysis_Delay = 720,
+        PerformAnalysis_Summary = 721,
+
+        RequestDiagnostics_Delay = 730,
+        RequestDiagnostics_Summary = 731,
+
+        SuggestedAction_Delay = 740,
+        SuggestedAction_Summary = 741,
+        SuggestedAction_Application_Delay = 742,
+        SuggestedAction_Application_Summary = 743,
+        SuggestedAction_Preview_Delay = 744,
+        SuggestedAction_Preview_Summary = 745,
     }
 }

@@ -7,8 +7,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToImplementedMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -23,7 +24,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Interface I
@@ -40,7 +41,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToImplementedMethod_WithTuples() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -55,7 +56,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Interface I
@@ -72,7 +73,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToImplementingMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -87,7 +88,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Interface I
@@ -104,7 +105,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToOverriddenMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
@@ -121,7 +122,7 @@ Class D
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -140,7 +141,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToOverridingMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
@@ -157,7 +158,7 @@ Class D
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -176,7 +177,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToOverriddenMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
@@ -200,7 +201,7 @@ Class D
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -225,7 +226,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToOverridingMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
@@ -249,7 +250,7 @@ Class D
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -275,7 +276,7 @@ End Class]]></Text>.NormalizedValue()
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestAddParameter_Cascade_ToMethods_Complex() As Task
 
             '     B   I   I2
@@ -328,7 +329,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -376,7 +377,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        Public Async Function TestAddParameter_Cascade_ToOverridingMethod_IncludeParamTags() As Task
+        Public Shared Async Function TestAddParameter_Cascade_ToOverridingMethod_IncludeParamTags() As Task
 
             Dim markup = <Text><![CDATA[
 Class B
@@ -397,7 +398,7 @@ Class D
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class B

@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -17,25 +13,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            private readonly AsyncBatchingWorkQueue<bool> _workQueue;
+            private readonly AsyncBatchingWorkQueue _asyncDelay;
 
             public WorkspaceChangedEventSource(
                 ITextBuffer subjectBuffer,
-                TaggerDelay delay,
                 IAsynchronousOperationListener asyncListener)
-                : base(subjectBuffer, delay)
+                : base(subjectBuffer)
             {
-                // Pass in an equality comparer here.  That will ensure that even if we get a flurry of workspace
-                // events that we only ever have one entry in the workqueue as all other events will dedupe against 
-                // that one.
-                _workQueue = new AsyncBatchingWorkQueue<bool>(
-                    TimeSpan.FromMilliseconds(250),
-                    processBatchAsync: (_1, _2) =>
+                // That will ensure that even if we get a flurry of workspace events that we
+                // only process a tag change once.
+                _asyncDelay = new AsyncBatchingWorkQueue(
+                    DelayTimeSpan.Short,
+                    processBatchAsync: cancellationToken =>
                     {
                         RaiseChanged();
-                        return Task.CompletedTask;
+                        return ValueTaskFactory.CompletedTask;
                     },
-                    equalityComparer: EqualityComparer<bool>.Default,
                     asyncListener,
                     CancellationToken.None);
             }
@@ -52,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 this.RaiseChanged();
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs eventArgs)
-                => _workQueue.AddWork(true);
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
+                => _asyncDelay.AddWork();
         }
     }
 }

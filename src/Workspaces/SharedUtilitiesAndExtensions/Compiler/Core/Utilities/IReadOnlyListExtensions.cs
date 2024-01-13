@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 
@@ -37,17 +35,12 @@ namespace Microsoft.CodeAnalysis.Utilities
             return -1;
         }
 
-        private class ReadOnlyList<T> : IReadOnlyList<T>
+        private class ReadOnlyList<T>(IList<T> list) : IReadOnlyList<T>
         {
-            private readonly IList<T> _list;
-
-            public ReadOnlyList(IList<T> list)
-                => _list = list;
-
-            public T this[int index] => _list[index];
-            public int Count => _list.Count;
-            public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+            public T this[int index] => list[index];
+            public int Count => list.Count;
+            public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
         }
     }
 }

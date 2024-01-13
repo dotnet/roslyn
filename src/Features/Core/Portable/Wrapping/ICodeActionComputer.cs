@@ -6,13 +6,12 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.Wrapping
+namespace Microsoft.CodeAnalysis.Wrapping;
+
+internal interface ICodeActionComputer
 {
-    internal interface ICodeActionComputer
-    {
-        /// <summary>
-        /// Produces the actual top-level code wrapping actions for the original node provided.
-        /// </summary>
-        Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync();
-    }
+    /// <summary>
+    /// Produces the actual top-level code wrapping actions for the original node provided.
+    /// </summary>
+    Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync();
 }

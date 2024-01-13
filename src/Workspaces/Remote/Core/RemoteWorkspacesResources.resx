@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Feature_0_is_currently_unavailable_host_shutting_down" xml:space="preserve">
+    <value>Feature '{0}' is currently unavailable since {1} is shutting down.</value>
+  </data>
+  <data name="Feature_0_is_currently_unavailable_due_to_an_intermittent_error" xml:space="preserve">
+    <value>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</value>
+  </data>
+  <data name="Feature_0_is_currently_unavailable_due_to_an_internal_error" xml:space="preserve">
+    <value>Feature '{0}' is currently unavailable due to an internal error.</value>
+  </data>
+  <data name="FeatureName_MissingImportDiscovery" xml:space="preserve">
+    <value>Missing import discovery</value>
+  </data>
+  <data name="FeatureName_CodeLensReferences" xml:space="preserve">
+    <value>CodeLens references</value>
+  </data>
+  <data name="FeatureName_ConvertTupleToStructCodeRefactoring" xml:space="preserve">
+    <value>Convert tuple to struct refactoring</value>
+  </data>
+  <data name="FeatureName_DependentTypeFinder" xml:space="preserve">
+    <value>Dependent type finder</value>
+  </data>
+  <data name="FeatureName_DesignerAttributeDiscovery" xml:space="preserve">
+    <value>DesignerAttribute discovery</value>
+  </data>
+  <data name="FeatureName_DiagnosticAnalyzer" xml:space="preserve">
+    <value>Diagnostic analyzer runner</value>
+  </data>
+  <data name="FeatureName_DocumentHighlights" xml:space="preserve">
+    <value>Document highlights</value>
+  </data>
+  <data name="FeatureName_EncapsulateField" xml:space="preserve">
+    <value>Encapsulate field refactoring</value>
+  </data>
+  <data name="FeatureName_ExtensionMethodImportCompletion" xml:space="preserve">
+    <value>Extension method import completion</value>
+  </data>
+  <data name="FeatureName_FindUsages" xml:space="preserve">
+    <value>Find usages</value>
+  </data>
+  <data name="FeatureName_FullyQualify" xml:space="preserve">
+    <value>Fully qualify</value>
+  </data>
+  <data name="FeatureName_GlobalNotificationDelivery" xml:space="preserve">
+    <value>Global notification delivery</value>
+  </data>
+  <data name="FeatureName_NavigateToSearch" xml:space="preserve">
+    <value>Navigate to</value>
+  </data>
+  <data name="FeatureName_ProjectTelemetry" xml:space="preserve">
+    <value>Project telemetry collection</value>
+  </data>
+  <data name="FeatureName_Renamer" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="FeatureName_SemanticClassification" xml:space="preserve">
+    <value>Semantic classification</value>
+  </data>
+  <data name="FeatureName_SymbolFinder" xml:space="preserve">
+    <value>Symbol finder</value>
+  </data>
+  <data name="FeatureName_SymbolSearchUpdate" xml:space="preserve">
+    <value>Symbol search</value>
+  </data>
+  <data name="FeatureName_TaskList" xml:space="preserve">
+    <value>Task list</value>
+  </data>
+  <data name="FeatureName_AsynchronousOperationListener" xml:space="preserve">
+    <value>Asynchronous operation listener</value>
+  </data>
+  <data name="FeatureName_AssetSynchronization" xml:space="preserve">
+    <value>Asset synchronization</value>
+  </data>
+  <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
+    <value>Asset provider</value>
+  </data>
+  <data name="FeatureName_EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
+  <data name="FeatureName_NavigationBarItem" xml:space="preserve">
+    <value>Navigation bar</value>
+  </data>
+  <data name="FeatureName_InheritanceMargin" xml:space="preserve">
+    <value>Inheritance margin</value>
+  </data>
+  <data name="FeatureName_UnusedReferenceAnalysis" xml:space="preserve">
+    <value>Unused reference analysis</value>
+  </data>
+  <data name="FeatureName_ValueTracking" xml:space="preserve">
+    <value>Value Tracking</value>
+  </data>
+  <data name="FeatureName_ProcessTelemetry" xml:space="preserve">
+    <value>Process telemetry</value>
+  </data>
+  <data name="FeatureName_CompilationAvailable" xml:space="preserve">
+    <value>Project semantics availability</value>
+  </data>
+  <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+  </data>
+  <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
+    <value>Solution Events</value>
+  </data>
+  <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
+    <value>Unit testing search</value>
+  </data>
+  <data name="FeatureName_KeepAlive" xml:space="preserve">
+    <value>Keep alive service</value>
+  </data>
+  <data name="FeatureName_SourceGeneration" xml:space="preserve">
+    <value>Source generation</value>
+  </data>
+</root>

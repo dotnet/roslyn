@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -118,10 +121,7 @@ namespace Roslyn.Test.Performance.Utilities
                 string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            }
+            workingDirectory ??= AppDomain.CurrentDomain.BaseDirectory;
 
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);
@@ -244,6 +244,5 @@ namespace Roslyn.Test.Performance.Utilities
                 }
             }
         }
-
     }
 }

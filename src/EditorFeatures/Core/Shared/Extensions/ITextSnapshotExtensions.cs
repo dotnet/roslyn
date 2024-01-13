@@ -11,8 +11,11 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -23,39 +26,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, CancellationToken cancellationToken)
-            => snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
-
-        /// <summary>
-        /// format given snapshot and apply text changes to buffer
-        /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
+        public static void FormatAndApplyToBuffer(
+            this ITextBuffer textBuffer,
+            TextSpan span,
+            EditorOptionsService editorOptionsService,
+            CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
             }
 
-            rules = GetFormattingRules(document, rules, span);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, span, additionalRules: null);
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+
+            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
+            var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
+            var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+                textBuffer.ApplyChanges(changes);
             }
-        }
-
-        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, IEnumerable<AbstractFormattingRule> rules, TextSpan span)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            var position = (span.Start + span.End) / 2;
-
-            return SpecializedCollections.SingletonEnumerable(formattingRuleFactory.CreateRule(document, position)).Concat(rules ?? Formatter.GetDefaultFormattingRules(document));
         }
 
         /// <summary>
@@ -66,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
         /// otherwise, one can get into a deadlock
         /// </summary>
-        public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+        public static async Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
         {
             // just get a document from whatever we have
@@ -80,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // partial mode is always cancellable
             using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
-                var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                var service = document.Project.Solution.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
                 {
                     // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded
@@ -97,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
-        public static Document GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+        public static Document? GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext, IThreadingContext threadingContext)
         {
             // make sure this is only called from UI thread

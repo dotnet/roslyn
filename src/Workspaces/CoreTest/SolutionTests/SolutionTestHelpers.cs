@@ -5,16 +5,36 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+
+        public static Workspace CreateWorkspaceWithNormalText()
+            => CreateWorkspace(
+            [
+                typeof(TestTemporaryStorageServiceFactory)
+            ]);
+
+        public static Workspace CreateWorkspaceWithRecoverableText()
+            => CreateWorkspace();
+
+        public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics([typeof(TestTemporaryStorageServiceFactory)], testHost);
+
+#nullable disable
+
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {
-            Assert.NotEqual<TValue>(default, validNonDefaultValue);
+            Assert.NotEqual(getter(instance), validNonDefaultValue);
 
             var instanceWithValue = factory(instance, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(instanceWithValue));

@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeEmbeddedCompletionProvider : CompletionProvider
+    internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -29,22 +29,26 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateAndTimeEmbeddedLanguageFeatures _language;
+        private readonly DateAndTimeEmbeddedLanguage _language = language;
 
-        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguageFeatures language)
-            => _language = language;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
-            if (trigger.Kind == CompletionTriggerKind.Invoke ||
-                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind is CompletionTriggerKind.Invoke or
+                CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                // We only trigger on typing if it's the first character in a sequence.
+                if (TriggerCharacters.Contains(trigger.Character))
+                {
+                    return true;
+                }
+
+                // Only trigger if it's the first character of a sequence
                 return char.IsLetter(trigger.Character) &&
                        caretPosition >= 2 &&
                        !char.IsLetter(text[caretPosition - 2]);
@@ -55,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
+            if (!context.CompletionOptions.ProvideDateAndTimeCompletions)
                 return;
 
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
+                not CompletionTriggerKind.InvokeAndCommitIfUnique and
+                not CompletionTriggerKind.Insertion)
             {
                 return;
             }
@@ -75,52 +79,67 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (stringTokenOpt == null)
                 return;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var stringToken = stringTokenOpt.Value;
-            if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
-                return;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            // If we're not in an interpolation, at least make sure we're within the bounds of the string.
+            if (stringToken.RawKind != syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            {
+                if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
+                    return;
+            }
 
-            using var _ = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
+            // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
+            var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
 
-            var embeddedContext = new EmbeddedCompletionContext(text, context, items);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+            using var _1 = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
+
+            var embeddedContext = new EmbeddedCompletionContext(text, context, virtualChars, items);
+
             ProvideStandardFormats(embeddedContext);
             ProvideCustomFormats(embeddedContext);
             if (items.Count == 0)
                 return;
 
+            using var _2 = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var properties);
             foreach (var embeddedItem in items)
             {
+                properties.Clear();
+
                 var textChange = embeddedItem.Change.TextChange;
 
-                var properties = ImmutableDictionary.CreateBuilder<string, string>();
-                properties.Add(StartKey, textChange.Span.Start.ToString());
-                properties.Add(LengthKey, textChange.Span.Length.ToString());
-                properties.Add(NewTextKey, textChange.NewText!);
-                properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(new(StartKey, textChange.Span.Start.ToString()));
+                properties.Add(new(LengthKey, textChange.Span.Length.ToString()));
+                properties.Add(new(NewTextKey, textChange.NewText!));
+                properties.Add(new(DescriptionKey, embeddedItem.FullDescription));
+                properties.Add(new(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");
-                context.AddItem(CompletionItem.Create(
+                context.AddItem(CompletionItem.CreateInternal(
                     displayText: embeddedItem.DisplayText,
                     inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
-                    rules: s_rules));
+                    rules: embeddedItem.IsDefault
+                        ? s_rules.WithMatchPriority(MatchPriority.Preselect)
+                        : s_rules,
+                    isComplexTextEdit: context.CompletionListSpan != textChange.Span));
             }
 
             context.IsExclusive = true;
         }
 
-        private void ProvideStandardFormats(EmbeddedCompletionContext context)
+        private static void ProvideStandardFormats(EmbeddedCompletionContext context)
         {
             context.AddStandard("d", FeaturesResources.short_date, FeaturesResources.short_date_description);
             context.AddStandard("D", FeaturesResources.long_date, FeaturesResources.long_date_description);
             context.AddStandard("f", FeaturesResources.full_short_date_time, FeaturesResources.full_short_date_time_description);
             context.AddStandard("F", FeaturesResources.full_long_date_time, FeaturesResources.full_long_date_time_description);
             context.AddStandard("g", FeaturesResources.general_short_date_time, FeaturesResources.general_short_date_time_description);
-            context.AddStandard("G", FeaturesResources.general_long_date_time, FeaturesResources.general_long_date_time_description);
+            context.AddStandard("G", FeaturesResources.general_long_date_time, FeaturesResources.general_long_date_time_description, isDefault: true); // This is what DateTime.ToString() uses
             context.AddStandard("M", FeaturesResources.month_day, FeaturesResources.month_day_description);
             context.AddStandard("O", FeaturesResources.round_trip_date_time, FeaturesResources.round_trip_date_time_description);
             context.AddStandard("R", FeaturesResources.rfc1123_date_time, FeaturesResources.rfc1123_date_time_description);
@@ -132,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             context.AddStandard("Y", FeaturesResources.year_month, FeaturesResources.year_month_description);
         }
 
-        private void ProvideCustomFormats(EmbeddedCompletionContext context)
+        private static void ProvideCustomFormats(EmbeddedCompletionContext context)
         {
             context.AddCustom("d", FeaturesResources.day_of_the_month_1_2_digits, FeaturesResources.day_of_the_month_1_2_digits_description);
             context.AddCustom("dd", FeaturesResources.day_of_the_month_2_digits, FeaturesResources.day_of_the_month_2_digits_description);
@@ -196,9 +215,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             // These values have always been added by us.
-            var startString = item.Properties[StartKey];
-            var lengthString = item.Properties[LengthKey];
-            var newText = item.Properties[NewTextKey];
+            var startString = item.GetProperty(StartKey);
+            var lengthString = item.GetProperty(LengthKey);
+            var newText = item.GetProperty(NewTextKey);
+
+            Contract.ThrowIfNull(startString);
+            Contract.ThrowIfNull(lengthString);
+            Contract.ThrowIfNull(newText);
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText)));
@@ -206,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(DescriptionKey, out var description))
+            if (!item.TryGetProperty(DescriptionKey, out var description))
                 return SpecializedTasks.Null<CompletionDescription>();
 
             return Task.FromResult((CompletionDescription?)CompletionDescription.Create(

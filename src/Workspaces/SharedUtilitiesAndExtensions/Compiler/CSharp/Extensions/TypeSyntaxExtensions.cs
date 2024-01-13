@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class TypeSyntaxExtensions
     {
         public static bool IsVoid(this TypeSyntax typeSyntax)
-            => typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) &&
+            => typeSyntax is PredefinedTypeSyntax predefinedType &&
                predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword);
 
         public static bool IsPartial(this TypeSyntax typeSyntax)

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class DocumentationProviderService : IDocumentationProviderService
         {
             private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap =
-                new ConcurrentDictionary<string, DocumentationProvider>();
+                new();
 
             public DocumentationProvider GetDocumentationProvider(string assemblyPath)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
                 assemblyPath = Path.ChangeExtension(assemblyPath, "xml");
                 if (!_assemblyPathToDocumentationProviderMap.TryGetValue(assemblyPath, out var provider))
                 {
-                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, _path => XmlDocumentationProvider.CreateFromFile(_path));
+                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, XmlDocumentationProvider.CreateFromFile);
                 }
 
                 return provider;

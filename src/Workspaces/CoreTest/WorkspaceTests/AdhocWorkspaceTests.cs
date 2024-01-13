@@ -2,27 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using System;
 using CS = Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public partial class AdhocWorkspaceTests : TestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_ProjectInfo()
         {
             var info = ProjectInfo.Create(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(info.Language, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_NameAndLanguage()
         {
             using var ws = new AdhocWorkspace();
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(LanguageNames.CSharp, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddDocument_DocumentInfo()
         {
             using var ws = new AdhocWorkspace();
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(info.Name, doc.Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestAddDocument_NameAndTextAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(source, (await doc.GetTextAsync()).ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddSolution_SolutionInfo()
         {
             using var ws = new AdhocWorkspace();
@@ -103,7 +103,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(pinfo.Language, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProjects()
         {
             var id1 = ProjectId.CreateNewId();
@@ -143,7 +143,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(id1, project2.ProjectReferences.First().ProjectId);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -181,7 +181,7 @@ language: LanguageNames.CSharp);
             Assert.Equal("MyDoc.cs", doc.Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestRemoveProject_TryApplyChanges()
         {
             var pid = ProjectId.CreateNewId();
@@ -316,25 +316,6 @@ language: LanguageNames.CSharp);
         }
 
         [Fact]
-        public void TestGenerateUniqueName()
-        {
-            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
-            Assert.True(a.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(a.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(a.EndsWith("..txt", StringComparison.Ordinal));
-
-            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true);
-            Assert.True(b.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(b.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(b.EndsWith("..txt", StringComparison.Ordinal));
-
-            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true);
-            Assert.True(c.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
-            Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));
-        }
-
-        [Fact]
         public async Task TestUpdatedDocumentHasTextVersionAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -391,57 +372,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
-        {
-            var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
-            ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
-                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return ws;
-        }
-
-        [Fact]
-        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
-        {
-            var hostServices = MefHostServices.Create(TestHost.Assemblies);
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace(hostServices));
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
-        }
-
-        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
-        {
-            var pid = ProjectId.CreateNewId();
-            var text = SourceText.From("public class C { }");
-            var version = VersionStamp.Create();
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
-            var projInfo = ProjectInfo.Create(
-                pid,
-                version: VersionStamp.Default,
-                name: "TestProject",
-                assemblyName: "TestProject.dll",
-                language: LanguageNames.CSharp,
-                documents: new[] { docInfo });
-
-            ws.AddProject(projInfo);
-            var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-
-            // change document
-            var root = await doc.GetSyntaxRootAsync();
-            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
-            Assert.NotSame(root, newRoot);
-            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
-            Assert.NotSame(doc, newDoc);
-
-            var newDocText = await newDoc.GetTextAsync();
-            var sameText = await newDoc.GetTextAsync();
-            Assert.Same(newDocText, sameText);
-
-            var newDocTree = await newDoc.GetSyntaxTreeAsync();
-            var treeText = newDocTree.GetText();
-            Assert.Same(newDocText, treeText);
-        }
-
-        [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         public async Task TestUpdateCSharpLanguageVersionAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -466,7 +397,7 @@ language: LanguageNames.CSharp);
             public WorkspaceWithPartialSemantics(Solution solution)
                 : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
             {
-                this.SetCurrentSolution(solution);
+                this.SetCurrentSolutionEx(solution);
             }
 
             protected internal override bool PartialSemanticsEnabled
@@ -478,7 +409,7 @@ language: LanguageNames.CSharp);
                 => base.OnParseOptionsChanged(id, options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentName_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -509,7 +440,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentFolders_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -544,7 +475,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentFilePath_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -576,7 +507,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentSourceCodeKind_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -607,7 +538,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentInfo_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -638,13 +569,31 @@ language: LanguageNames.CSharp);
             Assert.Equal(newPath, appliedDoc.FilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestDefaultDocumentTextDifferencingService()
         {
             using var ws = new AdhocWorkspace();
             var service = ws.Services.GetService<IDocumentTextDifferencingService>();
             Assert.NotNull(service);
             Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        public void TestNotGCRootedOnConstruction()
+        {
+            var composition = FeaturesTestCompositions.Features;
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+            var adhocWorkspaceReference = ObjectReference.CreateFromFactory(
+                static composition => new AdhocWorkspace(composition.GetHostServices()),
+                composition);
+
+            // Verify the GC can reclaim member for a workspace which has not been disposed.
+            adhocWorkspaceReference.AssertReleased();
+
+            // Keep the export provider alive longer than the workspace to further ensure that the workspace is not GC
+            // rooted within the export provider instance.
+            GC.KeepAlive(exportProvider);
         }
     }
 }

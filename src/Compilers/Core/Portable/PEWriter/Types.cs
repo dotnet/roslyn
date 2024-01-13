@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -127,7 +126,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// The definition of a type parameter of a generic type or method.
     /// </summary>
-    internal interface IGenericParameter : IGenericParameterReference
+    internal interface IGenericParameter : IDefinition, IGenericParameterReference
     {
         /// <summary>
         /// A list of classes or interfaces. All type arguments matching this parameter must be derived from all of the classes and implement all of the interfaces.
@@ -254,6 +253,9 @@ namespace Microsoft.Cci
         /// If true, the persisted type name is mangled by appending "`n" where n is the number of type parameters, if the number of type parameters is greater than 0.
         /// </summary>
         bool MangleName { get; }
+
+        /// <summary>Indicates that the type is scoped to the file it is declared in. Used as a prefix for the metadata name.</summary>
+        string? AssociatedFileIdentifier { get; }
     }
 
     /// <summary>
@@ -283,6 +285,11 @@ namespace Microsoft.Cci
         /// Containing namespace or null if this namespace is global.
         /// </summary>
         INamespace ContainingNamespace { get; }
+
+        /// <summary>
+        /// Returns underlying internal symbol object, if any.
+        /// </summary>
+        INamespaceSymbolInternal GetInternalSymbol();
     }
 
     /// <summary>
@@ -332,7 +339,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Models an explicit implementation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
-    internal struct MethodImplementation
+    internal readonly struct MethodImplementation
     {
         /// <summary>
         /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
@@ -387,6 +394,17 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// This interface models the metadata representation of a pointer to a function in unmanaged memory.
+    /// </summary>
+    internal interface IFunctionPointerTypeReference : ITypeReference
+    {
+        /// <summary>
+        /// The signature of the function located at the target memory address.
+        /// </summary>
+        ISignature Signature { get; }
+    }
+
+    /// <summary>
     /// A type ref with attributes attached directly to the type reference
     /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
     /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
@@ -399,7 +417,7 @@ namespace Microsoft.Cci
     // be unnecessary if we added a GetAttributes method onto IDefinition and
     // properly segregated attributes that are on type references and attributes
     // that are on underlying type definitions.
-    internal struct TypeReferenceWithAttributes
+    internal readonly struct TypeReferenceWithAttributes
     {
         /// <summary>
         /// The type reference.
@@ -720,6 +738,11 @@ namespace Microsoft.Cci
         /// Not a primitive type.
         /// </summary>
         NotPrimitive,
+
+        /// <summary>
+        /// A pointer to a function in fixed or managed memory.
+        /// </summary>
+        FunctionPointer,
 
         /// <summary>
         /// Type is a dummy type.

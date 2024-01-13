@@ -8,9 +8,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
@@ -19,89 +19,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(ObjectCreationCompletionProvider))>
     <[Shared]>
     Partial Friend Class EnumCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
+        Inherits AbstractSymbolCompletionProvider(Of VisualBasicSyntaxContext)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetPreselectedSymbolsAsync(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Private Shared ReadOnly s_enumMemberCompletionItemRules As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-            If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
-            ' Don't run after dot because SymbolCompletionProvider will provide
-            ' members in situations like Dim x = DayOfWeek.$$
-            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
-            Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
-
-            If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
-            ' We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            Dim result = enumType.GetMembers().Where(
-                Function(m As ISymbol) As Boolean
-                    Return m.Kind = SymbolKind.Field AndAlso
-                        DirectCast(m, IFieldSymbol).IsConst AndAlso
-                        m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToImmutableArray()
-
-            Return Task.FromResult(result)
-        End Function
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Protected Overrides Function GetSymbolsAsync(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As CompletionOptions,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
 
-            If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
-                context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
+            Dim builder = ArrayBuilder(Of SymbolAndSelectionInfo).GetInstance()
+            Try
 
-            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
+                If syntaxContext.SyntaxTree.IsInNonUserCode(syntaxContext.Position, cancellationToken) Then
+                    Return SpecializedTasks.EmptyImmutableArray(Of SymbolAndSelectionInfo)()
+                End If
 
-            Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
-            Dim span = New TextSpan(position, 0)
-            Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
+                ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
+                ' Don't run after dot because SymbolCompletionProvider will provide
+                ' members in situations like Dim x = DayOfWeek.$$
+                If syntaxContext.TargetToken.IsKind(SyntaxKind.DotToken) Then
+                    Return SpecializedTasks.EmptyImmutableArray(Of SymbolAndSelectionInfo)()
+                End If
 
-            If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
+                Dim typeInferenceService = syntaxContext.GetLanguageService(Of ITypeInferenceService)()
+                Dim enumType = typeInferenceService.InferType(syntaxContext.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
+                If enumType.TypeKind <> TypeKind.Enum Then
+                    Return SpecializedTasks.EmptyImmutableArray(Of SymbolAndSelectionInfo)()
+                End If
 
-            Dim otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(
-                Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
-                    s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
+                builder.Add(New SymbolAndSelectionInfo(enumType, Preselect:=False))
 
-            Dim otherInstances = otherSymbols.WhereAsArray(Function(s) Equals(enumType, GetTypeFromSymbol(s)))
+                For Each member In enumType.GetMembers()
+                    If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
+                        builder.Add(New SymbolAndSelectionInfo(member, Preselect:=True))
+                    End If
+                Next
 
-            Return Task.FromResult(otherInstances.Concat(enumType))
+                Return Task.FromResult(builder.ToImmutable())
+
+            Finally
+                builder.Free()
+            End Try
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
                 (characterPosition > 1 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
                 SyntaxFacts.IsIdentifierStartCharacter(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
+                options.TriggerOnTypingLetters
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
-        Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
+        Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
                              If(TryCast(symbol, ILocalSymbol)?.Type,
                              If(TryCast(symbol, IParameterSymbol)?.Type,
@@ -110,12 +96,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
+        Private ReadOnly _gate As New Object()
         Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
-        Private _cachedDisplayAndInsertionTextContext As SyntaxContext
+        Private _cachedDisplayAndInsertionTextContext As VisualBasicSyntaxContext
         Private _cachedDisplayAndInsertionTextContainingTypeText As String
 
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
-            If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+            If symbol.Kind <> SymbolKind.Field Then
+                Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
+            End If
+
+            ' Completion service allows concurrent calls
+            SyncLock _gate
                 If Not Equals(_cachedDisplayAndInsertionTextContainingType, symbol.ContainingType) OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
                     Dim displayService = context.GetLanguageService(Of ISymbolDisplayService)()
@@ -124,46 +116,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     _cachedDisplayAndInsertionTextContext = context
                 End If
 
-                Dim text As String = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
+                Dim text = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
                 Return (text, "", text)
-            End If
-
-            Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
+            End SyncLock
         End Function
 
-        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
-        End Function
+        Protected Overrides Function CreateItem(
+                completionContext As CompletionContext,
+                displayText As String,
+                displayTextSuffix As String,
+                insertionText As String,
+                symbols As ImmutableArray(Of SymbolAndSelectionInfo),
+                context As VisualBasicSyntaxContext,
+                supportedPlatformData As SupportedPlatformData) As CompletionItem
 
-        Protected Overrides Function CreateItem(completionContext As CompletionContext,
-                displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim rules = GetCompletionItemRules(symbols)
-            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+            Dim preselect = symbols.Any(Function(t) t.Preselect)
+            Dim rules = If(preselect, s_enumMemberCompletionItemRules, CompletionItemRules.Default)
 
-            Return SymbolCompletionItem.CreateWithSymbolId(
+            Dim item = SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
+                filterText:=displayText,
+                symbols:=symbols.SelectAsArray(Function(t) t.Symbol),
                 contextPosition:=context.Position,
                 sortText:=insertionText,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=rules)
-        End Function
 
-        Private Shared ReadOnly s_rules As CompletionItemRules =
-            CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
+            ' Use member name (w/o enum type name) as additional filter text, which would
+            ' promote this item during matching when user types member name only, Like "Red"
+            ' instead of "Colors.Empty"
+            If symbols(0).Symbol.Kind = SymbolKind.Field Then
+                item = item.AddTag(WellKnownTags.TargetTypeMatch).WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
+            End If
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
-            Return s_rules
-        End Function
-
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            Dim insertionText As String = SymbolCompletionItem.GetInsertionText(selectedItem)
-            Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
+            Return item
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -188,10 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-                if (codeElement == null)
-                {
-                    codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Parameters.Item(element));
-                }
+                codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Parameters.Item(element));
 
                 if (codeElement == null)
                 {

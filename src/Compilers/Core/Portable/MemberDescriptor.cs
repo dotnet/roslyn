@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -48,12 +46,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// </summary>
         public readonly short DeclaringTypeId;
 
-        public string? DeclaringTypeMetadataName
+        public string DeclaringTypeMetadataName
         {
             get
             {
                 return DeclaringTypeId <= (int)SpecialType.Count
-                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()
+                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()!
                            : ((WellKnownType)DeclaringTypeId).GetMetadataName();
             }
         }

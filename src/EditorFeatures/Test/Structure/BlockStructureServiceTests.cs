@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -15,9 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class BlockStructureServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestSimpleLambda()
         {
             var code =
@@ -41,7 +44,7 @@ class C
             Assert.Equal(4, spans.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestParenthesizedLambda()
         {
             var code =
@@ -65,7 +68,7 @@ class C
             Assert.Equal(4, spans.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousDelegate()
         {
             var code =
@@ -95,8 +98,9 @@ class C
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var outliningService = document.GetLanguageService<BlockStructureService>();
+            var options = BlockStructureOptions.Default;
 
-            var structure = await outliningService.GetBlockStructureAsync(document, CancellationToken.None);
+            var structure = await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None);
             return structure.Spans;
         }
     }

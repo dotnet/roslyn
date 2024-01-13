@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -577,6 +575,13 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
+            {
+                _builder.Append("System.Object");
+
+                return true;
+            }
+
             public override bool VisitArrayType(IArrayTypeSymbol symbol)
             {
                 this.Visit(symbol.ElementType);
@@ -953,9 +958,9 @@ namespace Microsoft.CodeAnalysis
                     var methodContext = typeParameterContext as IMethodSymbol;
                     var typeContext = methodContext != null ? methodContext.ContainingType : typeParameterContext as INamedTypeSymbol;
 
-                    if (typeContext != null)
+                    if (typeContext != null && GetNthTypeParameter(typeContext, typeParameterIndex) is { } typeParameter)
                     {
-                        results.Add(GetNthTypeParameter(typeContext, typeParameterIndex));
+                        results.Add(typeParameter);
                     }
                 }
             }
@@ -1214,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                                     ITypeSymbol? returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
-                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
+                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, SymbolEqualityComparer.CLRSignature))
                                     {
                                         // return type matches
                                         results.Add(methodSymbol);
@@ -1357,10 +1362,10 @@ namespace Microsoft.CodeAnalysis
 
                 var parameterType = parameterInfo.Type;
 
-                return parameterType != null && symbol.Type.Equals(parameterType);
+                return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
-            private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
+            private static ITypeParameterSymbol? GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
                 var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
@@ -1369,7 +1374,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var index = n - containingTypeParameterCount;
-                return typeSymbol.TypeParameters[index];
+                var typeParameters = typeSymbol.TypeParameters;
+                if (index < typeParameters.Length)
+                {
+                    return typeParameters[index];
+                }
+
+                return null;
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -1383,7 +1394,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct ParameterInfo
+            private readonly struct ParameterInfo
             {
                 internal readonly ITypeSymbol Type;
                 internal readonly bool IsRefOrOut;

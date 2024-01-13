@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,10 +16,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ProjectExtensions
     {
         public static TLanguageService? GetLanguageService<TLanguageService>(this Project? project) where TLanguageService : class, ILanguageService
+#if CODE_STYLE
             => project?.GetExtendedLanguageServices().GetService<TLanguageService>();
+#else
+            => project?.Services.GetService<TLanguageService>();
+#endif
 
         public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Project project) where TLanguageService : class, ILanguageService
+#if CODE_STYLE
             => project.GetExtendedLanguageServices().GetRequiredService<TLanguageService>();
+#else
+            => project.Services.GetRequiredService<TLanguageService>();
+#endif
 
 #pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
         /// <summary>
@@ -30,14 +36,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static HostLanguageServices GetExtendedLanguageServices(this Project project)
             => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
 #pragma warning restore RS0030 // Do not used banned APIs
-
-        public static async Task<VersionStamp> GetVersionAsync(this Project project, CancellationToken cancellationToken)
-        {
-            var version = project.Version;
-            var latestVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            return version.GetNewerVersion(latestVersion);
-        }
 
         public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
             => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);
@@ -102,20 +100,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Debug.Assert(PathUtilities.IsAbsolute(analyzerConfigPath));
 
             return project.AnalyzerConfigDocuments.FirstOrDefault(d => d.FilePath == analyzerConfigPath);
-        }
-
-        public static AnalyzerConfigDocument? GetOrCreateAnalyzerConfigDocument(this Project project, string analyzerConfigPath)
-        {
-            var existingAnalyzerConfigDocument = project.TryGetExistingAnalyzerConfigDocumentAtPath(analyzerConfigPath);
-            if (existingAnalyzerConfigDocument != null)
-            {
-                return existingAnalyzerConfigDocument;
-            }
-
-            var id = DocumentId.CreateNewId(project.Id);
-            var documentInfo = DocumentInfo.Create(id, ".editorconfig", filePath: analyzerConfigPath);
-            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
-            return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 
         public static async Task<Compilation> GetRequiredCompilationAsync(this Project project, CancellationToken cancellationToken)

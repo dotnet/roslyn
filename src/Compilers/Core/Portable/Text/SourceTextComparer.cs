@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             return Hash.Combine(obj.Length,
                 Hash.Combine(contentsHash,
-                Hash.Combine(encodingHash, obj.ChecksumAlgorithm.GetHashCode())));
+                Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
         }
     }
 }

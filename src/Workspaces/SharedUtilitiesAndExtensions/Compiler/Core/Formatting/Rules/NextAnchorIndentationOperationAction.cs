@@ -4,46 +4,31 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    internal readonly struct NextAnchorIndentationOperationAction
+    [NonDefaultable]
+    internal readonly struct NextAnchorIndentationOperationAction(
+        ImmutableArray<AbstractFormattingRule> formattingRules,
+        int index,
+        SyntaxNode node,
+        List<AnchorIndentationOperation> list)
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxNode _node;
-        private readonly AnalyzerConfigOptions _options;
-        private readonly List<AnchorIndentationOperation> _list;
-
-        public NextAnchorIndentationOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxNode node,
-            AnalyzerConfigOptions options,
-            List<AnchorIndentationOperation> list)
-        {
-            _formattingRules = formattingRules;
-            _index = index;
-            _node = node;
-            _options = options;
-            _list = list;
-        }
-
         private NextAnchorIndentationOperationAction NextAction
-            => new NextAnchorIndentationOperationAction(_formattingRules, _index + 1, _node, _options, _list);
+            => new(formattingRules, index + 1, node, list);
 
         public void Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
+            if (index >= formattingRules.Length)
             {
                 return;
             }
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddAnchorIndentationOperations(_list, _node, _options, NextAction);
+                formattingRules[index].AddAnchorIndentationOperations(list, node, NextAction);
                 return;
             }
         }

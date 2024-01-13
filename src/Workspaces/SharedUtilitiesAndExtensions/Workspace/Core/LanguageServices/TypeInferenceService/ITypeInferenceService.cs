@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     /// <summary>
     /// Helper service for telling you what type can be inferred to be viable in a particular
@@ -31,21 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
     }
 
-    internal struct TypeInferenceInfo
+    internal readonly record struct TypeInferenceInfo(ITypeSymbol InferredType, bool IsParams)
     {
-        public TypeInferenceInfo(ITypeSymbol type)
+        public TypeInferenceInfo(ITypeSymbol type) : this(type, IsParams: false)
         {
-            InferredType = type;
-            IsParams = false;
         }
-
-        public TypeInferenceInfo(ITypeSymbol type, bool isParams)
-        {
-            InferredType = type;
-            IsParams = isParams;
-        }
-
-        public ITypeSymbol InferredType { get; }
-        public bool IsParams { get; }
     }
 }

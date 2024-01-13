@@ -294,8 +294,6 @@ Friend Class RedNodeFactoryWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
-
-
         ' For tokens, generate factory method that doesn't take trivia
         If nodeStructure.IsToken Then
             ' 5. Generate the Function line
@@ -344,7 +342,7 @@ Friend Class RedNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -465,7 +463,7 @@ Friend Class RedNodeFactoryWriter
             _writer.WriteLine()
             _writer.WriteLine("                Case Else")
             _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-            _writer.WriteLine("             End Select")
+            _writer.WriteLine("            End Select")
 
         ElseIf childNodeKinds IsNot Nothing Then
             If nodeKind Is Nothing AndAlso child.KindForNodeKind IsNot Nothing AndAlso child.KindForNodeKind.Count > 1 Then
@@ -503,7 +501,7 @@ Friend Class RedNodeFactoryWriter
 
                 _writer.WriteLine("                Case Else")
                 _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-                _writer.WriteLine("             End Select")
+                _writer.WriteLine("            End Select")
 
             End If
         End If
@@ -523,14 +521,14 @@ Friend Class RedNodeFactoryWriter
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             If child.IsOptional Then
-                _writer.WriteLine(":")
+                _writer.WriteLine(" :")
                 _writer.Write("                Case SyntaxKind.None")
             End If
 
             _writer.WriteLine()
             _writer.WriteLine("                Case Else")
             _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-            _writer.WriteLine("             End Select")
+            _writer.WriteLine("            End Select")
 
         ElseIf childNodeKinds IsNot Nothing Then
 
@@ -556,14 +554,14 @@ Friend Class RedNodeFactoryWriter
                 For Each childNodeKind In childNodeKinds
 
                     If needsComma Then
-                        _writer.WriteLine(":")
+                        _writer.WriteLine(" :")
                     End If
                     _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
                     needsComma = True
                 Next
 
                 If child.IsOptional Then
-                    _writer.WriteLine(":")
+                    _writer.WriteLine(" :")
                     _writer.WriteLine("                Case SyntaxKind.None")
                 End If
 
@@ -571,7 +569,7 @@ Friend Class RedNodeFactoryWriter
 
                 _writer.WriteLine("                Case Else")
                 _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-                _writer.WriteLine("             End Select")
+                _writer.WriteLine("            End Select")
 
             End If
         End If
@@ -597,26 +595,6 @@ Friend Class RedNodeFactoryWriter
         End If
 
         Return True
-    End Function
-
-    Private Function CheckIfOptional(child As ParseNodeChild, nodeKind As ParseNodeKind) As Boolean
-        If child.IsOptional Then
-            Return True
-        End If
-
-        Dim childKind = child.ChildKind
-        If TryCast(childKind, ParseNodeKind) IsNot Nothing Then
-            Return KindTypeStructure(childKind).HasDefaultFactory
-        End If
-
-        If nodeKind IsNot Nothing Then
-            childKind = child.ChildKind(nodeKind.Name)
-            If childKind IsNot Nothing Then
-                Return KindTypeStructure(childKind).HasDefaultFactory
-            End If
-        End If
-
-        Return False
     End Function
 
     Private Function GetAllFactoryChildrenWithoutAutoCreatableTokens(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As List(Of ParseNodeChild)
@@ -690,7 +668,7 @@ Friend Class RedNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -848,28 +826,4 @@ Friend Class RedNodeFactoryWriter
             _writer.Write("Optional {0} As {1} = Nothing", ChildParamName(child, conflictName), type)
         End If
     End Sub
-
-    ' Given a node structure, return the default trailing trivia for that node structure as 
-    ' one of the strings "Nothing", "SingleSpaceTrivia", "NewlineTrivia".
-    Private Function GetDefaultTrailingTrivia(nodeStructure As ParseNodeStructure) As String
-        ' Go through parent chain, looking for non-empty value of trailing trivia.
-        While nodeStructure IsNot Nothing
-            If nodeStructure.DefaultTrailingTrivia <> "" Then
-                Select Case nodeStructure.DefaultTrailingTrivia
-                    Case "none"
-                        Return "Nothing"
-                    Case "space"
-                        Return "SingleSpaceTrivia"
-                    Case "newline"
-                        Return "NewlineTrivia"
-                    Case Else
-                        _parseTree.ReportError(nodeStructure.Element, "ERROR: Invalid value for default-trailing-trivia; must be 'none', 'space', or 'newline'")
-                End Select
-            End If
-
-            nodeStructure = nodeStructure.ParentStructure
-        End While
-
-        Return "Nothing"
-    End Function
 End Class

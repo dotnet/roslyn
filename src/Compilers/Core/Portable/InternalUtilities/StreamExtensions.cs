@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -37,7 +35,7 @@ namespace Roslyn.Utilities
             Debug.Assert(count > 0);
 
             int totalBytesRead;
-            int bytesRead = 0;
+            int bytesRead;
             for (totalBytesRead = 0; totalBytesRead < count; totalBytesRead += bytesRead)
             {
                 // Note: Don't attempt to save state in-between calls to .Read as it would

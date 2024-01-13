@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -9,13 +11,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class AnonymousTypeRemover : SymbolVisitor<ITypeSymbol>
+        private class AnonymousTypeRemover(Compilation compilation) : SymbolVisitor<ITypeSymbol>
         {
-            private readonly Compilation _compilation;
-
-            public AnonymousTypeRemover(Compilation compilation)
-                => _compilation = compilation;
-
             public override ITypeSymbol DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
@@ -30,22 +27,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): function pointers could theoretically
+                // have a parameter of an anonymous type if you have a generic function that returns function
+                // pointers, and that was called with an anonymous type.
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsNormalAnonymousType() ||
-                    symbol.IsAnonymousDelegateType())
-                {
-                    return _compilation.ObjectType;
-                }
+                if (symbol.IsAnonymousType())
+                    return compilation.ObjectType;
 
                 var arguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
                 if (arguments.SequenceEqual(symbol.TypeArguments))
-                {
                     return symbol;
-                }
 
                 return symbol.ConstructedFrom.Construct(arguments.ToArray());
             }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreatePointerTypeSymbol(elementType);
+                return compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)

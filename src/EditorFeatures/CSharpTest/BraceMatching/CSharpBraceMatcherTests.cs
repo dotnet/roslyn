@@ -12,12 +12,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
 {
+    [Trait(Traits.Feature, Traits.Features.BraceMatching)]
     public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     {
-        protected override TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
-            => TestWorkspace.CreateCSharp(code, options);
+        protected override EditorTestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
+            => EditorTestWorkspace.CreateCSharp(code, options);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestEmptyFile()
         {
             var code = @"$$";
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAtFirstPositionInFile()
         {
             var code = @"$$public class C { }";
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAtLastPositionInFile()
         {
             var code = @"public class C { }$$";
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestCurlyBrace1()
         {
             var code = @"public class C $${ }";
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestCurlyBrace2()
         {
             var code = @"public class C {$$ }";
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestCurlyBrace3()
         {
             var code = @"public class C { $$}";
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestCurlyBrace4()
         {
             var code = @"public class C { }$$";
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen1()
         {
             var code = @"public class C { void Goo$$() { } }";
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen2()
         {
             var code = @"public class C { void Goo($$) { } }";
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen3()
         {
             var code = @"public class C { void Goo($$ ) { } }";
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen4()
         {
             var code = @"public class C { void Goo( $$) { } }";
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen5()
         {
             var code = @"public class C { void Goo( )$$ { } }";
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestParen6()
         {
             var code = @"public class C { void Goo()$$ { } }";
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket1()
         {
             var code = @"public class C { int$$[] i; }";
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket2()
         {
             var code = @"public class C { int[$$] i; }";
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket3()
         {
             var code = @"public class C { int[$$ ] i; }";
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket4()
         {
             var code = @"public class C { int[ $$] i; }";
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket5()
         {
             var code = @"public class C { int[ ]$$ i; }";
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestSquareBracket6()
         {
             var code = @"public class C { int[]$$ i; }";
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAngleBracket1()
         {
             var code = @"public class C { Goo$$<int> f; }";
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAngleBracket2()
         {
             var code = @"public class C { Goo<$$int> f; }";
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAngleBracket3()
         {
             var code = @"public class C { Goo<int$$> f; }";
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestAngleBracket4()
         {
             var code = @"public class C { Goo<int>$$ f; }";
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket1()
         {
             var code = @"public class C { Func$$<Func<int,int>> f; }";
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket2()
         {
             var code = @"public class C { Func<$$Func<int,int>> f; }";
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket3()
         {
             var code = @"public class C { Func<Func$$<int,int>> f; }";
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket4()
         {
             var code = @"public class C { Func<Func<$$int,int>> f; }";
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket5()
         {
             var code = @"public class C { Func<Func<int,int$$>> f; }";
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket6()
         {
             var code = @"public class C { Func<Func<int,int>$$> f; }";
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket7()
         {
             var code = @"public class C { Func<Func<int,int> $$> f; }";
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestNestedAngleBracket8()
         {
             var code = @"public class C { Func<Func<int,int>>$$ f; }";
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestString1()
         {
             var code = @"public class C { string s = $$""Goo""; }";
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestString2()
         {
             var code = @"public class C { string s = ""$$Goo""; }";
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestString3()
         {
             var code = @"public class C { string s = ""Goo$$""; }";
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestString4()
         {
             var code = @"public class C { string s = ""Goo""$$; }";
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestString5()
         {
             var code = @"public class C { string s = ""Goo$$ ";
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestVerbatimString1()
         {
             var code = @"public class C { string s = $$@""Goo""; }";
@@ -350,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestVerbatimString2()
         {
             var code = @"public class C { string s = @$$""Goo""; }";
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestVerbatimString3()
         {
             var code = @"public class C { string s = @""$$Goo""; }";
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestVerbatimString4()
         {
             var code = @"public class C { string s = @""Goo$$""; }";
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestVerbatimString5()
         {
             var code = @"public class C { string s = @""Goo""$$; }";
@@ -386,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString1()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""$${x}, {y}""; }";
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString2()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{$$x}, {y}""; }";
@@ -404,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString3()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x$$}, {y}""; }";
@@ -413,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString4()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}$$, {y}""; }";
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString5()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, $${y}""; }";
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString6()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {$$y}""; }";
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString7()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y$$}""; }";
@@ -449,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString8()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}$$""; }";
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString9()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$""{x}, {y}""; }";
@@ -467,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString10()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$""{x}, {y}""; }";
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString11()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$@""{x}, {y}""; }";
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString12()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$@""{x}, {y}""; }";
@@ -494,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task TestInterpolatedString13()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@$$""{x}, {y}""; }";
@@ -503,253 +504,390 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
+        public async Task TestUtf8String1()
+        {
+            var code = @"public class C { string s = $$""Goo""u8; }";
+            var expected = @"public class C { string s = ""Goo[|""u8|]; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestUtf8String2()
+        {
+            var code = @"public class C { string s = ""$$Goo""u8; }";
+            var expected = @"public class C { string s = ""Goo[|""u8|]; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestUtf8String3()
+        {
+            var code = @"public class C { string s = ""Goo$$""u8; }";
+            var expected = @"public class C { string s = [|""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestUtf8String4()
+        {
+            var code = @"public class C { string s = ""Goo""$$u8; }";
+            var expected = @"public class C { string s = [|""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestUtf8String5()
+        {
+            var code = @"public class C { string s = ""Goo""u$$8; }";
+            var expected = @"public class C { string s = [|""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestUtf8String6()
+        {
+            var code = @"public class C { string s = ""Goo""u8$$; }";
+            var expected = @"public class C { string s = [|""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String1()
+        {
+            var code = @"public class C { string s = $$@""Goo""u8; }";
+            var expected = @"public class C { string s = @""Goo[|""u8|]; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String2()
+        {
+            var code = @"public class C { string s = @$$""Goo""u8; }";
+            var expected = @"public class C { string s = @""Goo[|""u8|]; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String3()
+        {
+            var code = @"public class C { string s = @""$$Goo""u8; }";
+            var expected = @"public class C { string s = @""Goo[|""u8|]; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String4()
+        {
+            var code = @"public class C { string s = @""Goo$$""u8; }";
+            var expected = @"public class C { string s = [|@""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String5()
+        {
+            var code = @"public class C { string s = @""Goo""$$u8; }";
+            var expected = @"public class C { string s = [|@""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String6()
+        {
+            var code = @"public class C { string s = @""Goo""u$$8; }";
+            var expected = @"public class C { string s = [|@""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestVerbatimUtf8String7()
+        {
+            var code = @"public class C { string s = @""Goo""u8$$; }";
+            var expected = @"public class C { string s = [|@""|]Goo""u8; }";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestConditionalDirectiveWithSingleMatchingDirective()
         {
-            var code = @"
-public class C 
-{
-#if$$ CHK 
-#endif
-}";
-            var expected = @"
-public class C 
-{
-#if$$ CHK 
-[|#endif|]
-}";
+            var code = """
+                public class C 
+                {
+                #if$$ CHK 
+                #endif
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #if$$ CHK 
+                [|#endif|]
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
         {
-            var code = @"
-public class C 
-{
-#if$$ CHK 
-#else
-#endif
-}";
-            var expected = @"
-public class C 
-{
-#if$$ CHK 
-[|#else|]
-#endif
-}";
+            var code = """
+                public class C 
+                {
+                #if$$ CHK 
+                #else
+                #endif
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #if$$ CHK 
+                [|#else|]
+                #endif
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestConditionalDirectiveWithAllMatchingDirectives()
         {
-            var code = @"
-public class C 
-{
-#if CHK 
-#elif RET
-#else
-#endif$$
-}";
-            var expected = @"
-public class C 
-{
-[|#if|] CHK 
-#elif RET
-#else
-#endif
-}";
+            var code = """
+                public class C 
+                {
+                #if CHK 
+                #elif RET
+                #else
+                #endif$$
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                [|#if|] CHK 
+                #elif RET
+                #else
+                #endif
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestRegionDirective()
         {
-            var code = @"
-public class C 
-{
-$$#region test
-#endregion
-}";
-            var expected = @"
-public class C 
-{
-#region test
-[|#endregion|]
-}";
+            var code = """
+                public class C 
+                {
+                $$#region test
+                #endregion
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #region test
+                [|#endregion|]
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestInterleavedDirectivesInner()
         {
-            var code = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-$$#region test
-    var x = 5;
-#endregion
-#else
-    var y = 6;
-#endif
-    }
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-#region test
-    var x = 5;
-[|#endregion|]
-#else
-    var y = 6;
-#endif
-    }
-}";
+            var code = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                $$#region test
+                    var x = 5;
+                #endregion
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                #region test
+                    var x = 5;
+                [|#endregion|]
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestInterleavedDirectivesOuter()
         {
-            var code = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if$$ CHK
-#region test
-    var x = 5;
-#endregion
-#else
-    var y = 6;
-#endif
-    }
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-#region test
-    var x = 5;
-#endregion
-[|#else|]
-    var y = 6;
-#endif
-    }
-}";
+            var code = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if$$ CHK
+                #region test
+                    var x = 5;
+                #endregion
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                #region test
+                    var x = 5;
+                #endregion
+                [|#else|]
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestUnmatchedDirective1()
         {
-            var code = @"
-public class C 
-{
-$$#region test
-}";
-            var expected = @"
-public class C 
-{
-#region test
-}";
+            var code = """
+                public class C 
+                {
+                $$#region test
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #region test
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact]
         public async Task TestUnmatchedDirective2()
         {
-            var code = @"
-#d$$efine CHK
-public class C 
-{
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-}";
+            var code = """
+                #d$$efine CHK
+                public class C 
+                {
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
+        [WpfFact]
         public async Task TestUnmatchedConditionalDirective()
         {
-            var code = @"
-class Program
-{
-    static void Main(string[] args)
-    {#if$$
+            var code = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#if$$
 
-    }
-}";
-            var expected = @"
-class Program
-{
-    static void Main(string[] args)
-    {#if
+                    }
+                }
+                """;
+            var expected = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#if
 
-    }
-}";
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
+        [WpfFact]
         public async Task TestUnmatchedConditionalDirective2()
         {
-            var code = @"
-class Program
-{
-    static void Main(string[] args)
-    {#else$$
+            var code = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#else$$
 
-    }
-}";
-            var expected = @"
-class Program
-{
-    static void Main(string[] args)
-    {#else
+                    }
+                }
+                """;
+            var expected = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#else
 
-    }
-}";
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task StartTupleDeclaration()
         {
             var code = @"public class C { $$(int, int, int, int, int, int, int, int) x; }";
@@ -758,7 +896,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task EndTupleDeclaration()
         {
             var code = @"public class C { (int, int, int, int, int, int, int, int)$$ x; }";
@@ -767,7 +905,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task StartTupleLiteral()
         {
             var code = @"public class C { var x = $$(1, 2, 3, 4, 5, 6, 7, 8); }";
@@ -776,7 +914,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task EndTupleLiteral()
         {
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8)$$; }";
@@ -785,7 +923,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task StartNestedTupleLiteral()
         {
             var code = @"public class C { var x = $$((1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
@@ -794,7 +932,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task StartInnerNestedTupleLiteral()
         {
             var code = @"public class C { var x = ($$(1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
@@ -803,7 +941,7 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task EndNestedTupleLiteral()
         {
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, (8, 8, 8))$$; }";
@@ -812,11 +950,20 @@ class Program
             await TestAsync(code, expected, TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        [Fact]
         public async Task EndInnerNestedTupleLiteral()
         {
             var code = @"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
+
+            await TestAsync(code, expected, TestOptions.Regular);
+        }
+
+        [Fact]
+        public async Task TestFunctionPointer()
+        {
+            var code = @"public unsafe class C { delegate*<$$int, int> functionPointer; }";
+            var expected = @"public unsafe class C { delegate*<int, int[|>|] functionPointer; }";
 
             await TestAsync(code, expected, TestOptions.Regular);
         }

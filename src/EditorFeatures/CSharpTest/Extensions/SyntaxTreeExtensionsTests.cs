@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -32,12 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
         [Fact]
         public void SimpleInactive()
         {
-            var code = @"#if false
-This is inactive
-#else
-// This is active
-#endif
-";
+            var code = """
+                #if false
+                This is inactive
+                #else
+                // This is active
+                #endif
+                """;
             var tree = CSharpSyntaxTree.ParseText(code);
             VerifyWholeLineIsActive(tree, 0);
             VerifyWholeLineIsInactive(tree, 1);
@@ -49,9 +52,10 @@ This is inactive
         [Fact]
         public void InactiveEof()
         {
-            var code = @"#if false
-This is inactive
-";
+            var code = """
+                #if false
+                This is inactive
+                """;
             var tree = CSharpSyntaxTree.ParseText(code);
             VerifyWholeLineIsActive(tree, 0);
             VerifyWholeLineIsInactive(tree, 1);
@@ -60,11 +64,12 @@ This is inactive
         [Fact]
         public void InactiveEof2()
         {
-            var code = @"#if false
-This is inactive
-#endif
-// This is active
-";
+            var code = """
+                #if false
+                This is inactive
+                #endif
+                // This is active
+                """;
 
             var tree = CSharpSyntaxTree.ParseText(code);
             VerifyWholeLineIsActive(tree, 0);

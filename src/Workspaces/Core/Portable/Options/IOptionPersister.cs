@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface IOptionPersister
     {
-        bool TryFetch(OptionKey optionKey, out object? value);
-        bool TryPersist(OptionKey optionKey, object? value);
+        bool TryFetch(OptionKey2 optionKey, out object? value);
+        bool TryPersist(OptionKey2 optionKey, object? value);
     }
 }

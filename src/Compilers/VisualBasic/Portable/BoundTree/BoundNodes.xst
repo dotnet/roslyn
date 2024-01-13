@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="define-parse-tree">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="definitions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:choice maxOccurs="unbounded">
+                <xs:element maxOccurs="unbounded" name="node-structure">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:choice maxOccurs="unbounded">
+                        <xs:element name="description" type="xs:string" />
+                        <xs:element maxOccurs="unbounded" name="lm-equiv">
+                          <xs:complexType>
+                            <xs:simpleContent>
+                              <xs:extension base="xs:string">
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                              </xs:extension>
+                            </xs:simpleContent>
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" name="native-equiv">
+                          <xs:complexType>
+                            <xs:simpleContent>
+                              <xs:extension base="xs:string">
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                              </xs:extension>
+                            </xs:simpleContent>
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" name="spec-section" type="xs:string" />
+                        <xs:element maxOccurs="unbounded" name="grammar" type="xs:string" />
+                        <xs:element maxOccurs="unbounded" name="node-kind">
+                          <xs:complexType mixed="true">
+                            <xs:sequence minOccurs="0">
+                              <xs:element minOccurs="0" name="description" type="xs:string" />
+                              <xs:element minOccurs="0" maxOccurs="unbounded" name="lm-equiv">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute name="name" type="xs:string" use="required" />
+                                    </xs:extension>
+                                  </xs:simpleContent>
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element minOccurs="0" maxOccurs="unbounded" name="native-equiv">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute name="name" type="xs:string" use="required" />
+                                    </xs:extension>
+                                  </xs:simpleContent>
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute name="name" type="xs:string" use="required" />
+                            <xs:attribute name="token-text" type="xs:string" use="optional" />
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" name="child">
+                          <xs:complexType mixed="true">
+                            <xs:sequence minOccurs="0">
+                              <xs:element name="description" type="xs:string" />
+                              <xs:element minOccurs="0" maxOccurs="unbounded" name="lm-equiv">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute name="name" type="xs:string" use="required" />
+                                    </xs:extension>
+                                  </xs:simpleContent>
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element minOccurs="0" maxOccurs="unbounded" name="native-equiv">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute name="name" type="xs:string" use="required" />
+                                    </xs:extension>
+                                  </xs:simpleContent>
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element minOccurs="0" maxOccurs="unbounded" name="kind">
+                                <xs:complexType>
+                                  <xs:attribute name="name" type="xs:string" use="required" />
+                                  <xs:attribute name="node-kind" type="xs:string" use="required" />
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute name="name" type="xs:string" use="required" />
+                            <xs:attribute name="kind" type="xs:string" use="optional" />
+                            <xs:attribute name="optional" type="xs:boolean" use="optional" />
+                            <xs:attribute name="list" type="xs:boolean" use="optional" />
+                            <xs:attribute name="separator-kind" type="xs:string" use="optional" />
+                            <xs:attribute name="separator-name" type="xs:string" use="optional" />
+                            <xs:attribute name="min-count" type="xs:unsignedByte" use="optional" />
+                            <xs:attribute name="order" type="xs:byte" use="optional" />
+                            <xs:attribute name="optional-elements" type="xs:boolean" use="optional" />
+                            <xs:attribute name="syntax-facts-internal" type="xs:boolean" use="optional" />
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element name="field">
+                          <xs:complexType>
+                            <xs:sequence minOccurs="0">
+                              <xs:element name="description" type="xs:string" />
+                              <xs:element minOccurs="0" name="lm-equiv">
+                                <xs:complexType>
+                                  <xs:attribute name="name" type="xs:string" use="required" />
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element minOccurs="0" name="native-equiv">
+                                <xs:complexType>
+                                  <xs:attribute name="name" type="xs:string" use="required" />
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute name="name" type="xs:string" use="required" />
+                            <xs:attribute name="type" type="xs:string" use="required" />
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:choice>
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="abstract" type="xs:boolean" use="optional" />
+                    <xs:attribute name="partial" type="xs:boolean" use="optional" />
+                    <xs:attribute name="predefined" type="xs:boolean" use="optional" />
+                    <xs:attribute name="root" type="xs:boolean" use="optional" />
+                    <xs:attribute name="parent" type="xs:string" use="optional" />
+                    <xs:attribute name="token-root" type="xs:boolean" use="optional" />
+                    <xs:attribute name="default-trailing-trivia" type="xs:string" use="optional" />
+                    <xs:attribute name="has-default-factory" type="xs:boolean" use="optional" />
+                    <xs:attribute name="no-factory" type="xs:boolean" use="optional" />
+                    <xs:attribute name="trivia-root" type="xs:boolean" use="optional" />
+                    <xs:attribute name="syntax-facts-internal" type="xs:boolean" use="optional" />
+                  </xs:complexType>
+                </xs:element>
+                <xs:element maxOccurs="unbounded" name="node-kind-alias">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="description" type="xs:string" />
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="alias" type="xs:string" use="required" />
+                  </xs:complexType>
+                </xs:element>
+                <xs:element name="enumeration">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="description" type="xs:string" />
+                      <xs:element minOccurs="0" name="lm-equiv">
+                        <xs:complexType>
+                          <xs:attribute name="name" type="xs:string" use="required" />
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element maxOccurs="unbounded" name="native-equiv">
+                        <xs:complexType>
+                          <xs:attribute name="name" type="xs:string" use="required" />
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="enumerators">
+                        <xs:complexType>
+                          <xs:sequence>
+                            <xs:element maxOccurs="unbounded" name="enumerator">
+                              <xs:complexType>
+                                <xs:sequence minOccurs="0">
+                                  <xs:element name="description" type="xs:string" />
+                                </xs:sequence>
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                  </xs:complexType>
+                </xs:element>
+              </xs:choice>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="namespace" type="xs:string" use="required" />
+      <xs:attribute name="visitor" type="xs:string" use="required" />
+      <xs:attribute name="rewrite-visitor" type="xs:string" use="required" />
+      <xs:attribute name="factory-class" type="xs:string" use="required" />
+      <xs:attribute name="contextual-factory-class" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

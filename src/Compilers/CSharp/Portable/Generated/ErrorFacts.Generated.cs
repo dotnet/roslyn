@@ -25,7 +25,7 @@
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SequentialOnPartialClass:
                 case ErrorCode.WRN_MainCantBeGeneric:
@@ -152,6 +152,7 @@
                 case ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation:
                 case ErrorCode.WRN_MainIgnored:
+                case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_InvalidVersionFormat:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
@@ -173,7 +174,7 @@
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
@@ -182,11 +183,13 @@
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_ManagedAddr:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                 case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
@@ -239,8 +242,101 @@
                 case ErrorCode.WRN_MemberNotNullWhen:
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_ConstOutOfRangeChecked:
                 case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                 case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                case ErrorCode.WRN_IsPatternAlways:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
+                case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_AnalyzerReferencesFramework:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
+                case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
+                case ErrorCode.WRN_ParamUnassigned:
+                case ErrorCode.WRN_UseDefViolationProperty:
+                case ErrorCode.WRN_UseDefViolationField:
+                case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationOut:
+                case ErrorCode.WRN_UseDefViolation:
+                case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                case ErrorCode.WRN_ParameterIsStaticClass:
+                case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_UnreadRecordParameter:
+                case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+                case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_LowerCaseTypeName:
+                case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.WRN_OverridingDifferentRefness:
+                case ErrorCode.WRN_HidingDifferentRefness:
+                case ErrorCode.WRN_TargetDifferentRefness:
+                case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return true;
                 default:
                     return false;
@@ -281,6 +377,7 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
+                case ErrorCode.HDN_DuplicateWithGlobalUsing:
                     return true;
                 default:
                     return false;

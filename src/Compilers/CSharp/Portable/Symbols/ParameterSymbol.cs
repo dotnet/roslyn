@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Null if no specific marshalling information is available for the parameter.
         /// </summary>
         /// <remarks>PE symbols don't provide this information and always return null.</remarks>
-        internal abstract MarshalPseudoCustomAttributeData MarshallingInformation { get; }
+        internal abstract MarshalPseudoCustomAttributeData? MarshallingInformation { get; }
 
         /// <summary>
         /// Returns the marshalling type of this parameter, or 0 if marshalling information isn't available.
@@ -129,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -155,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind;
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
-                        (refKind == RefKind.In) ||
+                        (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
                         (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
@@ -188,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// The default value can be obtained with <see cref="ExplicitDefaultValue"/> property.
         /// </remarks>
+        [MemberNotNullWhen(true, nameof(ExplicitDefaultConstantValue))]
         public bool HasExplicitDefaultValue
         {
             get
@@ -217,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         /// <exception cref="InvalidOperationException">The parameter has no default value.</exception>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public object ExplicitDefaultValue
+        public object? ExplicitDefaultValue
         {
             get
             {
@@ -241,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is used for emitting.  It does not reflect the language semantics
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
-        internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
+        internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -376,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -391,25 +388,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        /// <summary>
+        /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
+        /// </summary>
+        internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
 
-        public sealed override bool HasUnsupportedMetadata
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
+
+        /// <summary>
+        /// The effective scope. This is from the declared scope, implicit scope and any
+        /// <c>UnscopedRefAttribute</c>.
+        /// </summary>
+        internal abstract ScopedKind EffectiveScope { get; }
+
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
+
+        public override bool HasUnsupportedMetadata
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
@@ -417,5 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
+
+        #region IParameterSymbolInternal
+
+        ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+        RefKind IParameterSymbolInternal.RefKind => RefKind;
+
+        #endregion
     }
 }

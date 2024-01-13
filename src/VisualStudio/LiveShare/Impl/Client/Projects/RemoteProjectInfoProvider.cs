@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 {
@@ -48,30 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
             }
 
             return projectInfos;
-        }
-
-        public static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files)
-        {
-            var projectId = ProjectId.CreateNewId();
-            var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
-
-            foreach (string file in files)
-            {
-                var fileName = Path.GetFileNameWithoutExtension(file);
-                var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
-                    fileName,
-                    filePath: file,
-                    loader: new FileTextLoaderNoException(file, null));
-                docInfos.Add(docInfo);
-            }
-
-            return ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                projectName,
-                language,
-                documents: docInfos.ToImmutable());
         }
     }
 }

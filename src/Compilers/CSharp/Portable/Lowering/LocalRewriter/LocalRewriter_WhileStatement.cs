@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (!node.WasCompilerGenerated && this.Instrument)
             {
-                rewrittenCondition = _instrumenter.InstrumentWhileStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentWhileStatementCondition(node, rewrittenCondition, _factory);
             }
 
             return RewriteWhileStatement(
@@ -41,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteWhileStatement(
-            BoundLoopStatement loop,
+            BoundNode loop,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
+            Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
 
             // while (condition) 
             //   body;
@@ -74,11 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (loop.Kind)
                 {
                     case BoundKind.WhileStatement:
-                        ifConditionGotoStart = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak((BoundWhileStatement)loop, ifConditionGotoStart);
+                        ifConditionGotoStart = Instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak((BoundWhileStatement)loop, ifConditionGotoStart);
                         break;
 
                     case BoundKind.ForEachStatement:
-                        ifConditionGotoStart = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        ifConditionGotoStart = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    case BoundKind.CollectionExpressionSpreadElement:
+                        // No instrumentation needed since the loop for the spread expression
+                        // was generated in lowering, and not explicit in the source.
                         break;
 
                     default:
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Instrument && !loop.WasCompilerGenerated)
             {
-                ifNotConditionGotoBreak = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak(loop, ifNotConditionGotoBreak);
+                ifNotConditionGotoBreak = Instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak(loop, ifNotConditionGotoBreak);
                 continueLabelStatement = BoundSequencePoint.CreateHidden(continueLabelStatement);
             }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "(1) + ((2) + (3))",
                 csSimple: "1 + 2 + 3",
                 vb: "(1) + ((2) + (3))",
-                vbSimple: "1 + 2 + 3");
+                vbSimple: "1 + (2 + 3)");
         }
 
         [Fact]
@@ -222,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "(1) * ((2) * (3))",
                 csSimple: "1 * 2 * 3",
                 vb: "(1) * ((2) * (3))",
-                vbSimple: "1 * 2 * 3");
+                vbSimple: "1 * (2 * 3)");
         }
 
         [Fact]

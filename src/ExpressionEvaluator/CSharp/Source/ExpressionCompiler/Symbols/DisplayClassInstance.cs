@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
 using System.Diagnostics;
@@ -26,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static string GetDebuggerDisplay(string expr, ConsList<FieldSymbol> fields)
         {
-            return fields.Any() ?
-                $"{GetDebuggerDisplay(expr, fields.Tail)}.{fields.Head.Name}" :
-                expr;
+            return fields.Any()
+                ? $"{GetDebuggerDisplay(expr, fields.Tail)}.{fields.Head.Name}"
+                : expr;
         }
 
         protected abstract string GetInstanceName();
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
                 parameter.Name.Length == 0 || // unnamed
                 parameter.Name.Equals("value", StringComparison.Ordinal) || // display class instance passed to local function as parameter
-                GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
+                GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;
         }
 

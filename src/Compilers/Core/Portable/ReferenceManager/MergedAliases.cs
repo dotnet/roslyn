@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         public ArrayBuilder<string>? AliasesOpt;
         public ArrayBuilder<string>? RecursiveAliasesOpt;
+        public ArrayBuilder<MetadataReference>? MergedReferencesOpt;
 
         /// <summary>
         /// Adds aliases of a specified reference to the merged set of aliases.
@@ -61,6 +60,8 @@ namespace Microsoft.CodeAnalysis
             Merge(
                 aliases: aliases,
                 newAliases: reference.Properties.Aliases);
+
+            (MergedReferencesOpt ??= ArrayBuilder<MetadataReference>.GetInstance()).Add(reference);
         }
 
         internal static void Merge(ArrayBuilder<string> aliases, ImmutableArray<string> newAliases)

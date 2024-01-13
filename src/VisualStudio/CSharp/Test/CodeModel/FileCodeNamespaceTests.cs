@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using EnvDTE;
@@ -11,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeNamespaceTests : AbstractFileCodeElementTests
     {
         public FileCodeNamespaceTests()
@@ -49,8 +52,7 @@ namespace A.B
             return (CodeNamespace)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Children()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -58,8 +60,7 @@ namespace A.B
             Assert.Equal(3, testObject.Children.Count);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Members()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -67,8 +68,7 @@ namespace A.B
             Assert.Equal(3, testObject.Members.Count);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Parent()
         {
             var outer = GetCodeNamespace("Goo");
@@ -77,8 +77,7 @@ namespace A.B
             Assert.Equal(outer.Name, ((CodeNamespace)inner.Parent).Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Kind()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -86,8 +85,7 @@ namespace A.B
             Assert.Equal(vsCMElement.vsCMElementNamespace, testObject.Kind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Name()
         {
             var testObject = GetCodeNamespace(2);
@@ -95,8 +93,7 @@ namespace A.B
             Assert.Equal("Goo", testObject.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Name_Dotted()
         {
             var testObject = GetCodeNamespace(3);
@@ -104,24 +101,21 @@ namespace A.B
             Assert.Equal("A.B", testObject.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -132,40 +126,35 @@ namespace A.B
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -176,16 +165,14 @@ namespace A.B
             Assert.Equal(11, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -195,24 +182,21 @@ namespace A.B
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -223,40 +207,35 @@ namespace A.B
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -267,16 +246,14 @@ namespace A.B
             Assert.Equal(14, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeNamespace("A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -287,8 +264,7 @@ namespace A.B
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void StartPoint()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -299,8 +275,7 @@ namespace A.B
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void EndPoint()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -311,8 +286,7 @@ namespace A.B
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Language()
         {
             var testObject = GetCodeNamespace("A.B");

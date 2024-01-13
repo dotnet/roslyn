@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -14,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; }
+
+        private readonly ImmutableArray<DiagnosticData> _diagnostics;
 
         private DiagnosticsUpdatedArgs(
             object id,
@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdatedKind kind)
             : base(id, workspace, projectId, documentId)
         {
-            // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
-            // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
-
+            Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;
-            Diagnostics = diagnostics;
             Kind = kind;
+            _diagnostics = diagnostics;
         }
+
+        public ImmutableArray<DiagnosticData> Diagnostics => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

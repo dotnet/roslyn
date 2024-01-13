@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// This structure is meant to capture a snapshot of the <see cref="ControlFlowGraphBuilder"/> state
         /// that is needed to build graphs for lambdas and local functions.
         /// </summary>
-        internal struct Context
+        internal readonly struct Context
         {
-            public readonly IOperation ImplicitInstance;
-            public readonly INamedTypeSymbol AnonymousType;
+            public readonly IOperation? ImplicitInstance;
+            public readonly INamedTypeSymbol? AnonymousType;
             public readonly ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> AnonymousTypePropertyValues;
 
-            internal Context(IOperation implicitInstance, INamedTypeSymbol anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
+            internal Context(IOperation? implicitInstance, INamedTypeSymbol? anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
             {
                 Debug.Assert(!anonymousTypePropertyValues.IsDefault);
                 Debug.Assert(implicitInstance == null || anonymousType == null);

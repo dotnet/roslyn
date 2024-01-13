@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         // enable setting breakpoints on all accessors by setting a breakpoint on the property
         // declaration (same as C# behavior).
         private static readonly SymbolDisplayFormat s_vsDebugNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle:
                     SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 return members.Where(m => IsApplicable(m, parameterCount, cancellationToken)).
                     Select(CreateBreakpoint).ToImmutableArrayOrEmpty();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<BreakpointResolutionResult>.Empty;
             }
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         return FindMembers(containers, nameParts.ToArray());
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             // Recursively expand the list of containers to include all types in all nested containers, then filter down to a
             // set of candidate types by walking the up the enclosing containers matching by simple name.
-            var types = containers.SelectMany(c => GetTypeMembersRecursive(c)).Where(t => MatchesNames(t, names, _identifierComparer));
+            var types = containers.SelectMany(GetTypeMembersRecursive).Where(t => MatchesNames(t, names, _identifierComparer));
 
             var lastName = names.Last();
 
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             // You can only set a breakpoint on methods (including constructors/destructors) and properties.
             var kind = methodOrProperty.Kind;
-            if (!(kind == SymbolKind.Method || kind == SymbolKind.Property))
+            if (kind is not (SymbolKind.Method or SymbolKind.Property))
             {
                 return false;
             }
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             // Finally, check to make sure we have source, and if we've got a method symbol, make sure it
             // has a body to set a breakpoint on.
-            if ((methodOrProperty.Language == _language) && methodOrProperty.Locations.Any(location => location.IsInSource))
+            if ((methodOrProperty.Language == _language) && methodOrProperty.Locations.Any(static location => location.IsInSource))
             {
                 if (methodOrProperty.IsKind(SymbolKind.Method))
                 {
@@ -287,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Debugging
         private static IEnumerable<INamedTypeSymbol> GetTypeMembersRecursive(INamespaceOrTypeSymbol container)
             => container switch
             {
-                INamespaceSymbol namespaceSymbol => namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n)),
-                INamedTypeSymbol typeSymbol => typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol),
+                INamespaceSymbol namespaceSymbol => namespaceSymbol.GetMembers().SelectMany(GetTypeMembersRecursive),
+                INamedTypeSymbol typeSymbol => typeSymbol.GetTypeMembers().SelectMany(GetTypeMembersRecursive).Concat(typeSymbol),
                 _ => null,
             };
     }

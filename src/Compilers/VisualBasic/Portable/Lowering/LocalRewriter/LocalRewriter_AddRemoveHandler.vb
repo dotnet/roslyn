@@ -215,10 +215,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim [interface] = [event].ContainingType
 
                 For Each attrData In [interface].GetAttributes()
-                    If attrData.IsTargetAttribute([interface], AttributeDescription.ComEventInterfaceAttribute) AndAlso
-                        attrData.CommonConstructorArguments.Length = 2 Then
-                        expr = RewriteNoPiaAddRemoveHandler(node, receiver, [event], handler)
-                        Exit For
+                    Dim signatureIndex As Integer = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute)
+
+                    If signatureIndex = 0 Then
+                        Dim errorInfo As DiagnosticInfo = attrData.ErrorInfo
+                        If errorInfo IsNot Nothing Then
+                            _diagnostics.Add(errorInfo, node.EventAccess.Syntax.Location)
+                        End If
+
+                        If Not attrData.HasErrors Then
+                            expr = RewriteNoPiaAddRemoveHandler(node, receiver, [event], handler)
+                            Exit For
+                        End If
                     End If
                 Next
             End If
@@ -285,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' but the com event binder needs the event to exist on the local type. We'll poke the pia reference
             ' cache directly so that the event is embedded.
             If _emitModule IsNot Nothing Then
-                _emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event], node.Syntax, _diagnostics, isUsedForComAwareEventBinding:=True)
+                _emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event].GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding:=True)
             End If
 
             If result IsNot Nothing Then

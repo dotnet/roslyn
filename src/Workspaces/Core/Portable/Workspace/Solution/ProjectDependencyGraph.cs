@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
         // guards lazy computed data
-        private readonly NonReentrantLock _dataLock = new NonReentrantLock();
+        private readonly NonReentrantLock _dataLock = new();
 
         /// <summary>
         /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
@@ -58,10 +56,15 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
-        internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
+        /// <remarks>
+        ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
+        ///    shouldn't be calculated until reverse reference information is requested. Once this information
+        ///    has been calculated, forks of this PDG will calculate their new reverse references in a non-lazy fashion.
+        /// </remarks>
+        internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            reverseReferencesMap: null,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableArray<ProjectId>.Empty,
@@ -129,6 +132,17 @@ namespace Microsoft.CodeAnalysis
         internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (!_referencesMap.ContainsKey(projectId))
+            {
+                // This project doesn't have any references currently, so we delegate to WithAdditionalProjectReferences
+                return WithAdditionalProjectReferences(projectId, projectReferences);
+            }
+            else if (projectReferences.Count == 0)
+            {
+                // We are removing all project references; do so directly
+                return WithAllProjectReferencesRemoved(projectId);
+            }
 
             // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything.
             // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
@@ -198,13 +212,10 @@ namespace Microsoft.CodeAnalysis
         {
             var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
 
-            foreach (var kvp in _referencesMap)
+            foreach (var (projectId, references) in _referencesMap)
             {
-                var references = kvp.Value;
                 foreach (var referencedId in references)
-                {
-                    reverseReferencesMap.MultiAdd(referencedId, kvp.Key);
-                }
+                    reverseReferencesMap.MultiAdd(referencedId, projectId);
             }
 
             return reverseReferencesMap
@@ -386,7 +397,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
-        /// and there is no dependency between sets.
+        /// and there is no dependency between sets.  Each set returned will sorted in topological order.
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {
@@ -504,14 +515,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(ProjectDependencyGraph instance)
         {
-            private readonly ProjectDependencyGraph _instance;
-
-            public TestAccessor(ProjectDependencyGraph instance)
-                => _instance = instance;
 
             /// <summary>
             /// Gets the list of projects that directly or transitively depend on this project, if it has already been
@@ -524,9 +531,28 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentNullException(nameof(projectId));
                 }
 
-                _instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
+                instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
                 return projects;
             }
+        }
+
+        /// <summary>
+        /// Checks whether <paramref name="id"/> depends on <paramref name="potentialDependency"/>.
+        /// </summary>
+        internal bool DoesProjectTransitivelyDependOnProject(ProjectId id, ProjectId potentialDependency)
+        {
+            // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+            // If the information is not available, do not compute it.
+            var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+            if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+            {
+                return true;
+            }
+
+            // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same
+            // question as the previous check, but involves at most one transitive computation within the
+            // dependency graph when you are checking multiple projects against the same potentialDependency.
+            return GetProjectsThatTransitivelyDependOnThisProject(potentialDependency).Contains(id);
         }
     }
 }

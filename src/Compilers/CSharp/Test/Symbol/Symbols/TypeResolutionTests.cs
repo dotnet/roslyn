@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -46,7 +49,7 @@ namespace System
 
             var c1 = CSharpCompilation.Create("Test1",
                 syntaxTrees: new[] { Parse(source1) },
-                references: new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+                references: new[] { Net40.mscorlib });
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"));
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"));
@@ -63,7 +66,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c1),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c2TestClass = c2.GetTypeByMetadataName("System.TestClass");
@@ -73,7 +76,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c2),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c3TestClass = c3.GetTypeByMetadataName("System.TestClass");
@@ -87,7 +90,7 @@ namespace System
                 {
                     new CSharpCompilationReference(c1),
                     new CSharpCompilationReference(c2),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c4TestClass = c4.GetTypeByMetadataName("System.TestClass");
@@ -119,24 +122,24 @@ namespace System
                     MetadataReference.CreateFromImage(File.ReadAllBytes(typeof(TypeTests).GetTypeInfo().Assembly.Location))
                 });
 
-            var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);
+            var intSym = c.Assembly.GetTypeByReflectionType(typeof(int));
             Assert.NotNull(intSym);
             Assert.Equal(SpecialType.System_Int32, intSym.SpecialType);
 
-            var strcmpSym = c.Assembly.GetTypeByReflectionType(typeof(StringComparison), includeReferences: true);
+            var strcmpSym = c.Assembly.GetTypeByReflectionType(typeof(StringComparison));
             Assert.NotNull(strcmpSym);
             Assert.Equal("System.StringComparison", strcmpSym.ToDisplayString());
 
-            var arraySym = c.Assembly.GetTypeByReflectionType(typeof(List<int>[][,,]), includeReferences: true);
+            var arraySym = c.Assembly.GetTypeByReflectionType(typeof(List<int>[][,,]));
             Assert.NotNull(arraySym);
             Assert.Equal("System.Collections.Generic.List<int>[][*,*,*]", arraySym.ToDisplayString());
 
-            var ptrSym = c.Assembly.GetTypeByReflectionType(typeof(char).MakePointerType().MakePointerType(), includeReferences: true);
+            var ptrSym = c.Assembly.GetTypeByReflectionType(typeof(char).MakePointerType().MakePointerType());
             Assert.NotNull(ptrSym);
             Assert.Equal("char**", ptrSym.ToDisplayString());
 
             string testType1 = typeof(C<,>).DeclaringType.FullName;
-            var nestedSym1 = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, float>.F<byte>), includeReferences: true);
+            var nestedSym1 = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, float>.F<byte>));
             Assert.Equal(testType1 + ".C<int, bool>.D.E<double, float>.F<byte>", nestedSym1.ToDisplayString());
 
             // Not supported atm:
@@ -145,16 +148,16 @@ namespace System
             //Assert.Equal(testType2 + ".C<int, bool>.D.E<double, float>.F<byte>", nestedSym2.ToDisplayString());
 
             // Process is defined in System, which isn't referenced:
-            var err = c.Assembly.GetTypeByReflectionType(typeof(C<Process, bool>.D.E<double, float>.F<byte>), includeReferences: true);
+            var err = c.Assembly.GetTypeByReflectionType(typeof(C<Process, bool>.D.E<double, float>.F<byte>));
             Assert.Null(err);
 
-            err = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, Process>.F<byte>), includeReferences: true);
+            err = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, Process>.F<byte>));
             Assert.Null(err);
 
-            err = c.Assembly.GetTypeByReflectionType(typeof(Process[]), includeReferences: true);
+            err = c.Assembly.GetTypeByReflectionType(typeof(Process[]));
             Assert.Null(err);
 
-            err = c.Assembly.GetTypeByReflectionType(typeof(SyntaxKind).MakePointerType(), includeReferences: true);
+            err = c.Assembly.GetTypeByReflectionType(typeof(SyntaxKind).MakePointerType());
             Assert.Null(err);
         }
 

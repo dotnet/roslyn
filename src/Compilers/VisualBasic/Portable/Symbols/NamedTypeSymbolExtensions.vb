@@ -17,16 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsOrInGenericType(toCheck As NamedTypeSymbol) As Boolean
-            ' TODO: Should we do a quick check for [Not IsDefinition()]?
-
-            While toCheck IsNot Nothing
-                If toCheck.Arity > 0 Then
-                    Return True
-                End If
-
-                toCheck = toCheck.ContainingType
-            End While
-            Return False
+            Return If(toCheck?.IsGenericType, False)
         End Function
 
         <Extension()>
@@ -86,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function AsUnboundGenericType(this As NamedTypeSymbol) As NamedTypeSymbol
             Return UnboundGenericType.Create(this)
         End Function
-
 
         <Extension()>
         Friend Function HasVariance(this As NamedTypeSymbol) As Boolean

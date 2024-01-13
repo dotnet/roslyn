@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,30 +14,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeWithAnnotations _lazyReturnType;
-        private readonly bool _isExpressionBodied;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             DestructorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Identifier.GetLocation())
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics) :
+            base(containingType, syntax.GetReference(), GetSymbolLocation(syntax, out Location location), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                 MakeModifiersAndFlags(containingType, syntax, isNullableAnalysisEnabled, location, diagnostics, out bool modifierErrors))
         {
-            const MethodKind methodKind = MethodKind.Destructor;
-            Location location = this.Locations[0];
+            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
-            bool modifierErrors;
-            var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
+            bool hasBlockBody = syntax.Body != null;
+            bool isExpressionBodied = IsExpressionBodied;
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-
-            if (hasBlockBody || _isExpressionBodied)
+            if (hasBlockBody || isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && !hasBlockBody && !_isExpressionBodied && !IsExtern)
+            if (!modifierErrors && !hasBlockBody && !isExpressionBodied && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -52,18 +50,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location, this);
+                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location);
             }
             else if (!containingType.IsReferenceType)
             {
-                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location, this);
+                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location);
             }
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(NamedTypeSymbol containingType, DestructorDeclarationSyntax syntax, bool isNullableAnalysisEnabled, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+        {
+            DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax.Modifiers, location, diagnostics, out modifierErrors);
+            Flags flags = MakeFlags(
+                                    MethodKind.Destructor, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
+                                    isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false,
+                                    isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false, hasThisInitializer: false);
+
+            return (declarationModifiers, flags);
+        }
+
+        private static Location GetSymbolLocation(DestructorDeclarationSyntax syntax, out Location location)
+        {
+            location = syntax.Identifier.GetLocation();
+            return location;
+        }
+
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var bodyBinder = this.DeclaringCompilation.GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(syntax, syntax, this);
@@ -76,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (DestructorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        public override bool IsVararg
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
-            get { return false; }
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         internal override int ParameterCount
@@ -96,13 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
@@ -113,13 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxTokenList modifiers, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
-
-            this.CheckUnsafeModifier(mods, diagnostics);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 
@@ -129,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return WellKnownMemberNames.DestructorName; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -11,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal interface IAnalyzerNodeSetup
     {
-        void Initialize(IServiceProvider serviceProvider);
+        Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken);
         void Unregister();
     }
 }

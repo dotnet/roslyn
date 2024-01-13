@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class MoveTypeCodeAction : CodeAction
+        private sealed class MoveTypeCodeAction : CodeAction
         {
             private readonly State _state;
             private readonly TService _service;
@@ -45,21 +48,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public override string Title => _title;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var editor = Editor.GetEditor(_operationKind, _service, _state, _fileName, cancellationToken);
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
-
-            internal override bool PerformFinalApplicabilityCheck => true;
-
-            internal override bool IsApplicable(Workspace workspace)
-                => _operationKind switch
-                {
-                    MoveTypeOperationKind.RenameFile => workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project),
-                    MoveTypeOperationKind.MoveTypeNamespaceScope => _state.TypeNode.Parent is TNamespaceDeclarationSyntax,
-                    _ => true,
-                };
         }
     }
 }

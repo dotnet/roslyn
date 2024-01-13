@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -152,6 +154,7 @@ class C
                 debugEntryPoint: null,
                 sourceLinkStream: new MemoryStream(new byte[] { 1, 2, 3 }),
                 embeddedTexts: null,
+                rebuildData: null,
                 testData: new CompilationTestData()
                 {
                     SymWriterFactory = metadataProvider => new SymUnmanagedWriterWithoutSourceLinkSupport(metadataProvider)

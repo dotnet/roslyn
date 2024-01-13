@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,16 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // create a SemanticModel for:
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
         // (b) A parameter default value
-        private InitializerSemanticModel(CSharpSyntaxNode syntax,
+        internal InitializerSemanticModel(CSharpSyntaxNode syntax,
                                      Symbol symbol,
                                      Binder rootBinder,
-                                     SyntaxTreeSemanticModel containingSemanticModelOpt = null,
-                                     SyntaxTreeSemanticModel parentSemanticModelOpt = null,
-                                     ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null,
-                                     int speculatedPosition = 0) :
-            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, parentRemappedSymbolsOpt, speculatedPosition)
+                                     PublicSemanticModel containingPublicSemanticModel,
+                                     ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null) :
+            base(syntax, symbol, rootBinder, containingPublicSemanticModel, parentRemappedSymbolsOpt)
         {
-            Debug.Assert(!(syntax is ConstructorInitializerSyntax));
+            Debug.Assert(!(syntax is ConstructorInitializerSyntax || syntax is PrimaryConstructorBaseTypeSyntax));
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for a parameter default value.
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
+        internal static InitializerSemanticModel Create(PublicSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
             Debug.Assert(containingSemanticModel != null);
             return new InitializerSemanticModel(syntax, parameterSymbol, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
@@ -66,18 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a speculative SemanticModel for an initializer node (field initializer, constructor initializer, or parameter default value)
         /// that did not appear in the original source code.
         /// </summary>
-        internal static InitializerSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, CSharpSyntaxNode syntax, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
+        internal static SpeculativeSemanticModelWithMemberModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, EqualsValueClauseSyntax syntax, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
         {
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause));
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
-
-            return new InitializerSemanticModel(syntax, owner, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+            return new SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, owner, syntax, rootBinder, parentRemappedSymbolsOpt);
         }
 
-        internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             return IsBindableInitializer(node) ? node : base.GetBindableSyntaxNode(node);
         }
@@ -88,29 +82,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (rootSyntax.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
-                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer.Value;
+                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer;
                     break;
 
                 case SyntaxKind.Parameter:
-                    var paramDefault = ((ParameterSyntax)rootSyntax).Default;
-                    rootSyntax = (paramDefault == null) ? null : paramDefault.Value;
+                    rootSyntax = ((ParameterSyntax)rootSyntax).Default;
                     break;
 
                 case SyntaxKind.EqualsValueClause:
-                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax).Value;
+                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax);
                     break;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue.Value;
-                    break;
-
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.ArgumentList:
+                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue;
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
-                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer.Value;
+                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer;
                     break;
 
                 default:
@@ -120,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetUpperBoundNode(GetBindableSyntaxNode(rootSyntax));
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             EqualsValueClauseSyntax equalsValue = null;
 
@@ -155,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Bind(binder, node, diagnostics);
         }
 
-        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, DiagnosticBag diagnostics)
+        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, BindingDiagnosticBag diagnostics)
         {
             switch (this.MemberSymbol.Kind)
             {
@@ -207,17 +195,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.Root == node ||     /*enum or parameter initializer*/
                            this.Root == node.Parent /*field initializer*/;
 
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.ArgumentList:
-                    return this.Root == node;
-
                 default:
                     return false;
             }
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel)
         {
             var binder = this.GetEnclosingBinder(position);
             if (binder == null)
@@ -231,31 +214,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel)
+        {
+            speculativeModel = null;
+            return false;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
@@ -269,7 +258,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            // https://github.com/dotnet/roslyn/issues/46424
+            // Bind and analyze preceding field initializers in order to give an accurate initial nullable state.
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+        }
+
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        {
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
+        }
+
+#nullable enable
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            switch (MemberSymbol.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    Debug.Assert(MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol);
+                    return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type &&
+                        type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
+                case SymbolKind.Parameter:
+                    return SourceComplexParameterSymbolBase.GetDefaultValueSyntaxForIsNullableAnalysisEnabled(Root as ParameterSyntax) is { } value &&
+                        Compilation.IsNullableAnalysisEnabledIn(value);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(MemberSymbol.Kind);
+            }
         }
     }
 }

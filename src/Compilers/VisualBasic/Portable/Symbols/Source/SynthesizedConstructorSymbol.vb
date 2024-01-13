@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -30,14 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             isShared As Boolean,
             isDebuggable As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
             Me._debuggable = isDebuggable
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Dev11 emits DebuggerNonUserCodeAttribute. This attribute is not needed since we don't emit any debug info for the constructor.
         End Sub

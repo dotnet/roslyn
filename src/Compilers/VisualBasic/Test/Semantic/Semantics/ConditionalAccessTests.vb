@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -611,7 +612,6 @@ Null
 }
 ]]>)
 
-
             verifier.VerifyIL("Module1.Test8",
             <![CDATA[
 {
@@ -1202,7 +1202,8 @@ End Class
 
             ' VB seems to allow methods that return TypedReference, likely for compat reasons
             ' that is technically not verifiable, but it is not relevant to this test
-            Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails, expectedOutput:=
+            ' PEVerify: [ : C1::F][mdToken=0x6000003][offset 0x00000013] Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            Dim verifier = CompileAndVerify(compilation, verify:=Verification.FailsPEVerify, expectedOutput:=
             <![CDATA[
 hi
 ]]>)
@@ -1469,7 +1470,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net451XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -1827,7 +1828,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net451XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1879,7 +1880,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1910,7 +1911,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1941,7 +1942,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1977,7 +1978,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -2010,7 +2011,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -2047,7 +2048,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net40XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -2317,7 +2318,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -2376,7 +2377,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, Net451XmlReferences, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2655,7 +2656,7 @@ End Structure
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -2830,7 +2831,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -2962,7 +2963,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore}, TestOptions.ReleaseExe, TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -3081,7 +3082,7 @@ Test
 
             VerifyOperationTreeForTest(Of MethodBlockSyntax)(compilation, "a.vb", expectedOperationTree:="
 IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub Test5(O ... End Sub')
-  IWithOperation (OperationKind.None, Type: null) (Syntax: 'With x.F2 ... End With')
+  IWithStatementOperation (OperationKind.None, Type: null) (Syntax: 'With x.F2 ... End With')
     Value: 
       IFieldReferenceOperation: C1(Of T).F2 As T (OperationKind.FieldReference, Type: T) (Syntax: 'x.F2')
         Instance Receiver: 
@@ -3339,10 +3340,9 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef},
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore},
                                                                                          TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                                                                                          TestOptions.ReleaseExe.ParseOptions)
-
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -3983,7 +3983,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {SystemCoreRef},
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, {Net40.SystemCore},
                                                                                          TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                                                                                          TestOptions.ReleaseExe.ParseOptions)
 
@@ -4061,7 +4061,6 @@ C1
 ---------
 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub CodeGen_07()
@@ -5507,32 +5506,42 @@ End Module
 
 
 0
-1
+0
 hello
 hello")
 
             c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
-  .locals init (T V_0) //temp
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (T V_0, //temp
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "C(Of T).field As T"
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  box        "T"
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldnull
-  IL_0010:  br.s       IL_001f
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  constrained. "T"
-  IL_001a:  callvirt   "Function Object.ToString() As String"
-  IL_001f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0024:  ldloc.0
-  IL_0025:  box        "T"
-  IL_002a:  call       "Sub System.Console.WriteLine(Object)"
-  IL_002f:  ret
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function Object.ToString() As String"
+  IL_0038:  call       "Sub System.Console.WriteLine(String)"
+  IL_003d:  ldloc.0
+  IL_003e:  box        "T"
+  IL_0043:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0048:  ret
 }
 ]]>)
         End Sub
@@ -5939,30 +5948,23 @@ End Class
             verifier.VerifyIL("Module1.Test3",
             <![CDATA[
 {
-  // Code size       52 (0x34)
+  // Code size       39 (0x27)
   .maxstack  2
-  .locals init (Integer? V_0,
-                Integer? V_1)
+  .locals init (Integer? V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000e
-  IL_0003:  ldloca.s   V_1
+  IL_0003:  ldloca.s   V_0
   IL_0005:  initobj    "Integer?"
-  IL_000b:  ldloc.1
+  IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0014
   IL_000e:  ldarg.0
   IL_000f:  call       "Function C1.M2() As Integer?"
-  IL_0014:  dup
-  IL_0015:  stloc.0
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_001e:  brtrue.s   IL_0027
-  IL_0020:  ldc.i4     0x12d
-  IL_0025:  br.s       IL_002e
-  IL_0027:  ldloca.s   V_0
-  IL_0029:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_002e:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0033:  ret
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldc.i4     0x12d
+  IL_001c:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0021:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0026:  ret
 }
 ]]>)
         End Sub
@@ -10242,7 +10244,7 @@ End Class
                 System.ValueTuple(Of Integer, T) V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""Function C(Of T).get_Data() As (Integer, T)""
+  IL_0002:  call       ""Function C(Of T).get_Data() As System.ValueTuple(Of Integer, T)""
   IL_0007:  stloc.1
   IL_0008:  ldloca.s   V_1
   IL_000a:  ldflda     ""System.ValueTuple(Of Integer, T).Item2 As T""
@@ -10315,7 +10317,7 @@ End Class
                 System.ValueTuple(Of Integer, T) V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""Function C(Of T).get_Data() As (Integer, T)""
+  IL_0002:  call       ""Function C(Of T).get_Data() As System.ValueTuple(Of Integer, T)""
   IL_0007:  stloc.1
   IL_0008:  ldloca.s   V_1
   IL_000a:  ldflda     ""System.ValueTuple(Of Integer, T).Item2 As T""
@@ -10333,6 +10335,166 @@ End Class
   IL_002e:  ldloc.0
   IL_002f:  ret
 }")
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_01()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Structure S1
+    private count As Integer
+    Public Overrides Function ToString() As String
+        count+=1
+        Return count.ToString()
+    End Function
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim x1 As new S1?(new S1())
+        System.Console.Write(Test1(x1))
+        System.Console.Write(x1.ToString())
+        x1 = Nothing
+        System.Console.Write(Test1(x1) is Nothing)
+    End Sub
+
+    Shared Function Test1(Of T)(ByRef x As T) As String
+        return x?.ToString() 
+    End Function
+End Class
+    </file>
+</compilation>, expectedOutput:="11True").VerifyDiagnostics()
+
+            c.VerifyIL("Program.Test1(Of T)(ByRef T)",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0024
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0024
+  IL_0021:  pop
+  IL_0022:  ldnull
+  IL_0023:  ret
+  IL_0024:  constrained. "T"
+  IL_002a:  callvirt   "Function Object.ToString() As String"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_02()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Structure S1
+    private count As Integer
+    Public Overrides Function ToString() As String
+        count+=1
+        Return count.ToString()
+    End Function
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim x1 As new S1?(new S1())
+        System.Console.Write(Test1(x1))
+        System.Console.Write(x1.ToString())
+        x1 = Nothing
+        System.Console.Write(Test1(x1) is Nothing)
+    End Sub
+
+    Shared Function Test1(Of T)(ByRef x As T) As String
+        Dim y = x    
+        Dim result = y?.ToString() 
+        x = y
+        Return result
+    End Function
+End Class
+    </file>
+</compilation>, expectedOutput:="11True").VerifyDiagnostics()
+
+            c.VerifyIL("Program.Test1(Of T)(ByRef T)",
+            <![CDATA[
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T V_0, //y
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function Object.ToString() As String"
+  IL_0038:  ldarg.0
+  IL_0039:  ldloc.0
+  IL_003a:  stobj      "T"
+  IL_003f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_03()
+            Dim c = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Structure S1
+End Structure
+
+MustInherit Class C0(Of U)
+    MustOverride Function Test1(Of T As U)(ByRef x As T) As String
+End Class
+
+Class C1
+    Inherits C0(Of S1?)
+
+    Overrides Function Test1(Of T As S1?)(ByRef x As T) As String
+        Dim y = x    
+        Dim result = y?.ToString() 
+        x = y
+        Return result
+    End Function
+End Class
+    </file>
+</compilation>)
+
+            c.AssertTheseEmitDiagnostics(
+<expected> 
+BC30487: Operator '?' is not defined for type 'T'.
+        Dim result = y?.ToString() 
+                      ~
+</expected>)
         End Sub
 
     End Class

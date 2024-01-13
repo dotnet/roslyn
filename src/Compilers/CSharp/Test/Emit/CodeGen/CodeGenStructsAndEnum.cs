@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1550,17 +1552,19 @@ public class D
 
             var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
-            compilation.VerifyIL("Program.Main",
-@"
+            compilation.VerifyIL("Program.Main", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       30 (0x1e)
   .maxstack  1
+  .locals init (S1 V_0)
   IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  ldflda     ""S1 C1.field""
-  IL_000a:  constrained. ""S1""
-  IL_0010:  callvirt   ""string object.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
 }
 ");
             compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
@@ -2284,7 +2288,7 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      112 (0x70)
+  // Code size      101 (0x65)
   .maxstack  2
   .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
@@ -2293,36 +2297,30 @@ public class Test
   IL_0007:  box        ""bool""
   IL_000c:  call       ""void Test.Eval(object, object)""
   IL_0011:  ldsfld     ""decimal decimal.One""
-  IL_0016:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_001b:  stloc.0
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0023:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""bool decimal?.HasValue.get""
-  IL_002f:  and
-  IL_0030:  box        ""bool""
-  IL_0035:  ldc.i4.0
-  IL_0036:  box        ""bool""
-  IL_003b:  call       ""void Test.Eval(object, object)""
-  IL_0040:  ldsfld     ""decimal decimal.Zero""
-  IL_0045:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_004a:  stloc.0
-  IL_004b:  ldloca.s   V_0
-  IL_004d:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0052:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0057:  ldloca.s   V_0
-  IL_0059:  call       ""bool decimal?.HasValue.get""
-  IL_005e:  and
-  IL_005f:  box        ""bool""
-  IL_0064:  ldc.i4.0
-  IL_0065:  box        ""bool""
-  IL_006a:  call       ""void Test.Eval(object, object)""
-  IL_006f:  ret
+  IL_0016:  ldsflda    ""decimal? NullableTest.NULL""
+  IL_001b:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0020:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0025:  box        ""bool""
+  IL_002a:  ldc.i4.0
+  IL_002b:  box        ""bool""
+  IL_0030:  call       ""void Test.Eval(object, object)""
+  IL_0035:  ldsfld     ""decimal decimal.Zero""
+  IL_003a:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_003f:  stloc.0
+  IL_0040:  ldloca.s   V_0
+  IL_0042:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0047:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_004c:  ldloca.s   V_0
+  IL_004e:  call       ""bool decimal?.HasValue.get""
+  IL_0053:  and
+  IL_0054:  box        ""bool""
+  IL_0059:  ldc.i4.0
+  IL_005a:  box        ""bool""
+  IL_005f:  call       ""void Test.Eval(object, object)""
+  IL_0064:  ret
 }
 ");
         }
-
 
         [Fact]
         public void FieldLoad001()
@@ -2363,7 +2361,6 @@ public class Test
     }
 
 ";
-
             var compilation = CompileAndVerify(source, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",

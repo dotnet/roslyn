@@ -7,24 +7,30 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
+    [Method(Methods.TextDocumentRangeFormattingName)]
+    internal sealed class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler()
+        public FormatDocumentRangeHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+
+        public override Task<TextEdit[]?> HandleRequestAsync(
+            DocumentRangeFormattingParams request,
+            RequestContext context,
             CancellationToken cancellationToken)
-        {
-            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken, range: request.Range).ConfigureAwait(false);
-        }
+            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken, range: request.Range);
     }
 }

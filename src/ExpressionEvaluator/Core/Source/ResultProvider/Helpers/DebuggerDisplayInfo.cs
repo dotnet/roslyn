@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly DebuggerDisplayItemInfo m_value;
         private readonly DebuggerDisplayItemInfo m_simpleValue;
 
-        private bool m_hasFavoritesInfo = false;
+        private readonly bool m_hasFavoritesInfo = false;
 
         public readonly DebuggerDisplayItemInfo Name;
         public readonly DebuggerDisplayItemInfo TypeName;

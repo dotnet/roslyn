@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -19,13 +20,13 @@ namespace Roslyn.Utilities
     /// the member to at least be able to descend into the same member.  We could apply the same sort
     /// of logic here.
     /// </summary>
-    internal class SyntaxPath
+    internal sealed record class SyntaxPath
     {
         // A path is made up of 'segments' that lead from root all the way down to the node. The
         // segment contains the index of the node in its parent, as well as the kind of the node.
         // The latter is not strictly necessary.  However, it ensures that resolving the path against
         // a different tree will either return the same type of node as the original, or will fail.  
-        protected struct PathSegment
+        private readonly struct PathSegment
         {
             public int Ordinal { get; }
             public int Kind { get; }
@@ -38,7 +39,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly List<PathSegment> _segments = new List<PathSegment>();
+        private readonly List<PathSegment> _segments = new();
         private readonly int _kind;
         private readonly bool _trackKinds;
 
@@ -79,7 +80,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -87,7 +88,7 @@ namespace Roslyn.Utilities
         /// Attempts to recover the node at this path in the provided tree.  If the node is found
         /// then 'true' is returned, otherwise the result is 'false' and 'node' will be null.
         /// </summary>
-        public bool TryResolve(SyntaxNode root, out SyntaxNodeOrToken nodeOrToken)
+        public bool TryResolve(SyntaxNode? root, out SyntaxNodeOrToken nodeOrToken)
         {
             nodeOrToken = default;
 
@@ -132,20 +133,20 @@ namespace Roslyn.Utilities
             return default;
         }
 
-        public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, out TNode node)
+        public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, [NotNullWhen(true)] out TNode? node)
             where TNode : SyntaxNode
         {
             return TryResolve(syntaxTree.GetRoot(cancellationToken), out node);
         }
 
-        public bool TryResolve<TNode>(SyntaxNode root, out TNode node)
+        public bool TryResolve<TNode>(SyntaxNode? root, [NotNullWhen(true)] out TNode? node)
             where TNode : SyntaxNode
         {
             if (TryResolve(root, out var nodeOrToken) &&
                 nodeOrToken.IsNode &&
-                nodeOrToken.AsNode() is TNode)
+                nodeOrToken.AsNode() is TNode n)
             {
-                node = nodeOrToken.AsNode() as TNode;
+                node = n;
                 return true;
             }
 
@@ -153,24 +154,7 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public static bool operator ==(SyntaxPath left, SyntaxPath right)
-            => object.Equals(left, right);
-
-        public static bool operator !=(SyntaxPath left, SyntaxPath right)
-            => !object.Equals(left, right);
-
-        public override bool Equals(object obj)
-        {
-            var path = obj as SyntaxPath;
-            if (path == null)
-            {
-                return false;
-            }
-
-            return Equals(path);
-        }
-
-        public bool Equals(SyntaxPath other)
+        public bool Equals(SyntaxPath? other)
         {
             if (other == null)
             {
@@ -185,7 +169,7 @@ namespace Roslyn.Utilities
             return
                 _trackKinds == other._trackKinds &&
                 _kind == other._kind &&
-                _segments.SequenceEqual(other._segments, (x, y) => x.Equals(y));
+                _segments.SequenceEqual(other._segments, static (x, y) => x.Equals(y));
         }
 
         public override int GetHashCode()
@@ -195,11 +179,8 @@ namespace Roslyn.Utilities
         {
             var hash = 1;
 
-            for (var i = 0; i < _segments.Count; i++)
-            {
-                var segment = _segments[i];
+            foreach (var segment in _segments)
                 hash = Hash.Combine(Hash.Combine(segment.Kind, segment.Ordinal), hash);
-            }
 
             return hash;
         }

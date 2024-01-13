@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -23,28 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal SyntaxTrivia(ObjectReader reader)
-            : base(reader)
-        {
-            this.Text = reader.ReadString();
-            this.FullWidth = this.Text.Length;
-        }
-
-        static SyntaxTrivia()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxTrivia), r => new SyntaxTrivia(r));
-        }
-
         public override bool IsTrivia => true;
-
-        internal override bool ShouldReuseInSerialization => this.Kind == SyntaxKind.WhitespaceTrivia &&
-                                                             FullWidth < Lexer.MaxCachedTokenSize;
-
-        internal override void WriteTo(ObjectWriter writer)
-        {
-            base.WriteTo(writer);
-            writer.WriteString(this.Text);
-        }
 
         internal static SyntaxTrivia Create(SyntaxKind kind, string text)
         {
@@ -63,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal override GreenNode GetSlot(int index)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override int Width
@@ -132,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

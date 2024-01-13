@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     {
         public static string Escape(this string text, char escapePrefix, params char[] prohibitedCharacters)
         {
-            StringBuilder builder = null;
+            StringBuilder? builder = null;
 
             var startIndex = 0;
             while (startIndex < text.Length)
@@ -25,18 +25,13 @@ namespace Roslyn.Utilities
 
                 if (index < 0)
                 {
-                    if (builder != null)
-                    {
-                        // append remaining text
-                        builder.Append(text, startIndex, text.Length - startIndex);
-                    }
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
+
                     break;
                 }
 
-                if (builder == null)
-                {
-                    builder = new StringBuilder();
-                }
+                builder ??= new StringBuilder();
 
                 if (index > startIndex)
                 {
@@ -65,7 +60,7 @@ namespace Roslyn.Utilities
 
         public static string Unescape(this string text, char escapePrefix)
         {
-            StringBuilder builder = null;
+            StringBuilder? builder = null;
             var startIndex = 0;
 
             while (startIndex < text.Length)
@@ -73,18 +68,13 @@ namespace Roslyn.Utilities
                 var index = text.IndexOf(escapePrefix, startIndex);
                 if (index < 0)
                 {
-                    if (builder != null)
-                    {
-                        // append remaining text
-                        builder.Append(text, startIndex, text.Length - startIndex);
-                    }
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
+
                     break;
                 }
 
-                if (builder == null)
-                {
-                    builder = new StringBuilder();
-                }
+                builder ??= new StringBuilder();
 
                 // add everything up to the escape prefix
                 builder.Append(text, startIndex, index - startIndex);
@@ -126,24 +116,22 @@ namespace Roslyn.Utilities
 
         private static bool IsHexDigit(char ch)
         {
-            return (ch >= '0' && ch <= '9')
-                || (ch >= 'A' && ch <= 'F')
-                || (ch >= 'a' && ch <= 'f');
+            return ch is >= '0' and <= '9' or >= 'A' and <= 'F' or >= 'a' and <= 'f';
         }
 
         private static int GetHexValue(char ch)
         {
-            if (ch >= '0' && ch <= '9')
+            if (ch is >= '0' and <= '9')
             {
-                return (int)ch - (int)'0';
+                return ch - '0';
             }
-            else if (ch >= 'A' && ch <= 'F')
+            else if (ch is >= 'A' and <= 'F')
             {
-                return ((int)ch - (int)'A') + 10;
+                return (ch - 'A') + 10;
             }
-            else if (ch >= 'a' && ch <= 'f')
+            else if (ch is >= 'a' and <= 'f')
             {
-                return ((int)ch - (int)'a') + 10;
+                return (ch - 'a') + 10;
             }
             else
             {

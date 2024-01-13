@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -29,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         ArgumentSyntax,
         CommonForEachStatementSyntax,
         ThrowStatementSyntax,
+        InvocationExpressionSyntax,
         Conversion>
     {
         /// <summary>
@@ -57,37 +62,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
         }
 
+        protected override CodeAnalysis.LanguageService.ISyntaxFacts SyntaxFactsService { get; } = CSharpSyntaxFacts.Instance;
+
+        protected override bool CanAccessInstanceMemberThrough(ExpressionSyntax expression)
+            => expression.Kind() is SyntaxKind.ThisExpression or SyntaxKind.BaseExpression;
+
         protected override SyntaxNode GetSemanticRootForSpeculation(ExpressionSyntax expression)
         {
             Debug.Assert(expression != null);
 
             var parentNodeToSpeculate = expression
                 .AncestorsAndSelf(ascendOutOfTrivia: false)
-                .Where(node => CanSpeculateOnNode(node))
+                .Where(CanSpeculateOnNode)
                 .LastOrDefault();
 
             return parentNodeToSpeculate ?? expression;
         }
 
         public static bool CanSpeculateOnNode(SyntaxNode node)
-        {
-            return (node is StatementSyntax && node.Kind() != SyntaxKind.Block) ||
-                node is TypeSyntax ||
-                node is CrefSyntax ||
-                node.Kind() == SyntaxKind.Attribute ||
-                node.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                node.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                node.Kind() == SyntaxKind.EqualsValueClause ||
-                node.Kind() == SyntaxKind.ArrowExpressionClause;
-        }
+            => node is StatementSyntax(kind: not SyntaxKind.Block) or TypeSyntax or CrefSyntax ||
+               node.Kind() is SyntaxKind.Attribute or
+                              SyntaxKind.ThisConstructorInitializer or
+                              SyntaxKind.BaseConstructorInitializer or
+                              SyntaxKind.EqualsValueClause or
+                              SyntaxKind.ArrowExpressionClause;
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
         {
             Debug.Assert(speculativeSemanticModel != null ||
                 nodeToSpeculate is ExpressionSyntax ||
-                this.SemanticRootOfOriginalExpression.GetAncestors().Any(node => node.IsKind(SyntaxKind.UnknownAccessorDeclaration) ||
-                    node.IsKind(SyntaxKind.IncompleteMember) ||
-                    node.IsKind(SyntaxKind.BracketedArgumentList)),
+                this.SemanticRootOfOriginalExpression.GetAncestors().Any(
+                    node => node.Kind() is SyntaxKind.UnknownAccessorDeclaration or SyntaxKind.IncompleteMember or SyntaxKind.BracketedArgumentList),
                 "SemanticModel.TryGetSpeculativeSemanticModel() API returned false.");
         }
 
@@ -121,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (nodeToSpeculate is TypeSyntax typeNode)
             {
-                var bindingOption = isInNamespaceOrTypeContext ?
-                    SpeculativeBindingOption.BindAsTypeOrNamespace :
-                    SpeculativeBindingOption.BindAsExpression;
+                var bindingOption = isInNamespaceOrTypeContext
+                    ? SpeculativeBindingOption.BindAsTypeOrNamespace
+                    : SpeculativeBindingOption.BindAsExpression;
                 semanticModel.TryGetSpeculativeSemanticModel(position, typeNode, out speculativeModel, bindingOption);
                 return speculativeModel;
             }
@@ -236,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             var replacedIdentifierNodes = replacedLambdaBody.DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => paramNames.Contains(node.Identifier.ValueText));
-            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody, replacedLambdaBody);
+            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody);
         }
 
         private bool HaveSameParameterType(ParameterSyntax originalParam, ParameterSyntax replacedParam)
@@ -249,8 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementChangesSemanticsForNodes(
             IEnumerable<IdentifierNameSyntax> originalIdentifierNodes,
             IEnumerable<IdentifierNameSyntax> replacedIdentifierNodes,
-            SyntaxNode originalRoot,
-            SyntaxNode replacedRoot)
+            SyntaxNode originalRoot)
         {
             Debug.Assert(originalIdentifierNodes.Any());
             Debug.Assert(originalIdentifierNodes.Count() == replacedIdentifierNodes.Count());
@@ -275,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.ConstantPattern))
+            if (currentOriginalNode.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.ConstantPattern)
             {
                 var expression = (ExpressionSyntax)currentReplacedNode.ChildNodes().First();
                 if (expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
@@ -303,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // If replacing the node will result in a broken assignment expression, we won't remove it.
                 return ReplacementBreaksAssignmentExpression(assignment, (AssignmentExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode is SelectOrGroupClauseSyntax || currentOriginalNode is OrderingSyntax)
+            else if (currentOriginalNode is SelectOrGroupClauseSyntax or OrderingSyntax)
             {
                 return !SymbolsAreCompatible(currentOriginalNode, currentReplacedNode);
             }
@@ -337,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax originalExpression))
+            else if (currentOriginalNode is ConditionalExpressionSyntax originalExpression)
             {
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
@@ -363,6 +367,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalExpressionType = originalExpressionTypeInfo.Type;
                     var newExpressionType = newExpressionTypeInfo.Type;
+
+                    // A conditional expression may have no type of it's own, but can be converted to a type if there's target-typed
+                    // conditional expressions in play. For example:
+                    //
+                    //     int? x = conditional ? (int?)trueValue : null;
+                    //
+                    // Once you remove the cast, the conditional has no type itself, but is being converted to int? by a conditional
+                    // expression conversion.
+                    if (newExpressionType == null &&
+                        this.SpeculativeSemanticModel.GetConversion(newExpression, this.CancellationToken).IsConditionalExpression)
+                    {
+                        newExpressionType = newExpressionTypeInfo.ConvertedType;
+                    }
 
                     if (originalExpressionType == null || newExpressionType == null)
                     {
@@ -391,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, out CaseSwitchLabelSyntax originalCaseSwitchLabel))
+            else if (currentOriginalNode is CaseSwitchLabelSyntax originalCaseSwitchLabel)
             {
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
@@ -419,13 +436,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement) &&
+            else if (currentOriginalNode is SwitchStatementSyntax originalSwitchStatement &&
                      originalSwitchStatement.Expression == previousOriginalNode)
             {
                 // Switch statement's expression changed, verify that the conversions from switch case labels to new switch
                 // expression type are not broken.
 
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
+                var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
+
+                // it is never legal to use `default/null` in a switch statement's expression.
+                if (previousReplacedExpression.WalkDownParentheses().Kind() is SyntaxKind.NullLiteralExpression or SyntaxKind.DefaultLiteralExpression)
+                    return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                 var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
@@ -440,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchExpression, out SwitchExpressionSyntax originalSwitchExpression) &&
+            else if (currentOriginalNode is SwitchExpressionSyntax originalSwitchExpression &&
                      originalSwitchExpression.GoverningExpression == previousOriginalNode)
             {
                 var replacedSwitchExpression = (SwitchExpressionSyntax)currentReplacedNode;
@@ -454,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (!Equals(originalExprType.Type, replacedExprType.Type))
                     return true;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
+            else if (currentOriginalNode is IfStatementSyntax originalIfStatement)
             {
                 var newIfStatement = (IfStatementSyntax)currentReplacedNode;
 
@@ -477,13 +499,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.Interpolation)
-            {
-                return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
-            }
             else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
-                return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
+                return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator)
             {
@@ -542,21 +560,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool ExpressionMightReferenceMember(SyntaxNode node)
-        {
-            return node.IsKind(
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.ImplicitElementAccess,
-                SyntaxKind.ObjectCreationExpression);
-        }
+            => node.Kind() is
+                SyntaxKind.InvocationExpression or
+                SyntaxKind.ElementAccessExpression or
+                SyntaxKind.SimpleMemberAccessExpression or
+                SyntaxKind.ImplicitElementAccess or
+                SyntaxKind.ObjectCreationExpression;
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
         {
             var argumentsList = GetArgumentList(expression);
-            return argumentsList != null ?
-                argumentsList.Arguments.AsImmutableOrEmpty() :
-                default;
+            return argumentsList != null
+                ? argumentsList.Arguments.AsImmutableOrEmpty()
+                : default;
         }
 
         private static BaseArgumentListSyntax GetArgumentList(ExpressionSyntax expression)
@@ -568,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
         }
 
@@ -631,9 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private bool ReplacementBreaksBinaryExpression(BinaryExpressionSyntax binaryExpression, BinaryExpressionSyntax newBinaryExpression)
         {
-            if ((binaryExpression.IsKind(SyntaxKind.AsExpression) ||
-                 binaryExpression.IsKind(SyntaxKind.IsExpression)) &&
-                 ReplacementBreaksIsOrAsExpression(binaryExpression, newBinaryExpression))
+            if (binaryExpression.Kind() is SyntaxKind.AsExpression or SyntaxKind.IsExpression &&
+                ReplacementBreaksIsOrAsExpression(binaryExpression, newBinaryExpression))
             {
                 return true;
             }
@@ -651,15 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
         }
 
-        private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
-            => !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
-
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
         {
             // Special case: Lambda expressions and anonymous delegates cannot appear
             // on the left-side of an 'is' or 'as' cast. We can handle this case syntactically.
-            if (!originalIsOrAsExpression.Left.WalkDownParentheses().IsAnyLambdaOrAnonymousMethod() &&
-                newIsOrAsExpression.Left.WalkDownParentheses().IsAnyLambdaOrAnonymousMethod())
+            if (originalIsOrAsExpression.Left.WalkDownParentheses() is not AnonymousFunctionExpressionSyntax &&
+                newIsOrAsExpression.Left.WalkDownParentheses() is AnonymousFunctionExpressionSyntax)
             {
                 return true;
             }
@@ -704,8 +716,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
+        protected override bool ReplacementIntroducesDisallowedNullType(
+            ExpressionSyntax originalExpression,
+            ExpressionSyntax newExpression,
+            TypeInfo originalTypeInfo,
+            TypeInfo newTypeInfo)
+        {
+            // If the base check is fine with the nullability of types before/after, then we're good and there are no
+            // more checks we need to do.
+            if (!base.ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+                return false;
+
+            // If, however, the base check is not ok.  That means that the old expression had an initial type, but the
+            // new expression does not.  This may or may not be ok depending on the construct.  If it's a supported
+            // construct then we want to check the new constructs converted type against the old construct's original
+            // type to make sure those still match.  If so, this change is fine.
+            if (IsSupportedConstructWithNullType() &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+            {
+                return false;
+            }
+
+            return true;
+
+            bool IsSupportedConstructWithNullType()
+            {
+                // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
+                //
+                //      int? s = x ? 0 : null;
+                //
+                // In this case, the null type is allowed if we do have a conditional-expression-conversion *and* the
+                // converted type matches the original type.
+                if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                    ConditionalExpressionConversionsAreAllowed(newExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
+                // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
+                // check a language version since switch expressions always supported target-typed conversion.
+                if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression &&
+                    SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a collection expression to have a a 'null' direct type (as long as a
+                // target-typed collection-expression conversion happened).  Note: unlike above, we don't have to check
+                // a language version since collection expressions always supported collection-expression-conversions.
+                if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-            => ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
+        {
+            var originalConversion = originalModel.GetConversion(originalExpression);
+            var newConversion = newModel.GetConversion(newExpression);
+
+            if (originalExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                newExpression.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                if (newConversion.IsConditionalExpression)
+                {
+                    // If we went from a non-conditional-conversion to a conditional-conversion (i.e. by removing a
+                    // cast), then that is always an error before CSharp9, and should not be allowed.
+                    if (!originalConversion.IsConditionalExpression && !ConditionalExpressionConversionsAreAllowed(originalExpression))
+                        return false;
+
+                    // If the only change to the conversion here is the introduction of a conditional expression conversion,
+                    // that means types didn't really change in a meaningful way.
+                    if (originalConversion.IsIdentity)
+                        return true;
+                }
+            }
+
+            return ConversionsAreCompatible(originalConversion, newConversion);
+        }
+
+        private static bool ConditionalExpressionConversionsAreAllowed(ExpressionSyntax originalExpression)
+            => originalExpression.GetLanguageVersion() >= LanguageVersion.CSharp9;
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
@@ -761,10 +859,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             => compilation.ClassifyConversion(sourceType, targetType).IsReference;
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
-            model.ClassifyConversion(expression, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType)
+            => model.ClassifyConversion(expression, targetType);
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
+            => model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

@@ -3,23 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class BinaryConditionalExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New BinaryConditionalExpressionSignatureHelpProvider
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(BinaryConditionalExpressionSignatureHelpProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForIf() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -43,7 +38,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForIfAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C

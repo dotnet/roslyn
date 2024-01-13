@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class TypeBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterClassStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1",
@@ -17,7 +17,7 @@ End Class",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterModuleStatement()
             VerifyStatementEndConstructApplied(
                 before:="Module m1",
@@ -28,15 +28,15 @@ End Module",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedClass()
+        <WpfFact>
+        Public Sub DoNotApplyForMatchedClass()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 End Class",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterInterfaceStatement()
             VerifyStatementEndConstructApplied(
                 before:="Interface IGoo",
@@ -47,7 +47,7 @@ End Interface",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterStructureStatement()
             VerifyStatementEndConstructApplied(
                 before:="Structure Goo",
@@ -58,7 +58,7 @@ End Structure",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterEnumStatement()
             VerifyStatementEndConstructApplied(
                 before:="Enum Goo",
@@ -69,7 +69,7 @@ End Enum",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyGenericClass()
             VerifyStatementEndConstructApplied(
                 before:="NameSpace X
@@ -82,7 +82,7 @@ End Enum",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyStructInAClass()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -97,7 +97,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyClassInAModule()
             VerifyStatementEndConstructApplied(
                 before:="Module M
@@ -112,7 +112,7 @@ End Module",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyClassDeclaration()
             VerifyStatementEndConstructApplied(
                 before:="Partial Friend MustInherit Class C",
@@ -123,7 +123,7 @@ End Class",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyEnumInAClass()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -138,7 +138,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
@@ -149,21 +149,21 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax01()
             VerifyStatementEndConstructNotApplied(
                 text:="Enum e(Of T)",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax02()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C Class",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyInheritsDecl()
             VerifyStatementEndConstructApplied(
                 before:="Class C : Inherits B",
@@ -174,7 +174,7 @@ End Class",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInheritsDeclNotApplied()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C : Inherits B
@@ -182,7 +182,7 @@ End Class",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyImplementsDecl()
             VerifyStatementEndConstructApplied(
                 before:="Class C : Implements IB",
@@ -193,7 +193,7 @@ End Class",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyImplementsDeclNotApplied()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C : Implements IB

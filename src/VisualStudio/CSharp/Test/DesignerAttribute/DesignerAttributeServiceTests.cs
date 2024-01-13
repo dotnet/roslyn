@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -79,17 +78,17 @@ class Test { }", "Form");
 class Test { }", "Form");
         }
 
-        private static async Task TestAsync(string codeWithMarker, string category)
+        private static async Task TestAsync(string codeWithMarker, string? category)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
 
             var hostDocument = workspace.Documents.First();
             var documentId = hostDocument.Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
-            var compilation = await document.Project.GetCompilationAsync();
-            var actual = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                compilation.DesignerCategoryAttributeType(), document, CancellationToken.None);
+            var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+            var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
+                compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, CancellationToken.None);
 
             Assert.Equal(category, actual);
         }

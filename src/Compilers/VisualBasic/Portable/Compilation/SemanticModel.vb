@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -104,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride Function GetAttributeMemberGroup(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
 
         ''' <summary>
-        ''' Gets symbol information about an cref reference syntax node. This is the worker
+        ''' Gets symbol information about a cref reference syntax node. This is the worker
         ''' function that is overridden in various derived kinds of Semantic Models. 
         ''' </summary>
         Friend MustOverride Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
@@ -722,8 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetSpeculativelyBoundNode(
             binder As Binder,
             expression As ExpressionSyntax,
-            bindingOption As SpeculativeBindingOption,
-            diagnostics As DiagnosticBag
+            bindingOption As SpeculativeBindingOption
         ) As BoundNode
             Debug.Assert(binder IsNot Nothing)
             Debug.Assert(binder.IsSemanticModelBinder)
@@ -733,10 +731,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim bnode As BoundNode
             If bindingOption = SpeculativeBindingOption.BindAsTypeOrNamespace Then
-                bnode = binder.BindNamespaceOrTypeExpression(DirectCast(expression, TypeSyntax), diagnostics)
+                bnode = binder.BindNamespaceOrTypeExpression(DirectCast(expression, TypeSyntax), BindingDiagnosticBag.Discarded)
             Else
                 Debug.Assert(bindingOption = SpeculativeBindingOption.BindAsExpression)
-                bnode = Me.Bind(binder, expression, diagnostics)
+                bnode = Me.Bind(binder, expression, BindingDiagnosticBag.Discarded)
                 bnode = MakeValueIfPossible(binder, bnode)
             End If
 
@@ -751,9 +749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             binder = Me.GetSpeculativeBinderForExpression(position, expression, bindingOption)
             If binder IsNot Nothing Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim bnode = Me.GetSpeculativelyBoundNode(binder, expression, bindingOption, diagnostics)
-                diagnostics.Free()
+                Dim bnode = Me.GetSpeculativelyBoundNode(binder, expression, bindingOption)
                 Return bnode
             Else
                 Return Nothing
@@ -793,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim resultNode = binder.ReclassifyAsValue(boundExpression, diagnostics)
 
                 ' Reclassify ArrayLiterals and other expressions missing types to expressions with types.
@@ -832,10 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binder = Me.GetSpeculativeAttributeBinder(position, attribute)
 
             If binder IsNot Nothing Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim bnode As BoundAttribute = binder.BindAttribute(attribute, diagnostics)
-                diagnostics.Free()
-
+                Dim bnode As BoundAttribute = binder.BindAttribute(attribute, BindingDiagnosticBag.Discarded)
                 Return bnode
             Else
                 Return Nothing
@@ -891,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 ' 2 or more symbols. Use a hash set to remove duplicates.
-                Dim symbolSet As New HashSet(Of Symbol)
+                Dim symbolSet = PooledHashSet(Of Symbol).GetInstance()
                 For Each s In symbolsBuilder
                     If (options And SymbolInfoOptions.ResolveAliases) <> 0 Then
                         s = UnwrapAlias(s)
@@ -909,7 +902,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Return ImmutableArray.CreateRange(symbolSet)
+                Dim result = ImmutableArray.CreateRange(symbolSet)
+                symbolSet.Free()
+                Return result
             End If
         End Function
 
@@ -980,7 +975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim conversionNode = DirectCast(highestExpr, BoundConversion)
 
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
-                                conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
+                                conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
                             Else
                                 conversion = New Conversion(KeyValuePairUtil.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
@@ -1393,13 +1388,7 @@ _Default:
         End Sub
 
         Private Shared Function UnwrapAliases(symbols As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
-            Dim anyAliases As Boolean = False
-
-            For Each sym In symbols
-                If sym.Kind = SymbolKind.Alias Then
-                    anyAliases = True
-                End If
-            Next
+            Dim anyAliases As Boolean = symbols.Any(Function(sym) sym.Kind = SymbolKind.Alias)
 
             If Not anyAliases Then
                 Return symbols
@@ -1492,7 +1481,7 @@ _Default:
                 If binder IsNot Nothing Then
                     Dim interfaceCoClass As NamedTypeSymbol = If(namedTypeSymbol.IsInterface,
                                                                  TryCast(namedTypeSymbol.CoClassType, NamedTypeSymbol), Nothing)
-                    candidateConstructors = binder.GetAccessibleConstructors(If(interfaceCoClass, namedTypeSymbol), useSiteDiagnostics:=Nothing)
+                    candidateConstructors = binder.GetAccessibleConstructors(If(interfaceCoClass, namedTypeSymbol), useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                     Dim instanceConstructors = namedTypeSymbol.InstanceConstructors
                     If Not candidateConstructors.Any() AndAlso instanceConstructors.Any() Then
@@ -1566,7 +1555,7 @@ _Default:
         End Function
 
         ' This is used by other binding API's to invoke the right binder API
-        Friend Overridable Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overridable Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
             Dim expr = TryCast(node, ExpressionSyntax)
             If expr IsNot Nothing Then
                 Return binder.BindNamespaceOrTypeOrExpressionSyntaxForSemanticModel(expr, diagnostics)
@@ -1934,7 +1923,7 @@ _Default:
                                   results As ArrayBuilder(Of Symbol))
             Debug.Assert(results IsNot Nothing)
 
-            Dim uniqueSymbols = New HashSet(Of Symbol)()
+            Dim uniqueSymbols = PooledHashSet(Of Symbol).GetInstance()
             Dim tempResults = ArrayBuilder(Of Symbol).GetInstance(arities.Count)
 
             For Each knownArity In arities
@@ -1949,6 +1938,7 @@ _Default:
             tempResults.Free()
 
             results.AddRange(uniqueSymbols)
+            uniqueSymbols.Free()
         End Sub
 
         Private Shadows Sub LookupSymbols(binder As Binder,
@@ -1970,18 +1960,18 @@ _Default:
             options = CType(options Or LookupOptions.EagerlyLookupExtensionMethods, LookupOptions)
 
             If options.IsAttributeTypeLookup Then
-                binder.LookupAttributeType(result, container, name, options, useSiteDiagnostics:=Nothing)
+                binder.LookupAttributeType(result, container, name, options, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             ElseIf container Is Nothing Then
-                binder.Lookup(result, name, realArity, options, useSiteDiagnostics:=Nothing)
+                binder.Lookup(result, name, realArity, options, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             Else
-                binder.LookupMember(result, container, name, realArity, options, useSiteDiagnostics:=Nothing)
+                binder.LookupMember(result, container, name, realArity, options, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End If
 
             If result.IsGoodOrAmbiguous Then
                 If result.HasDiagnostic Then
                     ' In the ambiguous symbol case, we have a good symbol with a diagnostics that
                     ' mentions the other symbols. Union everything together with a set to prevent dups.
-                    Dim symbolSet As New HashSet(Of Symbol)
+                    Dim symbolSet = PooledHashSet(Of Symbol).GetInstance()
                     Dim symBuilder = ArrayBuilder(Of Symbol).GetInstance()
                     AddSymbolsFromDiagnosticInfo(symBuilder, result.Diagnostic)
                     symbolSet.UnionWith(symBuilder)
@@ -1989,7 +1979,7 @@ _Default:
                     symBuilder.Free()
 
                     results.AddRange(symbolSet)
-
+                    symbolSet.Free()
                 ElseIf result.HasSingleSymbol AndAlso result.SingleSymbol.Kind = SymbolKind.Namespace AndAlso
                        DirectCast(result.SingleSymbol, NamespaceSymbol).NamespaceKind = NamespaceKindNamespaceGroup Then
                     results.AddRange(DirectCast(result.SingleSymbol, NamespaceSymbol).ConstituentNamespaces)
@@ -2017,7 +2007,7 @@ _Default:
                 If (options And LookupOptions.IgnoreAccessibility) <> 0 Then
                     constructors = type.InstanceConstructors
                 Else
-                    constructors = binder.GetAccessibleConstructors(type, useSiteDiagnostics:=Nothing)
+                    constructors = binder.GetAccessibleConstructors(type, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 End If
             End If
 
@@ -2084,7 +2074,7 @@ _Default:
 
             Dim binder = Me.GetEnclosingBinder(position)
             If binder IsNot Nothing Then
-                Return binder.IsAccessible(vbsymbol, Nothing)
+                Return binder.IsAccessible(vbsymbol, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End If
 
             Return False
@@ -2160,10 +2150,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModelForMethodBody(position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(method)
-            Return TryGetSpeculativeSemanticModelForMethodBodyCore(DirectCast(Me, SyntaxTreeSemanticModel), position, method, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelForMethodBodyCore(DirectCast(Me, SyntaxTreeSemanticModel), position, method, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with a range argument syntax that did not appear in
@@ -2185,10 +2180,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(rangeArgument)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, rangeArgument, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, rangeArgument, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an executable statement that did not appear in
@@ -2209,10 +2209,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(statement)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, statement, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, statement, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an initializer that did not appear in
@@ -2234,10 +2239,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(initializer)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, initializer, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, initializer, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an attribute that did not appear in
@@ -2290,10 +2300,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, type As TypeSyntax, <Out> ByRef speculativeModel As SemanticModel, Optional bindingOption As SpeculativeBindingOption = SpeculativeBindingOption.BindAsExpression) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(type)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, type, bindingOption, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, type, bindingOption, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' If this is a speculative semantic model, then returns its parent semantic model.
@@ -2342,12 +2357,10 @@ _Default:
                 ' Add speculative binder to bind speculatively.
                 binder = SpeculativeBinder.Create(binder)
 
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim bnode = binder.BindValue(expression, diagnostics)
-                diagnostics.Free()
+                Dim bnode = binder.BindValue(expression, BindingDiagnosticBag.Discarded)
 
                 If bnode IsNot Nothing AndAlso Not vbdestination.IsErrorType() Then
-                    Return New Conversion(Conversions.ClassifyConversion(bnode, vbdestination, binder, Nothing))
+                    Return New Conversion(Conversions.ClassifyConversion(bnode, vbdestination, binder, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
                 End If
             End If
 
@@ -2355,7 +2368,7 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Given an modified identifier that is part of a variable declaration, get the
+        ''' Given a modified identifier that is part of a variable declaration, get the
         ''' corresponding symbol.
         ''' </summary>
         ''' <param name="identifierSyntax">The modified identifier that declares a variable.</param>
@@ -2375,7 +2388,7 @@ _Default:
                 Dim lookupResult As LookupResult = LookupResult.GetInstance()
                 Try
                     ' NB: "binder", not "blockBinder", so that we don't incorrectly mark imports as used.
-                    binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
+                    binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                     If lookupResult.IsGood Then
                         Dim sym As LocalSymbol = TryCast(lookupResult.Symbols(0), LocalSymbol)
                         If sym IsNot Nothing AndAlso sym.IdentifierToken = identifierSyntax.Identifier Then
@@ -2410,14 +2423,14 @@ _Default:
             Dim tupleTypeSyntax = TryCast(elementSyntax.Parent, TupleTypeSyntax)
 
             If tupleTypeSyntax IsNot Nothing Then
-                Return TryCast(GetSymbolInfo(tupleTypeSyntax).Symbol, TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(elementSyntax))
+                Return TryCast(GetSymbolInfo(tupleTypeSyntax, cancellationToken).Symbol, TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(elementSyntax))
             End If
 
             Return Nothing
         End Function
 
         ''' <summary>
-        ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type property.
+        ''' Given a FieldInitializerSyntax, get the corresponding symbol of anonymous type property.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists or 
@@ -2466,7 +2479,7 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Given an CollectionRangeVariableSyntax, get the corresponding symbol.
+        ''' Given a CollectionRangeVariableSyntax, get the corresponding symbol.
         ''' </summary>
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -2886,7 +2899,6 @@ _Default:
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
         Friend MustOverride Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
-
 
         ''' <summary>
         ''' Gets the semantic information of an Await expression.
@@ -3420,6 +3432,78 @@ _Default:
             Return GetEnclosingSymbol(position, cancellationToken)
         End Function
 
+        Private Protected NotOverridable Overrides Function GetImportScopesCore(position As Integer, cancellationToken As CancellationToken) As ImmutableArray(Of IImportScope)
+            CheckPosition(position)
+            Dim binder = Me.GetEnclosingBinder(position)
+
+            Dim importScopes = ArrayBuilder(Of IImportScope).GetInstance()
+            AddImportScopes(binder, importScopes)
+            Return importScopes.ToImmutableAndFree()
+        End Function
+
+        Private Shared Sub AddImportScopes(binder As Binder, scopes As ArrayBuilder(Of IImportScope))
+            ' The binder chain has the following in it (walking from the innermost level outwards)
+            '
+            ' 1. Optional binders for the compilation unit of the present source file.
+            ' 2. SourceFileBinder.  Required.
+            ' 3. Optional binders for the imports brought in by the compilation options.
+            '
+            ' Both '1' and '3' are the same binders.  Specifically:
+            '
+            ' a. XmlNamespaceImportsBinder. Optional.  Present if source file has xml imports present.
+            ' b. ImportAliasesBinder. Optional.  Present if source file has import aliases present.
+            ' c. TypesOfImportedNamespacesMembersBinder.  Optional.  Present if source file has type or namespace imports present.
+            '
+            ' As such, we can walk upwards looking for any of these binders if present until we hit the end of the
+            ' binder chain.  We know which set we're in depending on if we've seen the SourceFileBinder or not.
+            '
+            ' This also means that in VB the max length of the import chain is two, while in C# it can be unbounded
+            ' in length.
+
+            Dim typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder = Nothing
+            Dim importAliases As ImportAliasesBinder = Nothing
+            Dim xmlNamespaceImports As XmlNamespaceImportsBinder = Nothing
+
+            While binder IsNot Nothing
+                If TypeOf binder Is SourceFileBinder Then
+                    ' We hit the source file binder.  That means anything we found up till now were the imports for this
+                    ' file.  Recurse and try to create the outer optional node, and then create a potential node for
+                    ' this level to chain onto that.
+                    AddImportScopeNode(
+                       typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports, scopes)
+
+                    AddImportScopes(binder.ContainingBinder, scopes)
+                    Return
+                End If
+
+                typesOfImportedNamespacesMembers = If(typesOfImportedNamespacesMembers, TryCast(binder, TypesOfImportedNamespacesMembersBinder))
+                importAliases = If(importAliases, TryCast(binder, ImportAliasesBinder))
+                xmlNamespaceImports = If(xmlNamespaceImports, TryCast(binder, XmlNamespaceImportsBinder))
+
+                binder = binder.ContainingBinder
+            End While
+
+            ' We hit the end of the binder chain.  Anything we found up till now are the compilation option imports
+            AddImportScopeNode(
+                typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports, scopes)
+        End Sub
+
+        Private Shared Sub AddImportScopeNode(
+                typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder,
+                importAliases As ImportAliasesBinder,
+                xmlNamespaceImports As XmlNamespaceImportsBinder,
+                scopes As ArrayBuilder(Of IImportScope))
+
+            Dim aliases = If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty)
+            Dim [imports] = If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of ImportedNamespaceOrType).Empty)
+            Dim xmlNamespaces = If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of ImportedXmlNamespace).Empty)
+            If aliases.Length = 0 AndAlso [imports].Length = 0 AndAlso xmlNamespaces.Length = 0 Then
+                Return
+            End If
+
+            scopes.Add(New SimpleImportScope(aliases, ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty, [imports], xmlNamespaces))
+        End Sub
+
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
             Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))
         End Function
@@ -3432,7 +3516,7 @@ _Default:
             VisualBasicDeclarationComputer.ComputeDeclarationsInSpan(Me, span, getSymbol, builder, cancellationToken)
         End Sub
 
-        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, associatedSymbol As ISymbol, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
         End Sub
 
@@ -3447,6 +3531,10 @@ _Default:
                 Case SymbolKind.NamedType
                     If TypeOf declaringSyntax Is TypeStatementSyntax Then
                         If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is TypeBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    ElseIf TypeOf declaringSyntax Is EnumStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is EnumBlockSyntax Then
                             Return declaringSyntax.Parent
                         End If
                     End If

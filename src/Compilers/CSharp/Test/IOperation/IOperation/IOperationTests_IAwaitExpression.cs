@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IAwaitExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -38,7 +41,7 @@ IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await M2()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -63,7 +66,7 @@ IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await t')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -90,7 +93,7 @@ IAwaitOperation (OperationKind.Await, Type: System.Int32) (Syntax: 'await t')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -121,7 +124,7 @@ IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await Undefi
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "UndefinedTask").WithArguments("UndefinedTask").WithLocation(9, 25)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -151,7 +154,7 @@ IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await i')
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await i").WithArguments("int", "GetAwaiter").WithLocation(9, 19)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -182,7 +185,7 @@ IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await /*</bi
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(9, 36)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -223,7 +226,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "t").WithArguments("t").WithLocation(9, 25)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
@@ -506,6 +509,36 @@ Block[B5] - Exit
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")]
+        public void TestAwaitExpression_InStatement()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M()
+    {
+        /*<bind>*/await M2()/*</bind>*/;
+    }
+
+    static Task<string> M2() => throw null;
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'await M2()')
+  Expression:
+    IInvocationOperation (System.Threading.Tasks.Task<System.String> C.M2()) (OperationKind.Invocation, Type: System.Threading.Tasks.Task<System.String>) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

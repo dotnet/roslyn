@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -19,20 +23,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-               CreateNotImplementedException(codeDefinitionFactory, compilation));
+               CreateNewNotImplementedException(codeDefinitionFactory, compilation));
         }
 
         public static SyntaxNode CreateThrowNotImplementedExpression(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowExpression(
-               CreateNotImplementedException(codeDefinitionFactory, compilation));
+               CreateNewNotImplementedException(codeDefinitionFactory, compilation));
         }
 
-        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-            => codeDefinitionFactory.ObjectCreationExpression(
-                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                    SpecializedCollections.EmptyList<SyntaxNode>());
+        private static SyntaxNode CreateNewNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+        {
+            var notImplementedExceptionTypeSyntax = compilation.NotImplementedExceptionType() is INamedTypeSymbol symbol
+                ? codeDefinitionFactory.TypeExpression(symbol, addImport: false)
+                : codeDefinitionFactory.QualifiedName(codeDefinitionFactory.IdentifierName(nameof(System)), codeDefinitionFactory.IdentifierName(nameof(NotImplementedException)));
+
+            return codeDefinitionFactory.ObjectCreationExpression(
+                            notImplementedExceptionTypeSyntax,
+                            SpecializedCollections.EmptyList<SyntaxNode>());
+        }
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
@@ -54,14 +64,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNode GetDefaultEqualityComparer(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(type);
-            return factory.MemberAccessExpression(
-                factory.TypeExpression(constructedType),
-                factory.IdentifierName(DefaultName));
+            var typeExpression = equalityComparerType == null
+                ? factory.GenericName(nameof(EqualityComparer<int>), type)
+                : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
+
+            return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
@@ -71,5 +83,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IPropertySymbol property => property.Type,
                 _ => compilation.GetSpecialType(SpecialType.System_Object),
             };
+
+        public static SyntaxNode IsPatternExpression(this SyntaxGeneratorInternal generator, SyntaxNode expression, SyntaxNode pattern)
+            => generator.IsPatternExpression(expression, isToken: default, pattern);
     }
 }

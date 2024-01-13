@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -16,7 +18,7 @@ namespace Roslyn.Test.Performance.Utilities
         private static readonly string s_scriptDirectory = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, "..", "..", "tools", "Microsoft.BenchView.JSONFormat", "tools");
         private static readonly string s_outputDirectory = GetCPCDirectoryPath();
-        private static readonly string[] s_validSubmissionTypes = new string[] { "rolling", "private", "local" };
+        private static readonly string[] s_validSubmissionTypes = ["rolling", "private", "local"];
 
         private static string s_submissionType;
         private static string s_branch;

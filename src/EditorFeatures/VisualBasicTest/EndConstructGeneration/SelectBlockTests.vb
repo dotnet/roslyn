@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SelectBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterSelectKeyword()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -25,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterSelectCaseKeyword()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -44,7 +44,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedDo()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -69,7 +69,7 @@ End Class",
                 afterCaret:={5, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSelectBlock()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -80,7 +80,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSelectBlock01()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
@@ -92,7 +92,7 @@ End Class",
                 caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSelectBlock02()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
@@ -101,7 +101,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyReCommitSelectBlock()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C

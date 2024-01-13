@@ -82,10 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._containingType = container
         End Sub
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingEvent.GetUseSiteErrorInfo())
-            Return useSiteDiagnostic
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MyBase.GetUseSiteInfo
+            MyBase.MergeUseSiteInfo(useSiteInfo, Me._underlyingEvent.GetUseSiteInfo())
+            Return useSiteInfo
         End Function
 
         Public Overrides Function GetHashCode() As Integer

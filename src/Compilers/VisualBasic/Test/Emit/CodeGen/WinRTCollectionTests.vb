@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
                     Dim listRefs = New List(Of MetadataReference)(WinRtRefs.Length + 2)
                     listRefs.AddRange(WinRtRefs)
                     listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display:="WinRTTest"))
-                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
+                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.SystemCore).GetReference(display:="SystemCore"))
                     _legacyRefs = listRefs.ToArray()
                 End If
                 Return _legacyRefs
@@ -50,7 +50,7 @@ End Class]]></file>
             comp.AssertNoDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorProjectionTests()
             Dim source =
             <compilation>
@@ -90,7 +90,6 @@ b
 1
 0
 ]]>
-
 
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
@@ -177,7 +176,7 @@ b
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorViewProjectionTests()
 
             Dim source =
@@ -224,7 +223,7 @@ End Class]]></file>
 }]]>.Value)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorLinqQueryTest()
             Dim source =
                 <compilation>
@@ -286,7 +285,7 @@ End Class
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IMapProjectionTests()
             Dim source =
             <compilation>
@@ -509,7 +508,6 @@ End Class
 ]]>
                     </file>
                 </compilation>
-
 
             Dim verifier = CompileAndVerify(source,
                 references:=LegacyRefs,
@@ -1299,8 +1297,6 @@ End Class
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
-
-
 
         <Fact()>
         Public Sub LegacyCollectionTest03()
@@ -3966,8 +3962,6 @@ End Class
 ]]>.Value)
         End Sub
 
-
-
         <Fact()>
         Public Sub LegacyCollectionTest06()
             Dim source =
@@ -4207,9 +4201,12 @@ End Class
                     </file>
                 </compilation>
 
+            ' PEVerify:
+            ' [ : AllMembers::ValidateMethod][mdToken=0x6000003]  [HRESULT 0x8000000F] - Typename or Namespace was not found in metadata file.
+            ' [ : AllMembers::TestExpressionTreeCompiler][mdToken=0x6000005][offset 0x00000007] Unable to resolve token.
             Dim verifier = CompileAndVerify(source,
                 references:=LegacyRefs,
-                verify:=Verification.Fails)
+                verify:=Verification.FailsPEVerify)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler", <![CDATA[
 {
@@ -5818,7 +5815,6 @@ End Class
                     </file>
                 </compilation>
 
-
             Dim verifier = CompileAndVerify(
                 source,
                 references:=LegacyRefs,
@@ -6077,7 +6073,6 @@ End Class
                     </file>
                 </compilation>
 
-
             Dim verifier = CompileAndVerify(
                 source,
                 references:=LegacyRefs,
@@ -6178,7 +6173,6 @@ End Class
 ]]>
                     </file>
                 </compilation>
-
 
             Dim verifier = CompileAndVerify(
                 source,
@@ -6284,7 +6278,6 @@ Namespace Test
 End Namespace
 ]]></file>
                          </compilation>
-
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
                 options:=TestOptions.ReleaseWinMD,

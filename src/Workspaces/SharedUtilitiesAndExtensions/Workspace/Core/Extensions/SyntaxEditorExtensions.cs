@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 selector,
-                (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                GetExpressionSemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 t => (selector(t), Enumerable.Empty<TNode>()),
-                (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                GetExpressionSemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 selector,
-                (syntaxFacts, node) => GetMethodBodySemanticBoundary(syntaxFacts, node),
+                GetMethodBodySemanticBoundary,
                 canReplace,
                 updateRoot,
                 cancellationToken);

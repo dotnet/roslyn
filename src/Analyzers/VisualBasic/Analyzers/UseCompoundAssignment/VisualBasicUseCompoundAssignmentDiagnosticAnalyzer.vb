@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UseCompoundAssignment
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -22,6 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
 
         Protected Overrides Function IsSupported(assignmentKind As SyntaxKind, options As ParseOptions) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function TryGetIncrementOrDecrement(opKind As SyntaxKind, constantValue As Object) As Integer
+            Return 0
         End Function
     End Class
 End Namespace

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             public ProjectSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Project project,
-                bool exact,
-                CancellationToken cancellationToken)
-                : base(provider, exact, cancellationToken)
+                bool exact)
+                : base(provider, exact)
             {
+                Contract.ThrowIfFalse(project.SupportsCompilation);
                 _project = project;
             }
 
