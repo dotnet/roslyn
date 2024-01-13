@@ -413,10 +413,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
+            private sealed class DeclarationGenerator : SymbolVisitor<bool>
             {
-                private readonly StringBuilder _builder = builder;
+                private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
+
+                public DeclarationGenerator(StringBuilder builder)
+                {
+                    _builder = builder;
+                }
 
                 private ReferenceGenerator GetReferenceGenerator(ISymbol typeParameterContext)
                 {
