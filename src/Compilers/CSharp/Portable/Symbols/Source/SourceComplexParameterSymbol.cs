@@ -1506,8 +1506,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             _ = this.GetAttributes();
             _ = this.ExplicitDefaultConstantValue;
             state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, cancellationToken);

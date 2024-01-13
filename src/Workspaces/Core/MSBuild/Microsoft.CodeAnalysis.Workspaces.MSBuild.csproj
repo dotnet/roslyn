@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild</RootNamespace>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -49,9 +49,6 @@
     <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
-      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -87,7 +84,7 @@
   </Target>
 
   <!--
-    Deploy a net472 and net6.0 version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
+    Deploy a net472 and $(NetVS) version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
     it matches the runtime type of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
     side, ensuring we potential rollforward to a runtime that supports the SDK version.
 
@@ -96,14 +93,14 @@
     property that we could hook but we can't in this case.
   -->
   <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
-    <!-- When we're not doing source build we package two variants: net6.0 and net472 for the broadest compability. -->
+    <!-- When we're not doing source build we package two variants: $(NetVS) and net472 for the broadest compability. -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
         <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>$(NetVS)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
@@ -111,7 +108,7 @@
     <!-- For source build, we just build the SourceBuild targeted version -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>$(SourceBuildToolsetTargetFramework)</TargetFramework>
+        <TargetFramework>$(NetRoslyn)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>

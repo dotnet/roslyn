@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpErrorFactsGenerator</RootNamespace>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 </Project>

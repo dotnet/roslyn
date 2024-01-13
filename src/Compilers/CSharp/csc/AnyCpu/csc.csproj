@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(SourceBuildToolsetTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <UseAppHost>false</UseAppHost>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
