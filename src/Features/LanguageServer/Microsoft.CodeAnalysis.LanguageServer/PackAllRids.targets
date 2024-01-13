@@ -14,7 +14,7 @@
         We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
         See https://github.com/NuGet/Home/issues/11968
     -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=t$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
 
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
