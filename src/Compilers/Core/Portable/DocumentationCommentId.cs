@@ -501,24 +501,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (parameters.Length > 0)
                     {
-                        _builder.Append('(');
+                        _builder.Append("(");
 
                         for (int i = 0, n = parameters.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(',');
+                                _builder.Append(",");
                             }
 
                             var p = parameters[i];
                             this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
-                                _builder.Append('@');
+                                _builder.Append("@");
                             }
                         }
 
-                        _builder.Append(')');
+                        _builder.Append(")");
                     }
                 }
 
