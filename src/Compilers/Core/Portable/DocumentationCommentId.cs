@@ -584,24 +584,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (symbol.OriginalDefinition == symbol)
                     {
-                        _builder.Append('`');
+                        _builder.Append("`");
                         _builder.Append(symbol.TypeParameters.Length);
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
-                        _builder.Append('{');
+                        _builder.Append("{");
 
                         for (int i = 0, n = symbol.TypeArguments.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(',');
+                                _builder.Append(",");
                             }
 
                             this.Visit(symbol.TypeArguments[i]);
                         }
 
-                        _builder.Append('}');
+                        _builder.Append("}");
                     }
                 }
             }
