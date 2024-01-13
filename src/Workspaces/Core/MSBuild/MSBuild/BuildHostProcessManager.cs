@@ -162,14 +162,19 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         AddArgument(processStartInfo, "--roll-forward");
         AddArgument(processStartInfo, "LatestMajor");
 
-        // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
-        var netCoreBuildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        var netCoreBuildHostPath = GetNetCoreBuildHostPath();
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
         return processStartInfo;
+    }
+
+    internal static string GetNetCoreBuildHostPath()
+    {
+        // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
+        return Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
     }
 
     private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo()

@@ -496,5 +496,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
         }
+
+        [Fact]
+        public void BuildHostShipsDepsJsonFile()
+        {
+            var depsJsonFile = Path.ChangeExtension(BuildHostProcessManager.GetNetCoreBuildHostPath(), "deps.json");
+            Assert.True(File.Exists(depsJsonFile), $"{depsJsonFile} should exist, or it won't load on some runtimes.");
+        }
     }
 }
