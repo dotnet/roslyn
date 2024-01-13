@@ -56,11 +56,11 @@
   </ItemGroup>
 
   <!--
-    This target is used by Microsoft.CodeAnalysis.Workspaces.MSBuild to copy the .deps.json file into its BuildHost subfolder.
+    This target is used by Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj to copy the .deps.json file into its BuildHost subfolder.
     The .deps.json file is required for the BuildHost to resolve assemblies using the directory as a binding path
     -->
-  <Target Name="OutputProjectDepsJsonFile" Returns="@(ProjectDepsJsonFile)">
-    <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+  <Target Name="GetProjectDepsJsonFile" Returns="@(ProjectDepsJsonFile)">
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
       <ProjectDepsJsonFile Include="$(ProjectDepsFilePath)">
         <TargetPath>$(ProjectDepsFileName)</TargetPath>
       </ProjectDepsJsonFile>

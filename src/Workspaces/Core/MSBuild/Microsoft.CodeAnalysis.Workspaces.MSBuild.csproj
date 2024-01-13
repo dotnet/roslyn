@@ -117,7 +117,7 @@
     </ItemGroup>
 
     <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup;OutputProjectDepsJsonFile" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup;GetProjectDepsJsonFile" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
       <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
     </MSBuild>
 
