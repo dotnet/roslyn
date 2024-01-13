@@ -322,10 +322,16 @@ namespace Microsoft.CodeAnalysis
         /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
         /// succeed for other symbols.
         /// </remarks>
-        private sealed class PrefixAndDeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
+        private sealed class PrefixAndDeclarationGenerator : SymbolVisitor<bool>
         {
-            private readonly StringBuilder _builder = builder;
-            private readonly DeclarationGenerator _generator = new DeclarationGenerator(builder);
+            private readonly StringBuilder _builder;
+            private readonly DeclarationGenerator _generator;
+
+            public PrefixAndDeclarationGenerator(StringBuilder builder)
+            {
+                _builder = builder;
+                _generator = new DeclarationGenerator(builder);
+            }
 
             /// <summary>
             /// If we hit anything we don't know about, indicate failure.
