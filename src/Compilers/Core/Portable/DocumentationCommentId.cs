@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
                     Debug.Assert(symbol.ContainingSymbol is INamedTypeSymbol or IMethodSymbol);
                     Debug.Assert(declarer.Visit(symbol.ContainingSymbol), "Should always be able to write out a type parameter's containing type or method");
-                    _builder.Append(':');
+                    _builder.Append(":");
                 }
 
                 if (symbol.DeclaringMethod != null)
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
-                    _builder.Append('`');
+                    _builder.Append("`");
                     _builder.Append(b + symbol.Ordinal);
                 }
             }
