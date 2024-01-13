@@ -13,7 +13,12 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    public sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+#if !TEST_UTILITIES
+    public sealed class SymbolNamesWithValueOption<TValue>
+#else
+    internal sealed class SymbolNamesWithValueOption<TValue>
+#endif
+     : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';
