@@ -446,6 +446,7 @@ class C : IComparable<C>, IComparable<int>
             }.RunAsync();
         }
 
+#if NET472 // TODO: https://github.com/dotnet/roslyn/issues/71625 
         [Fact]
         public async Task TestInInterfaceWithDefaultImpl()
         {
@@ -490,4 +491,5 @@ class C : IComparable<C>, IComparable<int>
                 """);
         }
     }
-}
+#endif
+    }
