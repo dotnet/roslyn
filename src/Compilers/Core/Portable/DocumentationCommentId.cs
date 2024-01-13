@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.Visit(symbol.ElementType);
 
-                _builder.Append('[');
+                _builder.Append("[");
 
                 for (int i = 0, n = symbol.Rank; i < n; i++)
                 {
@@ -623,11 +623,11 @@ namespace Microsoft.CodeAnalysis
 
                     if (i > 0)
                     {
-                        _builder.Append(',');
+                        _builder.Append(",");
                     }
                 }
 
-                _builder.Append(']');
+                _builder.Append("]");
             }
 
             public override void VisitPointerType(IPointerTypeSymbol symbol)
