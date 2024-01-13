@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
@@ -33,8 +34,11 @@ internal sealed class CSharpMapCodeService : IMapCodeService
 
     public Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
     {
+        var options = new Dictionary<string, object>();
         if (_service is not null)
-            return _service.MapCodeAsync(document, contents, focusLocations, cancellationToken);
+        {
+            return _service.MapCodeAsync(document, contents, focusLocations, options, cancellationToken);
+        }
 
         return TryLoadAndInvokeViaReflectionAsync();
 
@@ -51,7 +55,7 @@ internal sealed class CSharpMapCodeService : IMapCodeService
                 if (type?.GetMethod(MapCodeAsyncMethodName, BindingFlags.Instance | BindingFlags.Public) is MethodInfo method)
                 {
                     var instance = Activator.CreateInstance(type);
-                    return (Task<ImmutableArray<TextChange>?>)method.Invoke(instance, [document, contents, focusLocations, cancellationToken])!;
+                    return (Task<ImmutableArray<TextChange>?>)method.Invoke(instance, [document, contents, focusLocations, options, cancellationToken])!;
                 }
             }
             catch
