@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!symbol.ReturnsVoid)
                     {
-                        _builder.Append('~');
+                        _builder.Append("~");
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
 
