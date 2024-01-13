@@ -901,7 +901,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -925,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case CompletionPart.Module:
-                        SourceModule.ForceComplete(locationOpt, cancellationToken);
+                        SourceModule.ForceComplete(locationOpt, filter, cancellationToken);
                         if (SourceModule.HasComplete(CompletionPart.MembersCompleted))
                         {
                             _state.NotePartComplete(CompletionPart.Module);
@@ -933,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the module members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the module members should be completed");
                             // this is the last completion part we can handle if there is a location.
                             return;
                         }
@@ -960,6 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private void ReportDiagnosticsForAddedModules()
         {
@@ -2664,7 +2666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unusedFieldWarnings.IsDefault)
             {
                 //Our maps of unread and unassigned fields won't be done until the assembly is complete.
-                this.ForceComplete(locationOpt: null, cancellationToken: cancellationToken);
+                this.ForceComplete(locationOpt: null, filter: null, cancellationToken: cancellationToken);
 
                 Debug.Assert(this.HasComplete(CompletionPart.Module),
                     "Don't consume unused field information if there are still types to be processed.");

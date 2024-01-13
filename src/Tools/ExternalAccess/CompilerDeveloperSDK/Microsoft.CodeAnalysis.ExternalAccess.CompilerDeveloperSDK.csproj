@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
 
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK</PackageId>

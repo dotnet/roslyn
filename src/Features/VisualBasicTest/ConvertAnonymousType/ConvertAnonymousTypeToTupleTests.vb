@@ -5,15 +5,16 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTypeToTuple
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
     Partial Public Class ConvertAnonymousTypeToTupleTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertAnonymousTypeToTupleCodeRefactoringProvider()
         End Function
 
@@ -230,7 +231,7 @@ class Test
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected, Index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
         <Fact>

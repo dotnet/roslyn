@@ -542,7 +542,7 @@ if (true)
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position)
         {
@@ -551,7 +551,7 @@ if (true)
         }
 
         protected override async Task AssertContentIsAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position,
             string expectedContent,
@@ -604,7 +604,7 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();

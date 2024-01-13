@@ -15,9 +15,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-    public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest
+    public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
         private static readonly string[] CompositeFormattedMethods =

@@ -1586,7 +1586,7 @@ public class Test
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void MultipleArrays_InPlaceAndUsed()
         {
             string csharp = @$"
@@ -1620,7 +1620,6 @@ public class Test
 
             var ilVerifyMessage = """
                 [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x2 }
-                [Main]: Field is not visible. { Offset = 0x2 }
                 [Main]: Unexpected type on the stack. { Offset = 0x8, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
                 """;
 
@@ -2686,8 +2685,8 @@ class Test
                     "__StaticArrayInitTypeSize=32_Align=8",
                 };
 
-                // .class nested private explicit ansi sealed 'TYPENAME'
-                string[] actual = Regex.Matches(il, @"\.class nested private explicit ansi sealed '([^']*?)'").Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
+                // .class nested assembly explicit ansi sealed 'TYPENAME'
+                string[] actual = Regex.Matches(il, @"\.class nested assembly explicit ansi sealed '([^']*?)'").Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
 
                 Assert.Equal(expected, actual);
             });

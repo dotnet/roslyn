@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
     [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-    public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public NamingStylesTests(ITestOutputHelper logger)
            : base(logger)

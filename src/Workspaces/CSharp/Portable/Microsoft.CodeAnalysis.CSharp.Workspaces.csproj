@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->

@@ -95,8 +95,8 @@ class C
 
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateCSharp(code, composition:=testComposition)
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateCSharp(code, composition:=testComposition)
         End Function
     End Class
 End Namespace

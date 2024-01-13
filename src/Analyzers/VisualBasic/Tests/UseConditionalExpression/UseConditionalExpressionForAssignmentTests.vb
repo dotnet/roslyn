@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
     Partial Public Class UseConditionalExpressionForAssignmentTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),

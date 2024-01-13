@@ -31,7 +31,7 @@
       <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
     </PropertyGroup>
 
-    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\net8.0\CodeStyleConfigFileGenerator.dll" "CSharp" "$(CSharpCodeStyleFixesArtifactsBinDir)" "$(CSharpCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(CSharpCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"' />
+    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\$(NetRoslyn)\CodeStyleConfigFileGenerator.dll" "CSharp" "$(CSharpCodeStyleFixesArtifactsBinDir)" "$(CSharpCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(CSharpCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"' />
 
     <ItemGroup>
       <_File Include="$(CSharpCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" TargetDir="analyzers/dotnet/cs" />

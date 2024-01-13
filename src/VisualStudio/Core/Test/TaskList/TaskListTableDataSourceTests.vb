@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
     Public Class TaskListTableDataSourceTests
         <Fact>
         Public Sub TestCreation()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestInitialEntries()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTaskListProvider(CreateItem(documentId))
@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestEntryChanged()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTaskListProvider()
@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -143,7 +143,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestSnapshotEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -192,7 +192,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestSnapshotTranslateTo()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -223,7 +223,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestSnapshotTranslateTo2()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -261,7 +261,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestSnapshotTranslateTo3()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -299,7 +299,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
         <Fact>
         Public Sub TestInvalidEntry()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -337,7 +337,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspace.Create(markup)
+            Using workspace = EditorTestWorkspace.Create(markup)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim projects = workspace.CurrentSolution.Projects.ToArray()
 

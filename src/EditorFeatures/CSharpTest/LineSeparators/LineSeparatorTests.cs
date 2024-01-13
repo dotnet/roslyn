@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
 
         private static async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions? options = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(contents, options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(contents, options);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
             var root = await document.GetRequiredSyntaxRootAsync(default);
 

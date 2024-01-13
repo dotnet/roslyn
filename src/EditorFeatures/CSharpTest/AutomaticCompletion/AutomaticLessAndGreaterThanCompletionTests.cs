@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         internal static Holder CreateSession(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter);
         }
     }
