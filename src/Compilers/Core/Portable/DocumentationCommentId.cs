@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis
             public override void VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
-                _builder.Append('*');
+                _builder.Append("*");
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
