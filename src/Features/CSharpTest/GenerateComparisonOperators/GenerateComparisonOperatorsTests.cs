@@ -490,6 +490,7 @@ class C : IComparable<C>, IComparable<int>
                 }
                 """);
         }
-    }
 #endif
     }
+}
+

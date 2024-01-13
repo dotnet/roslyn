@@ -2436,7 +2436,7 @@ Class C
 End Class")
         End Function
 
-        ' TODO https : //github.com/dotnet/roslyn/issues/71625 
+        ' TODO https://github.com/dotnet/roslyn/issues/71625 
 #If NET472 Then
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
         Public Async Function TestHighPrecisionDouble() As Task
