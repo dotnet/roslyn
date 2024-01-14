@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     attributes.OrderBy(a => a.AttributeClass?.Name)
                               .Select(a => TryGenerateAttributeDeclaration(a, target, info))
                               .WhereNotNull().ToList();
-                return attributeDeclarations.Count == 0
-                    ? default
-                    : SyntaxFactory.List<AttributeListSyntax>(attributeDeclarations);
+                return [.. attributeDeclarations];
             }
         }
 

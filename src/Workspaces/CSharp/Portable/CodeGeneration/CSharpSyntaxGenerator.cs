@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxList<UsingDirectiveSyntax> AsUsingDirectives(IEnumerable<SyntaxNode> declarations)
         {
             return declarations != null
-                ? SyntaxFactory.List(declarations.Select(this.AsUsingDirective).OfType<UsingDirectiveSyntax>())
+                ? [.. declarations.Select(this.AsUsingDirective).OfType<UsingDirectiveSyntax>()]
                 : default;
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxList<MemberDeclarationSyntax> AsNamespaceMembers(IEnumerable<SyntaxNode> declarations)
         {
             return declarations != null
-                ? SyntaxFactory.List(declarations.Select(AsNamespaceMember).OfType<MemberDeclarationSyntax>())
+                ? [.. declarations.Select(AsNamespaceMember).OfType<MemberDeclarationSyntax>()]
                 : default;
         }
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 explicitInterfaceSpecifier: null,
                 name.ToIdentifierToken(),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList([.. accessors]));
         }
 
         public override SyntaxNode GetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 explicitInterfaceSpecifier: null,
                 AsBracketedParameterList(parameters),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList([.. accessors]));
         }
 
         private static BracketedParameterListSyntax AsBracketedParameterList(IEnumerable<SyntaxNode> parameters)
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 null,
                 name.ToIdentifierToken(),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList([.. accessors]));
         }
 
         public override SyntaxNode? AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string? interfaceMemberName)
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorListSyntax WithBodies(AccessorListSyntax accessorList)
-            => accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(x => WithBody(x))));
+            => accessorList.WithAccessors([.. accessorList.Accessors.Select(WithBody)]);
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
         {
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorListSyntax? WithoutBodies(AccessorListSyntax? accessorList)
-            => accessorList?.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(WithoutBody)));
+            => accessorList?.WithAccessors([.. accessorList.Accessors.Select(WithoutBody)]);
 
         private static AccessorDeclarationSyntax WithoutBody(AccessorDeclarationSyntax accessor)
             => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : accessor;
