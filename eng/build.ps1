@@ -386,7 +386,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net8.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -538,7 +538,7 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
   Write-Host "VSIX EXE path: " $vsixExe
   if (-not (Test-Path $vsixExe)) {
     Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red

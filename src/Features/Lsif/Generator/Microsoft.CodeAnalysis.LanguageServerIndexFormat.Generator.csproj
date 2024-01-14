@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
