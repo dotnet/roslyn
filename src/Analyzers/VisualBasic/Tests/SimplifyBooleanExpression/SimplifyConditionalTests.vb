@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
     Partial Public Class SimplifyConditionalTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicSimplifyConditionalDiagnosticAnalyzer(), New SimplifyConditionalCodeFixProvider())

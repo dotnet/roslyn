@@ -3378,7 +3378,7 @@ class Program{
                 expected = expected.Replace("    ", "\t");
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
 
             var subjectDocument = workspace.Documents.Single();
             var textBuffer = subjectDocument.GetTextBuffer();
@@ -3412,7 +3412,7 @@ class Program{
 
         private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(initialMarkup);
 
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();

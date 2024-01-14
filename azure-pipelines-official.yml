@@ -81,11 +81,11 @@ stages:
     demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.8') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.9') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.8
+        MirrorBranch: release/dev17.9
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -100,20 +100,23 @@ stages:
       displayName: Setting SourceBranchName variable
       condition: succeeded()
 
-    - task: tagBuildOrRelease@0
+    - task: Powershell@2
       displayName: Tag official build
       inputs:
-        type: 'Build'
-        tags: 'OfficialBuild'
-      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'))
+        targetType: inline
+        script: |
+          Write-Host "##vso[build.addBuildTag]OfficialBuild"
+      condition: succeeded()
 
-    - task: tagBuildOrRelease@0
-      displayName: Tag main validation build
-      inputs:
-        type: 'Build'
-        tags: |
-          MainValidationBuild
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
+    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back. Also need to change the condition of the tagging task above.
+    #
+    # - task: Powershell@2
+    #  displayName: Tag main validation build
+    #  inputs:
+    #    targetType: inline
+    #    script: |
+    #      Write-Host "##vso[build.addBuildTag]MainValidationBuild"
+    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
     #
@@ -138,7 +141,7 @@ stages:
         versionSpec: '4.9.2'
 
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
@@ -180,6 +183,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack

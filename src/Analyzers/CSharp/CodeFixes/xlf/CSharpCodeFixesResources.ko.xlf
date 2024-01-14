@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

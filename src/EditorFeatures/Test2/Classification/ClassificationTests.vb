@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     Public Class ClassificationTests
         <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/66245")>
         Public Async Function TestClassificationAndHighlight1() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
                         <Document>
@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
                     New DocumentSpan(document, referenceSpan),
+                    classifiedSpans:=Nothing,
                     ClassificationOptions.Default, CancellationToken.None)
 
                 ' This is the classification of the line, starting at the beginning of the highlight, and going to the end of that line.
@@ -76,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65926")>
         Public Async Function TestEmbeddedClassifications1() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
                         <Document>
@@ -138,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63702")>
         Public Async Function TestEmbeddedClassifications2() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
                         <Document>
@@ -204,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66507")>
         Public Async Function TestUtf8StringSuffix() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
                         <Document>
@@ -219,6 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
                     New DocumentSpan(document, referenceSpan),
+                    classifiedSpans:=Nothing,
                     ClassificationOptions.Default, CancellationToken.None)
 
                 ' string classification should not overlap u8 classification.
@@ -257,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationEditorClassificationService))
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
@@ -318,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = workspace.CurrentSolution.Projects.First(Function(p) p.Language = LanguageNames.CSharp)
                 Dim classificationService = project.Services.GetService(Of IClassificationService)()
 

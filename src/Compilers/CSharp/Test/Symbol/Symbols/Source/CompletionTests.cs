@@ -91,7 +91,7 @@ class A {
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));
 
-            a.ForceComplete(null, CancellationToken.None);
+            a.ForceComplete(null, filter: null, CancellationToken.None);
             Assert.True(p.HasComplete(CompletionPart.Type));
             Assert.True(p.HasComplete(CompletionPart.Parameters));
         }

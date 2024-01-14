@@ -7,19 +7,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
     internal sealed class GenerateTypeTestState
     {
         public static List<string> FixIds = new List<string>(new[] { "CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456" });
-        private readonly TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
+        private readonly EditorTestHostDocument _testDocument;
+        public EditorTestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
         public Document ExistingDocument { get; }
         public Project ProjectToBeModified { get; }
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public string TypeName { get; }
 
         public GenerateTypeTestState(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string projectToBeModified,
             string typeName,
             string existingFileName)

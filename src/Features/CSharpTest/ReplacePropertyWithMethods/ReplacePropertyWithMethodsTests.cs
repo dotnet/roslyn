@@ -15,12 +15,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplacePropertyWithMethods
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
-    public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
+    public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private OptionsCollection PreferExpressionBodiedMethods
             => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ReplacePropertyWithMethodsCodeRefactoringProvider();
 
         [Fact]

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// </summary>
         public static bool IsIntIndexingMethod(IMethodSymbol method)
             => method != null &&
-               (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
+               method.MethodKind is MethodKind.PropertyGet or MethodKind.Ordinary &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 1 &&
                // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
