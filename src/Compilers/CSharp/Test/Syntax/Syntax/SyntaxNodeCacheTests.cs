@@ -4,7 +4,8 @@
 
 #nullable disable
 
-using SyntaxNodeCache = Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxNodeCache;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using SyntaxTokenWithTrivia = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithTrivia;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
@@ -19,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var child0 = new SyntaxTokenWithTrivia(SyntaxKind.IntKeyword, null, null);
             SyntaxNodeCache.AddNode(child0, child0.GetCacheHash());
 
-            var listOf1 = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PredefinedTypeSyntax(SyntaxKind.PredefinedType, child0);
+            var listOf1 = new PredefinedTypeSyntax(SyntaxKind.PredefinedType, child0);
             SyntaxNodeCache.AddNode(listOf1, listOf1.GetCacheHash());
 
-            var listCached = SyntaxNodeCache.TryGetNode(listOf1.RawKind, child0, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+            var listCached = (PredefinedTypeSyntax)SyntaxNodeCache.TryGetNode(listOf1.RawKind, child0, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
             Assert.NotNull(listCached);
         }
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxNodeCache.AddNode(child0, child0.GetCacheHash());
                 SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
 
-                var listOf2 = new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren(child0, child1);
+                var listOf2 = new SyntaxList.WithTwoChildren(child0, child1);
                 SyntaxNodeCache.AddNode(listOf2, listOf2.GetCacheHash());
 
-                var listCached = SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                var listCached = (SyntaxList.WithTwoChildren)SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
                 Assert.NotNull(listCached);
 
                 var listOf1 = SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
@@ -63,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
                 SyntaxNodeCache.AddNode(child2, child2.GetCacheHash());
 
-                var listOf3 = new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren(child0, child1, child2);
+                var listOf3 = new SyntaxList.WithThreeChildren(child0, child1, child2);
                 SyntaxNodeCache.AddNode(listOf3, listOf3.GetCacheHash());
 
-                var listCached = SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, child2, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                var listCached = (SyntaxList.WithThreeChildren)SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, child2, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
                 Assert.NotNull(listCached);
 
                 var listOf2 = SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
