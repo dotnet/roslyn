@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(constraint)));
             }
 
-            return SyntaxFactory.List(listOfClauses);
+            return [.. listOfClauses];
         }
 
         private static TypeParameterListSyntax? GenerateTypeParameterList(

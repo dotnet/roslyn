@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxList<MemberDeclarationSyntax> AsClassMembers(string className, IEnumerable<SyntaxNode>? members)
         {
             return members != null
-                ? SyntaxFactory.List(members.Select(m => AsClassMember(m, className)).WhereNotNull())
+                ? [.. members.Select(m => AsClassMember(m, className)).WhereNotNull()]
                 : default;
         }
 
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxList<MemberDeclarationSyntax> AsInterfaceMembers(IEnumerable<SyntaxNode>? members)
         {
             return members != null
-                ? SyntaxFactory.List(members.Select(AsInterfaceMember).OfType<MemberDeclarationSyntax>())
+                ? [.. members.Select(AsInterfaceMember).OfType<MemberDeclarationSyntax>()]
                 : default;
         }
 
@@ -969,14 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxList<AttributeListSyntax> AsAttributeLists(IEnumerable<SyntaxNode> attributes)
         {
-            if (attributes != null)
-            {
-                return SyntaxFactory.List(attributes.Select(AsAttributeList));
-            }
-            else
-            {
-                return default;
-            }
+            return attributes == null ? default : [.. attributes.Select(AsAttributeList)];
         }
 
         private static AttributeListSyntax AsAttributeList(SyntaxNode node)
