@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     SyntaxKind.SimpleMemberAccessExpression,
                     receiverForInvocation.Parenthesize(),
                     SyntaxFactory.IdentifierName(invokedMethodName)),
-                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(lambda))));
+                SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
         }
 
         /// <summary>

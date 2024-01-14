@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
                     typeParameter.Name.ToIdentifierName(),
-                    SyntaxFactory.SingletonSeparatedList(constraint)));
+                    [constraint]));
             }
 
             return [.. listOfClauses];

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     target.HasValue
                         ? SyntaxFactory.AttributeTargetSpecifier(target.Value)
                         : null,
-                    SyntaxFactory.SingletonSeparatedList(attributeSyntax));
+                    [attributeSyntax]);
         }
 
         private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationContextInfo info)

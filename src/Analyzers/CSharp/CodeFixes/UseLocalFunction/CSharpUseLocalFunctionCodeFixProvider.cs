@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             switch (anonymousFunction)
             {
                 case SimpleLambdaExpressionSyntax simpleLambda:
-                    return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter));
+                    return SyntaxFactory.ParameterList([simpleLambda.Parameter]);
                 case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                     return parenthesizedLambda.ParameterList;
                 case AnonymousMethodExpressionSyntax anonymousMethod:

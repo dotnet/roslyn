@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 var result = SyntaxFactory.GenericName(
                     SyntaxFactory.Identifier(type),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
+                    SyntaxFactory.TypeArgumentList([typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()]));
 
                 return result.WithAdditionalAnnotations(Simplifier.Annotation);
             }

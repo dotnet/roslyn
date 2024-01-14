@@ -1006,8 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 propertyDeclarationNode.Modifiers,
                 SyntaxFactory.VariableDeclaration(
                     propertyDeclarationNode.Type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(propertyDeclarationNode.Identifier))),
+                    [SyntaxFactory.VariableDeclarator(propertyDeclarationNode.Identifier)]),
                 SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>
@@ -1020,8 +1019,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 eventDeclarationNode.Modifiers,
                 SyntaxFactory.VariableDeclaration(
                     eventDeclarationNode.Type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(eventDeclarationNode.Identifier))));
+                    [SyntaxFactory.VariableDeclarator(eventDeclarationNode.Identifier)]));
 
         /// <summary>
         /// Remove the body of <param name="accessorDeclarationNode"/>.

@@ -374,7 +374,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                             return currentTypeDeclaration
                                 .WithIdentifier(currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                                 .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                                .WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(baseTypeSyntax)).WithLeadingTrivia(Space).WithTrailingTrivia(triviaAfterName));
+                                .WithBaseList(BaseList([baseTypeSyntax]).WithLeadingTrivia(Space).WithTrailingTrivia(triviaAfterName));
                         }
                         else
                         {

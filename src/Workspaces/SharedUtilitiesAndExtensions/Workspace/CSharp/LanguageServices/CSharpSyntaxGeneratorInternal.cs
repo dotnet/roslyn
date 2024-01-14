@@ -50,10 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.VariableDeclaration(
                 type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            name, argumentList: null,
-                            expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
+                    [SyntaxFactory.VariableDeclarator(
+                        name, argumentList: null,
+                        expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))]);
         }
 
         public override SyntaxToken Identifier(string identifier)

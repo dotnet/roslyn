@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CSharpCodeGenerationContextInfo info)
         {
             var baseList = namedType.EnumUnderlyingType != null && namedType.EnumUnderlyingType.SpecialType != SpecialType.System_Int32
-                ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())))
+                ? SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())])
                 : null;
 
             return SyntaxFactory.EnumDeclaration(
