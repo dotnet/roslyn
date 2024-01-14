@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return True
                 End If
 
-                Dim asList = TryCast(lt, SyntaxList)
+                Dim asList = TryCast(lt, CodeAnalysis.Syntax.InternalSyntax.SyntaxList)
                 If asList IsNot Nothing Then
                     For i As Integer = 0 To asList.SlotCount - 1
                         If lt.GetSlot(i).RawKind = SyntaxKind.EndOfLineTrivia Then

@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             switch (node)
             {
                 case BasePropertyDeclarationSyntax baseProperty:
-                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)));
+                    var accessorList = SyntaxFactory.AccessorList(
+                        [SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
                     return baseProperty
                         .TryWithExpressionBody(null)
                         .WithAccessorList(accessorList)

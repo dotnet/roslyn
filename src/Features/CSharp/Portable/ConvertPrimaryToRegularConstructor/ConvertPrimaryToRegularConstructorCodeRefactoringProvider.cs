@@ -363,8 +363,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                         {
                             var seeTag = xmlElement
                                 .ReplaceToken(xmlElement.Name.LocalName, Identifier("see").WithTriviaFrom(xmlElement.Name.LocalName))
-                                .WithAttributes(SingletonList<XmlAttributeSyntax>(XmlCrefAttribute(
-                                    TypeCref(fieldName))));
+                                .WithAttributes([XmlCrefAttribute(TypeCref(fieldName))]);
 
                             editor.ReplaceNode(xmlElement, seeTag);
                         }

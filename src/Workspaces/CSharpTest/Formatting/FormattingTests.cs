@@ -4648,10 +4648,10 @@ class innerClass
                         {
                         SyntaxFactory.AccessorDeclaration(
                             SyntaxKind.GetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("return c;")))),
+                            SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
                         SyntaxFactory.AccessorDeclaration(
                             SyntaxKind.SetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("c = value;"))))
+                            SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))
                         })));
 
             Assert.NotNull(property);

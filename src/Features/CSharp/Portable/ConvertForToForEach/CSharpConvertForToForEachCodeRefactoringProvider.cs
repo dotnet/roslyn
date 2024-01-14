@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         protected override SyntaxList<StatementSyntax> GetBodyStatements(ForStatementSyntax forStatement)
             => forStatement.Statement is BlockSyntax block
                 ? block.Statements
-                : SyntaxFactory.SingletonList(forStatement.Statement);
+                : [forStatement.Statement];
 
         protected override bool TryGetForStatementComponents(
             ForStatementSyntax forStatement,

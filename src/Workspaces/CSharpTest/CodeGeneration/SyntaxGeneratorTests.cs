@@ -1358,8 +1358,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithAccessorList(
-                    SyntaxFactory.AccessorList(
-                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                    SyntaxFactory.AccessorList([
                             SyntaxFactory.AccessorDeclaration(
                                 SyntaxKind.GetAccessorDeclaration)
                             .WithExpressionBody(
@@ -1368,7 +1367,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                         SyntaxKind.NumericLiteralExpression,
                                         SyntaxFactory.Literal(0))))
                             .WithSemicolonToken(
-                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken))]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int Num { get => 0; }");

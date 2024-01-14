@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         }
 
         protected override StatementSyntax ReplaceBlockStatements(StatementSyntax block, StatementSyntax newInnerStatement)
-        {
-            var newStatementList = SyntaxFactory.SingletonList(newInnerStatement);
-            return ((BlockSyntax)block).WithStatements(newStatementList);
-        }
+            => ((BlockSyntax)block).WithStatements([newInnerStatement]);
 
         protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
         {

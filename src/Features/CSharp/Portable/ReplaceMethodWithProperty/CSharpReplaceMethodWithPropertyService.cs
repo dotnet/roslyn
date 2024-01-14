@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                      .WithBody(block);
 
-                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(accessor));
+                    var accessorList = SyntaxFactory.AccessorList([accessor]);
                     return propertyDeclaration.WithAccessorList(accessorList)
                                               .WithExpressionBody(null)
                                               .WithSemicolonToken(default);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             property = SetLeadingTrivia(
                 CSharpSyntaxFacts.Instance, getAndSetMethods, property);
 
-            var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
+            var accessorList = SyntaxFactory.AccessorList([getAccessor]);
             if (setAccessor != null)
             {
                 accessorList = accessorList.AddAccessors(setAccessor);

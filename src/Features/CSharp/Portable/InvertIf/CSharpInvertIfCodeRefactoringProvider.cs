@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         {
             return ifBody is BlockSyntax block
                 ? block.Statements
-                : SyntaxFactory.SingletonList(ifBody);
+                : [ifBody];
         }
 
         protected override bool IsSingleStatementStatementRange(StatementRange statementRange)

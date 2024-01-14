@@ -41,11 +41,9 @@ class B
 {
 }";
             var compilation = SyntaxFactory.CompilationUnit(
-                externs: SyntaxFactory.SingletonList<ExternAliasDirectiveSyntax>(
-                            SyntaxFactory.ExternAliasDirective("A1")),
+                externs: [SyntaxFactory.ExternAliasDirective("A1")],
                 usings: default,
-                attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
-                                SyntaxFactory.AttributeList(
+                attributeLists: [SyntaxFactory.AttributeList(
                                     SyntaxFactory.Token(
                                         SyntaxFactory.TriviaList(
                                             SyntaxFactory.Trivia(
@@ -59,10 +57,9 @@ class B
                                         SyntaxFactory.Attribute(
                                             SyntaxFactory.ParseName("My"))),
                                     SyntaxFactory.Token(
-                                        SyntaxKind.CloseBracketToken))),
-                members: SyntaxFactory.List<MemberDeclarationSyntax>(
-                new MemberDeclarationSyntax[]
-                {
+                                        SyntaxKind.CloseBracketToken))],
+                members:
+                [
                     SyntaxFactory.ClassDeclaration(
                         default,
                         SyntaxFactory.TokenList(),
@@ -75,18 +72,17 @@ class B
                                 default),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
-                        attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
+                        attributeLists: [
+                            SyntaxFactory.AttributeList([
                                     SyntaxFactory.Attribute(
-                                        SyntaxFactory.ParseName("My"))))),
+                                        SyntaxFactory.ParseName("My"))])],
                         modifiers: SyntaxFactory.TokenList(),
                         identifier: SyntaxFactory.Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,
                         members: default)
-                }));
+                ]);
 
             Assert.NotNull(compilation);
 
