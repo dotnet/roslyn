@@ -98,11 +98,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // DocumentSpanEntry for each.  That way we can easily see the source
                     // code where each location is to help the user decide which they want
                     // to navigate to.
-                    foreach (var sourceSpan in definition.SourceSpans)
+                    for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
                     {
+                        var sourceSpan = definition.SourceSpans[i];
+                        var classifiedSpans = definition.ClassifiedSpans[i];
+
                         var entry = await TryCreateDocumentSpanEntryAsync(
                             definitionBucket,
                             sourceSpan,
+                            classifiedSpans,
                             HighlightSpanKind.Definition,
                             symbolUsageInfo: SymbolUsageInfo.None,
                             additionalProperties: definition.DisplayableProperties,

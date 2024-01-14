@@ -22,21 +22,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         /// <summary>
         /// Additional information attached to a document span by it creator.
         /// </summary>
-        public ImmutableDictionary<string, object> Properties { get; }
+        public ImmutableDictionary<string, object> Properties { get; } = ImmutableDictionary<string, object>.Empty;
 
         public FSharpDocumentSpan(Document document, TextSpan sourceSpan)
-            : this(document, sourceSpan, properties: null)
-        {
-        }
-
-        public FSharpDocumentSpan(
-            Document document,
-            TextSpan sourceSpan,
-            ImmutableDictionary<string, object> properties)
         {
             Document = document;
             SourceSpan = sourceSpan;
-            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public override bool Equals(object obj)
@@ -56,9 +47,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
                 this.Document,
                 this.SourceSpan.GetHashCode());
 
-        internal Microsoft.CodeAnalysis.DocumentSpan ToRoslynDocumentSpan()
+        internal DocumentSpan ToRoslynDocumentSpan()
         {
-            return new Microsoft.CodeAnalysis.DocumentSpan(this.Document, this.SourceSpan, this.Properties);
+            return new DocumentSpan(this.Document, this.SourceSpan);
         }
     }
 }
