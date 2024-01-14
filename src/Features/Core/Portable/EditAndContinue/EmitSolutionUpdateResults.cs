@@ -84,10 +84,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            // add emit diagnostics:
+            // add semantic and lowering diagnostics:
             foreach (var (_, projectEmitDiagnostics) in Diagnostics)
             {
                 diagnostics.AddRange(projectEmitDiagnostics);
+            }
+
+            // add syntax error:
+            if (SyntaxError != null)
+            {
+                diagnostics.Add(SyntaxError);
             }
 
             return diagnostics.ToImmutable();
