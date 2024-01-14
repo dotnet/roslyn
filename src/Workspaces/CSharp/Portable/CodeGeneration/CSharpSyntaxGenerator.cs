@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var constraints = types != null
                 ? SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(types.Select(t => SyntaxFactory.TypeConstraint((TypeSyntax)t)))
-                : SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>();
+                : [];
 
             if ((kinds & SpecialTypeConstraintKind.Constructor) != 0)
             {

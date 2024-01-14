@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             return SyntaxFactory.ForStatement(
                 variableDeclaration,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(),
+                initializers: [],
                 SyntaxFactory.BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
                 [SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)],
                 SyntaxFactory.Block());
