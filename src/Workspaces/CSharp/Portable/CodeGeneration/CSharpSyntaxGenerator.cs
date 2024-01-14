@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.ConstructorDeclaration),
                 (name ?? "ctor").ToIdentifierToken(),
                 AsParameterList(parameters),
-                baseConstructorArguments != null ? SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(baseConstructorArguments.Select(AsArgument)))) : null,
+                baseConstructorArguments != null ? SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, SyntaxFactory.ArgumentList([.. baseConstructorArguments.Select(AsArgument)])) : null,
                 CreateBlock(statements));
         }
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static BracketedParameterListSyntax AsBracketedParameterList(IEnumerable<SyntaxNode> parameters)
         {
             return parameters != null
-                ? SyntaxFactory.BracketedParameterList(SyntaxFactory.SeparatedList(parameters.Cast<ParameterSyntax>()))
+                ? SyntaxFactory.BracketedParameterList([.. parameters.Cast<ParameterSyntax>()])
                 : SyntaxFactory.BracketedParameterList();
         }
 
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, kind);
             var nameToken = name.ToIdentifierToken();
             var typeParameterList = AsTypeParameterList(typeParameters);
-            var baseTypeList = baseTypes.Count > 0 ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null;
+            var baseTypeList = baseTypes.Count > 0 ? SyntaxFactory.BaseList([.. baseTypes]) : null;
             var typeMembers = this.AsClassMembers(name, members);
 
             return isRecord
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, kind);
             var nameToken = name.ToIdentifierToken();
             var typeParameterList = AsTypeParameterList(typeParameters);
-            var baseTypeList = itypes?.Count > 0 ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null;
+            var baseTypeList = itypes?.Count > 0 ? SyntaxFactory.BaseList([.. itypes]) : null;
             var structMembers = this.AsClassMembers(name, members);
 
             return isRecord
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, DeclarationModifiers.None),
                 name.ToIdentifierToken(),
                 AsTypeParameterList(typeParameters),
-                itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
+                itypes != null ? SyntaxFactory.BaseList([.. itypes]) : null,
                 default,
                 this.AsInterfaceMembers(members));
         }
@@ -925,16 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AttributeArgumentListSyntax? AsAttributeArgumentList(IEnumerable<SyntaxNode>? arguments)
-        {
-            if (arguments != null)
-            {
-                return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments.Select(AsAttributeArgument)));
-            }
-            else
-            {
-                return null;
-            }
-        }
+            => arguments != null ? SyntaxFactory.AttributeArgumentList([.. arguments.Select(AsAttributeArgument)]) : null;
 
         private static AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
         {
@@ -3173,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementBindingExpression(
-                SyntaxFactory.BracketedArgumentList((SeparatedSyntaxList<ArgumentSyntax>)SyntaxFactory.SeparatedList(arguments)));
+                SyntaxFactory.BracketedArgumentList([.. arguments.Cast<ArgumentSyntax>()]));
 
         /// <summary>
         /// Parenthesize the left hand size of a member access, invocation or element access expression
@@ -3197,7 +3188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> AsExpressionList(IEnumerable<SyntaxNode> expressions)
-            => SyntaxFactory.SeparatedList(expressions.OfType<ExpressionSyntax>());
+            => [.. expressions.OfType<ExpressionSyntax>()];
 
         public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size)
         {
@@ -3226,7 +3217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.ArgumentList(CreateArguments(arguments));
 
         private static SeparatedSyntaxList<ArgumentSyntax> CreateArguments(IEnumerable<SyntaxNode> arguments)
-            => SyntaxFactory.SeparatedList(arguments.Select(AsArgument));
+            => [.. arguments.Select(AsArgument)];
 
         private static ArgumentSyntax AsArgument(SyntaxNode argOrExpression)
             => argOrExpression as ArgumentSyntax ?? SyntaxFactory.Argument((ExpressionSyntax)argOrExpression);
@@ -3388,7 +3379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments)
             => SyntaxFactory.GenericName(identifier,
-                SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
+                SyntaxFactory.TypeArgumentList([.. typeArguments.Cast<TypeSyntax>()]));
 
         public override SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments)
         {
@@ -3396,11 +3387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.IdentifierName:
                     var sname = (SimpleNameSyntax)expression;
-                    return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
+                    return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList([.. typeArguments.Cast<TypeSyntax>()]));
 
                 case SyntaxKind.GenericName:
                     var gname = (GenericNameSyntax)expression;
-                    return gname.WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
+                    return gname.WithTypeArgumentList(SyntaxFactory.TypeArgumentList([.. typeArguments.Cast<TypeSyntax>()]));
 
                 case SyntaxKind.QualifiedName:
                     var qname = (QualifiedNameSyntax)expression;
@@ -3479,7 +3470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements)
-            => SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
+            => SyntaxFactory.TupleType([.. elements.Cast<TupleElementSyntax>()]);
 
         public override SyntaxNode TupleElementExpression(SyntaxNode type, string? name = null)
             => SyntaxFactory.TupleElement((TypeSyntax)type, name?.ToIdentifierToken() ?? default);
@@ -3627,7 +3618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
-            => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
+            => SyntaxFactory.TupleExpression([.. arguments.Select(AsArgument)]);
 
         internal override SyntaxNode RemoveAllComments(SyntaxNode node)
         {

@@ -112,9 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
         public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
-            => SyntaxFactory.TypeParameterList(
-                    SyntaxFactory.SeparatedList(
-                        typeParameterNames.Select(n => SyntaxFactory.TypeParameter(n))));
+            => SyntaxFactory.TypeParameterList([.. typeParameterNames.Select(SyntaxFactory.TypeParameter)]);
 
         internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
             => refKind switch
