@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -430,15 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
             var implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)
             {
-                implementingPart.ForceComplete(locationOpt, cancellationToken);
+                implementingPart.ForceComplete(locationOpt, filter, cancellationToken);
             }
 
-            base.ForceComplete(locationOpt, cancellationToken);
+            base.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
         public sealed override bool IsDefinedInSourceTree(

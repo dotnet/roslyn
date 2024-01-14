@@ -2400,7 +2400,6 @@ End Class
 
         <Fact>
         Public Sub NoObjectCopyForGetCurrent()
-            ' ILVerify: Unexpected type on the stack. { Offset = 25, Found = readonly address of '[...]C2+S1', Expected = address of '[...]C2+S1' }
             Dim TEMP = CompileAndVerify(
 <compilation>
     <file name="a.vb">      
@@ -2437,7 +2436,7 @@ End Class
 </compilation>, expectedOutput:=<![CDATA[
 23
 42
-]]>, verify:=Verification.FailsILVerify).VerifyIL("C2.DoStuff", <![CDATA[
+]]>).VerifyIL("C2.DoStuff", <![CDATA[
 {
   // Code size       66 (0x42)
   .maxstack  1

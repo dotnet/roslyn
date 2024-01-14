@@ -3243,9 +3243,25 @@ class Program
         Func<string> f = x.ToString;
         Console.Write(f.Invoke());
     }
-}"
-;
-            CompileAndVerify(source, expectedOutput: "42");
+}";
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
+            var verifier = CompileAndVerify(source, expectedOutput: "42",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0xe }" });
+
+            verifier.VerifyIL("Program.Main", """
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  box        "int"
+  IL_0007:  dup
+  IL_0008:  ldvirtftn  "string object.ToString()"
+  IL_000e:  newobj     "System.Func<string>..ctor(object, System.IntPtr)"
+  IL_0013:  callvirt   "string System.Func<string>.Invoke()"
+  IL_0018:  call       "void System.Console.Write(string)"
+  IL_001d:  ret
+}
+""");
         }
 
         [Fact]

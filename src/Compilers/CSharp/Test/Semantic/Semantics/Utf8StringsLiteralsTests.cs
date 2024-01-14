@@ -3328,7 +3328,23 @@ class C
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = """
+[Test3]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+[Test3]: Unexpected type on the stack. { Offset = 0x6, Found = address of Int32, Expected = Native Int }
+[Test3]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+""" });
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test3", """
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    "int <PrivateImplementationDetails>.F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57"
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+  IL_000b:  ret
+}
+""");
 
             string blobId = ExecutionConditionUtil.IsWindows ?
                 "I_000026F8" :
