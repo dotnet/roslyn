@@ -2033,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (attr.Parent != null)
                     {
                         var attrList = (AttributeListSyntax)attr.Parent;
-                        return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
+                        return attrList.WithAttributes([attr]).WithTarget(null);
                     }
 
                     break;
@@ -2693,7 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return AddBaseList(declaration, SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType))));
+                return AddBaseList(declaration, SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType((TypeSyntax)baseType)]));
             }
         }
 
@@ -2707,7 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return AddBaseList(declaration, SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType))));
+                return AddBaseList(declaration, SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType)]));
             }
         }
 
@@ -3201,14 +3201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size)
         {
-            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, [SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)size))]);
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, [SyntaxFactory.ArrayRankSpecifier([(ExpressionSyntax)size])]);
             return SyntaxFactory.ArrayCreationExpression(arrayType);
         }
 
         public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements)
         {
             var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType,
-                [SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))]);
+                [SyntaxFactory.ArrayRankSpecifier([SyntaxFactory.OmittedArraySizeExpression()])]);
             var initializer = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, AsExpressionList(elements));
             return SyntaxFactory.ArrayCreationExpression(arrayType, initializer);
         }

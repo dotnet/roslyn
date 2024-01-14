@@ -1236,9 +1236,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.GenericName(
                             SyntaxFactory.Identifier("IGeneral"))
                         .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("C"))))))
+                            SyntaxFactory.TypeArgumentList([SyntaxFactory.IdentifierName("C")]))))
                 .WithParameterList(
                     SyntaxFactory.ParameterList(
                         SyntaxFactory.SeparatedList<ParameterSyntax>(

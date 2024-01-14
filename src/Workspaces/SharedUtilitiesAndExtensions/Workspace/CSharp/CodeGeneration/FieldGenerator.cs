@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(field, info),
                 SyntaxFactory.VariableDeclaration(
                     field.Type.GenerateTypeSyntax(),
-                    SyntaxFactory.SingletonSeparatedList(
-                        AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
+                    [AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer))]));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));

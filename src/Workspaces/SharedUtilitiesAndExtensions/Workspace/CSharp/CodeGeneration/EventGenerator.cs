@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         GenerateModifiers(@event, destination, info),
                         SyntaxFactory.VariableDeclaration(
                             @event.Type.GenerateTypeSyntax(),
-                            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken()))))));
+                            [SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken())]))));
         }
 
         private static MemberDeclarationSyntax GenerateEventDeclarationWorker(

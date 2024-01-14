@@ -53,9 +53,8 @@ class B
                                         SyntaxFactory.TriviaList()),
                                     SyntaxFactory.AttributeTargetSpecifier(
                                         SyntaxFactory.Identifier("assembly")),
-                                    SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
-                                        SyntaxFactory.Attribute(
-                                            SyntaxFactory.ParseName("My"))),
+                                    [SyntaxFactory.Attribute(
+                                        SyntaxFactory.ParseName("My"))],
                                     SyntaxFactory.Token(
                                         SyntaxKind.CloseBracketToken))],
                 members:
@@ -65,11 +64,9 @@ class B
                         SyntaxFactory.TokenList(),
                         SyntaxFactory.Identifier("My"),
                         null,
-                        SyntaxFactory.BaseList(
-                            SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                                SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
-                                default,
-                                default),
+                        SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute"))]),
+                        default,
+                        default),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: [

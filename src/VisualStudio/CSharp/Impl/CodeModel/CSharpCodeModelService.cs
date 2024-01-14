@@ -1772,10 +1772,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             return SyntaxFactory.AttributeList(
                 target: specifier,
-                attributes: SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(
-                        name: SyntaxFactory.ParseName(name),
-                        argumentList: SyntaxFactory.ParseAttributeArgumentList("(" + value + ")"))));
+                attributes: [SyntaxFactory.Attribute(
+                    name: SyntaxFactory.ParseName(name),
+                    argumentList: SyntaxFactory.ParseAttributeArgumentList("(" + value + ")"))]);
         }
 
         public override SyntaxNode CreateAttributeArgumentNode(string name, string value)
@@ -3330,9 +3329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 if (argumentList == null)
                 {
-                    newArgumentList = SyntaxFactory.AttributeArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            (AttributeArgumentSyntax)attributeArgument));
+                    newArgumentList = SyntaxFactory.AttributeArgumentList([(AttributeArgumentSyntax)attributeArgument]);
                 }
                 else
                 {
@@ -3705,7 +3702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var typeName = SyntaxFactory.ParseTypeName(typeSymbol.ToMinimalDisplayString(semanticModel, position));
             var baseList = typeDeclaration.BaseList != null
                 ? typeDeclaration.BaseList.WithTypes(typeDeclaration.BaseList.Types.Insert(insertionIndex, SyntaxFactory.SimpleBaseType(typeName)))
-                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList((BaseTypeSyntax)SyntaxFactory.SimpleBaseType(typeName)));
+                : SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(typeName)]);
 
             return typeDeclaration.WithBaseList(baseList);
         }
