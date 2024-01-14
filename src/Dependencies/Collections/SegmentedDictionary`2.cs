@@ -180,10 +180,10 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                ref var value = ref FindValue(key);
-                if (!RoslynUnsafe.IsNullRef(ref value))
+                ref var entry = ref FindEntry(key);
+                if (!RoslynUnsafe.IsNullRef(ref entry))
                 {
-                    return value;
+                    return entry._value;
                 }
 
                 ThrowHelper.ThrowKeyNotFoundException(key);
@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            ref var value = ref FindValue(keyValuePair.Key);
-            if (!RoslynUnsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
+            ref var entry = ref FindEntry(keyValuePair.Key);
+            if (!RoslynUnsafe.IsNullRef(ref entry) && EqualityComparer<TValue>.Default.Equals(entry._value, keyValuePair.Value))
             {
                 return true;
             }
@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            ref var value = ref FindValue(keyValuePair.Key);
-            if (!RoslynUnsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
+            ref var entry = ref FindEntry(keyValuePair.Key);
+            if (!RoslynUnsafe.IsNullRef(ref entry) && EqualityComparer<TValue>.Default.Equals(entry._value, keyValuePair.Value))
             {
                 Remove(keyValuePair.Key);
                 return true;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public bool ContainsKey(TKey key)
-            => !RoslynUnsafe.IsNullRef(ref FindValue(key));
+            => !RoslynUnsafe.IsNullRef(ref FindEntry(key));
 
         public bool ContainsValue(TValue value)
         {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Collections
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
             => new Enumerator(this, Enumerator.KeyValuePair);
 
-        private ref TValue FindValue(TKey key)
+        private ref Entry FindEntry(TKey key)
         {
             if (key == null)
             {
@@ -442,11 +442,11 @@ namespace Microsoft.CodeAnalysis.Collections
 ConcurrentOperation:
             ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
 ReturnFound:
-            ref TValue value = ref entry._value;
+            ref var value = ref entry;
 Return:
             return ref value;
 ReturnNotFound:
-            value = ref RoslynUnsafe.NullRef<TValue>();
+            value = ref RoslynUnsafe.NullRef<Entry>();
             goto Return;
         }
 
@@ -819,14 +819,27 @@ ReturnNotFound:
             return false;
         }
 
+        internal bool TryGetKey(TKey equalKey, out TKey actualKey)
+        {
+            ref var entry = ref FindEntry(equalKey);
+            if (!RoslynUnsafe.IsNullRef(ref entry))
+            {
+                actualKey = entry._key;
+                return true;
+            }
+
+            actualKey = equalKey;
+            return false;
+        }
+
 #pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         {
-            ref var valRef = ref FindValue(key);
-            if (!RoslynUnsafe.IsNullRef(ref valRef))
+            ref var entry = ref FindEntry(key);
+            if (!RoslynUnsafe.IsNullRef(ref entry))
             {
-                value = valRef;
+                value = entry._value;
                 return true;
             }
 
@@ -1020,10 +1033,10 @@ ReturnNotFound:
             {
                 if (IsCompatibleKey(key))
                 {
-                    ref var value = ref FindValue((TKey)key);
-                    if (!RoslynUnsafe.IsNullRef(ref value))
+                    ref var entry = ref FindEntry((TKey)key);
+                    if (!RoslynUnsafe.IsNullRef(ref entry))
                     {
-                        return value;
+                        return entry._value;
                     }
                 }
 
