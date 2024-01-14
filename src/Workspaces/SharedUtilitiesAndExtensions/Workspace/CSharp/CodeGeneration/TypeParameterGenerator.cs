@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return typeParameters.Length == 0
                 ? null
                 : SyntaxFactory.TypeParameterList(
-                    SyntaxFactory.SeparatedList(typeParameters.Select(t => GenerateTypeParameter(t, info))));
+                    [.. typeParameters.Select(t => GenerateTypeParameter(t, info))]);
         }
 
         private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)

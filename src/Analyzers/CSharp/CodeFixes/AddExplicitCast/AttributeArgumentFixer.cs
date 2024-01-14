@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 => oldArgument.WithExpression(oldArgument.Expression.Cast(conversionType));
 
             protected override AttributeArgumentListSyntax GenerateNewArgumentList(AttributeArgumentListSyntax oldArgumentList, ArrayBuilder<AttributeArgumentSyntax> newArguments)
-                => oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+                => oldArgumentList.WithArguments([.. newArguments]);
 
             protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArgumentsOfArgumentList(AttributeArgumentListSyntax argumentList)
                 => argumentList.Arguments;

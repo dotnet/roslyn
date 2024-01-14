@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
                             .WithInitializer(SyntaxFactory.ConstructorInitializer(
                                     SyntaxKind.ThisConstructorInitializer,
-                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                                    expressions.Select(SyntaxFactory.Argument)))));
+                                    SyntaxFactory.ArgumentList([.. expressions.Select(SyntaxFactory.Argument)])));
 
                         documentEditor.ReplaceNode(constructor, modifiedConstructor);
                     }
@@ -340,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
                         typeList = typeList.Replace(baseRecord,
                             SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
+                                SyntaxFactory.ArgumentList([.. inheritedPositionalParams])
                                 .WithTrailingTrivia(baseTrailingTrivia)));
                     }
 
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 // remove trailing trivia from places where we would want to insert the parameter list before a line break
                 typeDeclaration.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                 typeDeclaration.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
+                SyntaxFactory.ParameterList([.. propertiesToAddAsParams])
                     .WithAppendedTrailingTrivia(constructorTrivia),
                 baseList,
                 typeDeclaration.ConstraintClauses,
@@ -536,8 +535,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         return SyntaxFactory.ObjectCreationExpression(
                             updatedObjectCreation.NewKeyword,
                             updatedObjectCreation.Type.WithoutTrailingTrivia(),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(updatedExpressions
-                                .Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
+                            SyntaxFactory.ArgumentList([.. updatedExpressions
+                                .Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia()))]),
                             newInitializer);
                     });
                 }

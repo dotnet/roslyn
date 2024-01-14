@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     callingConventionSyntax = SyntaxFactory.FunctionPointerCallingConvention(
                         SyntaxFactory.Token(SyntaxKind.UnmanagedKeyword),
                         conventionsList is object
-                            ? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.SeparatedList(conventionsList))
+                            ? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList([.. conventionsList])
                             : null);
 
                     static FunctionPointerUnmanagedCallingConventionSyntax GetConventionForString(string identifier)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
                 return AddInformationTo(
-                    SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
+                    SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList([.. parameters])), symbol);
             }
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return SyntaxFactory.GenericName(
                     symbol.Name.ToIdentifierToken(),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
+                    SyntaxFactory.TypeArgumentList([.. typeArguments]));
             }
 
             public static QualifiedNameSyntax CreateSystemObject()

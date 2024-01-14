@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             return ReturnStatement(
                 SwitchExpression(
                     (ExpressionSyntax)target,
-                    SeparatedList(sections.Select(section => AsSwitchExpressionArmSyntax(section, feature)))));
+                    [.. sections.Select(section => AsSwitchExpressionArmSyntax(section, feature))]));
         }
 
         private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section, Feature feature)

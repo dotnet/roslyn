@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             clauses.Add(SyntaxFactory.TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
-                SyntaxFactory.SeparatedList(constraints)));
+                [.. constraints]));
         }
     }
 }

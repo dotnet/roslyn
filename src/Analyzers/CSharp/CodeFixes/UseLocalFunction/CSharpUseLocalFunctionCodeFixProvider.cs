@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             return parameterList != null
                 ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
-                : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
-                    PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
+                : SyntaxFactory.ParameterList([.. delegateMethod.Parameters.Select(parameter =>
+                    PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
 
             static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {

@@ -198,10 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                                     SyntaxKind.SimpleMemberAccessExpression,
                                                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
                                                     SyntaxFactory.IdentifierName(nameof(object.Equals))),
-                                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                                                    new[] {
-                                                        SyntaxFactory.Argument(joinClause.LeftExpression),
-                                                        SyntaxFactory.Argument(joinClause.RightExpression.WithoutTrailingTrivia())}))),
+                                                SyntaxFactory.ArgumentList([
+                                                    SyntaxFactory.Argument(joinClause.LeftExpression),
+                                                    SyntaxFactory.Argument(joinClause.RightExpression.WithoutTrailingTrivia())])),
                                             statement)))).WithAdditionalAnnotations(Simplifier.Annotation);
                         }
                     case SyntaxKind.SelectClause:
