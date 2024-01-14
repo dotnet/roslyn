@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // replace one statement with multiple statements (see bug # 6310)
                     var statements = _statementsOrMemberOrAccessorToInsert.CastArray<StatementSyntax>();
-                    return SyntaxFactory.Block([.. statements]);
+                    return SyntaxFactory.Block(statements);
                 }
 
                 private SyntaxList<TSyntax> ReplaceList<TSyntax>(SyntaxList<TSyntax> list)

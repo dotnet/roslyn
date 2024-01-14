@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return flags;
         }
 
-        public override CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override CodeAnalysis.SyntaxToken CreateSeparator(SyntaxNode element)
         {
             return CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);
         }

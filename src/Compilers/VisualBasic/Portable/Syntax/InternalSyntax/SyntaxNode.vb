@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return [structure]
         End Function
 
-        Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
+        Public Overrides Function CreateSeparator(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken
             If element.Kind = SyntaxKind.JoinCondition Then
                 separatorKind = SyntaxKind.AndKeyword

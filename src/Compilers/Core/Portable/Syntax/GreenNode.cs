@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Factories 
 
-        public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
+        public abstract SyntaxToken CreateSeparator(SyntaxNode element);
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
         /*
