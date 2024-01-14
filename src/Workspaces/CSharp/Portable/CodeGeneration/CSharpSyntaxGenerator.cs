@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         name.ToIdentifierToken(),
                         null,
                         initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null)]));
-    }
+        }
 
         private protected override SyntaxNode ParameterDeclaration(
             string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
