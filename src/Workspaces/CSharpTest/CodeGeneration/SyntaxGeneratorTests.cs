@@ -1283,9 +1283,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.GenericName(
                             SyntaxFactory.Identifier("IGeneral"))
                         .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("C"))))))
+                            SyntaxFactory.TypeArgumentList([SyntaxFactory.IdentifierName("C")]))))
                 .WithOperatorKeyword(
                     SyntaxFactory.Token(
                         SyntaxFactory.TriviaList(),
@@ -1294,16 +1292,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxFactory.Space)))
                 .WithParameterList(
                     SyntaxFactory.ParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("x"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("x"))
                             .WithType(
                                 SyntaxFactory.IdentifierName(
                                     SyntaxFactory.Identifier(
                                         SyntaxFactory.TriviaList(),
                                         "C",
                                         SyntaxFactory.TriviaList(
-                                            SyntaxFactory.Space))))))
+                                            SyntaxFactory.Space))))])
                     .WithCloseParenToken(
                         SyntaxFactory.Token(
                             SyntaxFactory.TriviaList(),
@@ -1380,12 +1377,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithParameterList(
                     SyntaxFactory.BracketedParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("index"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("index"))
                             .WithType(
                                 SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword)))]))
                 .WithExpressionBody(
                     SyntaxFactory.ArrowExpressionClause(
                         SyntaxFactory.LiteralExpression(
@@ -1407,12 +1403,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithParameterList(
                     SyntaxFactory.BracketedParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("index"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("index"))
                             .WithType(
                                 SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword)))]))
                 .WithAccessorList(
                     SyntaxFactory.AccessorList(
                         SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
