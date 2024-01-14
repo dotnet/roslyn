@@ -19354,6 +19354,293 @@ class C(int y)
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_174_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    event EventHandler E;
+}
+
+class C1(int i) : I
+{
+    public event EventHandler E
+    {
+        add { Console.WriteLine(""C1"" + i++); }
+        remove { }
+    }
+}
+
+class C2(int i) : I
+{
+    public event EventHandler E
+    {
+        add { }
+        remove { Console.WriteLine(""C2"" + i++); }
+    }
+}
+
+class C3(int i) : I
+{
+    event EventHandler I.E
+    {
+        add { Console.WriteLine(""C3"" + i++); }
+        remove { }
+    }
+}
+
+class C4(int i) : I
+{
+    event EventHandler I.E
+    {
+        add { }
+        remove { Console.WriteLine(""C4"" + i++); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        c1.E += null;
+        c1.E += null;
+
+        I c2 = new C2(123);
+        c2.E -= null;
+        c2.E -= null;
+
+        I c3 = new C3(123);
+        c3.E += null;
+        c3.E += null;
+
+        I c4 = new C4(123);
+        c4.E -= null;
+        c4.E -= null;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C2123
+C2124
+C3123
+C3124
+C4123
+C4124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_175_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    int P { get; set; }
+}
+
+class C1(int i) : I
+{
+    public int P
+    {
+        get { Console.WriteLine(""C1"" + i++); return 0; }
+        set { }
+    }
+}
+
+class C2(int i) : I
+{
+    public int P
+    {
+        get {  return 0; }
+        set { Console.WriteLine(""C2"" + i++); }
+    }
+}
+
+class C3(int i) : I
+{
+    int I.P
+    {
+        get { Console.WriteLine(""C3"" + i++);  return 0; }
+        set { }
+    }
+}
+
+class C4(int i) : I
+{
+    int I.P
+    {
+        get {  return 0; }
+        set { Console.WriteLine(""C4"" + i++); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        _ = c1.P;
+        _ = c1.P;
+
+        I c2 = new C2(123);
+        c2.P = 0;
+        c2.P = 0;
+
+        I c3 = new C3(123);
+        _ = c3.P;
+        _ = c3.P;
+
+        I c4 = new C4(123);
+        c4.P = 0;
+        c4.P = 0;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C2123
+C2124
+C3123
+C3124
+C4123
+C4124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_176_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    void M();
+}
+
+class C1(int i) : I
+{
+    public void M() { Console.WriteLine(""C1"" + i++); }
+}
+
+class C3(int i) : I
+{
+    void I.M() { Console.WriteLine(""C3"" + i++); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        c1.M();
+        c1.M();
+
+        I c3 = new C3(123);
+        c3.M();
+        c3.M();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C3123
+C3124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_177_InInterfaceImplementation()
+        {
+            var source =
+@"
+#nullable enable
+
+using System;
+using System.ComponentModel;
+
+internal class MyClass(MyOtherClass otherClass, string key, int value) : INotifyPropertyChanged
+{
+    public string MyProperty { get; private set; } = GetValue(otherClass.MyProperty, key, value);
+    private PropertyChangedEventHandler? _propertyChanged;
+
+
+    private static string GetValue(string myProperty, string key, int value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged
+    {
+        add
+        {
+            lock (this)
+            {
+                if (_propertyChanged is null)
+                {
+                    otherClass.SomethingChanged += OnSomethingChanged;
+                }
+                _propertyChanged += value;
+
+            }
+        }
+        remove
+        {
+            lock (this)
+            {
+                if (_propertyChanged is null)
+                {
+                    return;
+                }
+                _propertyChanged -= value;
+                if (_propertyChanged is null)
+                {
+                    otherClass.SomethingChanged -= OnSomethingChanged;
+                }
+            }
+        }
+    }
+
+    private void OnSomethingChanged(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+internal class MyOtherClass
+{
+    public event EventHandler? SomethingChanged;
+    public string MyProperty { get; set; }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp).VerifyDiagnostics(
+                // (57,32): warning CS0067: The event 'MyOtherClass.SomethingChanged' is never used
+                //     public event EventHandler? SomethingChanged;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SomethingChanged").WithArguments("MyOtherClass.SomethingChanged").WithLocation(57, 32),
+                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string MyProperty { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyProperty").WithArguments("property", "MyProperty").WithLocation(58, 19)
+                );
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
