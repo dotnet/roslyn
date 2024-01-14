@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             return original is BlockSyntax block
-                ? block.WithStatements(SyntaxFactory.List(statementArray))
+                ? block.WithStatements([.. statementArray])
                 : statementArray.Length == 1
                     ? statementArray[0]
                     : SyntaxFactory.Block(statementArray);
@@ -222,17 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
-        {
-            switch (node)
+            => node switch
             {
-                case BlockSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
-                case SwitchSectionSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-        }
+                BlockSyntax n => n.WithStatements([.. statements]),
+                SwitchSectionSyntax n => n.WithStatements([.. statements]),
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
 
         protected override IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
         {

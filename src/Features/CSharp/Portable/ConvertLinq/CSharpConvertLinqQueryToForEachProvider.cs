@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             SyntaxFactory.TriviaList(),
                             SyntaxKind.OpenBraceToken,
                             SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
-                        SyntaxFactory.List(statements),
+                        [.. statements],
                         SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
                     expressionBody: null);
 
