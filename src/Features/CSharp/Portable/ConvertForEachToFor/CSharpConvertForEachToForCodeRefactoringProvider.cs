@@ -87,18 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var forStatement = SyntaxFactory.ForStatement(
                 SyntaxFactory.VariableDeclaration(
                     model.Compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(),
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                            argumentList: null,
-                            SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0))))),
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(),
+                    [SyntaxFactory.VariableDeclarator(
+                        indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
+                        argumentList: null,
+                        SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0)))]),
+                initializers: [],
                 (ExpressionSyntax)generator.LessThanExpression(
                     generator.IdentifierName(indexVariable),
                     generator.MemberAccessExpression(collectionVariable, foreachInfo.CountName)),
-                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.PostfixUnaryExpression(
-                        SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexVariable))),
+                [SyntaxFactory.PostfixUnaryExpression(
+                    SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexVariable))],
                 bodyStatement);
 
             if (!foreachInfo.RequireCollectionStatement)

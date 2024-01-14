@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         listIdentifier,
                                         SyntaxFactory.IdentifierName(nameof(IList.Add))),
-                                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(expression))))),
+                                    SyntaxFactory.ArgumentList([SyntaxFactory.Argument(expression)]))),
                               SyntaxFactory.ObjectCreationExpression(
                                   methodSymbol.GenerateReturnTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
                                   SyntaxFactory.ArgumentList(),
@@ -522,11 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return SyntaxFactory.LocalDeclarationStatement(
                             SyntaxFactory.VariableDeclaration(
                                 typeSyntax,
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.VariableDeclarator(
-                                        identifier,
-                                        argumentList: null,
-                                        SyntaxFactory.EqualsValueClause(expression))))).WithAdditionalAnnotations(Simplifier.Annotation);
+                                [SyntaxFactory.VariableDeclarator(
+                                    identifier,
+                                    argumentList: null,
+                                    SyntaxFactory.EqualsValueClause(expression))])).WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             private bool TryReplaceWithLocalFunction(QueryExpressionProcessingInfo queryExpressionProcessingInfo, out DocumentUpdateInfo documentUpdateInfo)
@@ -693,12 +692,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     expression => AddToBlockTop(SyntaxFactory.LocalDeclarationStatement(
                         SyntaxFactory.VariableDeclaration(
                             forEachStatement.Type,
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.VariableDeclarator(
-                                    forEachStatement.Identifier,
-                                    argumentList: null,
-                                    SyntaxFactory.EqualsValueClause(expression))))),
-                                        forEachStatement.Statement).WithAdditionalAnnotations(Formatter.Annotation), queryExpressionProcessingInfo);
+                            [SyntaxFactory.VariableDeclarator(
+                                forEachStatement.Identifier,
+                                argumentList: null,
+                                SyntaxFactory.EqualsValueClause(expression))])),
+                                    forEachStatement.Statement).WithAdditionalAnnotations(Formatter.Annotation), queryExpressionProcessingInfo);
                 return new DocumentUpdateInfo(forEachStatement, statements);
             }
 
