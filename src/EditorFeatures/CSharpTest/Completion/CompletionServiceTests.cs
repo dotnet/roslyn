@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         [Fact]
         public async Task PassThroughOptions2()
         {
-            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
+            using var workspace = new EditorTestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
 
-            var testDocument = new TestHostDocument("class C {}");
-            var project = new TestHostProject(workspace, testDocument, name: "project1");
+            var testDocument = new EditorTestHostDocument("class C {}");
+            var project = new EditorTestHostProject(workspace, testDocument, name: "project1");
             workspace.AddTestProject(project);
             workspace.OpenDocument(testDocument.Id);
 

@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default)
         {
-            return GetDiagnostics(CompilationStage.Parse, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Parse, false, symbolFilter: null, cancellationToken);
         }
 
         /// <summary>
@@ -2783,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default)
         {
-            return GetDiagnostics(CompilationStage.Declare, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Declare, false, symbolFilter: null, cancellationToken);
         }
 
         /// <summary>
@@ -2791,7 +2791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default)
         {
-            return GetDiagnostics(CompilationStage.Compile, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Compile, false, symbolFilter: null, cancellationToken);
         }
 
         /// <summary>
@@ -2800,22 +2800,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
         {
-            return GetDiagnostics(DefaultDiagnosticsStage, true, cancellationToken);
+            return GetDiagnostics(DefaultDiagnosticsStage, true, symbolFilter: null, cancellationToken);
         }
 
-        internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, CancellationToken cancellationToken)
+        internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, Predicate<ISymbolInternal>? symbolFilter, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken);
+            GetDiagnostics(stage, includeEarlierStages, diagnostics, symbolFilter, cancellationToken);
             return diagnostics.ToReadOnlyAndFree();
         }
 
         internal override void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
+            => GetDiagnostics(stage, includeEarlierStages, diagnostics, symbolFilter: null, cancellationToken);
+
+        internal void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, Predicate<ISymbolInternal>? symbolFilter, CancellationToken cancellationToken)
         {
             var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(builder.DiagnosticBag is { });
 
-            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, builder, cancellationToken);
+            GetDiagnosticsWithoutSeverityFiltering(stage, includeEarlierStages, builder, symbolFilter, cancellationToken);
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
@@ -2823,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Free();
         }
 
-        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, CancellationToken cancellationToken)
+        private void GetDiagnosticsWithoutSeverityFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, Predicate<Symbol>? symbolFilter, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(builder.DiagnosticBag is object);
 
@@ -2890,7 +2893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
+                builder.AddRange(GetSourceDeclarationDiagnostics(symbolFilter: symbolFilter, cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
 
                 if (EventQueue != null && SyntaxTrees.Length == 0)
                 {
@@ -3103,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
+        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, Predicate<Symbol>? symbolFilter = null, CancellationToken cancellationToken = default)
         {
             UsingsFromOptions.Complete(this, cancellationToken);
 
@@ -3116,9 +3119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new SourceLocation(root);
             }
 
-            Assembly.ForceComplete(location, cancellationToken);
+            Assembly.ForceComplete(location, symbolFilter, cancellationToken);
 
-            if (syntaxTree is null)
+            if (syntaxTree is null && symbolFilter is null)
             {
                 // Don't freeze the compilation if we're getting
                 // diagnostics for a single tree
@@ -3138,10 +3141,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = locationFilterOpt(result, syntaxTree, filterSpanWithinTree);
             }
 
-            // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+            // Do not check CLSCompliance if we are doing ENC.
+            if (symbolFilter == null)
+            {
 
-            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
+                // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
+                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
+            }
+            else
+            {
+                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), ImmutableArray<AssemblySymbol>.Empty);
+            }
         }
 
         private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
@@ -3201,7 +3212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             cancellationToken.ThrowIfCancellationRequested();
             if (stage == CompilationStage.Declare || (stage > CompilationStage.Declare && includeEarlierStages))
             {
-                var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
+                var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, symbolFilter: null, cancellationToken);
                 // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
                 // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
                 builder.AddRange(declarationDiagnostics.Diagnostics);
@@ -3357,7 +3368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 excludeDiagnostics = PooledHashSet<int>.GetInstance();
                 excludeDiagnostics.Add((int)ErrorCode.ERR_ConcreteMissingBody);
             }
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, symbolFilter: filterOpt, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
             // TODO (tomat): NoPIA:
@@ -3409,7 +3420,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag))
+                // We don't generate the module initializer for ENC scenarios, as the assembly is already loaded so edits to the module initializer would have no impact.
+                Debug.Assert(filterOpt == null || moduleBeingBuilt.IsEncDelta);
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag) && filterOpt == null)
                 {
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag);
                 }

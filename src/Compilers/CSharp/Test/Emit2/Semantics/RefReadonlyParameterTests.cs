@@ -7240,7 +7240,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "X1 Y1 Y1 X1 Y2 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
+        CompileAndVerify(source, expectedOutput: "X1 Y1 Y1 X1 Y2 X2").VerifyDiagnostics(
             // (9,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = c.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y1").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(9, 5),

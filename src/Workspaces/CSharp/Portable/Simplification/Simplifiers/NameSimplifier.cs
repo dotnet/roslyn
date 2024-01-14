@@ -306,7 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            SyntaxToken identifier;
             switch (name.Kind())
             {
                 case SyntaxKind.AliasQualifiedName:
@@ -331,11 +330,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     break;
 
                 case SyntaxKind.IdentifierName:
-                    identifier = ((IdentifierNameSyntax)name).Identifier;
+                    {
+                        var identifier = ((IdentifierNameSyntax)name).Identifier;
 
-                    // we can try to remove the Attribute suffix if this is the attribute name
-                    TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
-                    break;
+                        // we can try to remove the Attribute suffix if this is the attribute name
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                        break;
+                    }
+
+                case SyntaxKind.GenericName:
+                    {
+                        var identifier = ((GenericNameSyntax)name).Identifier;
+
+                        // we can try to remove the Attribute suffix if this is the attribute name
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                        break;
+                    }
             }
 
             if (replacementNode == null)
@@ -510,8 +520,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 newAttributeName,
                                 identifierToken.TrailingTrivia));
 
-                        replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                        switch (name)
+                        {
+                            case GenericNameSyntax generic:
+                                replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+
+                            default:
+                                replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+                        }
                         issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;

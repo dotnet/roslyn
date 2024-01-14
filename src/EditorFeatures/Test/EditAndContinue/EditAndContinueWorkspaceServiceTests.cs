@@ -16,6 +16,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -83,10 +85,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
                 .AddParts(
                     typeof(MockHostWorkspaceProvider),
-                    typeof(MockManagedHotReloadService))
+                    typeof(MockManagedHotReloadService),
+                    typeof(MockServiceBrokerProvider))
                 .AddParts(additionalParts);
 
             var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+            ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+            {
+                _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
+                _ => throw ExceptionUtilities.UnexpectedValue(t)
+            };
+
             ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
 
             solution = workspace.CurrentSolution;
@@ -196,7 +206,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                SetDocumentsState(session, solution, initialState);
+                EditAndContinueTestHelpers.SetDocumentsState(session, solution, initialState);
             }
 
             session.GetTestAccessor().SetTelemetryLogger((id, message) => _telemetryLog.Add($"{id}: {s_timePropertiesRegex.Replace(message.GetMessage(), "")}"), () => ++_telemetryId);
@@ -250,17 +260,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
             return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
-        }
-
-        internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
-        {
-            foreach (var project in solution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    session.LastCommittedSolution.Test_SetDocumentState(document.Id, state);
-                }
-            }
         }
 
         private static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
@@ -1853,7 +1852,7 @@ class C { int Y => 2; }
         [Fact]
         public async Task HasChanges()
         {
-            using var _ = CreateWorkspace(out var solution, out var service);
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var pathA = Path.Combine(TempRoot.Root, "A.cs");
             var pathB = Path.Combine(TempRoot.Root, "B.cs");
@@ -1903,6 +1902,17 @@ class C { int Y => 2; }
 
             // remove a project:
             Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveProject(projectD.Id), CancellationToken.None));
+
+            // add a project that doesn't support EnC:
+
+            oldSolution = solution;
+            var projectE = solution.AddProject("E", "E", NoCompilationConstants.LanguageName);
+            solution = projectE.Solution;
+
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+            // remove a project that doesn't support EnC:
+            Assert.False(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
 
             EndDebuggingSession(debuggingSession);
         }
@@ -3678,9 +3688,7 @@ class C { int Y => 1; }
         [CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
-            var composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
-
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
             var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;

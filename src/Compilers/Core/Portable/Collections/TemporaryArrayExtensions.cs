@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="array">A read-only reference to a temporary array which is part of a <c>using</c> statement.</param>
         /// <returns>A mutable reference to the temporary array.</returns>
         public static ref TemporaryArray<T> AsRef<T>(this in TemporaryArray<T> array)
+#pragma warning disable RS0042 // https://github.com/dotnet/roslyn-analyzers/issues/7128
             => ref Unsafe.AsRef(in array);
+#pragma warning restore RS0042
 
         public static bool Any<T>(this in TemporaryArray<T> array, Func<T, bool> predicate)
         {

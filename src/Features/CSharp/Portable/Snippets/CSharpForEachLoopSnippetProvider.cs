@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
         {
             var semanticModel = syntaxContext.SemanticModel;
             var position = syntaxContext.Position;
 
             var varIdentifier = SyntaxFactory.IdentifierName("var");
-            var collectionIdentifier = (ExpressionSyntax?)inlineExpression;
+            var collectionIdentifier = (ExpressionSyntax?)inlineExpressionInfo?.Node;
 
             if (collectionIdentifier is null)
             {
@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             ForEachStatementSyntax forEachStatement;
 
-            if (inlineExpression is not null &&
-                semanticModel.GetTypeInfo(inlineExpression).Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
+            if (inlineExpressionInfo is { TypeInfo: var typeInfo } &&
+                typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
             {
                 forEachStatement = SyntaxFactory.ForEachStatement(
                     SyntaxFactory.Token(SyntaxKind.AwaitKeyword),

@@ -51,54 +51,10 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
+
   </PropertyGroup>
 
-  <!-- 
-    There are effectively three modes that are needed for our source build TFMs and this is where
-    we calculate them
-  -->
-  <Choose>
-    <!-- 
-      1. CI source build leg: this needs to build the current and previous source build TFM. Both are 
-         necessary as the output of this leg is used in other CI source build legs. Those could be 
-         targeting NetCurrent or NetPrevious hence we must produce both. 
-
-        However the toolset package we produce must target NetPrevious. This package gets used as the 
-        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
-        the toolset must support that.
-    -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetPrevious)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent);$(NetPrevious)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </When>
-
-    <!--
-      2. Source build the product: this is the all up build of the product which needs only NetCurrent
-    -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetCurrent)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </When>
-
-    <!--
-      3. Everything else including normal CI, developer machines and official builds. This brings in enough
-         TFM that source build will go smoothly but doesn't bring in all source build TFMs to avoid adding
-         too many extra compiles to our builds
-    -->
-    <Otherwise>
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>net6.0</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework);net7.0</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(SourceBuildToolsetTargetFrameworks)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+  <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
 
   <!--
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
@@ -124,7 +80,7 @@
       These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">net6.0;net7.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">$(NetRoslyn)</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
