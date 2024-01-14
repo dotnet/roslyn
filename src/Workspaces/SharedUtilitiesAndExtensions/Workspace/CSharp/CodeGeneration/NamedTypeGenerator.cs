@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (types.Count == 0)
                 return null;
 
-            return SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(types));
+            return SyntaxFactory.BaseList([.. types]);
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)

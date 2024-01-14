@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ParameterListSyntax AsParameterList(IEnumerable<SyntaxNode>? parameters)
         {
             return parameters != null
-                ? SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast<ParameterSyntax>()))
+                ? SyntaxFactory.ParameterList([.. parameters.Cast<ParameterSyntax>()])
                 : SyntaxFactory.ParameterList();
         }
 

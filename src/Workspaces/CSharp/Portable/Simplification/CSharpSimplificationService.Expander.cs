@@ -748,8 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,
                                             SyntaxFactory.TypeArgumentList(
-                                                SyntaxFactory.SeparatedList(
-                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics))))))
+                                                [.. typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
                                             .WithLeadingTrivia(newNode.GetLeadingTrivia())
                                             .WithTrailingTrivia(newNode.GetTrailingTrivia())
                                             .WithAdditionalAnnotations(Simplifier.Annotation);

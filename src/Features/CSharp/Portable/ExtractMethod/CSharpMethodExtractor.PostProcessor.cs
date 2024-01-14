@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // use type name from the first decl statement
                     yield return
                         SyntaxFactory.LocalDeclarationStatement(
-                            SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, SyntaxFactory.SeparatedList(variables)));
+                            SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
                 }
 
                 map.Clear();

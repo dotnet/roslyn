@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 while (arrayType != null && !arrayType.Equals(underlyingType))
                 {
                     ranks.Add(SyntaxFactory.ArrayRankSpecifier(
-                        SyntaxFactory.SeparatedList(Enumerable.Repeat<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression(), arrayType.Rank))));
+                        [.. Enumerable.Repeat<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression(), arrayType.Rank)]));
 
                     arrayType = arrayType.ElementType as IArrayTypeSymbol;
                 }

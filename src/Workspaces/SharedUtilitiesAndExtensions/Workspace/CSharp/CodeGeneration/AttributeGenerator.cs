@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     ? default
                     : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
                         target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
-                        SyntaxFactory.SeparatedList(attributeNodes)));
+                        [.. attributeNodes]));
             }
             else
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(kvp.Key)), null,
                     ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
 
-            return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments));
+            return SyntaxFactory.AttributeArgumentList([.. arguments]);
         }
     }
 }

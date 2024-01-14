@@ -74,13 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             else
             {
                 var tupleForSelectExpression = SyntaxFactory.TupleExpression(
-                    SyntaxFactory.SeparatedList(identifiers.Select(
-                        identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))));
+                    [.. identifiers.Select(
+                        identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))]);
                 var declaration = SyntaxFactory.DeclarationExpression(
                     VarNameIdentifier,
                     SyntaxFactory.ParenthesizedVariableDesignation(
-                        SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(
-                            identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
+                        [.. identifiers.Select(SyntaxFactory.SingleVariableDesignation)]));
 
                 // Generate foreach(var (a,b) ... select (a, b))
                 return SyntaxFactory.ForEachVariableStatement(

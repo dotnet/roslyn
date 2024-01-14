@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
         private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
-            => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause(SeparatedList(subpatterns)), designation: null);
+            => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause([.. subpatterns]), designation: null);
 
         private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)
             => SyntaxFactory.RecursivePattern(type, positionalPatternClause: null, PropertyPatternClause([subpattern]), designation);

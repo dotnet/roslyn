@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList(SeparatedList(arguments)));
+                var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList([.. arguments]));
                 if (this.SelectionResult.ShouldPutAsyncModifier())
                 {
                     if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
