@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-    public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public GenerateDeconstructMethodTests(ITestOutputHelper logger)
            : base(logger)

@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private static async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, options);
             await TestWithOptionsAsync(workspace, expectedResults);
         }
 
         private static async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, compilationOptions: options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, compilationOptions: options);
             await TestWithOptionsAsync(workspace, expectedResults);
         }
 
-        private static async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
+        private static async Task TestWithOptionsAsync(EditorTestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using var workspace = TestWorkspace.Create(xmlString);
+            using var workspace = EditorTestWorkspace.Create(xmlString);
             var sourceDocument = workspace.Documents.Single(d => d.Name == "SourceDocument");
             var position = sourceDocument.CursorPosition!.Value;
             var documentId = sourceDocument.Id;
@@ -247,7 +247,7 @@ using System.Linq;
 
         private static async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.Create(xmlString);
+            using var workspace = EditorTestWorkspace.Create(xmlString);
             var sourceDocument = workspace.Documents.First(d => d.Name == "SourceDocument");
             var position = sourceDocument.CursorPosition!.Value;
             var documentId = sourceDocument.Id;
@@ -6262,7 +6262,7 @@ class C
     </Submission>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
             await TestWithOptionsAsync(workspace, MainDescription($"({FeaturesResources.parameter}) int x = 1"));
         }
 

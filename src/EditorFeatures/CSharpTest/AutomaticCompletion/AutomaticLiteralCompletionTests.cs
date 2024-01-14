@@ -556,14 +556,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 SingleQuote.OpenCharacter, SingleQuote.CloseCharacter);
         }
 
         internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter);
         }
     }

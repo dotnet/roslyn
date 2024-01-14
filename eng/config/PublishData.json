@@ -74,7 +74,6 @@
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
-      "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
@@ -190,8 +189,7 @@
       ],
       "vsBranch": "rel/d17.9",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.9.p2]"
+      "insertionTitlePrefix": "[d17.9]"
     },
     "main": {
       "nugetKind": [
@@ -201,7 +199,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.9.p3]"
+      "insertionTitlePrefix": "[d17.10]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

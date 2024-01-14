@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -20,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
         protected SymbolCompletionState state;
-        protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
         private readonly Location? _location;
         private readonly RefKind _refKind;
@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SourceParameterSymbol(
             Symbol owner,
-            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             ScopedKind scope,
@@ -107,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, ordinal)
         {
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
-            this.parameterType = parameterType;
             _refKind = refKind;
             _scope = scope;
             _name = name;
@@ -167,8 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             state.DefaultForceComplete(this, cancellationToken);
         }
 
@@ -258,14 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return IsImplicitlyDeclared ?
                     ImmutableArray<SyntaxReference>.Empty :
                     GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(this.Locations);
-            }
-        }
-
-        public sealed override TypeWithAnnotations TypeWithAnnotations
-        {
-            get
-            {
-                return this.parameterType;
             }
         }
 

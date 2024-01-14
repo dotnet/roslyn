@@ -6,8 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SpellCheck;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.SpellChecker;
 using Roslyn.Test.Utilities;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck
 {
     public abstract class AbstractSpellCheckFixerProviderTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string content);
+        protected abstract EditorTestWorkspace CreateWorkspace(string content);
 
 #pragma warning disable CS0612 // Type or member is obsolete
 #pragma warning disable CS0618 // Type or member is obsolete

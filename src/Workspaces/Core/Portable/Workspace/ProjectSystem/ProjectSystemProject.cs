@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             Solution solution, ProjectId projectId)
         {
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
-            var projectState = solution.State.GetRequiredProjectState(projectId);
+            var projectState = solution.SolutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
             foreach (var (_, documentState) in projectState.DocumentStates.States)
             {

@@ -20,9 +20,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.EncapsulateField
 {
     [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-    public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
+    public class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new EncapsulateFieldRefactoringProvider();
 
         private OptionsCollection AllOptionsOff

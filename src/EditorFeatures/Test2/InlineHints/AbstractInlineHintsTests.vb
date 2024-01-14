@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineHintsTests
         Protected Async Function VerifyParamHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
                 Dim options = New InlineParameterHintsOptions() With
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 
                 ValidateSpans(hostDocument, producedTags)
 
-                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
                 Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
                 Await ValidateDoubleClick(document, expectedDocument, inlineHints)
             End Using
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
         End Function
 
         Protected Async Function VerifyTypeHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
                 Dim options = New InlineTypeHintsOptions() With
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 
                 ValidateSpans(hostDocument, producedTags)
 
-                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
                 Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
                 Await ValidateDoubleClick(document, expectedDocument, typeHints)
             End Using

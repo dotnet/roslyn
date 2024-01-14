@@ -337,19 +337,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(errorReported);
         }
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
             => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             ImmutableArray<CodeFixProvider> codefixers,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
         {
             var fixers = codefixers.Select(codefix =>
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
-            var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
             if (additionalDocument != null)
             {
                 workspace.Projects.Single().AddAdditionalDocument(additionalDocument);
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             MockAnalyzerReference? analyzerReference = null,
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             out DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer,
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var analyzerReference = new MockAnalyzerReference(fixers, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
             // Verify available code fixes for .txt additional document
-            var tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.txt"));
+            var tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.txt"));
             using var workspace = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
 
             // Verify available code fixes for .log additional document
-            tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.log"));
+            tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.log"));
             using var workspace2 = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
