@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return ImmutableArray<IMethodSymbol>.Empty;
+            return [];
         }
 
         public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
@@ -217,21 +217,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return ImmutableArray<IMethodSymbol>.Empty;
+            return [];
         }
 
         private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
-            if (method != null)
-            {
-                builder.Add(method);
-            }
+            builder.AddIfNotNull(method);
 
             foreach (var nested in deconstruction.Nested)
-            {
                 FlattenDeconstructionMethods(nested, ref builder);
-            }
         }
 
         public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
@@ -287,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (node == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             return node switch
             {
@@ -300,12 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
             {
                 var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
-                if (type is null)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return ImmutableArray.Create<ISymbol>(type);
+                return type is null ? [] : [type];
             }
         }
 
@@ -365,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // If we're on 'var' then asking for the symbol-info will get us the symbol *without* nullability
             // information. Check for that, and try to return the type with nullability info if it has it.
@@ -377,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type.Equals(symbol, SymbolEqualityComparer.Default) &&
                     !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
                 {
-                    return ImmutableArray.Create<ISymbol>(type);
+                    return [type];
                 }
             }
 
