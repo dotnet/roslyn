@@ -469,7 +469,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 (parameter, _) => RewriteNestedReferences(parameter));
 
             var constructorDeclaration = ConstructorDeclaration(
-                List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))),
+                [.. methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))],
                 TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
                 typeDeclaration.Identifier.WithoutTrivia(),
                 rewrittenParameters.WithoutTrivia(),

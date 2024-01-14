@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 var singleLineInheritdocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: List(new XmlNodeSyntax[]
-                    {
+                    content:
+                    [
                         XmlText(xmlSpaceAfterTripleSlash),
                         XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                         XmlText(xmlNewLineToken),
-                    }),
+                    ],
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
                 sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

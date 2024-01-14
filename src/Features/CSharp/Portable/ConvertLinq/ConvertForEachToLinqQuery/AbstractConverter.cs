@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             => SyntaxFactory.QueryExpression(
                 CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), Enumerable.Empty<SyntaxTrivia>()),
                 SyntaxFactory.QueryBody(
-                    SyntaxFactory.List(ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))),
+                    [.. ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))],
                     SyntaxFactory.SelectClause(selectExpression)
                         .WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect)),
                     continuation: null)) // The current coverage of foreach statements to support does not need to use query continuations.                                                                                                           

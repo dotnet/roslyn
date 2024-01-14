@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     permutedParams.Add(XmlElement(
                         XmlElementStartTag(
                             XmlName("param"),
-                            List<XmlAttributeSyntax>(new[] { XmlNameAttribute(parameter.Name) })),
+                            [XmlNameAttribute(parameter.Name)]),
                         XmlElementEndTag(XmlName("param"))));
                 }
             }

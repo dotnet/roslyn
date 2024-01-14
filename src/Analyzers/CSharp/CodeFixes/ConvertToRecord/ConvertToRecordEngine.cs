@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 return [];
             }
 
-            return SyntaxFactory.List(result.Declaration.AttributeLists.SelectAsArray(attributeList =>
+            return [.. result.Declaration.AttributeLists.Select(attributeList =>
             {
                 if (attributeList.Target == null)
                 {
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     return attributeList.WithoutTrivia();
                 }
-            }));
+            })];
         }
 
         private static async Task RefactorInitializersAsync(
@@ -631,13 +631,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         // Our parameter method gives a newline (without leading trivia) to start
                         // because we assume we're following some other comment, we replace that newline to add
                         // the start of comment leading trivia as well since we're not following another comment
-                        SyntaxFactory.List(propertyParamComments.Skip(1)
+                        [.. propertyParamComments.Skip(1)
                             .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
                                 .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/**"))
                                 .WithTrailingTrivia(exteriorTrivia)))
-                            .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))),
-                            SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
-                                .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
+                            .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
+                        SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
+                            .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
                 }
                 else
                 {
@@ -645,8 +645,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     // also skip first newline and replace with non-newline
                     newClassDocComment = SyntaxFactory.DocumentationCommentTrivia(
                         SyntaxKind.MultiLineDocumentationCommentTrivia,
-                        SyntaxFactory.List(propertyParamComments.Skip(1)
-                            .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))))
+                        [.. propertyParamComments.Skip(1)
+                            .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
                         .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
                 }
             }
