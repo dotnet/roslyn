@@ -185,12 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.FieldDeclaration),
                 SyntaxFactory.VariableDeclaration(
                     (TypeSyntax)type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            name.ToIdentifierToken(),
-                            null,
-                            initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null))));
-        }
+                    [SyntaxFactory.VariableDeclarator(
+                        name.ToIdentifierToken(),
+                        null,
+                        initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null)]));
+    }
 
         private protected override SyntaxNode ParameterDeclaration(
             string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
@@ -526,8 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.EventFieldDeclaration),
                 SyntaxFactory.VariableDeclaration(
                     (TypeSyntax)type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(name))));
+                    [SyntaxFactory.VariableDeclarator(name)]));
         }
 
         public override SyntaxNode CustomEventDeclaration(
@@ -861,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.EnumDeclaration),
                 name.ToIdentifierToken(),
-                underlyingType != null ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList((BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)underlyingType))) : null,
+                underlyingType != null ? SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType((TypeSyntax)underlyingType)]) : null,
                 this.AsEnumMembers(members));
         }
 
@@ -974,14 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeListSyntax AsAttributeList(SyntaxNode node)
         {
-            if (node is AttributeSyntax attr)
-            {
-                return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attr));
-            }
-            else
-            {
-                return (AttributeListSyntax)node;
-            }
+            return node is AttributeSyntax attr ? SyntaxFactory.AttributeList([attr]) : (AttributeListSyntax)node;
         }
 
         private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
@@ -2056,7 +2047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var vd = GetVariableDeclaration(declaration);
             if (vd != null)
             {
-                return WithVariableDeclaration(declaration, vd.WithVariables(SyntaxFactory.SingletonSeparatedList(variable)));
+                return WithVariableDeclaration(declaration, vd.WithVariables([variable]));
             }
 
             return declaration;

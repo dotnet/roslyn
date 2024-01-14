@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (parameterType is TypeSyntax typeSyntax)
             {
                 var parameter = SyntaxFactory.CrefParameter(typeSyntax);
-                parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
+                parameterList = SyntaxFactory.CrefParameterList([parameter]);
             }
             else
             {

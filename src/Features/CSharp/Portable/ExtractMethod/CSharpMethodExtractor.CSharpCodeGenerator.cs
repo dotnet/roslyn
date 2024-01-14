@@ -603,8 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     invocation,
                                     IdentifierName(nameof(Task.ConfigureAwait))),
-                                ArgumentList(SingletonSeparatedList(
-                                    Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                                ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
                         }
                     }
 

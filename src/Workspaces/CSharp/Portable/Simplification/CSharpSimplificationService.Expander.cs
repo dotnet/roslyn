@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                             var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
                                 simpleLambda.AsyncKeyword,
-                                SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
+                                SyntaxFactory.ParameterList([newSimpleLambdaParameter])
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,

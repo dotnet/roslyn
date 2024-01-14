@@ -50,6 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         SyntaxKind.SimpleMemberAccessExpression,
                         expression,
                         SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryOrLinqInvocationExpression)))));
+                    SyntaxFactory.ArgumentList([SyntaxFactory.Argument(queryOrLinqInvocationExpression)])));
     }
 }

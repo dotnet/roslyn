@@ -295,8 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
                 result.Add(declaration.WithDeclaration(
-                    declaration.Declaration.WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(variable))));
+                    declaration.Declaration.WithVariables([variable])));
                 result.AddRange(statements.Skip(2));
 
                 return result.ToImmutable();
