@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // initialized lazily and could be null if there are no static lambdas
         private SynthesizedClosureEnvironment _lazyStaticLambdaFrame;
 
+        private DelegateCache _lazyDelegateCache;
+
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
@@ -163,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<EncLambdaInfo> lambdaDebugInfoBuilder,
             ArrayBuilder<LambdaRuntimeRudeEditInfo> lambdaRuntimeRudeEditsBuilder,
             VariableSlotAllocator? slotAllocator,
+            DelegateCache delegateCache,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
@@ -179,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _topLevelMethodOrdinal = methodOrdinal;
             _lambdaDebugInfoBuilder = lambdaDebugInfoBuilder;
             _lambdaRuntimeRudeEditsBuilder = lambdaRuntimeRudeEditsBuilder;
+            _lazyDelegateCache = delegateCache;
             _currentMethod = method;
             _analysis = analysis;
             _assignLocals = assignLocals;
@@ -234,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LambdaRuntimeRudeEditInfo> lambdaRuntimeRudeEditsBuilder,
             ArrayBuilder<EncClosureInfo> closureDebugInfoBuilder,
             VariableSlotAllocator? slotAllocator,
+            DelegateCache delegateCache,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
@@ -262,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaDebugInfoBuilder,
                 lambdaRuntimeRudeEditsBuilder,
                 slotAllocator,
+                delegateCache,
                 compilationState,
                 diagnostics,
                 assignLocals);
@@ -1337,16 +1343,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     node.MethodOpt,
                     out var receiver,
-                    out var method,
+                    out var mappedTargetMethod,
                     ref arguments,
                     ref argRefKinds);
+
+                if (mappedTargetMethod.IsStatic && node.WasLocalFunctionConversion
+                    && DelegateCache.IsAllowed(CompilationState.Compilation.LanguageVersion, _topLevelMethod, _inExpressionLambda))
+                {
+                    var delegateCache = _lazyDelegateCache ??= new DelegateCache(_topLevelMethodOrdinal);
+                    var originalCurrentFunction = _currentMethod is SynthesizedClosureMethod closureMethod ? closureMethod.BaseMethod : _currentMethod;
+                    var originalFactory = new SyntheticBoundNodeFactory(originalCurrentFunction, node.Syntax, CompilationState, Diagnostics);
+
+                    // Clear wasLocalFunctionConversion to avoid infinite recursion.
+                    node = node.Update(
+                        node.Argument, node.MethodOpt, node.IsExtensionMethod,
+                        node.WasTargetTyped, wasLocalFunctionConversion: false, node.Type);
+
+                    var originalRewritten = delegateCache.Rewrite(originalFactory, node);
+
+                    return Visit(originalRewritten);
+                }
 
                 return new BoundDelegateCreationExpression(
                     node.Syntax,
                     receiver,
-                    method,
+                    mappedTargetMethod,
                     node.IsExtensionMethod,
                     node.WasTargetTyped,
+                    node.WasLocalFunctionConversion,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1657,6 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referencedMethod,
                 isExtensionMethod: false,
                 wasTargetTyped: false,
+                wasLocalFunctionConversion: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,

@@ -589,6 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         debugDocumentProvider: null,
                         diagnostics: diagnostics,
                         codeCoverageSpans: out ImmutableArray<SourceSpan> codeCoverageSpans,
+                        delegateCache: out var delegateCache,
                         sawLambdas: out bool sawLambdas,
                         sawLocalFunctions: out bool sawLocalFunctions,
                         sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
@@ -663,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             lambdaRuntimeRudeEditsBuilder,
                             closureDebugInfoBuilder,
                             slotAllocator: null,
+                            delegateCache: delegateCache,
                             compilationState: compilationState,
                             diagnostics: diagnostics,
                             assignLocals: localsSet);

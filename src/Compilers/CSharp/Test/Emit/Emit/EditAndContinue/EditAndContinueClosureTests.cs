@@ -1737,7 +1737,9 @@ class C
 
             // new local function has been added:
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__f|1#1_0#1}");
+                "C: {<F>g__f|1#1_0#1, <>O#1}",
+                "C.<>O#1: {<0>__f}"
+            );
 
             // added:
             diff1.VerifyIL("C.<F>g__f|1#1_0#1", @"
@@ -1756,7 +1758,10 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>g__f|1#1_0#1}");
+                "C.<>O#2: {<0>__f}",
+                "C: {<F>g__f|1#1_0#1, <>O#2, <>O#1}",
+                "C.<>O#1: {<0>__f}"
+            );
 
             // updated:
             diff2.VerifyIL("C.<F>g__f|1#1_0#1", @"
@@ -2134,7 +2139,9 @@ class C
             var reader1 = md1.Reader;
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1}");
+                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1, <>O#1}",
+                "C.<>O#1: {<0>__f1, <1>__f2}"
+            );
 
             // updated:
             diff1.VerifyIL("C.<F>g__f1|1_0(int)", @"
@@ -2165,7 +2172,10 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2}");
+                "C.<>O#2: {<0>__f1, <1>__f2, <2>__f3}",
+                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2, <>O#2, <>O#1}",
+                "C.<>O#1: {<0>__f1, <1>__f2}"
+            );
 
             // updated:
             diff2.VerifyIL("C.<F>g__f1|1_0(int)", @"
@@ -2207,7 +2217,11 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))));
 
             diff3.VerifySynthesizedMembers(
-                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2}");
+                "C.<>O#2: {<0>__f1, <1>__f2, <2>__f3}",
+                "C: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2, <>O#3, <>O#2, <>O#1}",
+                "C.<>O#3: {<0>__f1, <1>__f2, <2>__f3}",
+                "C.<>O#1: {<0>__f1, <1>__f2}"
+            );
 
             // updated:
             diff3.VerifyIL("C.<F>g__f1|1_0(int)", @"

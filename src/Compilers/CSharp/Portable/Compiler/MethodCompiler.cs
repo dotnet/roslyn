@@ -1381,6 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider: debugDocumentProvider,
                     diagnostics: diagnostics,
                     codeCoverageSpans: out codeCoverageSpans,
+                    delegateCache: out var delegateCache,
                     sawLambdas: out bool sawLambdas,
                     sawLocalFunctions: out bool sawLocalFunctions,
                     sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
@@ -1426,6 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lambdaRuntimeRudeEditsBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,
+                        delegateCache,
                         compilationState,
                         diagnostics,
                         assignLocals: null);

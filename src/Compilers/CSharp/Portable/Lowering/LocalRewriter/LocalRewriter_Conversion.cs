@@ -563,26 +563,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering
                         Debug.Assert(oldNodeOpt is { });
                         var mg = (BoundMethodGroup)rewrittenOperand;
-                        var method = oldNodeOpt.SymbolOpt;
-                        Debug.Assert(method is { });
+                        var targetMethod = oldNodeOpt.SymbolOpt;
+                        Debug.Assert(targetMethod is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!targetMethod.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !targetMethod.IsAbstract && !targetMethod.IsVirtual) ? _factory.Type(targetMethod.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
+                        var wasLocalFunctionConversion = targetMethod.MethodKind == MethodKind.LocalFunction;
+                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: targetMethod,
+                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod,
+                                                                                        wasTargetTyped: false,
+                                                                                        wasLocalFunctionConversion,
+                                                                                        type: rewrittenType);
 
                         Debug.Assert(_factory.TopLevelMethod is { });
 
-                        if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
-                            && !_inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
-                            && _factory.TopLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
-                            && DelegateCacheRewriter.CanRewrite(boundDelegateCreation))
+                        if (targetMethod.IsStatic && !boundDelegateCreation.IsExtensionMethod && !wasLocalFunctionConversion
+                            && DelegateCache.IsAllowed(_compilation.LanguageVersion, _factory.TopLevelMethod, _inExpressionLambda))
                         {
-                            var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
-                            return rewriter.Rewrite(boundDelegateCreation);
+                            var delegateCache = _lazyDelegateCache ??= new DelegateCache(_topLevelMethodOrdinal);
+
+                            return delegateCache.Rewrite(_factory, boundDelegateCreation);
                         }
                         else
                         {

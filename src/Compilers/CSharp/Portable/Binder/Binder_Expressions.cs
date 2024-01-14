@@ -4897,7 +4897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to
                 // its method form we will rewrite this expression to refer to the method.
 
-                return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type, hasErrors: hasErrors);
+                return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, wasLocalFunctionConversion: false, type: type, hasErrors: hasErrors);
             }
 
             else if (analyzedArguments.HasErrors)
@@ -4912,7 +4912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
                 hasErrors = MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion);
                 methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, wasTargetTyped, type, hasErrors);
+                return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, wasTargetTyped, wasLocalFunctionConversion: false, type, hasErrors);
             }
 
             else if ((object)argument.Type == null)
@@ -4923,7 +4923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 3. A value of the compile-time type dynamic (which is dynamically case 4), or
             else if (argument.HasDynamicType())
             {
-                return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
+                return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, wasLocalFunctionConversion: false, type: type);
             }
 
             // 4. A delegate type.
@@ -4965,7 +4965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, isAddressOf: false, type, diagnostics))
                         {
                             // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
-                            return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
+                            return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, wasLocalFunctionConversion: false, type: type);
                         }
                     }
                 }

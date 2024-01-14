@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             method = VisitMethodSymbol(method);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, node.WasTargetTyped, type);
+            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, node.WasTargetTyped, node.WasLocalFunctionConversion, type);
         }
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)

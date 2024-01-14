@@ -6974,7 +6974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDelegateCreationExpression : BoundExpression
     {
-        public BoundDelegateCreationExpression(SyntaxNode syntax, BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+        public BoundDelegateCreationExpression(SyntaxNode syntax, BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, bool wasLocalFunctionConversion, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DelegateCreationExpression, syntax, type, hasErrors || argument.HasErrors())
         {
 
@@ -6985,6 +6985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.MethodOpt = methodOpt;
             this.IsExtensionMethod = isExtensionMethod;
             this.WasTargetTyped = wasTargetTyped;
+            this.WasLocalFunctionConversion = wasLocalFunctionConversion;
         }
 
         public new TypeSymbol Type => base.Type!;
@@ -6992,15 +6993,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol? MethodOpt { get; }
         public bool IsExtensionMethod { get; }
         public bool WasTargetTyped { get; }
+        public bool WasLocalFunctionConversion { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDelegateCreationExpression(this);
 
-        public BoundDelegateCreationExpression Update(BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, TypeSymbol type)
+        public BoundDelegateCreationExpression Update(BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, bool wasLocalFunctionConversion, TypeSymbol type)
         {
-            if (argument != this.Argument || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (argument != this.Argument || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || wasTargetTyped != this.WasTargetTyped || wasLocalFunctionConversion != this.WasLocalFunctionConversion || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDelegateCreationExpression(this.Syntax, argument, methodOpt, isExtensionMethod, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundDelegateCreationExpression(this.Syntax, argument, methodOpt, isExtensionMethod, wasTargetTyped, wasLocalFunctionConversion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11748,7 +11750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, type);
+            return node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.WasLocalFunctionConversion, type);
         }
         public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
         {
@@ -14146,12 +14148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(argument, methodOpt, node.IsExtensionMethod, node.WasTargetTyped, infoAndType.Type!);
+                updatedNode = node.Update(argument, methodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.WasLocalFunctionConversion, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(argument, methodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.Type);
+                updatedNode = node.Update(argument, methodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.WasLocalFunctionConversion, node.Type);
             }
             return updatedNode;
         }
@@ -16451,6 +16453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("isExtensionMethod", node.IsExtensionMethod, null),
             new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
+            new TreeDumperNode("wasLocalFunctionConversion", node.WasLocalFunctionConversion, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

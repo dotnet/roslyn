@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -17,54 +16,50 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>
 /// This type helps rewrite the delegate creations that target static method groups to use a cached instance of delegate.
 /// </summary>
-internal sealed class DelegateCacheRewriter
+internal sealed class DelegateCache
 {
-    private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
     private Dictionary<MethodSymbol, DelegateCacheContainer>? _genericCacheContainers;
 
-    internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    internal DelegateCache(int topLevelMethodOrdinal)
     {
-        Debug.Assert(factory.TopLevelMethod is { });
-
-        _factory = factory;
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    internal static bool CanRewrite(BoundDelegateCreationExpression boundDelegateCreation)
+    internal static bool IsAllowed(LanguageVersion languageVersion, MethodSymbol topLevelMethod, bool inExpressionLambda)
     {
-        var targetMethod = boundDelegateCreation.MethodOpt;
-
-        Debug.Assert(targetMethod is { });
-
-        return targetMethod.IsStatic && !boundDelegateCreation.IsExtensionMethod;
+        return languageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
+            && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
+            && topLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
+            ;
     }
 
-    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation)
+    internal BoundExpression Rewrite(SyntheticBoundNodeFactory factory, BoundDelegateCreationExpression boundDelegateCreation)
     {
         Debug.Assert(boundDelegateCreation.MethodOpt is { });
 
-        var oldSyntax = _factory.Syntax;
-        _factory.Syntax = boundDelegateCreation.Syntax;
+        var oldSyntax = factory.Syntax;
+        factory.Syntax = boundDelegateCreation.Syntax;
 
-        var cacheContainer = GetOrAddCacheContainer(boundDelegateCreation);
-        var cacheField = cacheContainer.GetOrAddCacheField(_factory, boundDelegateCreation);
+        var cacheContainer = GetOrAddCacheContainer(factory, boundDelegateCreation);
+        var cacheField = cacheContainer.GetOrAddCacheField(factory, boundDelegateCreation);
 
-        var boundCacheField = _factory.Field(receiver: null, cacheField);
-        var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
+        var boundCacheField = factory.Field(receiver: null, cacheField);
 
-        _factory.Syntax = oldSyntax;
+        var rewrittenNode = factory.Coalesce(boundCacheField, factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
+
+        factory.Syntax = oldSyntax;
 
         return rewrittenNode;
     }
 
-    private DelegateCacheContainer GetOrAddCacheContainer(BoundDelegateCreationExpression boundDelegateCreation)
+    private DelegateCacheContainer GetOrAddCacheContainer(SyntheticBoundNodeFactory factory, BoundDelegateCreationExpression boundDelegateCreation)
     {
-        Debug.Assert(_factory.ModuleBuilderOpt is { });
-        Debug.Assert(_factory.CurrentFunction is { });
+        Debug.Assert(factory.ModuleBuilderOpt is { });
+        Debug.Assert(factory.CurrentFunction is { });
 
-        var generation = _factory.ModuleBuilderOpt.CurrentGenerationOrdinal;
+        var generation = factory.ModuleBuilderOpt.CurrentGenerationOrdinal;
 
         DelegateCacheContainer? container;
 
@@ -90,9 +85,9 @@ internal sealed class DelegateCacheRewriter
         //
         // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
 
-        if (!TryGetOwnerFunction(_factory.CurrentFunction, boundDelegateCreation, out var ownerFunction))
+        if (!TryGetOwnerFunction(factory.CurrentFunction, boundDelegateCreation, out var ownerFunction))
         {
-            var typeCompilationState = _factory.CompilationState;
+            var typeCompilationState = factory.CompilationState;
             container = typeCompilationState.ConcreteDelegateCacheContainer;
 
             if (container is { })
@@ -116,7 +111,7 @@ internal sealed class DelegateCacheRewriter
             containers.Add(ownerFunction, container);
         }
 
-        _factory.AddNestedType(container);
+        factory.AddNestedType(container);
 
         return container;
     }
