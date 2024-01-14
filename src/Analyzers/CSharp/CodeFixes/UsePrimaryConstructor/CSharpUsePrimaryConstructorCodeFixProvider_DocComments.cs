@@ -157,7 +157,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return Trivia(DocumentationCommentTrivia(
                 SyntaxKind.SingleLineDocumentationCommentTrivia,
-                List(content),
+                [.. content],
                 typeStructure.EndOfComment));
         }
 
