@@ -63,18 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             var variableDeclaration = SyntaxFactory.VariableDeclaration(
                 iteratorTypeSyntax,
-                variables: SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(iteratorVariable,
-                        argumentList: null,
-                        SyntaxFactory.EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
+                variables: [SyntaxFactory.VariableDeclarator(iteratorVariable,
+                    argumentList: null,
+                    SyntaxFactory.EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))])
                 .NormalizeWhitespace();
 
             return SyntaxFactory.ForStatement(
                 variableDeclaration,
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 SyntaxFactory.BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
-                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)),
+                [SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)],
                 SyntaxFactory.Block());
         }
 

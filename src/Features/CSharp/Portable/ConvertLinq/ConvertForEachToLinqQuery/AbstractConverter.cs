@@ -281,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             SyntaxKind.SimpleMemberAccessExpression,
                             receiver.Parenthesize(),
                             SyntaxFactory.IdentifierName(nameof(Enumerable.Where))),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(lambda))));
+                        SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
 
                     ++extendedNodeIndex;
                     return CreateLinqInvocationForExtendedNode(selectExpression, ref extendedNodeIndex, ref receiver, ref hasForEachChild);

@@ -68,10 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // { X.Y: pattern }
             var propertyPattern = PropertyPatternClause(
                 Token(SyntaxKind.OpenBraceToken).WithoutTrivia().WithAppendedTrailingTrivia(Space),
-                SingletonSeparatedList(
-                    Subpattern(
-                        CreateExpressionColon(conditionalAccessExpression),
-                        CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))),
+                [Subpattern(
+                    CreateExpressionColon(conditionalAccessExpression),
+                    CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))],
                 Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
 
             // T { X.Y: pattern }
