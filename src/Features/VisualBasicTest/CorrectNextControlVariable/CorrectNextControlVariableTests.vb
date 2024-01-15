@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariable
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.CorrectNextControlVariable
     <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
     Public Class CorrectNextControlVariableTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New CorrectNextControlVariableCodeFixProvider)

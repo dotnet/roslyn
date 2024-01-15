@@ -12,9 +12,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest
+    public class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertIfToSwitchCodeRefactoringProvider();
 
         [Fact]

@@ -15,9 +15,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsNameTupleElement)]
-    public class NameTupleElementTests : AbstractCSharpCodeActionTest
+    public class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpNameTupleElementCodeRefactoringProvider();
 
         [Fact]

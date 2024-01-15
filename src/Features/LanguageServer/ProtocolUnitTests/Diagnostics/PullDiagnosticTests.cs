@@ -499,7 +499,7 @@ class B {";
             await OpenDocumentAsync(testLspServer, csproj1Document);
 
             // This opens all documents in the workspace and ensures buffers are created.
-            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id).GetTextBuffer();
+            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id)!.GetTextBuffer();
 
             // Set CSProj2 as the active context and get diagnostics.
             testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);

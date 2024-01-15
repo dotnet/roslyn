@@ -9,20 +9,20 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CodeFixVerifierHelper.cs" Link="CodeFixVerifierHelper.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1+Test.cs" Link="CSharpCodeRefactoringVerifier`1+Test.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1.cs" Link="CSharpCodeRefactoringVerifier`1.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\SharedVerifierState.cs" Link="SharedVerifierState.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1+Test.cs" Link="VisualBasicCodeRefactoringVerifier`1+Test.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1.cs" Link="VisualBasicCodeRefactoringVerifier`1.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CodeFixVerifierHelper.cs" Link="CodeFixVerifierHelper.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1+Test.cs" Link="CSharpCodeRefactoringVerifier`1+Test.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1.cs" Link="CSharpCodeRefactoringVerifier`1.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\SharedVerifierState.cs" Link="SharedVerifierState.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1+Test.cs" Link="VisualBasicCodeRefactoringVerifier`1+Test.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1.cs" Link="VisualBasicCodeRefactoringVerifier`1.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
     <Compile Include="..\..\..\Workspaces\CoreTestUtilities\OptionsCollection.cs" Link="OptionsCollection.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">

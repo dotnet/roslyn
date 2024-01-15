@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
-        Friend ReadOnly Workspace As TestWorkspace
+        Friend ReadOnly Workspace As EditorTestWorkspace
         Private ReadOnly _subjectBuffer As ITextBuffer
         Private ReadOnly _textView As IWpfTextView
         Private ReadOnly _waiter As IAsynchronousOperationWaiter
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End Sub
         End Class
 
-        Private Sub New(workspace As TestWorkspace)
+        Private Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
 
@@ -103,12 +103,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Sub
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
+            Dim workspace = EditorTestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
+            Dim workspace = EditorTestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 

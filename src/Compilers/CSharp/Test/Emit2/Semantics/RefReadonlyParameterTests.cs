@@ -7257,7 +7257,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
         else
         {
-            CompileAndVerify(new[] { source1, source2 }, expectedOutput: "X1 Y1 Y2", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            CompileAndVerify(new[] { source1, source2 }, expectedOutput: "X1 Y1 Y2").VerifyDiagnostics(
                 // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
                 // x = c.Y1;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y1").WithArguments("in int p", "ref readonly int p").WithLocation(5, 5),
@@ -7277,7 +7277,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             y({modifier} i);
             """;
 
-        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "Y1 X1 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "Y1 X1 X2").VerifyDiagnostics(
             // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = c.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),

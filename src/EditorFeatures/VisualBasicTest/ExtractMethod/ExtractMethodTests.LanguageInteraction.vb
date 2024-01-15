@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -3340,7 +3341,7 @@ End Namespace
                 Const code = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C
@@ -3353,7 +3354,7 @@ End Namespace"
                 Const expected = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C
@@ -3374,7 +3375,7 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Using workspace = TestWorkspace.Create(
+                Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Submission Language="Visual Basic" CommonReferences="true">  
                             GetType(String).$$Name

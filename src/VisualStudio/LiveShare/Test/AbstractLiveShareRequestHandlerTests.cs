@@ -64,7 +64,7 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
 
     protected static ILspRequestHandler<RequestType, ResponseType, Solution> GetHandler<RequestType, ResponseType>(Solution solution, string methodName)
     {
-        var workspace = (TestWorkspace)solution.Workspace;
+        var workspace = (EditorTestWorkspace)solution.Workspace;
         var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName);
         return (ILspRequestHandler<RequestType, ResponseType, Solution>)handlers.Single(handler => handler is ILspRequestHandler<RequestType, ResponseType, Solution> && IsMatchingMethod(handler, methodName));
 
