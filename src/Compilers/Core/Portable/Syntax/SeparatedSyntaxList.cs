@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    [CollectionBuilder(typeof(SeparatedSyntaxList), "Create")]
     public readonly partial struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>>, IReadOnlyList<TNode> where TNode : SyntaxNode
     {
         private readonly SyntaxNodeOrTokenList _list;
