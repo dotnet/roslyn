@@ -78,7 +78,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                 item => Assert.DoesNotContain(item, completionItems));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/71641")]
         public async Task VerifyHashRDirective()
         {
             await TestServices.InteractiveWindow.SubmitTextAsync("#r \"System.Numerics\"", HangMitigatingCancellationToken);
