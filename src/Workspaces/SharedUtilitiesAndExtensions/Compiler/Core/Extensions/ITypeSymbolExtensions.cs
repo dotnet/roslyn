@@ -731,17 +731,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsSpanOrReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
-            => type is INamedTypeSymbol
-            {
-                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                TypeArguments.Length: 1,
-                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
-            };
+            => type.IsSpan() || type.IsReadOnlySpan();
 
         public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
             => type is INamedTypeSymbol
             {
                 Name: nameof(Span<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(ReadOnlySpan<int>),
                 TypeArguments.Length: 1,
                 ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
             };

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
     Public Class MakeTypeAbstractTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicMakeTypeAbstractCodeFixProvider())

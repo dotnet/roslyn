@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);
 
             // If the TextChanges retrieved starts after the trigger point of the CompletionItem,
-            // then we need to move the bounds backwards and encapsulate the trigger point.
+            // then we need to move the bounds backwards and encapsulate the trigger point and adjust the changed text.
             if (change.Span.Start > item.Span.Start)
             {
                 var textSpan = TextSpan.FromBounds(item.Span.Start, change.Span.End);
-                var snippetText = change.NewText;
-                Contract.ThrowIfNull(snippetText);
+                var snippetText = allChangesText.GetSubText(textSpan).ToString();
                 change = new TextChange(textSpan, snippetText);
             }
 

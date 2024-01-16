@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net472;$(NetVS)</TargetFrameworks>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <!-- NuGet -->

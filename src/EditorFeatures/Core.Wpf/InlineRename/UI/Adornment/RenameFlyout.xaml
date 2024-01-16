@@ -32,7 +32,7 @@
         BorderThickness="1"
         x:Name="Outline">
         <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
-            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 10">
+            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="22" />
@@ -92,7 +92,7 @@
                 <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
                 <TextBlock Grid.Column="1" Text="{Binding StatusText}" />
             </Grid>
-            
+
             <TextBlock 
                 Text="{Binding SearchText}" 
                 Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"

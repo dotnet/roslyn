@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             int x = 1;
             int y = 2;
-            int[] a = { 1,2 }
+            int[] a = { 1,2 };
             " + code + @"
 
             int z = 4;
@@ -212,31 +212,59 @@ public class Class1
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
-        [WpfFact]
-        public void ArgumentListOfMethodInvocation_StringAsMethodArgument()
-        {
-            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( $$""Test"")");
+        [WpfTheory]
+        [InlineData("$$ \"Test\"")]
+        [InlineData(" $$\"Test\"")]
+        [InlineData("\"Test\"$$ ")]
+        [InlineData("\"Test\" $$")]
 
-            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"");$$");
+        // Verbatim strings
+        [InlineData("$$ @\"Test\"")]
+        [InlineData(" $$@\"Test\"")]
+        [InlineData(" @$$\"Test\"")]
+        [InlineData("@\"Test\"$$ ")]
+        [InlineData("@\"Test\" $$")]
+
+        // Raw strings
+        [InlineData("$$ \"\"\"Test\"\"\"")]
+        [InlineData(" $$\"\"\"Test\"\"\"")]
+        [InlineData("\"\"\"Test\"\"\"$$ ")]
+        [InlineData("\"\"\"Test\"\"\" $$")]
+
+        // UTF-8 strings
+        [InlineData("$$ \"Test\"u8")]
+        [InlineData(" $$\"Test\"u8")]
+        [InlineData("\"Test\"u8$$ ")]
+        [InlineData("\"Test\"$$u8 ")]
+        [InlineData("\"Test\"u8 $$")]
+        public void ArgumentListOfMethodInvocation_OutsideStringAsMethodArgument(string argument)
+        {
+            var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
+
+            var expected = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument.Replace("$$", "")});$$");
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
-        [WpfFact]
-        public void ArgumentListOfMethodInvocation_StringAsMethodArgument2()
+        [WpfTheory]
+        [InlineData("\"Test$$\"")]
+        [InlineData("@\"Test$$\"")]
+        [InlineData("\"\"\"Test$$\"\"\"")]
+        [InlineData("\"\"\"Test\"$$\"\"")]
+        [InlineData("\"\"\"Test\"\"$$\"")]
+        [InlineData("\"Test$$\"u8")]
+        public void ArgumentListOfMethodInvocation_InsideStringAsMethodArgument(string argument)
         {
-            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test""$$ )");
+            var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
 
-            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"" );$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact]
@@ -372,7 +400,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$));");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -432,7 +460,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1175,7 +1203,7 @@ class C
     static void Main(string[] args)
     {
         string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd"");$$; i < 10; i++)
+        for (int i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1201,7 +1229,7 @@ class C
     static void Main(string[] args)
     {
         string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+        for (int i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1234,9 +1262,9 @@ class C
         }
 
         [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1256,16 +1284,16 @@ class C
     {
         string s = ""abcdefghij"";
         int i;
-        for (i = s.IndexOf(""bcd"") i < 10;$$; i++)
+        for (i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers2()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1287,7 +1315,7 @@ class C
         string s = ""abcdefghij"";
         int i;
         int j;
-        for (i = s.IndexOf(""bcd""), j=1 i < 10;$$; i++)
+        for (i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1296,7 +1324,6 @@ class C
         [WpfFact]
         public void ForLoopInitializers3()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1316,7 +1343,7 @@ class C
     {
         string s = ""abcdefghij"";
         int i;
-        for (i = s.IndexOf(""bcd"");$$; i < 10; i++)
+        for (i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1325,7 +1352,6 @@ class C
         [WpfFact]
         public void ForLoopInitializers4()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1347,7 +1373,7 @@ class C
         string s = ""abcdefghij"";
         int i;
         int j;
-        for (i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+        for (i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1444,7 +1470,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for (int i = Math.Min(3,4);$$;  ; i++)
+        for (int i = Math.Min(3,4);$$  ; i++)
         {
             Console.WriteLine(""test"");
         }
@@ -1550,8 +1576,23 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc"" };$$ )
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1706,6 +1747,522 @@ class C
 
         #endregion
 
+        #region ArrayInitializer (explicit type)
+
+        [WpfFact]
+        public void ArrayInitializer()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc"$$ }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0$$, "abc" }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { $$ 0, "abc" }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] {  0, "abc" };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc"$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region ArrayInitializer (implicit type)
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1$$ }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0$$, 1 }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { $$ 0, 1 }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] {  0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region Collection Expression
+
+        [WpfFact]
+        public void CollectionExpression()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ]$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionExpression2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc"$$ ]
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ];$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionExpression3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0$$, "abc" ]
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ];$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionExpression4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ $$ 0, "abc" ]
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [  0, "abc" ];$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionExpression_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc"$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region CollectionInitializer
+
+        [WpfFact]
+        public void CollectionInitializer()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer2()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1$$ }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer3()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0$$, 1 }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer4()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { $$ 0, 1 }
+                    }
+                }
+
+                """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> {  0, 1 };$$
+                    }
+                }
+
+                """;
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer_MissingBrace()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
         #region ObjectInitializer
 
         [WpfFact]
@@ -1750,8 +2307,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1773,8 +2346,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1796,8 +2385,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2167,7 +2772,7 @@ public class Class1
 {
     void M()
     {
-        for (int i = ((3+2)*4);$$; i < 10; i++)
+        for (int i = ((3+2)*4);$$ i < 10; i++)
         {
             int j = (i+i);
         }
@@ -2197,7 +2802,7 @@ public class Class1
 {
     void M()
     {
-        for (int i = 0; i < ((3+2)*4);$$; i++)
+        for (int i = 0; i < ((3+2)*4);$$ i++)
         {
             int j = (i+i);
         }
@@ -3313,26 +3918,74 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String()
+        [WpfTheory]
+        [InlineData("\"Test $$Test\"")]
+        [InlineData("\"Test Test$$\"")]
+        [InlineData("\"Test Test\"$$")]
+        public void DoNotComplete_String(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test $$Test""");
+            var code = CreateTestWithMethodCall($@"var s={literal}");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String2()
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49929")]
+        [InlineData("\"$$")]
+        [InlineData("\"$$Test Test")]
+        [InlineData("\"Test Test$$")]
+        [InlineData("\"\"\"$$")]
+        [InlineData("\"\"\"$$Test Test")]
+        [InlineData("\"\"\"Test Test$$")]
+        public void DoNotComplete_UnterminatedString(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test Test$$""");
+            var code = CreateTestWithMethodCall(
+                $"""
+                Test(
+                    {literal}
+                )
+                """);
 
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String3()
+        [WpfTheory]
+        [InlineData("\"Test $$Test\"u8")]
+        [InlineData("\"Test Test$$\"u8")]
+        [InlineData("\"Test Test\"$$u8")]
+        [InlineData("\"Test Test\"u8$$")]
+        public void DoNotComplete_Utf8String(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test Test""$$");
+            var code = CreateTestWithMethodCall($@"var test={literal}");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory]
+        [InlineData("'T$$'")]
+        [InlineData("'$$'")]
+        [InlineData("'$$T'")]
+        [InlineData("'T'$$")]
+        public void DoNotComplete_CharLiteral(string literal)
+        {
+            var code = CreateTestWithMethodCall($"var s={literal}");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49929")]
+        [InlineData("'T$$")]
+        [InlineData("'$$T")]
+        [InlineData("'$$")]
+        public void DoNotComplete_UnterminatedCharLiteral(string literal)
+        {
+            var code = CreateTestWithMethodCall(
+                $"""
+                Test(
+                    {literal}
+                )
+                """);
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -3665,8 +4318,8 @@ class C
     {
         var d = new Dictionary<int, int>
         {
-            [1];$$ = 4,
-        }
+            [1] = 4,
+        };$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
@@ -3687,7 +4340,18 @@ class C
         }
     }
 }";
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
@@ -3705,7 +4369,18 @@ class C
         }
     }
 }";
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
@@ -3785,7 +4460,7 @@ class Query
         List<int> c2 = new List<int> { 10, 30, 40, 50, 60, 70 };
         var c3 = c1.SelectMany(x1 => c2
             .Where(x2 => object.Equals(x1, x2 / 10))
-            .Select(x2 => x1 + x2));$$;
+            .Select(x2 => x1 + x2));$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
@@ -4032,7 +4707,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler GetCommandHandler(EditorTestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/32337")]
@@ -4325,7 +5000,7 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }

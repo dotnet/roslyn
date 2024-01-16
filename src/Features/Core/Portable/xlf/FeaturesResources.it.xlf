@@ -307,7 +307,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns {0}</source>
-        <target state="needs-review-translation">L'attività attesa restituisce '{0}'</target>
+        <target state="translated">L'attività attesa restituisce {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -2842,7 +2842,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="new">Unwrap collection</target>
+        <target state="translated">Annulla il wrapping della raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3017,7 +3017,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="new">Wrap collection</target>
+        <target state="translated">Esegui il wrapping della raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3052,7 +3052,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="new">Wrap long collection</target>
+        <target state="translated">Esegui il wrapping della raccolta lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
             using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
 
             // preview workspace and owner of the solution now share solution and its underlying text buffer

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
@@ -54,8 +54,16 @@
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
-  <PropertyGroup>
-    <!-- Force a deps.json to be included when packaging the language server, so we get proper assembly resolution using the directory as a binding path -->
-    <_UseBuildDependencyFile>true</_UseBuildDependencyFile>
-  </PropertyGroup>
+
+  <!--
+    This target is used by Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj to copy the .deps.json file into its BuildHost subfolder.
+    The .deps.json file is required for the BuildHost to resolve assemblies using the directory as a binding path
+    -->
+  <Target Name="GetProjectDepsJsonFile" Returns="@(ProjectDepsJsonFile)">
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <ProjectDepsJsonFile Include="$(ProjectDepsFilePath)">
+        <TargetPath>$(ProjectDepsFileName)</TargetPath>
+      </ProjectDepsJsonFile>
+    </ItemGroup>
+  </Target>
 </Project>

@@ -35,7 +35,7 @@ namespace Test.Namespace.App
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
 
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim document = project.Documents.Single()
@@ -70,7 +70,7 @@ namespace Test
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects(0)
@@ -128,7 +128,7 @@ namespace Test2.Namespace.App
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects(0)
@@ -178,7 +178,7 @@ namespace Test2.Namespace.App
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects.Single(Function(proj As Project)
@@ -239,7 +239,7 @@ namespace Test2.Namespace
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects.Single(Function(proj As Project)

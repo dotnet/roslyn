@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -4410,6 +4411,43 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
     public async Task TestInterfaceOff()
     {
         await new VerifyCS.Test
@@ -4433,6 +4471,139 @@ public class UseCollectionExpressionForArrayTests
                 [*]
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional1(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        int value = 3;
+                        M(value is 1 ? ["1"] : [|[|new|][]|] { "4" });
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        int value = 3;
+                        M(value is 1 ? ["1"] : ["4"]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional2(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? ["1"] : [|[|new|][]|] { "4" });
+
+                static void M(string[] args) { }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                int value = 3;
+                M(value is 1 ? ["1"] : ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional3(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? [|[|new|][]|] { "1" } :
+                  value is 2 ? [|[|new|][]|] { "2" } :
+                  value is 3 ? [|[|new|][]|] { "3" } :
+                               [|[|new|][]|] { "4" });
+
+                static void M(string[] args) { }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                int value = 3;
+                M(value is 1 ? ["1"] :
+                  value is 2 ? ["2"] :
+                  value is 3 ? ["3"] :
+                               ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            BatchFixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? ["1"] :
+                  value is 2 ? ["2"] :
+                  value is 3 ? ["3"] :
+                               ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
         }.RunAsync();
     }
 }

@@ -764,7 +764,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
-            using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+            using var workspace = EditorTestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
@@ -892,7 +892,7 @@ class A
             var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
                 typeof(TestDocumentTrackingService));
 
-            using var workspace = new TestWorkspace(composition);
+            using var workspace = new EditorTestWorkspace(composition);
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
@@ -1000,7 +1000,7 @@ class A
     }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(source,
+            using var workspace = EditorTestWorkspace.CreateCSharp(source,
                 composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
 
             var analyzer = new CancellationTestAnalyzer(actionKind);
@@ -1239,7 +1239,7 @@ class A
         [CombinatorialData]
         internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
-            using var workspace = TestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
+            using var workspace = EditorTestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 
             var generator = new DiagnosticProducingGenerator(c => Location.Create(c.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));

@@ -168,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.None:
                     return Conversion.NoConversion;
 
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
                         _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
@@ -180,31 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var elements = node.Elements;
-            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
-            {
-                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
-            }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT)
-            {
-                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                bool isCompatible = false;
-                foreach (var @interface in allInterfaces)
-                {
-                    if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
-                    {
-                        isCompatible = true;
-                        // Don't break so we collect all remaining use-site information
-                    }
-                }
-
-                return isCompatible
-                    ? Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default)
-                    : Conversion.NoConversion;
-            }
-
             Debug.Assert(elementType is { });
+
+            var elements = node.Elements;
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
@@ -219,33 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
-
-            bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
-                ImmutableArray<BoundNode> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Debug.Assert(ienumerableType.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
-                if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
-                {
-                    return false;
-                }
-
-                var targetElementType = targetInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                return elementsCanAllConvert(elements, targetElementType.Type, ref useSiteInfo);
-            }
-
-            bool elementsCanAllConvert(ImmutableArray<BoundNode> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                foreach (var element in elements)
-                {
-                    Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
-                    if (!elementConversion.Exists)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
 
             Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {

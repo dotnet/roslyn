@@ -21,7 +21,7 @@ using static Roslyn.Test.Utilities.TestHelpers;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnusedParametersTests(ITestOutputHelper logger)
           : base(logger)

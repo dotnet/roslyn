@@ -2245,4 +2245,308 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestOnInlineArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void [|Populate|]()
+                    {
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+                
+                internal struct Repro
+                {
+                    private Values _values;
+                
+                    public readonly void Populate()
+                    {
+                    }
+                }
+                
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestOnInlineArrayCapturedIntoReadOnlySpan()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void [|Populate|]()
+                    {
+                        ReadOnlySpan<int> values = _values;
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+                
+                internal struct Repro
+                {
+                    private Values _values;
+                
+                    public readonly void Populate()
+                    {
+                        ReadOnlySpan<int> values = _values;
+                    }
+                }
+                
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestOnInlineArrayRead()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void [|Populate|]()
+                    {
+                        var v = _values[0];
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+                
+                internal struct Repro
+                {
+                    private Values _values;
+                
+                    public readonly void Populate()
+                    {
+                        var v = _values[0];
+                    }
+                }
+                
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestOnInlineArrayReadSafe()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void [|Populate|]()
+                    {
+                        _values[0].Safe();
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private S _field;
+                }
+
+                internal struct S
+                {
+                    public readonly void Safe() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+                
+                internal struct Repro
+                {
+                    private Values _values;
+                
+                    public readonly void Populate()
+                    {
+                        _values[0].Safe();
+                    }
+                }
+                
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private S _field;
+                }
+                
+                internal struct S
+                {
+                    public readonly void Safe() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestOnInlineArrayReadUnsafe()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void Populate()
+                    {
+                        _values[0].Unsafe();
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private S _field;
+                }
+
+                internal struct S
+                {
+                    private int i;
+                    public void Unsafe() { i++; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestNotOnInlineArrayCapturedIntoSpan()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void Populate()
+                    {
+                        Span<int> values = _values;
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestNotOnInlineArrayWrittenInfo()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                internal struct Repro
+                {
+                    private Values _values;
+
+                    public void Populate()
+                    {
+                        _values[0] = 1;
+                    }
+                }
+
+                [InlineArray(4)]
+                internal struct Values
+                {
+                    private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

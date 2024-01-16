@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEndConstruct
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
     Public Class GenerateEndConstructTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateEndConstructCodeFixProvider())

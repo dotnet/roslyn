@@ -156,8 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // type to pass along for protected checks. Besides, protected members are 
                 // interesting for the user to know about since they could create a sub class 
                 // and access them.
-                return symbol.DeclaredAccessibility == Accessibility.Protected
-                    || symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal
+                return symbol.DeclaredAccessibility is Accessibility.Protected or Accessibility.ProtectedOrInternal
                     || symbol.IsAccessibleWithin(assemblySymbol);
             }
 
@@ -342,11 +341,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 foreach (var member in baseType.GetMembers())
                 {
-                    if (member.Kind == SymbolKind.Method)
+                    if (member is IMethodSymbol methodSymbol)
                     {
-                        var methodSymbol = (IMethodSymbol)member;
-                        if (methodSymbol.MethodKind == MethodKind.Destructor ||
-                            methodSymbol.MethodKind == MethodKind.Constructor ||
+                        if (methodSymbol.MethodKind is MethodKind.Destructor or MethodKind.Constructor ||
                             methodSymbol.IsImplicitlyDeclared)
                         {
                             continue;

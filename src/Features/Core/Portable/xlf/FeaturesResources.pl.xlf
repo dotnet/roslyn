@@ -307,7 +307,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns {0}</source>
-        <target state="needs-review-translation">Zadanie, na które oczekiwano, zwraca wartość „{0}”</target>
+        <target state="translated">Zadanie, którego oczekiwano, zwraca wartość {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -2842,7 +2842,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="new">Unwrap collection</target>
+        <target state="translated">Cofnij zawijanie kolekcji</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3017,7 +3017,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="new">Wrap collection</target>
+        <target state="translated">Zawijaj kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3052,7 +3052,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="new">Wrap long collection</target>
+        <target state="translated">Zawijaj długą kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">

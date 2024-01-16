@@ -24,8 +24,6 @@ namespace BuildBoss
         internal XNamespace Namespace { get; }
         internal string OutputType { get; }
 
-        public bool IsNewSdk => GetTargetFramework() != null || GetTargetFrameworks() != null;
-
         internal bool IsTestProject => IsUnitTestProject || IsIntegrationTestProject;
         internal bool IsUnitTestProject => Path.GetFileNameWithoutExtension(Key.FilePath).EndsWith(".UnitTests");
         internal bool IsIntegrationTestProject => Path.GetFileNameWithoutExtension(Key.FilePath).EndsWith(".IntegrationTests");
@@ -50,6 +48,19 @@ namespace BuildBoss
 
         internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
 
+        public bool IsNewSdk()
+        {
+            if (GetTargetFramework() != null || GetTargetFrameworks() != null)
+            {
+                return true;
+            }
+
+            // If a project has a 'Project' element with an 'Sdk' attribute, then it's an SDK-style project.
+            // https://github.com/dotnet/project-system/blob/main/docs/opening-with-new-project-system.md#sdks
+            var hasProjectWithSdkAttribute = Document.XPathSelectElements("//mb:Project", Manager).FirstOrDefault()?.Attribute("Sdk") != null;
+            return hasProjectWithSdkAttribute;
+        }
+
         internal IEnumerable<string> GetAllTargetFrameworks()
         {
             var targetFramework = GetTargetFramework();
@@ -65,7 +76,7 @@ namespace BuildBoss
                 return all;
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Project {Key.FilePath} does not have a TargetFramework(s) element.");
         }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()

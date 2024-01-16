@@ -57,15 +57,15 @@ internal partial class SolutionAssetStorage
         => StoreAssetsAsync(project.Solution.CompilationState, project.Id, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
-        => StoreAssetsAsync(solution, projectId: null, cancellationToken);
+    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        => StoreAssetsAsync(compilationState, projectId: null, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
+    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, ProjectId? projectId, CancellationToken cancellationToken)
     {
         var checksum = projectId == null
-            ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-            : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+            ? await compilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+            : await compilationState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
 
         lock (_gate)
         {
@@ -76,7 +76,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            scope = new Scope(this, checksum, solutionState);
+            scope = new Scope(this, checksum, compilationState);
             _checksumToScope[checksum] = scope;
             return scope;
         }

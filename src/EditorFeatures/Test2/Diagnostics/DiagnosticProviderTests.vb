@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
-            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateWorkspace(test, composition:=s_composition)
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
                     workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        Private Shared Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
+        Private Shared Function GetDiagnosticProvider(workspace As EditorTestWorkspace) As DiagnosticAnalyzerService
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
 
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return analyzerService
         End Function
 
-        Private Shared Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+        Private Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
             Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String
@@ -335,13 +335,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return result
         End Function
 
-        Private Shared Function GetProjectId(workspace As TestWorkspace, projectName As String) As ProjectId
+        Private Shared Function GetProjectId(workspace As EditorTestWorkspace, projectName As String) As ProjectId
             Return (From doc In workspace.Documents
                     Where doc.Project.AssemblyName.Equals(projectName)
                     Select doc.Project.Id).Single()
         End Function
 
-        Private Shared Function GetDocumentId(workspace As TestWorkspace, document As String) As DocumentId
+        Private Shared Function GetDocumentId(workspace As EditorTestWorkspace, document As String) As DocumentId
             Return (From doc In workspace.Documents
                     Where doc.FilePath.Equals(document)
                     Select doc.Id).Single()

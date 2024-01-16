@@ -64,6 +64,8 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
+
     public ICommand GetSuggestionsCommand { get; }
 
     public SmartRenameViewModel(
@@ -102,11 +104,16 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
         if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
         {
+            var textInputBackup = BaseViewModel.IdentifierText;
+
             SuggestedNames.Clear();
             foreach (var name in _smartRenameSession.SuggestedNames)
             {
                 SuggestedNames.Add(name);
             }
+
+            // Changing the list may have changed the text in the text box. We need to restore it.
+            BaseViewModel.IdentifierText = textInputBackup;
 
             return;
         }

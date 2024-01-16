@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
 
         Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = TestWorkspace.CreateVisualBasic(content)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(content)
                 Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
@@ -64,7 +64,7 @@ End Class")
 
         <WpfFact>
         Public Async Function SemanticError() As Task
-            Using workspace = TestWorkspace.CreateVisualBasic("Class C1
+            Using workspace = EditorTestWorkspace.CreateVisualBasic("Class C1
     Sub Goo(b as Bar)
     End Sub
 End Class")
@@ -115,7 +115,7 @@ End Class"
                 }
             }
 
-            Using workspace = TestWorkspace.CreateVisualBasic(content, composition:=SquiggleUtilities.CompositionWithSolutionCrawler)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(content, composition:=SquiggleUtilities.CompositionWithSolutionCrawler)
                 Dim language = workspace.Projects.Single().Language
 
                 workspace.GlobalOptions.SetGlobalOption(

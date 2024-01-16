@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         private readonly string? _categoryToBulkConfigure;
         private readonly bool _isPerLanguage;
         private readonly Project _project;
-        private readonly CancellationToken _cancellationToken;
         private readonly bool _addNewEntryIfNoExistingEntryFound;
         private readonly string _language;
 
@@ -82,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             string? categoryToBulkConfigure,
             bool isPerLanguage,
             Project project,
-            bool addNewEntryIfNoExistingEntryFound,
-            CancellationToken cancellationToken)
+            bool addNewEntryIfNoExistingEntryFound)
         {
             Debug.Assert(configurationKind != ConfigurationKind.OptionValue || !string.IsNullOrEmpty(newOptionValueOpt));
             Debug.Assert(!string.IsNullOrEmpty(newSeverity));
@@ -98,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             _categoryToBulkConfigure = categoryToBulkConfigure;
             _isPerLanguage = isPerLanguage;
             _project = project;
-            _cancellationToken = cancellationToken;
             _addNewEntryIfNoExistingEntryFound = addNewEntryIfNoExistingEntryFound;
             _language = project.Language;
         }
@@ -148,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 updater = new ConfigurationUpdater(optionNameOpt: null, newOptionValueOpt: null, editorConfigSeverity,
                     configurationKind: ConfigurationKind.Severity, diagnostic, categoryToBulkConfigure: null,
-                    isPerLanguage: false, project, addNewEntryIfNoExistingEntryFound: true, cancellationToken);
-                return updater.ConfigureAsync();
+                    isPerLanguage: false, project, addNewEntryIfNoExistingEntryFound: true);
+                return updater.ConfigureAsync(cancellationToken);
             }
         }
 
@@ -190,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             Contract.ThrowIfNull(category);
             var updater = new ConfigurationUpdater(optionNameOpt: null, newOptionValueOpt: null, editorConfigSeverity,
                 configurationKind: ConfigurationKind.BulkConfigure, diagnosticToConfigure: null, category,
-                isPerLanguage: false, project, addNewEntryIfNoExistingEntryFound: true, cancellationToken);
-            return updater.ConfigureAsync();
+                isPerLanguage: false, project, addNewEntryIfNoExistingEntryFound: true);
+            return updater.ConfigureAsync(cancellationToken);
         }
 
         /// <summary>
@@ -242,8 +239,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
                 var updater = new ConfigurationUpdater(optionName, optionValue, editorConfigSeverity, configurationKind,
                     diagnostic, categoryToBulkConfigure: null, isPerLanguage, currentProject,
-                    addNewEntryIfNoExistingEntryFound, cancellationToken);
-                var solution = await updater.ConfigureAsync().ConfigureAwait(false);
+                    addNewEntryIfNoExistingEntryFound);
+                var solution = await updater.ConfigureAsync(cancellationToken).ConfigureAwait(false);
                 currentProject = solution.GetProject(project.Id)!;
                 areAllOptionsPerLanguage = areAllOptionsPerLanguage && isPerLanguage;
             }
@@ -254,15 +251,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 var updater = new ConfigurationUpdater(optionNameOpt: null, newOptionValueOpt: null, editorConfigSeverity,
                     configurationKind: ConfigurationKind.Severity, diagnostic, categoryToBulkConfigure: null,
-                    isPerLanguage: areAllOptionsPerLanguage, currentProject, addNewEntryIfNoExistingEntryFound: true, cancellationToken);
-                var solution = await updater.ConfigureAsync().ConfigureAwait(false);
+                    isPerLanguage: areAllOptionsPerLanguage, currentProject, addNewEntryIfNoExistingEntryFound: true);
+                var solution = await updater.ConfigureAsync(cancellationToken).ConfigureAwait(false);
                 currentProject = solution.GetProject(project.Id)!;
             }
 
             return currentProject.Solution;
         }
 
-        private async Task<Solution> ConfigureAsync()
+        private async Task<Solution> ConfigureAsync(CancellationToken cancellationToken)
         {
             // Find existing .editorconfig or generate a new one if none exists.
             var editorConfigDocument = FindOrGenerateEditorConfig();
@@ -272,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             var solution = editorConfigDocument.Project.Solution;
-            var originalText = await editorConfigDocument.GetValueTextAsync(_cancellationToken).ConfigureAwait(false);
+            var originalText = await editorConfigDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Compute the updated text for analyzer config document.
             var newText = GetNewAnalyzerConfigDocumentText(originalText, editorConfigDocument);

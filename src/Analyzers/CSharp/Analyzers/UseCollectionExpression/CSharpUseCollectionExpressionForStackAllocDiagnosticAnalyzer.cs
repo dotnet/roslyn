@@ -49,7 +49,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
         {
             return;
         }
@@ -124,6 +124,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             semanticModel,
             expression,
             expressionType,
+            isSingletonInstance: false,
             allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,

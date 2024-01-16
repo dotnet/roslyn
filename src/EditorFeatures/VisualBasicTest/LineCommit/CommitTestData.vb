@@ -24,18 +24,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Public ReadOnly Buffer As ITextBuffer
         Public ReadOnly CommandHandler As CommitCommandHandler
         Public ReadOnly EditorOperations As IEditorOperations
-        Public ReadOnly Workspace As TestWorkspace
+        Public ReadOnly Workspace As EditorTestWorkspace
         Public ReadOnly View As ITextView
         Public ReadOnly UndoHistory As ITextUndoHistory
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Function Create(test As XElement) As CommitTestData
-            Dim workspace = TestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
             Return New CommitTestData(workspace)
         End Function
 
-        Public Sub New(workspace As TestWorkspace)
+        Public Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             View = workspace.Documents.Single().GetTextView()
             View.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
@@ -120,12 +120,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private Class FormatterMock
             Implements ICommitFormatter
 
-            Private ReadOnly _testWorkspace As TestWorkspace
+            Private ReadOnly _testWorkspace As EditorTestWorkspace
             Public Property GotCommit As Boolean
 
             Public Property UsedSemantics As Boolean
 
-            Public Sub New(testWorkspace As TestWorkspace)
+            Public Sub New(testWorkspace As EditorTestWorkspace)
                 _testWorkspace = testWorkspace
             End Sub
 

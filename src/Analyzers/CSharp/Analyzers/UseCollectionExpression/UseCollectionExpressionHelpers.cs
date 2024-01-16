@@ -39,6 +39,7 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         ExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
         bool allowInterfaceConversion,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
@@ -49,7 +50,7 @@ internal static class UseCollectionExpressionHelpers
         // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
         // types that could accept the collection expression).
         return CanReplaceWithCollectionExpression(
-            semanticModel, expression, s_emptyCollectionExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
     }
 
     public static bool CanReplaceWithCollectionExpression(
@@ -57,6 +58,7 @@ internal static class UseCollectionExpressionHelpers
         ExpressionSyntax expression,
         CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
         bool allowInterfaceConversion,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
@@ -256,6 +258,11 @@ internal static class UseCollectionExpressionHelpers
                 IsWellKnownInterface(convertedType) &&
                 type.AllInterfaces.Contains(convertedType))
             {
+                // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
+                // will replace the code with code that now always allocates.
+                if (isSingletonInstance && IsWellKnownReadWriteInterface(convertedType))
+                    return false;
+
                 changesSemantics = true;
                 return true;
             }
@@ -265,13 +272,21 @@ internal static class UseCollectionExpressionHelpers
         }
 
         bool IsWellKnownInterface(ITypeSymbol type)
+            => IsWellKnownReadOnlyInterface(type) || IsWellKnownReadWriteInterface(type);
+
+        bool IsWellKnownReadOnlyInterface(ITypeSymbol type)
         {
             return type.OriginalDefinition.SpecialType
                 is SpecialType.System_Collections_Generic_IEnumerable_T
-                or SpecialType.System_Collections_Generic_ICollection_T
-                or SpecialType.System_Collections_Generic_IList_T
                 or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
                 or SpecialType.System_Collections_Generic_IReadOnlyList_T;
+        }
+
+        bool IsWellKnownReadWriteInterface(ITypeSymbol type)
+        {
+            return type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_ICollection_T
+                or SpecialType.System_Collections_Generic_IList_T;
         }
     }
 
@@ -738,6 +753,7 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
         bool allowInterfaceConversion,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
@@ -845,7 +861,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }

@@ -307,7 +307,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns {0}</source>
-        <target state="needs-review-translation">대기된 작업에서 '{0}'이(가) 반환됨</target>
+        <target state="new">Awaited task returns {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -2842,7 +2842,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="new">Unwrap collection</target>
+        <target state="translated">컬렉션 래프 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3017,7 +3017,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="new">Wrap collection</target>
+        <target state="translated">컬렉션 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3052,7 +3052,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="new">Wrap long collection</target>
+        <target state="translated">긴 컬렉션 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">

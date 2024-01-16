@@ -623,5 +623,233 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest1()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints)
+                    {
+                        ints.$$
+                        var a = 0;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints)
+                    {
+                        foreach (var item in ints)
+                        {
+                            $$
+                        }
+                        var a = 0;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest2()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints, Task t)
+                    {
+                        ints.$$
+                        await t;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints, Task t)
+                    {
+                        foreach (var item in ints)
+                        {
+                            $$
+                        }
+                        await t;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("Task")]
+        [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
+        public async Task InsertInlineForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints)
+                    {
+                        ints.$$
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> ints)
+                    {
+                        foreach (var item in ints)
+                        {
+                            $$
+                        }
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest1()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(IAsyncEnumerable&lt;int&gt; asyncInts)
+                    {
+                        asyncInts.$$
+                        var a = 0;
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IAsyncEnumerable<int> asyncInts)
+                    {
+                        await foreach (var item in asyncInts)
+                        {
+                            $$
+                        }
+                        var a = 0;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest2()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(IAsyncEnumerable&lt;int&gt; asyncInts, Task t)
+                    {
+                        asyncInts.$$
+                        await t;
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IAsyncEnumerable<int> asyncInts, Task t)
+                    {
+                        await foreach (var item in asyncInts)
+                        {
+                            $$
+                        }
+                        await t;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("Task")]
+        [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
+        public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(IAsyncEnumerable&lt;int&gt; asyncInts)
+                    {
+                        asyncInts.$$
+                        {{nameSyntax.Replace("<", "&lt;").Replace(">", "&gt;")}} t = null;
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IAsyncEnumerable<int> asyncInts)
+                    {
+                        await foreach (var item in asyncInts)
+                        {
+                            $$
+                        }
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

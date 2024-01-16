@@ -46,8 +46,11 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             return;
 
         var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+        if (!CanReplaceWithCollectionExpression(
+                semanticModel, nodeToReplace, expressionType, isSingletonInstance: true, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+        {
             return;
+        }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
