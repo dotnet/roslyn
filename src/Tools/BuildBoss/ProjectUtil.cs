@@ -76,7 +76,7 @@ namespace BuildBoss
                 return all;
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Project {Key.FilePath} does not have a TargetFramework(s) element.");
         }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()

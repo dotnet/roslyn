@@ -13,7 +13,7 @@ param (
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
   Write-Host "VSIX EXE path: " $vsixExe
   if (-not (Test-Path $vsixExe)) {
     Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red

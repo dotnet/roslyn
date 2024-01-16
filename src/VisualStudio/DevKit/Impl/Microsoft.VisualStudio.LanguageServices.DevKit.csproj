@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
     <Nullable>enable</Nullable>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") Language Server Protocol internal.

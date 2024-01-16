@@ -37,11 +37,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
                 var options = await _context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
 
-                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                    document, span, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                var documentSpan = new DocumentSpan(document, span);
+                var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    documentSpan, classifiedSpans: null, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
                 await _context.OnReferenceFoundAsync(
-                    new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
+                    new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }
         }
 

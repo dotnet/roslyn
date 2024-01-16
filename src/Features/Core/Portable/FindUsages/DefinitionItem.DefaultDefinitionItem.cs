@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -25,10 +26,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableDictionary<string, string>? properties,
             ImmutableDictionary<string, string>? displayableProperties,
-            bool displayIfNoReferences) : DefinitionItem(tags, displayParts, nameDisplayParts, originationParts,
-                   sourceSpans, properties, displayableProperties, displayIfNoReferences)
+            bool displayIfNoReferences) : DefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans, classifiedSpans, properties, displayableProperties, displayIfNoReferences)
         {
             internal sealed override bool IsExternal => false;
 

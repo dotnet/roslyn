@@ -220,6 +220,8 @@ class A : System.Attribute
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var a0 = compilation0.GetMember<NamedTypeSymbol>("A");
             var a1 = compilation1.GetMember<NamedTypeSymbol>("A");
+            var ctorA0 = compilation0.GetMember<NamedTypeSymbol>("A").InstanceConstructors[0];
+            var ctorA1 = compilation1.GetMember<NamedTypeSymbol>("A").InstanceConstructors[0];
 
             using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
 
@@ -229,7 +231,8 @@ class A : System.Attribute
                     SemanticEdit.Create(SemanticEditKind.Update, ctorC0, ctorC1),
                     SemanticEdit.Create(SemanticEditKind.Update, ctorD0, ctorD1),
                     SemanticEdit.Create(SemanticEditKind.Update, method0, method1),
-                    SemanticEdit.Create(SemanticEditKind.Update, a0, a1)));
+                    SemanticEdit.Create(SemanticEditKind.Update, a0, a1),
+                    SemanticEdit.Create(SemanticEditKind.Update, ctorA0, ctorA1)));
 
             // Nullable diagnostics not reported, except for attribute and default parameter values. 
             // The compiler doesn't have the necessary emit context when analyzing these.
