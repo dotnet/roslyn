@@ -33,5 +33,6 @@
     <UsagePattern IdentityGlob="System.Text.Encodings.Web/8.0.0" />
     <UsagePattern IdentityGlob="System.Text.Json/8.0.0" />
     <UsagePattern IdentityGlob="System.Threading.Channels/8.0.0" />
+    <UsagePattern IdentityGlob="System.Resources.Extensions/8.0.0" />
   </IgnorePatterns>
 </UsageData>
