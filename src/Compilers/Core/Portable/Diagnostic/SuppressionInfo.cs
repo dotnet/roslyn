@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// If the diagnostic was suppressed by one or more programmatic suppressions by <see cref="DiagnosticSuppressor"/>(s),
-        /// then returns the corresponding set of <see cref="Suppression"/>s.
-        /// Otherwise, returns an empty set.
+        /// then returns the corresponding <see cref="Suppression"/>s, in no specific order.
+        /// Otherwise, returns an empty array.
         /// </summary>
-        public ImmutableHashSet<Suppression> Suppressions { get; }
+        public ImmutableArray<Suppression> Suppressions { get; }
 
-        internal SuppressionInfo(string id, AttributeData? attribute, ImmutableHashSet<Suppression> suppressions)
+        internal SuppressionInfo(string id, AttributeData? attribute, ImmutableArray<Suppression> suppressions)
         {
             Debug.Assert(suppressions.All(suppression => id == suppression.SuppressedDiagnostic.Id));
             Id = id;

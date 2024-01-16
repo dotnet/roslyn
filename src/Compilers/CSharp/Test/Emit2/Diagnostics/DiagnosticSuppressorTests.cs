@@ -652,7 +652,7 @@ class C { }";
             diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
             diagnostic = Assert.Single(diagnostics);
             var programmaticSuppression = diagnostic.ProgrammaticSuppressionInfo;
-            Assert.Equal(2, programmaticSuppression.Suppressions.Count);
+            Assert.Equal(2, programmaticSuppression.Suppressions.Length);
             var orderedSuppressions = programmaticSuppression.Suppressions.OrderBy(suppression => suppression.Descriptor.Id).ToImmutableArrayOrEmpty();
             Assert.Equal(suppressionId, orderedSuppressions[0].Descriptor.Id);
             Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Descriptor.Justification);
