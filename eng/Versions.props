@@ -39,7 +39,7 @@
          but not higher than our minimum dogfoodable Visual Studio version, or else
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
-    <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
+    <MicrosoftILVerificationVersion>8.0.0-rtm.23523.3</MicrosoftILVerificationVersion>
     <MicrosoftVisualStudioThreadingPackagesVersion>17.8.14</MicrosoftVisualStudioThreadingPackagesVersion>
     <MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>17.9.12-alpha</MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>
     <MicrosoftTestPlatformVersion>17.4.1</MicrosoftTestPlatformVersion>
