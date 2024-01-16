@@ -272,7 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needToReduce)
             {
                 Debug.Assert(methodThisParameter is not null);
-                arguments = arguments.Insert(0, receiverOpt!);
+                Debug.Assert(receiverOpt?.Type is not null);
+                Debug.Assert(receiverOpt.Type.Equals(interceptor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions)
+                    || (receiverOpt.Type.IsValueType && !interceptor.Parameters[0].Type.IsValueType));
+                receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
+                arguments = arguments.Insert(0, receiverOpt);
                 receiverOpt = null;
 
                 // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
