@@ -302,7 +302,7 @@ namespace RunTests
                 if (options.TestVsi)
                 {
                     // Copy test logs to the helix upload directory.  This is where screenshots and other log files are written to.
-                    postCommands.AppendLine($@"xcopy {logDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E");
+                    postCommands.AppendLine($@"xcopy {logDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E /Y");
 
                     // Zip up VS logs and copy them to the helix upload directory.
                     postCommands.AppendLine($@"tar.exe -a -c -f servicehub_logs.zip -C %TEMP%\servicehub\logs .");
