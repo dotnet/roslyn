@@ -26,29 +26,23 @@
     MSBuild - need to use older packages when targeting net7.0 since the newer versions only support net472 and net8.0.
   -->
 
-  <Choose>
-    <When Condition="'$(DotnetBuildFromSource)' == 'true'">
-      <ItemGroup>
-        <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
-        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
-      </ItemGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net7.0'">
-      <ItemGroup>
-        <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
-        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageVersion Include="Microsoft.Build" Version="17.9.0-preview-23551-05" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.9.0-preview-23551-05" />
-        <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.9.0-preview-23551-05" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>  
+  <ItemGroup Condition="'$(DotnetBuildFromSource)' == 'true'">
+    <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' == 'net7.0'">
+    <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' != 'net7.0'">
+    <PackageVersion Include="Microsoft.Build" Version="17.9.0-preview-23551-05" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.9.0-preview-23551-05" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.9.0-preview-23551-05" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
