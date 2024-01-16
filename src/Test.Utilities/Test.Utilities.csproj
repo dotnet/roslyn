@@ -8,6 +8,9 @@
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildFromSource != true -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForToolsAndUtilities)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>TEST_UTILITIES</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />

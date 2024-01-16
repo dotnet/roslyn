@@ -13,7 +13,12 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+#if !TEST_UTILITIES
+    public sealed class SymbolNamesWithValueOption<TValue>
+#else
+    internal sealed class SymbolNamesWithValueOption<TValue>
+#endif
+     : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';
@@ -381,7 +386,9 @@ namespace Analyzer.Utilities
         /// On the rule CA1710, we allow user specific suffix to be registered for symbol names using the following format:
         /// MyClass->Suffix or T:MyNamespace.MyClass->Suffix or N:MyNamespace->Suffix.
         /// </example>
+#pragma warning disable CA1034 // Nested types should not be visible
         public sealed class NameParts
+#pragma warning restore CA1034 // Nested types should not be visible
         {
             public NameParts(string symbolName, TValue associatedValue)
             {

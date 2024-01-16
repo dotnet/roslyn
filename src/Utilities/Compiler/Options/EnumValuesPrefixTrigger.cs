@@ -2,7 +2,7 @@
 
 namespace Analyzer.Utilities.Options
 {
-    internal enum EnumValuesPrefixTrigger
+    public enum EnumValuesPrefixTrigger
     {
         // NOTE: Below fields names are used in the .editorconfig specification.
         //       Hence the names should *not* be modified, as that would be a breaking

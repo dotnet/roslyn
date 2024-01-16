@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal static partial class AnalyzerOptionsExtensions
+    public static partial class AnalyzerOptionsExtensions
     {
         public static InterproceduralAnalysisKind GetInterproceduralAnalysisKindOption(
             this AnalyzerOptions options,

@@ -7,7 +7,7 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Describes a group of effective <see cref="SymbolVisibility"/> for symbols.
     /// </summary>
-    internal enum DisposeAnalysisKind
+    public enum DisposeAnalysisKind
     {
         // NOTE: Below fields names are used in the .editorconfig specification
         //       for DisposeAnalysisKind option. Hence the names should *not* be modified,

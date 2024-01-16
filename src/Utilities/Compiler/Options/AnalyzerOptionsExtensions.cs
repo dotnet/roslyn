@@ -14,7 +14,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities
 {
+#if !TEST_UTILITIES
+    public static partial class AnalyzerOptionsExtensions
+#else
     internal static partial class AnalyzerOptionsExtensions
+#endif
     {
         private static readonly ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions> s_cachedOptions = new();
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =

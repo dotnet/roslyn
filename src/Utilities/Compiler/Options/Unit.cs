@@ -11,7 +11,12 @@ namespace Analyzer.Utilities
     /// <remarks>
     /// This class is a duplicate from "https://github.com/dotnet/reactive/blob/main/Rx.NET/Source/src/System.Reactive/Unit.cs
     /// </remarks>
-    internal struct Unit : IEquatable<Unit>
+#if !TEST_UTILITIES
+    public struct Unit
+#else
+    internal struct Unit
+#endif
+     : IEquatable<Unit>
     {
         /// <summary>
         /// Determines whether the specified <see cref="Unit"/> value is equal to the current <see cref="Unit"/>. Because <see cref="Unit"/> has a single value, this always returns <c>true</c>.
