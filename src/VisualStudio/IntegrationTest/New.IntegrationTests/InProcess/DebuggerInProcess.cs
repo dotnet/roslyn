@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -66,6 +67,19 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var debugger = await GetDebuggerAsync(cancellationToken);
+
+            // Dismiss the unexpected WSL error if it appears, since it will cause test hangs otherwise
+            using var _ = TestServices.MessageBox.HandleMessageBox((text, caption) =>
+            {
+                if (text.Contains("WSL is not installed."))
+                {
+                    // We do not understand why WSL is being selected as the active debugger
+                    return DialogResult.OK;
+                }
+
+                return DialogResult.None;
+            });
+
             debugger.Go(waitForBreakMode);
         }
 
