@@ -722,6 +722,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                         return false;
                                     }
 
+                                    // Having a private copy constructor in a record means it's implicitly used by
+                                    // the record's clone method
+                                    if (methodSymbol.ContainingType.IsRecord &&
+                                        methodSymbol.Parameters.Length == 1 &&
+                                        methodSymbol.Parameters[0].RefKind == RefKind.None &&
+                                        methodSymbol.Parameters[0].Type.Equals(memberSymbol.ContainingType))
+                                    {
+                                        return false;
+                                    }
+
                                     // ISerializable constructor is invoked by the runtime for deserialization
                                     // and it is a common pattern to have a private serialization constructor
                                     // that is not explicitly referenced in code.
