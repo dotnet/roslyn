@@ -3031,8 +3031,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localFunc = node.Symbol;
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
 
-            // The starting state (`state`) is the top state ("maybe null").
-            var state = TopState();
+            // The starting state (`state`) is the top state ("maybe null")
+            // or unreachable if we haven't seen any use site of this local function yet.
+            var state = localFunctionState.StartingState.Reachable ? TopState() : UnreachableState();
 
             // Captured variables are joined with the state
             // at all the local function use sites (`localFunctionState.StartingState`)
