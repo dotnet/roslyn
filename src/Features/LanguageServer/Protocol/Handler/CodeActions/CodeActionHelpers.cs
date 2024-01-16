@@ -146,11 +146,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeAction = suggestedAction.OriginalCodeAction;
             using var _1 = ArrayBuilder<LSP.CodeAction>.GetInstance(out var nestedCodeActions);
 
-            if (!isTopLevelCodeAction)
-            {
-                pathOfParentAction = pathOfParentAction.Add(codeAction.Title);
-            }
-
             if (suggestedAction is UnifiedSuggestedActionWithNestedActions unifiedSuggestedActions)
             {
                 foreach (var actionSet in unifiedSuggestedActions.NestedActionSets)
@@ -158,7 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     foreach (var action in actionSet.Actions)
                     {
                         nestedCodeActions.AddRange(CollectNestedActions(request, codeActionKind,
-                            diagnosticsForFix, action, pathOfParentAction));
+                            diagnosticsForFix, action, pathOfParentAction.Add(action.OriginalCodeAction.Title)));
                     }
                 }
             }
@@ -237,7 +232,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             codeActionPathList = codeActionPathList.Add(codeAction.Title);
             var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction,
                 codeActionKind, ref currentHighestSetNumber, codeActionPathList);
-            var codeActionPath = codeActionPathList.ToArray();
 
             return new VSInternalCodeAction
             {
@@ -248,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(codeAction.Title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath)
+                Data = new CodeActionResolveData(codeAction.Title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPathList.ToArray())
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(
