@@ -106,7 +106,7 @@
     <!-- For source build, we just build the SourceBuild targeted version -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>$(NetRoslyn)</TargetFramework>
+        <TargetFramework>$(NetRoslynToolset)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
