@@ -144,7 +144,7 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString()$$;", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1940994")]
         public async Task TabTabCompletionWithArguments()
         {
             await SetUpEditorAsync(@"
@@ -452,7 +452,7 @@ $$
 ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
+        [IdeTheory(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1940994")]
         [InlineData("\"<\"", Skip = "https://github.com/dotnet/roslyn/issues/29669")]
         [InlineData("\">\"")] // testing things that might break XML
         [InlineData("\"&\"")]
