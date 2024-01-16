@@ -2754,6 +2754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             !assignmentOperator.IsRef)
                         {
                             EmitFieldLoadNoIndirection(left, used: true);
+                            lhsUsesStack = true;
                         }
                         else if (!left.FieldSymbol.IsStatic)
                         {
