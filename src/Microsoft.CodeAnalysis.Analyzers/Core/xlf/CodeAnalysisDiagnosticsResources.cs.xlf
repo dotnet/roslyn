@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
         <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
+        <target state="translated">Toto rozšíření kompilátoru by nemělo být implementováno v sestavení s cílovou architekturou {0}. Odkazy na jiné cílové architektury způsobí, že se kompilátor bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
         <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
+        <target state="translated">Typy, které implementují body rozšíření kompilátoru, by měly být deklarovány pouze v sestaveních cílených na netstandard2.0. Konkrétnější cílové architektury jsou k dispozici pouze v podmnožině podporovaných scénářů kompilace, takže cílení na ně může způsobit, že se funkce bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
         <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
-        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
+        <target state="translated">Rozšíření kompilátoru by měla být implementována v sestavách cílících na netstandard2.0.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">

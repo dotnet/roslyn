@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
         <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
+        <target state="translated">不应在具有目标框架“{0}”的程序集中实现此编译器扩展。引用其他目标框架将导致编译器的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
         <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
+        <target state="translated">实现编译器扩展点的类型只应在面向 netstandard2.0 的程序集中声明。更具体的目标框架仅在受支持的编译方案的子集中可用，因此面向这些框架可能会导致该功能的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
         <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
-        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
+        <target state="translated">应在面向 netstandard2.0 的程序集中实现编译器扩展</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
