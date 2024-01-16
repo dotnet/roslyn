@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                                 setPriority: set.Priority,
                                 applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                                 currentSetNumber: currentSetNumber,
-                                codeActionPathList: ImmutableArray<string>.Empty,
+                                codeActionPathList: [],
                                 currentHighestSetNumber: ref currentHighestSetNumber));
                         }
                     }
@@ -118,19 +118,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Command? nestedCodeActionCommand = null;
             var title = codeAction.Title;
 
-            var codeActionPathArray = codeActionPathList.ToArray();
             if (nestedCodeActions.Any())
             {
                 nestedCodeActionCommand = new LSP.Command
                 {
                     CommandIdentifier = CodeActionsHandler.RunNestedCodeActionCommandName,
                     Title = title,
-                    Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPathArray, fixAllFlavors: null, nestedCodeActions: nestedCodeActions)]
+                    Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPathList.ToArray(), fixAllFlavors: null, nestedCodeActions: nestedCodeActions)]
                 };
             }
 
             AddLSPCodeActions(builder, codeAction, request, codeActionKind, diagnosticsForFix, nestedCodeActionCommand,
-                nestedCodeActions, codeActionPathArray, suggestedAction);
+                nestedCodeActions, codeActionPathList.ToArray(), suggestedAction);
 
             return builder.ToArray();
         }
@@ -161,9 +160,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 if (!isTopLevelCodeAction)
                 {
-                    var codeActionPath = pathOfParentAction.ToArray();
                     AddLSPCodeActions(nestedCodeActions, codeAction, request, codeActionKind, diagnosticsForFix,
-                        nestedCodeActionCommand: null, nestedCodeActions: null, codeActionPath, suggestedAction);
+                        nestedCodeActionCommand: null, nestedCodeActions: null, pathOfParentAction.ToArray(), suggestedAction);
                 }
             }
 
