@@ -7497,8 +7497,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D2(ref readonly int x);
             """;
         var verifier = CompileAndVerify(source,
-            expectedOutput: modifier == "ref" ? "CE" : "CC",
-            verify: modifier == "ref" ? Verification.FailsILVerify : Verification.Passes);
+            expectedOutput: modifier == "ref" ? "CE" : "CC");
         if (modifier == "in")
         {
             verifier.VerifyDiagnostics(
