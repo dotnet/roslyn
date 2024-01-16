@@ -6,7 +6,7 @@
     <RootNamespace>Roslyn.Test.PdbUtilities</RootNamespace>
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />

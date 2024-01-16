@@ -28,4 +28,14 @@
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
+  <!-- TODO: Remove when roslyn updates to Arcade 9.
+       Arcade provides the IsTestUtilityProject handling natively there,
+       setting IsShipping=false in those cases, and excluding them from the build
+       when in source build or vertical build modes. Note, at a later date tests will
+       be built by default in vertical mode. -->
+  <PropertyGroup Condition="'$(IsTestUtilityProject)' == 'true'">
+    <IsShipping>false</IsShipping>
+    <ExcludeFromBuild Condition="'$(DotNetBuildFromSource)' == 'true' or '$(DotNetBuildVertical)' == 'true'">true</ExcludeFromBuild>
+  </PropertyGroup>
+
 </Project>
