@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.GenerateComparisonOperators.GenerateComparisonOperatorsCodeRefactoringProvider>;
@@ -446,8 +447,9 @@ class C : IComparable<C>, IComparable<int>
             }.RunAsync();
         }
 
-#if NET472 // TODO: https://github.com/dotnet/roslyn/issues/71625 
-        [Fact]
+        // TODO: Enable test on .NET Core
+        // https://github.com/dotnet/roslyn/issues/71625
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task TestInInterfaceWithDefaultImpl()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -490,7 +492,6 @@ class C : IComparable<C>, IComparable<int>
                 }
                 """);
         }
-#endif
     }
 }
 

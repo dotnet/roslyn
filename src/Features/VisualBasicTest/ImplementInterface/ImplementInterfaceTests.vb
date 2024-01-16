@@ -2436,9 +2436,9 @@ Class C
 End Class")
         End Function
 
-        ' TODO https://github.com/dotnet/roslyn/issues/71625 
-#If NET472 Then
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
+        ' TODO: Enable test on .NET Core
+        ' https://github.com/dotnet/roslyn/issues/71625
+        <ConditionalFact(GetType(DesktopOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
         Public Async Function TestHighPrecisionDouble() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2462,7 +2462,6 @@ Class C
     End Sub
 End Class")
         End Function
-#End If
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545729"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestCharSurrogates() As Task

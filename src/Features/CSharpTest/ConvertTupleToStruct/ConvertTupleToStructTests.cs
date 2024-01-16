@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// TODO: https://github.com/dotnet/roslyn/issues/71625 
-#if NET472
-
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -27,6 +24,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTupleToStructCodeRefactoringProvider>;
+
+    // TODO: Enable tests on .NET Core
+    // https://github.com/dotnet/roslyn/issues/71625
 
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
         #region update containing member tests
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleType(TestHost host)
         {
             var text = """
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeToRecord(TestHost host)
         {
             var text = """
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
         {
             var text = """
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
         {
             var text = """
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
         {
             var text = """
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
         public async Task ConvertSingleTupleType_ChangeArgumentNameCase_Uppercase(TestHost host)
         {
             var text = """
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: options, testHost: host);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
         public async Task ConvertSingleTupleType_Explicit(TestHost host)
         {
             var text = """
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeNoNames(TestHost host)
         {
             var text = """
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypePartialNames(TestHost host)
         {
             var text = """
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertFromType(TestHost host)
         {
             var text = """
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertFromType2(TestHost host)
         {
             var text = """
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertFromType3(TestHost host)
         {
             var text = """
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertFromType4(TestHost host)
         {
             var text = """
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeInNamespace(TestHost host)
         {
             var text = """
@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestNonLiteralNames_WithUsings(TestHost host)
         {
             var text = """
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestNonLiteralNames_WithoutUsings(TestHost host)
         {
             var text = """
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertSingleTupleTypeWithInferredName(TestHost host)
         {
             var text = """
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleInstancesInSameMethod(TestHost host)
         {
             var text = """
@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleInstancesAcrossMethods(TestHost host)
         {
             var text = """
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task OnlyConvertMatchingTypesInSameMethod(TestHost host)
         {
             var text = """
@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestFixAllMatchesInSingleMethod(TestHost host)
         {
             var text = """
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestFixNotAcrossMethods(TestHost host)
         {
             var text = """
@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestTrivia_WithUsings(TestHost host)
         {
             var text = """
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestTrivia_WithoutUsings(TestHost host)
         {
             var text = """
@@ -1686,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task NotIfReferencesAnonymousTypeInternally(TestHost host)
         {
             var text = """
@@ -1702,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, text, testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleNestedInstancesInSameMethod1_WithUsings(TestHost host)
         {
             var text = """
@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleNestedInstancesInSameMethod1_WithoutUsings(TestHost host)
         {
             var text = """
@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleNestedInstancesInSameMethod2_WithUsings(TestHost host)
         {
             var text = """
@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertMultipleNestedInstancesInSameMethod2_WithoutUsings(TestHost host)
         {
             var text = """
@@ -1978,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task RenameAnnotationOnStartingPoint(TestHost host)
         {
             var text = """
@@ -2047,7 +2047,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task CapturedMethodTypeParameters_WithUsings(TestHost host)
         {
             var text = """
@@ -2122,7 +2122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 ]);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task CapturedMethodTypeParameters_WithoutUsings(TestHost host)
         {
             var text = """
@@ -2197,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 ]);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task NewTypeNameCollision(TestHost host)
         {
             var text = """
@@ -2272,7 +2272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestDuplicatedName(TestHost host)
         {
             var text = """
@@ -2413,7 +2413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             }.RunAsync();
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestInLambda1(TestHost host)
         {
             var text = """
@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestInLambda2(TestHost host)
         {
             var text = """
@@ -2571,7 +2571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestInLocalFunction1(TestHost host)
         {
             var text = """
@@ -2650,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestInLocalFunction2(TestHost host)
         {
             var text = """
@@ -2729,7 +2729,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertWithDefaultNames1(TestHost host)
         {
             var text = """
@@ -2809,7 +2809,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 ]);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task ConvertWithDefaultNames2(TestHost host)
         {
             var text = """
@@ -2893,7 +2893,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
         #region update containing type tests
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestCapturedTypeParameter_UpdateType_WithUsings(TestHost host)
         {
             var text = """
@@ -2994,7 +2994,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 ]);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task TestCapturedTypeParameter_UpdateType_WithoutUsings(TestHost host)
         {
             var text = """
@@ -3092,7 +3092,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 ]);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateAllInType_SinglePart_SingleFile(TestHost host)
         {
             var text = """
@@ -3191,7 +3191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateAllInType_MultiplePart_SingleFile(TestHost host)
         {
             var text = """
@@ -3298,7 +3298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateAllInType_MultiplePart_MultipleFile(TestHost host)
         {
             var text1 = """
@@ -3453,7 +3453,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
         #region update containing project tests
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(TestHost host)
         {
             var text1 = """
@@ -3606,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
         #region update dependent projects
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateDependentProjects_DirectDependency(TestHost host)
         {
             var text1 = """
@@ -3747,7 +3747,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             }.RunAsync();
         }
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
         public async Task UpdateDependentProjects_NoDependency(TestHost host)
         {
             var text1 = """
@@ -3883,4 +3883,3 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
         #endregion
     }
 }
-#endif
