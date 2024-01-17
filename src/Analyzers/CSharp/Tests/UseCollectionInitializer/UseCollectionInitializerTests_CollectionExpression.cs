@@ -5149,4 +5149,41 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNotInDictionary()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    Dictionary<string, object> d = new Dictionary<string, object>() { };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotInIEnumerableAndIncompatibleAdd()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection c = new MyCollection() { };
+                }
+            }
+            class MyCollection : IEnumerable
+            {
+                public void Add(string s) { }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+            """);
+    }
 }
