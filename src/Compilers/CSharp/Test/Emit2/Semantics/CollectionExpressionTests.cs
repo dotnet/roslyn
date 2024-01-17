@@ -3777,9 +3777,9 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(6,23): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 1.cs(6,23): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'List<int>.Add(int)'.
                 //         List<int> l = [1];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1]").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1]").WithArguments("object", "System.Collections.Generic.List<int>.Add(int)").WithLocation(6, 23),
                 // 1.cs(6,23): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "object", "int").WithLocation(6, 23),
@@ -3847,9 +3847,9 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,23): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 1.cs(7,23): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'List<int>.Add(int)'.
                 //         List<int> l = [1];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1]").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1]").WithArguments("object", "System.Collections.Generic.List<int>.Add(int)").WithLocation(7, 23),
                 // 1.cs(7,23): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "object", "int").WithLocation(7, 23),
@@ -5349,18 +5349,18 @@ static class Program
                 // (3,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("C", "0").WithLocation(3, 5),
-                // (3,5): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (3,5): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
                 // c = [];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[]").WithArguments("C.Add(int)").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[]").WithArguments("object", "C.Add(int)").WithLocation(3, 5),
                 // (3,5): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(3, 5),
                 // (4,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1, 2]").WithArguments("C", "0").WithLocation(4, 5),
-                // (4,5): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (4,5): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
                 // c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2]").WithArguments("C.Add(int)").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2]").WithArguments("object", "C.Add(int)").WithLocation(4, 5),
                 // (4,5): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(4, 5));
@@ -5428,15 +5428,15 @@ static class Program
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(15,13): error CS1950: The best overloaded Add method 'C<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 0.cs(15,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[]").WithArguments("C<int>.Add(int)").WithLocation(15, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[]").WithArguments("object", "C<int>.Add(int)").WithLocation(15, 13),
                 // 0.cs(15,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(15, 13),
-                // 0.cs(19,13): error CS1950: The best overloaded Add method 'C<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 0.cs(19,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2]").WithArguments("C<int>.Add(int)").WithLocation(19, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(19, 13),
                 // 0.cs(19,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(19, 13));
@@ -5562,15 +5562,15 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,29): error CS1950: The best overloaded Add method 'S0<int>.Add(int)' for the collection initializer has some invalid arguments
+                // (12,29): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
                 //         object o = (S0<int>)[];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[]").WithArguments("S0<int>.Add(int)").WithLocation(12, 29),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[]").WithArguments("object", "S0<int>.Add(int)").WithLocation(12, 29),
                 // (12,29): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         object o = (S0<int>)[];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(12, 29),
-                // (13,21): error CS1950: The best overloaded Add method 'S0<int>.Add(int)' for the collection initializer has some invalid arguments
+                // (13,21): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
                 //         S0<int> s = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2]").WithArguments("S0<int>.Add(int)").WithLocation(13, 21),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2]").WithArguments("object", "S0<int>.Add(int)").WithLocation(13, 21),
                 // (13,21): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         S0<int> s = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(13, 21));
@@ -5774,7 +5774,7 @@ static class Program
         }
 
         [Fact]
-        public void CollectionInitializerType_13()
+        public void CollectionInitializerType_13A()
         {
             string source = """
                 using System.Collections;
@@ -5797,12 +5797,47 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (15,15): error CS1950: The best overloaded Add method 'C.Add(IA)' for the collection initializer has some invalid arguments
+                // (15,15): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(IA)'.
                 //         C c = [(IA)null, (IB)null, new AB()];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[(IA)null, (IB)null, new AB()]").WithArguments("C.Add(IA)").WithLocation(15, 15),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[(IA)null, (IB)null, new AB()]").WithArguments("object", "C.Add(IA)").WithLocation(15, 15),
                 // (15,15): error CS1503: Argument 1: cannot convert from 'object' to 'IA'
                 //         C c = [(IA)null, (IB)null, new AB()];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[(IA)null, (IB)null, new AB()]").WithArguments("1", "object", "IA").WithLocation(15, 15));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_13B()
+        {
+            string source = """
+                using System.Collections;
+                interface IA { }
+                interface IB { }
+                class AB : IA, IB { }
+                class C : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Extensions
+                {
+                    public static void Add(this C c, IA a) { }
+                    public static void Add(this C c, IB b) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C c = [(IA)null, (IB)null, new AB()];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (18,15): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'Extensions.Add(C, IA)'.
+                //         C c = [(IA)null, (IB)null, new AB()];
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[(IA)null, (IB)null, new AB()]").WithArguments("object", "Extensions.Add(C, IA)").WithLocation(18, 15),
+                // (18,15): error CS1503: Argument 2: cannot convert from 'object' to 'IA'
+                //         C c = [(IA)null, (IB)null, new AB()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "[(IA)null, (IB)null, new AB()]").WithArguments("2", "object", "IA").WithLocation(18, 15));
         }
 
         [Fact]
@@ -5858,15 +5893,15 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,20): error CS1950: The best overloaded Add method 'C<int>.Add(int, int)' for the collection initializer has some invalid arguments
+                // (13,20): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
                 //         C<int> c = [];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[]").WithArguments("C<int>.Add(int, int)").WithLocation(13, 20),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[]").WithArguments("object", "C<int>.Add(int, int)").WithLocation(13, 20),
                 // (13,20): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(13, 20),
-                // (14,13): error CS1950: The best overloaded Add method 'C<int>.Add(int, int)' for the collection initializer has some invalid arguments
+                // (14,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2]").WithArguments("C<int>.Add(int, int)").WithLocation(14, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int, int)").WithLocation(14, 13),
                 // (14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(14, 13));
@@ -5922,15 +5957,15 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,20): error CS1950: The best overloaded Add method 'C<int>.Add(int, params int[])' for the collection initializer has some invalid arguments
+                // (13,20): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
                 //         C<int> c = [];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[]").WithArguments("C<int>.Add(int, params int[])").WithLocation(13, 20),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[]").WithArguments("object", "C<int>.Add(int, params int[])").WithLocation(13, 20),
                 // (13,20): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(13, 20),
-                // (14,13): error CS1950: The best overloaded Add method 'C<int>.Add(int, params int[])' for the collection initializer has some invalid arguments
+                // (14,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2]").WithArguments("C<int>.Add(int, params int[])").WithLocation(14, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int, params int[])").WithLocation(14, 13),
                 // (14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(14, 13));
@@ -6050,15 +6085,15 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,40): error CS1950: The best overloaded Add method 'S<T, U>.Add(T)' for the collection initializer has some invalid arguments
+                // (7,40): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create(T t, U u) => [t, u];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[t, u]").WithArguments("S<T, U>.Add(T)").WithLocation(7, 40),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[t, u]").WithArguments("object", "S<T, U>.Add(T)").WithLocation(7, 40),
                 // (7,40): error CS1503: Argument 1: cannot convert from 'object' to 'T'
                 //     static S<T, U> Create(T t, U u) => [t, u];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[t, u]").WithArguments("1", "object", "T").WithLocation(7, 40),
-                // (11,46): error CS1950: The best overloaded Add method 'S<T, U>.Add(T)' for the collection initializer has some invalid arguments
+                // (11,46): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[x, y]").WithArguments("S<T, U>.Add(T)").WithLocation(11, 46),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[x, y]").WithArguments("object", "S<T, U>.Add(T)").WithLocation(11, 46),
                 // (11,46): error CS1503: Argument 1: cannot convert from 'object' to 'T'
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[x, y]").WithArguments("1", "object", "T").WithLocation(11, 46));
@@ -6117,9 +6152,9 @@ static class Program
                 // (9,41): error CS0029: Cannot implicitly convert type 'T' to 'U'
                 //     static S<T, U> Create(T t, U u) => [t, u];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "U").WithLocation(9, 41),
-                // (13,46): error CS1950: The best overloaded Add method 'S<T, U>.Add(T)' for the collection initializer has some invalid arguments
+                // (13,46): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'U'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[x, y]").WithArguments("S<T, U>.Add(T)").WithLocation(13, 46),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[x, y]").WithArguments("U", "S<T, U>.Add(T)").WithLocation(13, 46),
                 // (13,46): error CS1503: Argument 1: cannot convert from 'U' to 'T'
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[x, y]").WithArguments("1", "U", "T").WithLocation(13, 46),
@@ -6308,6 +6343,38 @@ static class Program
         }
 
         [Fact]
+        public void CollectionInitializerType_AddByValue()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public MyCollection() { }
+                    public void Add(T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                static class Extensions
+                {
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "1, 3, ");
+        }
+
+        [Fact]
         public void CollectionInitializerType_AddByRef_Out()
         {
             string source = """
@@ -6446,6 +6513,396 @@ static class Program
                 //         MyCollection<object> z = [..x, ..y, 3, v];
                 Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("1").WithLocation(17, 45));
             CompileAndVerify(comp, expectedOutput: "1, 3, 4, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByValue_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public MyCollection() { }
+                    internal void AddValue(T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, T t) { c.AddValue(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "1, 3, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_Out_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, out T t) => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,42): error CS0411: The type arguments for method 'Extensions.Add<T>(ref MyCollection<T>, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         MyCollection<object> x = new() { 1 };
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Extensions.Add<T>(ref MyCollection<T>, out T)").WithLocation(16, 42),
+                // (17,31): error CS1954: The best overloaded method match 'Extensions.Add<int>(ref MyCollection<int>, out int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<int> y = [];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[]").WithArguments("Extensions.Add<int>(ref MyCollection<int>, out int)").WithLocation(17, 31),
+                // (18,34): error CS1954: The best overloaded method match 'Extensions.Add<object>(ref MyCollection<object>, out object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> z = [..x, ..y, 3];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<object>(ref MyCollection<object>, out object)").WithLocation(18, 34));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_Ref_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, ref T t) => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,42): error CS0411: The type arguments for method 'Extensions.Add<T>(ref MyCollection<T>, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         MyCollection<object> x = new() { 1 };
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref T)").WithLocation(16, 42),
+                // (17,31): error CS1954: The best overloaded method match 'Extensions.Add<int>(ref MyCollection<int>, ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<int> y = [];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[]").WithArguments("Extensions.Add<int>(ref MyCollection<int>, ref int)").WithLocation(17, 31),
+                // (18,34): error CS1954: The best overloaded method match 'Extensions.Add<object>(ref MyCollection<object>, ref object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyCollection<object> z = [..x, ..y, 3];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<object>(ref MyCollection<object>, ref object)").WithLocation(18, 34));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_In_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public MyCollection() { }
+                    internal void AddValue(T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, in T t) { c.AddValue(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "1, 3, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_AddByRef_RefReadonly_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    public MyCollection() { }
+                    internal void AddValue(T t) { _list.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, ref readonly T t) { c.AddValue(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = new() { 1 };
+                        MyCollection<int> y = [];
+                        MyCollection<object> z = [..x, ..y, 3];
+                        foreach (var i in z)
+                            System.Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "1, 3, ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_InvalidParameterByValue_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, string s) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x;
+                        x = new() { "1" };
+                        x = ["2"];
+                        MyCollection<int> y;
+                        y = new() { 3 };
+                        y = [4];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (20,21): error CS1950: The best overloaded Add method 'Extensions.Add<int>(ref MyCollection<int>, string)' for the collection initializer has some invalid arguments
+                //         y = new() { 3 };
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "3").WithArguments("Extensions.Add<int>(ref MyCollection<int>, string)").WithLocation(20, 21),
+                // (20,21): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         y = new() { 3 };
+                Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(20, 21),
+                // (21,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'Extensions.Add<int>(ref MyCollection<int>, string)'.
+                //         y = [4];
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[4]").WithArguments("int", "Extensions.Add<int>(ref MyCollection<int>, string)").WithLocation(21, 13),
+                // (21,13): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         y = [4];
+                Diagnostic(ErrorCode.ERR_BadArgType, "[4]").WithArguments("2", "int", "string").WithLocation(21, 13));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_InvalidParameterByRef_Extension()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this ref MyCollection<T> c, ref string s) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x;
+                        x = new() { "1" };
+                        x = ["2"];
+                        MyCollection<int> y;
+                        y = new() { 3 };
+                        y = [4];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (17,21): error CS1954: The best overloaded method match 'Extensions.Add<string>(ref MyCollection<string>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         x = new() { "1" };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"""1""").WithArguments("Extensions.Add<string>(ref MyCollection<string>, ref string)").WithLocation(17, 21),
+                // (18,13): error CS1954: The best overloaded method match 'Extensions.Add<string>(ref MyCollection<string>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         x = ["2"];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"[""2""]").WithArguments("Extensions.Add<string>(ref MyCollection<string>, ref string)").WithLocation(18, 13),
+                // (20,21): error CS1954: The best overloaded method match 'Extensions.Add<int>(ref MyCollection<int>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         y = new() { 3 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "3").WithArguments("Extensions.Add<int>(ref MyCollection<int>, ref string)").WithLocation(20, 21),
+                // (21,13): error CS1954: The best overloaded method match 'Extensions.Add<int>(ref MyCollection<int>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         y = [4];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[4]").WithArguments("Extensions.Add<int>(ref MyCollection<int>, ref string)").WithLocation(21, 13));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_WrongSignature()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    public static void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,31): error CS1921: The best overloaded method match for 'MyCollection<int>.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[]").WithArguments("MyCollection<int>.Add(int)").WithLocation(13, 31),
+                // (14,31): error CS1921: The best overloaded method match for 'MyCollection<int>.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(14, 31));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_ObsoleteAdd_01()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    [Obsolete] public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,32): warning CS1064: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete.
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "1").WithArguments("MyCollection<int>.Add(int)").WithLocation(15, 32),
+                // (15,37): warning CS1064: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete.
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "x").WithArguments("MyCollection<int>.Add(int)").WithLocation(15, 37));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_ObsoleteAdd_02()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    [Obsolete("do not use")] public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,32): warning CS1062: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete. do not use
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "1").WithArguments("MyCollection<int>.Add(int)", "do not use").WithLocation(15, 32),
+                // (15,37): warning CS1062: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete. do not use
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "x").WithArguments("MyCollection<int>.Add(int)", "do not use").WithLocation(15, 37));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_ObsoleteAdd_03()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                struct MyCollection<T> : IEnumerable
+                {
+                    [Obsolete("do not use", error: true)] public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,32): error CS1063: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete. do not use
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_DeprecatedCollectionInitAddStr, "1").WithArguments("MyCollection<int>.Add(int)", "do not use").WithLocation(15, 32),
+                // (15,37): error CS1063: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer element is obsolete. do not use
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_DeprecatedCollectionInitAddStr, "x").WithArguments("MyCollection<int>.Add(int)", "do not use").WithLocation(15, 37));
         }
 
         [Fact]
@@ -8683,15 +9140,15 @@ static class Program
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
-                    // 1.cs(10,26): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    // 1.cs(10,26): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[..d1, ..d2, ..e1, ..e2]").WithArguments("MyCollection.Add(int)").WithLocation(10, 26),
+                    Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[..d1, ..d2, ..e1, ..e2]").WithArguments("object", "MyCollection.Add(int)").WithLocation(10, 26),
                     // 1.cs(10,26): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgType, "[..d1, ..d2, ..e1, ..e2]").WithArguments("1", "object", "int").WithLocation(10, 26),
-                    // 1.cs(14,13): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    // 1.cs(14,13): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[..(dynamic)x, ..(IEnumerable)y]").WithArguments("MyCollection.Add(int)").WithLocation(14, 13),
+                    Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[..(dynamic)x, ..(IEnumerable)y]").WithArguments("object", "MyCollection.Add(int)").WithLocation(14, 13),
                     // 1.cs(14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
                     Diagnostic(ErrorCode.ERR_BadArgType, "[..(dynamic)x, ..(IEnumerable)y]").WithArguments("1", "object", "int").WithLocation(14, 13));
@@ -24962,9 +25419,9 @@ partial class Program
                 // (3,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1]").WithArguments("s", "C.C(string)").WithLocation(3, 7),
-                // (3,7): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (3,7): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
                 // C x = [1]; // 1
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1]").WithArguments("C.Add(int)").WithLocation(3, 7),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1]").WithArguments("object", "C.Add(int)").WithLocation(3, 7),
                 // (3,7): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "object", "int").WithLocation(3, 7)
@@ -25011,9 +25468,9 @@ partial class Program
                 // (4,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[..values]").WithArguments("s", "C.C(string)").WithLocation(4, 7),
-                // (4,7): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (4,7): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
                 // C x = [..values]; // 1
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[..values]").WithArguments("C.Add(int)").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[..values]").WithArguments("object", "C.Add(int)").WithLocation(4, 7),
                 // (4,7): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_BadArgType, "[..values]").WithArguments("1", "object", "int").WithLocation(4, 7)
@@ -25057,9 +25514,9 @@ partial class Program
                 // (4,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1]").WithArguments("s", "C.C(string)").WithLocation(4, 7),
-                // (4,7): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (4,7): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'string'. The best overloaded method is 'C.Add(int)'.
                 // C x = [1]; // 1
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1]").WithArguments("C.Add(int)").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1]").WithArguments("string", "C.Add(int)").WithLocation(4, 7),
                 // (4,7): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "string", "int").WithLocation(4, 7),
@@ -25102,9 +25559,9 @@ partial class Program
                 // (5,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[..values]").WithArguments("s", "C.C(string)").WithLocation(5, 7),
-                // (5,7): error CS1950: The best overloaded Add method 'C.Add(int)' for the collection initializer has some invalid arguments
+                // (5,7): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'string'. The best overloaded method is 'C.Add(int)'.
                 // C x = [..values]; // 1
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[..values]").WithArguments("C.Add(int)").WithLocation(5, 7),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[..values]").WithArguments("string", "C.Add(int)").WithLocation(5, 7),
                 // (5,7): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_BadArgType, "[..values]").WithArguments("1", "string", "int").WithLocation(5, 7),
@@ -25802,15 +26259,15 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,24): error CS1950: The best overloaded Add method 'MyCollection1<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 0.cs(4,24): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection1<int>.Add(int)'.
                 // MyCollection1<int> x = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2, 3]").WithArguments("MyCollection1<int>.Add(int)").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2, 3]").WithArguments("object", "MyCollection1<int>.Add(int)").WithLocation(4, 24),
                 // 0.cs(4,24): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // MyCollection1<int> x = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "object", "int").WithLocation(4, 24),
-                // 0.cs(6,32): error CS1950: The best overloaded Add method 'MyCollection2<object, int>.Add(int)' for the collection initializer has some invalid arguments
+                // 0.cs(6,32): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
                 // MyCollection2<object, int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2, 3]").WithArguments("MyCollection2<object, int>.Add(int)").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2, 3]").WithArguments("object", "MyCollection2<object, int>.Add(int)").WithLocation(6, 32),
                 // 0.cs(6,32): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // MyCollection2<object, int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "object", "int").WithLocation(6, 32));
@@ -25836,9 +26293,9 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,32): error CS1950: The best overloaded Add method 'MyCollection2<object, int>.Add(int)' for the collection initializer has some invalid arguments
+                // (4,32): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
                 // MyCollection2<object, int> y = [new object()];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[new object()]").WithArguments("MyCollection2<object, int>.Add(int)").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[new object()]").WithArguments("object", "MyCollection2<object, int>.Add(int)").WithLocation(4, 32),
                 // (4,32): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // MyCollection2<object, int> y = [new object()];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[new object()]").WithArguments("1", "object", "int").WithLocation(4, 32)
@@ -25868,9 +26325,9 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,18): error CS1950: The best overloaded Add method 'MyCollection.Add(sbyte)' for the collection initializer has some invalid arguments
+                // 0.cs(4,18): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
                 // MyCollection x = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[1, 2, 3]").WithArguments("MyCollection.Add(sbyte)").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[1, 2, 3]").WithArguments("uint", "MyCollection.Add(sbyte)").WithLocation(4, 18),
                 // 0.cs(4,18): error CS1503: Argument 1: cannot convert from 'uint' to 'sbyte'
                 // MyCollection x = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "uint", "sbyte").WithLocation(4, 18));
@@ -25898,9 +26355,9 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,18): error CS1950: The best overloaded Add method 'MyCollection.Add(sbyte)' for the collection initializer has some invalid arguments
+                // 0.cs(4,18): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
                 // MyCollection x = [uint.MaxValue];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[uint.MaxValue]").WithArguments("MyCollection.Add(sbyte)").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[uint.MaxValue]").WithArguments("uint", "MyCollection.Add(sbyte)").WithLocation(4, 18),
                 // 0.cs(4,18): error CS1503: Argument 1: cannot convert from 'uint' to 'sbyte'
                 // MyCollection x = [uint.MaxValue];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[uint.MaxValue]").WithArguments("1", "uint", "sbyte").WithLocation(4, 18)
@@ -26120,9 +26577,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,16): error CS1950: The best overloaded Add method 'Collection.Add(I1)' for the collection initializer has some invalid arguments
+                // (4,16): error CS9214: Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'Collection.Add(I1)'.
                 // Collection c = [new C()];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "[new C()]").WithArguments("Collection.Add(I1)").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, "[new C()]").WithArguments("object", "Collection.Add(I1)").WithLocation(4, 16),
                 // (4,16): error CS1503: Argument 1: cannot convert from 'object' to 'I1'
                 // Collection c = [new C()];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[new C()]").WithArguments("1", "object", "I1").WithLocation(4, 16));

@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var elementPlaceholder = new BoundValuePlaceholder(syntax, elementType) { WasCompilerGenerated = true };
-            var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+            var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
             var result = BindCollectionInitializerElementAddMethod(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(elementPlaceholder),

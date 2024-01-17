@@ -2411,6 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                 case ErrorCode.ERR_SpreadMissingMember:
                 case ErrorCode.ERR_CollectionExpressionTargetNoElementType:
+                case ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

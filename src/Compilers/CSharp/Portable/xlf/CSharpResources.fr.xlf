@@ -187,6 +187,11 @@
         <target state="translated">L’argument {0} ne peut pas être passé avec le mot clé 'ref' dans la version de langage {1}. Pour passer les arguments 'ref' aux paramètres 'in', effectuez une mise à niveau vers la version de langage {2} ou une version ultérieure.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadArgTypeForCollectionExpressionAdd">
+        <source>Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Impossible d’appliquer l’opérateur '{0}' aux opérandes de type '{1}' et '{2}' qui ne sont pas des représentations d’octets UTF-8</target>

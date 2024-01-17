@@ -1092,9 +1092,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ErrorCode.ERR_BadArgTypesForCollectionAdd or ErrorCode.ERR_InitializerAddHasParamModifiers
                 // as there is no explicit call to Add method.
 
-                foreach (var parameter in method.GetParameters())
+                int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
+                var parameters = method.GetParameters();
+
+                for (int i = argumentOffset; i < parameters.Length; i++)
                 {
-                    if (parameter.RefKind != RefKind.None)
+                    if (parameters[i].RefKind != RefKind.None)
                     {
                         //  The best overloaded method match '{0}' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                         diagnostics.Add(ErrorCode.ERR_InitializerAddHasParamModifiers, location, symbols, method);
@@ -1102,8 +1105,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
-                diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
+                if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
+                {
+                    Debug.Assert(arguments.Arguments.Count == argumentOffset + 1);
+                    diagnostics.Add(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, location, arguments.Arguments[argumentOffset].Type, method);
+                }
+                else
+                {
+                    //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
+                    diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
+                }
             }
 
             foreach (var arg in badArg.Result.BadArgumentsOpt.TrueBits())
