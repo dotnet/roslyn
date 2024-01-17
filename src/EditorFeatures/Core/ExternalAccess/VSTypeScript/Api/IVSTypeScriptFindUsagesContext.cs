@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
                    ImmutableArray<TaggedText>.Empty,
                    originationParts: default,
                    sourceSpans: default,
+                   classifiedSpans: default,
                    properties: null,
                    displayIfNoReferences: true)
         {
@@ -84,8 +86,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             bool displayIfNoReferences = true)
         {
             return new(DefinitionItem.Create(
-                tags, displayParts, sourceSpans.SelectAsArray(span => span.ToDocumentSpan()), nameDisplayParts,
-                properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
+                tags, displayParts, sourceSpans.SelectAsArray(span => span.ToDocumentSpan()), sourceSpans.SelectAsArray(_ => (ClassifiedSpansAndHighlightSpan?)null),
+                nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
         }
 
         public static VSTypeScriptDefinitionItem CreateExternal(
@@ -120,7 +122,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         VSTypeScriptDocumentSpan sourceSpan,
         VSTypeScriptSymbolUsageInfo symbolUsageInfo)
     {
-        internal readonly SourceReferenceItem UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), symbolUsageInfo.UnderlyingObject);
+        internal readonly SourceReferenceItem UnderlyingObject = new SourceReferenceItem(
+            definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), classifiedSpans: null, symbolUsageInfo.UnderlyingObject);
 
         public VSTypeScriptDocumentSpan GetSourceSpan()
             => new(UnderlyingObject.SourceSpan);

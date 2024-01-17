@@ -352,6 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
+                ClassifiedSpansAndHighlightSpan? classifiedSpans,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties,
@@ -360,7 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var document = documentSpan.Document;
                 var options = _globalOptions.GetClassificationOptions(document.Project.Language);
                 var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
@@ -389,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
-                SourceText sourceText, DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
+                SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
@@ -401,7 +402,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     }
                 }
 
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
 
                 // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
                 var excerptResult = new ExcerptResult(
