@@ -28,7 +28,7 @@ namespace BoundTreeGenerator
 
             var targetLanguage = ParseTargetLanguage(language);
 
-            Tree tree = LoadTreeXml(infilename, targetLanguage != TargetLanguage.XML);
+            Tree tree = LoadTreeXml(infilename);
 
             if (!ValidateTree(tree))
             {
@@ -38,7 +38,7 @@ namespace BoundTreeGenerator
 
             using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
             {
-                WriteTree(tree, outfile, targetLanguage);
+                BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
             }
 
             return 0;
@@ -54,26 +54,8 @@ namespace BoundTreeGenerator
                 case "csharp":
                 case "c#":
                     return TargetLanguage.CSharp;
-                case "xml":
-                    return TargetLanguage.XML;
                 default:
                     throw new ArgumentOutOfRangeException("Language must be \"VB\" or \"CSharp\"");
-            }
-        }
-
-        private static void WriteTree(Tree tree, StreamWriter streamWriter, TargetLanguage format)
-        {
-            if (format == TargetLanguage.XML)
-            {
-                var ns = new System.Xml.Serialization.XmlSerializerNamespaces();
-                ns.Add("", "");
-
-                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Tree));
-                serializer.Serialize(streamWriter, tree, ns);
-            }
-            else
-            {
-                BoundNodeClassWriter.Write(streamWriter, tree, format);
             }
         }
 
@@ -81,20 +63,10 @@ namespace BoundTreeGenerator
         {
             using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
             {
-                if (useXmlSerializer)
+                var serializer = new XmlSerializer(typeof(Tree));
+                using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
                 {
-                    var serializer = new XmlSerializer(typeof(Tree));
-                    using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
-                    {
-                        var tree = (Tree)serializer.Deserialize(reader);
-                        return tree;
-                    }
-                }
-                else
-                {
-                    var deserializer = new Deserializer();
-                    deserializer.OnObjectDeserialized += (element, obj) => CommentHandler.HandleElementComment(element, obj);
-                    var tree = deserializer.DeserializeElement<Tree>(stream);
+                    var tree = (Tree)serializer.Deserialize(reader);
                     return tree;
                 }
             }

@@ -41,20 +41,6 @@ namespace BoundTreeGenerator
                 return string.Join(Environment.NewLine, comments.Select(c => c.Summary));
             }
         }
-
-        void AddComment(string value)
-        {
-            if (value is null or { Length: 0 })
-            {
-                return;
-            }
-            ref var comments = ref GetCommentListField();
-            comments ??= new();
-            comments.Add(new()
-            {
-                Summary = value
-            });
-        }
     }
 
     public sealed class CommentNode

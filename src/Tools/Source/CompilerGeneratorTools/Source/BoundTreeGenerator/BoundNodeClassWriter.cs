@@ -15,8 +15,7 @@ namespace BoundTreeGenerator
     internal enum TargetLanguage
     {
         VB,
-        CSharp,
-        XML
+        CSharp
     }
 
     internal enum NullHandling
