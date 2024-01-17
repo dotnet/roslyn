@@ -2471,5 +2471,54 @@ class D<T> : B<{passToBase}>{constraint}
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+        public async Task TestNullableGenericConstraintToSpecificReferenceType()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                #nullable enable
+                interface I<out T> { }
+
+                class C { }
+
+                abstract class Problem
+                {
+                    protected abstract void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : Y
+                        where Y : Z
+                        where Z : C;
+                }
+
+                class [|Bad|] : Problem
+                {
+                }
+                """,
+                """
+                #nullable enable
+                interface I<out T> { }
+
+                class C { }
+
+                abstract class Problem
+                {
+                    protected abstract void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : Y
+                        where Y : Z
+                        where Z : C;
+                }
+
+                class Bad : Problem
+                {
+                    protected override void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : class
+                        where Y : class
+                        where Z : class
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """);
+        }
     }
 }
