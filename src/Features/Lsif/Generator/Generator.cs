@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 return null;
 
             // Find the syntax node that declared the symbol in the tree we're processing
-            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, syntaxTree) => r.SyntaxTree == syntaxTree, arg: syntaxTree);
+            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, arg) => r.SyntaxTree == arg.syntaxTree && r.Span.Contains(arg.SpanStart), arg: (syntaxTree, syntaxToken.SpanStart));
             var syntaxNode = syntaxReference?.GetSyntax(cancellationToken);
 
             if (syntaxNode is null)
