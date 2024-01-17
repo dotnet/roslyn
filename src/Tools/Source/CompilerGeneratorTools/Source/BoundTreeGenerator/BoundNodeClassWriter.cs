@@ -295,7 +295,8 @@ namespace BoundTreeGenerator
 
         private void WriteComment(ICommentedNode node)
         {
-            if (node.Comment is null or { Length: 0 })
+            var trimmedComment = node.Comment.Trim();
+            if (trimmedComment is null or { Length: 0 })
             {
                 return;
             }
@@ -303,7 +304,7 @@ namespace BoundTreeGenerator
             if (PreferMultiLineComment && _targetLang == TargetLanguage.CSharp)
             {
                 WriteSimpleLine("/**");
-                var commentText = GetCommentText();
+                var commentText = GetCommentText(trimmedComment);
                 WriteSimpleMultiLine(commentText);
                 WriteSimpleLine("*/");
             }
@@ -318,7 +319,7 @@ namespace BoundTreeGenerator
 
                 if (commentLineStart is { })
                 {
-                    var commentText = GetCommentText().Trim();
+                    var commentText = GetCommentText(trimmedComment);
                     using var reader = new StringReader(commentText);
                     while (reader.ReadLine() is { } line)
                     {
@@ -327,12 +328,12 @@ namespace BoundTreeGenerator
                 }
             }
 
-            string GetCommentText()
+            string GetCommentText(string commentText)
             {
                 List<object> contents = new();
                 if (EmitLineBreakTags)
                 {
-                    using var reader = new StringReader(node.Comment);
+                    using var reader = new StringReader(commentText);
                     bool isFirst = true;
                     while (reader.ReadLine() is { } line)
                     {
@@ -350,7 +351,7 @@ namespace BoundTreeGenerator
                 }
                 else
                 {
-                    contents.Add(new XText(node.Comment));
+                    contents.Add(new XText(commentText));
                 }
 
                 var summaryNode = new XElement("summary", contents.ToArray());
