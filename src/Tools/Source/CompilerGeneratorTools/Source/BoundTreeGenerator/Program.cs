@@ -59,7 +59,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private static Tree LoadTreeXml(string infilename, bool useXmlSerializer = true)
+        private static Tree LoadTreeXml(string infilename)
         {
             using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
             {
