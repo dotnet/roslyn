@@ -1982,7 +1982,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
                 // Note the addition of the reference requirement: it means that for delegate type void D(int i), void M(long l) is
                 // _applicable_, but not _compatible_.
-                if (!hasConversion(this, delegateType.TypeKind, Conversions, delegateParameter.Type, methodParameter.Type, delegateParameter.RefKind, methodParameter.RefKind, ref useSiteInfo))
+                if (!hasConversion(
+                        delegateType.TypeKind,
+                        Conversions,
+                        source: delegateParameter.Type,
+                        destination: methodParameter.Type,
+                        sourceRefKind: delegateParameter.RefKind,
+                        destinationRefKind: methodParameter.RefKind,
+                        checkingReturns: false,
+                        ref useSiteInfo))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
@@ -2003,7 +2011,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool returnsMatch = delegateOrFuncPtrMethod switch
             {
                 { RefKind: RefKind.None, ReturnsVoid: true } => method.ReturnsVoid,
-                { RefKind: var destinationRefKind } => hasConversion(this, delegateType.TypeKind, Conversions, methodReturnType, delegateReturnType, method.RefKind, destinationRefKind, ref useSiteInfo),
+                { RefKind: var destinationRefKind } => hasConversion(
+                    delegateType.TypeKind,
+                    Conversions,
+                    source: methodReturnType,
+                    destination: delegateReturnType,
+                    sourceRefKind: method.RefKind,
+                    destinationRefKind: destinationRefKind,
+                    checkingReturns: true,
+                    ref useSiteInfo),
             };
 
             if (!returnsMatch)
@@ -2037,10 +2053,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(errorLocation, useSiteInfo);
             return true;
 
-            static bool hasConversion(Binder binder, TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
-                RefKind sourceRefKind, RefKind destinationRefKind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static bool hasConversion(TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
+                RefKind sourceRefKind, RefKind destinationRefKind, bool checkingReturns, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                if (!OverloadResolution.AreRefsCompatibleForMethodConversion(sourceRefKind, destinationRefKind, binder.Compilation))
+                // Allowed ref kind mismatches between parameters have already been checked by overload resolution.
+                if (checkingReturns
+                    ? sourceRefKind != destinationRefKind
+                    : (sourceRefKind == RefKind.None) != (destinationRefKind == RefKind.None))
                 {
                     return false;
                 }

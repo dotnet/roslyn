@@ -66,7 +66,14 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
             _ =>
             {
-                this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+                if (CurrentSolution.ContainsDocument(documentId))
+                {
+                    this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+                }
+                else if (CurrentSolution.ContainsAdditionalDocument(documentId))
+                {
+                    this.OnAdditionalDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
+                }
                 return ValueTask.CompletedTask;
             },
             cancellationToken);
@@ -77,7 +84,14 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
             _ =>
             {
-                this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+                if (CurrentSolution.ContainsDocument(documentId))
+                {
+                    this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+                }
+                else if (CurrentSolution.ContainsAdditionalDocument(documentId))
+                {
+                    this.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+                }
                 return ValueTask.CompletedTask;
             },
             cancellationToken);
@@ -88,19 +102,18 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
             async w =>
             {
-                // TODO(cyrusn): This only works for normal documents currently.  We'll have to rethink how things work
-                // in the world if we ever support additionalfiles/editorconfig in our language server.
-                var document = w.CurrentSolution.GetDocument(documentId);
+                var textDocument = w.CurrentSolution.GetDocument(documentId) ?? w.CurrentSolution.GetAdditionalDocument(documentId);
 
-                if (document is { FilePath: { } filePath })
+                if (textDocument is { FilePath: { } filePath })
                 {
                     TextLoader loader;
-                    if (document.DocumentState.Attributes.DesignTimeOnly)
+                    var document = textDocument as Document;
+                    if (document?.DocumentState.Attributes.DesignTimeOnly == true)
                     {
                         // Dynamic files don't exist on disk so if we were to use the FileTextLoader we'd effectively be emptying out the document.
                         // We also assume they're not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
                         // Instead we just maintain their current state as per the LSP view of the world.
-                        var documentText = await document.GetTextAsync(cancellationToken);
+                        var documentText = await textDocument.GetTextAsync(cancellationToken);
                         loader = new SourceTextLoader(documentText, filePath);
                     }
                     else
@@ -108,7 +121,14 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                         loader = this.ProjectSystemProjectFactory.CreateFileTextLoader(filePath);
                     }
 
-                    this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
+                    if (document is not null)
+                    {
+                        this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
+                    }
+                    else
+                    {
+                        this.OnAdditionalDocumentClosed(documentId, loader, requireDocumentPresentAndOpen: false);
+                    }
                 }
             },
             cancellationToken);
