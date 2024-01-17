@@ -352,17 +352,16 @@
     <Field Name="NamespaceSymbol" Type="NamespaceSymbol" />
     <Field Name="AliasOpt" Type="AliasSymbol?" />
   </Node>
+  
+  <!--EricLi thought we might need a node like this to do "Color Color" correctly. Currently we're
+  handling that in a different way. Dev10 compiler had a node like this. 
+  [removed 3/30/2011 by petergo]
+  <Node Name="BoundTypeOrName" Base="BoundExpression">
+    <Field Name="Type" Type="BoundTypeExpression"/>
+    <Field Name="Name" Type="BoundExpression"/>
+  </Node>-->
+    
   <Node Name="BoundUnaryOperator" Base="BoundExpression">
-    <TypeComment>
-      <summary>EricLi thought we might need a node like this to do "Color Color" correctly. Currently we're
-       handling that in a different way. Dev10 compiler had a node like this. 
-       [removed 3/30/2011 by petergo]
-       
-  &lt;Node Name="BoundTypeOrName" Base="BoundExpression"&gt;
-    &lt;Field Name="Type" Type="BoundTypeExpression"/&gt;
-    &lt;Field Name="Name" Type="BoundExpression"/&gt;
-  &lt;/Node&gt;</summary>
-    </TypeComment>
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
         <summary>Non-null type is required for this node kind</summary>
