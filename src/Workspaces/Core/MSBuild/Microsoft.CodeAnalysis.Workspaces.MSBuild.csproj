@@ -100,7 +100,7 @@
         <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>$(NetVS)</TargetFramework>
+        <TargetFramework>$(NetVSCode)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>

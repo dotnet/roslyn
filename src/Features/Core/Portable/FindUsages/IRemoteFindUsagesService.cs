@@ -9,7 +9,6 @@ using System.Composition;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -233,8 +232,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 NameDisplayParts,
                 OriginationParts,
                 sourceSpans,
-                // todo: consider serializing this over.
-                classifiedSpans: sourceSpans.SelectAsArray(ss => (ClassifiedSpansAndHighlightSpan?)null),
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
@@ -269,8 +266,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public async Task<SourceReferenceItem> RehydrateAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             => new(definition,
                    await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
-                   // Todo: consider serializing this over.
-                   classifiedSpans: null,
                    SymbolUsageInfo,
                    AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
     }
