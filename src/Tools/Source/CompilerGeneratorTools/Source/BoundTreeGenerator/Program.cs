@@ -28,7 +28,7 @@ namespace BoundTreeGenerator
 
             var targetLanguage = ParseTargetLanguage(language);
 
-            Tree tree = LoadTreeXml(infilename);
+            Tree tree = LoadTreeXml(infilename, targetLanguage != TargetLanguage.XML);
 
             if (!ValidateTree(tree))
             {
