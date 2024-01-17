@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
-[LanguageServerEndpoint("initialized")]
+[LanguageServerEndpoint("initialized", LanguageServerConstants.DefaultLanguageName)]
 public class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
 {
     private bool HasBeenInitialized = false;

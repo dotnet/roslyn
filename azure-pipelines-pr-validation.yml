@@ -64,14 +64,14 @@ stages:
       displayName: Setting SourceBranchName variable
       condition: succeeded()
 
-    - task: tagBuildOrRelease@0
+    - task: Powershell@2
       displayName: Tag PR validation build
       inputs:
-        type: 'Build'
-        tags: |
-          PRValidationBuild
-          PRNumber:${{ parameters.PRNumber }}
-          CommitSHA:${{ parameters.CommitSHA }}
+        targetType: inline
+        script: |
+          Write-Host "##vso[build.addBuildTag]OfficialBuild"
+          Write-Host "##vso[build.addBuildTag]${{ parameters.CommitSHA }}"
+          Write-Host "##vso[build.addBuildTag]PRNumber${{ parameters.PRNumber }}"
       condition: succeeded()
 
     - task: PowerShell@2

@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Array.Empty<XNode>();
                 }
 
-                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment);
+                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment, LoadOptions.PreserveWhitespace);
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {

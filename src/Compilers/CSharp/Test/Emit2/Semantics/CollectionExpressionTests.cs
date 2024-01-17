@@ -11401,12 +11401,12 @@ partial class Program
             var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"),
+                verify: Verification.Fails with { ILVerifyMessage = """
+                    [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                    [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
+                    """ });
 
-            // ILVerify:
-            // [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
-            // [M]: Field is not visible. { Offset = 0x0 }
-            // [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '[78cb4f30-abc1-41ca-b5d2-939830104c72]<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
             verifier.VerifyIL("Program.M", """
 {
   // Code size       22 (0x16)
@@ -24389,8 +24389,8 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
-            // Note: we should probably not be getting a valid & collection conversion here
-            // Tracked by https://github.com/dotnet/roslyn/issues/70217
+            // Valid identity conversion matches the behavior for an ambiguous call
+            // with a switch expression argument: C.M(2 switch { _ => default });
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
             Assert.True(conversion2.IsIdentity);
@@ -24404,7 +24404,7 @@ partial class Program
                 using System.Collections;
                 using System.Collections.Generic;
 
-                int[] values = [1];
+                int[] values = new int[] { 1 };
                 C x = [..values]; // 1
                 C.M([..values]); // 2
 
@@ -24437,11 +24437,11 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
-            // Note: we should not be getting a collection conversion here (see test above for contrast)
-            // Tracked by https://github.com/dotnet/roslyn/issues/70217
+            // Valid identity conversion matches the behavior for an ambiguous call
+            // with a switch expression argument: C.M(2 switch { _ => default });
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
-            Assert.True(conversion2.IsCollectionExpression);
+            Assert.True(conversion2.IsIdentity);
             Assert.Null(model.GetTypeInfo(collections[1]).Type);
         }
 

@@ -5,10 +5,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <LangVersion>11</LangVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

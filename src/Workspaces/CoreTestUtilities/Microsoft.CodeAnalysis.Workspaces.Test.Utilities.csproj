@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
