@@ -7,6 +7,8 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Xml.Serialization;
+using System.Xml;
 
 namespace BoundTreeGenerator
 {
@@ -75,14 +77,26 @@ namespace BoundTreeGenerator
             }
         }
 
-        private static Tree LoadTreeXml(string infilename)
+        private static Tree LoadTreeXml(string infilename, bool useXmlSerializer = true)
         {
             using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
             {
-                var deserializer = new Deserializer();
-                deserializer.OnObjectDeserialized += (element, obj) => CommentHandler.HandleElementComment(element, obj);
-                var tree = deserializer.DeserializeElement<Tree>(stream);
-                return tree;
+                if (useXmlSerializer)
+                {
+                    var serializer = new XmlSerializer(typeof(Tree));
+                    using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
+                    {
+                        var tree = (Tree)serializer.Deserialize(reader);
+                        return tree;
+                    }
+                }
+                else
+                {
+                    var deserializer = new Deserializer();
+                    deserializer.OnObjectDeserialized += (element, obj) => CommentHandler.HandleElementComment(element, obj);
+                    var tree = deserializer.DeserializeElement<Tree>(stream);
+                    return tree;
+                }
             }
         }
 
