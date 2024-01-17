@@ -197,6 +197,12 @@ namespace RunTests
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
                 var command = new StringBuilder();
+                if (!isUnix)
+                {
+                    // Show timestamps when commands run.
+                    command.AppendLine("prompt $P - $t$g");
+                }
+
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
                 command.AppendLine(isUnix ? $"ls -l" : $"dir");
@@ -326,6 +332,14 @@ namespace RunTests
                     postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
                 }
 
+                var workItemTimeout = "00:30:00";
+                if (options.TestVsi)
+                {
+                    // It can occasionally take some time to install the VSIXs (in the order of 15minutes)
+                    // So give integration test work items more time to finish for those rare occasions.
+                    workItemTimeout = "00:45:00";
+                }
+
                 var workItem = $@"
         <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
             <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
@@ -335,7 +349,7 @@ namespace RunTests
             <PostCommands>
                 {postCommands}
             </PostCommands>
-            <Timeout>00:30:00</Timeout>
+            <Timeout>{workItemTimeout}</Timeout>
         </HelixWorkItem>
 ";
                 return workItem;
