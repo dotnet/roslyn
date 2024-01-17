@@ -9,6 +9,7 @@
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>

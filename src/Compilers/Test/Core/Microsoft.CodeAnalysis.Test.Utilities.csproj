@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
+    <IsShipping>false</IsShipping>
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Test.Utilities</PackageId>
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>

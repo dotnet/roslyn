@@ -6,6 +6,7 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <IsShipping>false</IsShipping>
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Compiler.Test.Resources</PackageId>
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>

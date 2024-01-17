@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetRoslyn)</TargetFramework>
     <SignAssembly>false</SignAssembly>
+    <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
