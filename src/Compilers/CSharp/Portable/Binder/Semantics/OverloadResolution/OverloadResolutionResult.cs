@@ -504,8 +504,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            // CONSIDER: for consistency with dev12, we would goto default except in omitted ref cases.
-                            ReportMissingRequiredParameter(firstSupported, diagnostics, delegateTypeBeingInvoked, symbols, location);
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
+                            {
+                                if (receiver is null)
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingConstructor, location);
+                                }
+                                else
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { Name: "Add" });
+                                    int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, firstSupported.Member);
+                                }
+                            }
+                            else
+                            {
+                                // CONSIDER: for consistency with dev12, we would goto default except in omitted ref cases.
+                                ReportMissingRequiredParameter(firstSupported, diagnostics, delegateTypeBeingInvoked, symbols, location);
+                            }
                             return;
 
                         // NOTE: For some reason, there is no specific handling for this result kind.
@@ -1108,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
                 {
                     Debug.Assert(arguments.Arguments.Count == argumentOffset + 1);
-                    diagnostics.Add(ErrorCode.ERR_BadArgTypeForCollectionExpressionAdd, location, arguments.Arguments[argumentOffset].Type, method);
+                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, method);
                 }
                 else
                 {

@@ -187,11 +187,6 @@
         <target state="translated">Das Argument {0} darf nicht mit dem Schlüsselwort (keyword) "ref" in der Sprachversion {1} übergeben werden. Um ref-Argumente an "in"-Parameter zu übergeben, führen Sie ein Upgrade auf die Sprachversion {2} oder höher durch.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadArgTypeForCollectionExpressionAdd">
-        <source>Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type does not have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Der Operator ‚{0}‘ kann nicht auf Operanden des Typs ‚{1}‘ und ‚{2}‘ angewendet werden, die keine UTF-8-Bytedarstellungen sind</target>
@@ -435,6 +430,16 @@
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
         <target state="translated">Diese Version von „{0}“ kann nicht mit Auflistungsausdrücken verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">

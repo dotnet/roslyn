@@ -762,7 +762,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
             {
-                collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+                var binder = WithAdditionalFlags(BinderFlags.CollectionExpressionConversionValidation);
+                collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
             else if (targetType is TypeParameterSymbol typeParameter)
