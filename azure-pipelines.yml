@@ -257,6 +257,7 @@ stages:
         testArguments: -testCoreClr
         helixQueueName: $(HelixWindowsSpanishQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.windowsPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
