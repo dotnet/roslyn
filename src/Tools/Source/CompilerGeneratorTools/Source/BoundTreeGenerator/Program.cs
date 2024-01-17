@@ -63,7 +63,7 @@ namespace BoundTreeGenerator
         {
             if (format == TargetLanguage.XML)
             {
-                var ns = new System.Xml.Serialization.XmlSerializerNamespaces()
+                var ns = new System.Xml.Serialization.XmlSerializerNamespaces();
                 ns.Add("", "");
 
                 var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Tree));
