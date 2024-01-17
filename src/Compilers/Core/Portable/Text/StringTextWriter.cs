@@ -2,29 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal class StringTextWriter : SourceTextWriter
+    internal sealed class StringTextWriter : SourceTextWriter
     {
         private readonly StringBuilder _builder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
 
-        public StringTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int capacity)
+#if DEBUG
+        private readonly int _length;
+#endif
+
+        public StringTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
-            _builder = new StringBuilder(capacity);
+            _builder = new StringBuilder(length);
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
+#if DEBUG
+            _length = length;
+#endif
         }
 
         // https://github.com/dotnet/roslyn/issues/40830
@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override SourceText ToSourceText()
         {
+#if DEBUG
+            RoslynDebug.Assert(_builder.Length == _length);
+#endif
             return new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
         }
 

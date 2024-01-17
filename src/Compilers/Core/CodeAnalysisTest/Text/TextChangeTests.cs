@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var largeText = CreateLargeText(chunk1);
 
             // chunks are considered large because they are bigger than the expected size
-            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, 10);
+            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, largeText.Length);
             largeText.Write(writer);
 
             var newText = (LargeText)writer.ToSourceText();
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var largeText = CreateLargeText(chunk1);
 
             // chunks are considered small because they fit within the buffer (which is the expected length for this test)
-            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, chunk1.Length * 4);
+            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, text.Length + largeText.Length);
 
             // write preamble so buffer is allocated and has contents.
             text.Write(writer);

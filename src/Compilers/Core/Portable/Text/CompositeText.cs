@@ -288,13 +288,10 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // count how many contiguous segments are reducible
                     int count = 1;
-                    for (int j = i + 1; j < segments.Count; j++)
+                    for (int j = i + 1; j < segments.Count && segments[j].Length <= segmentSize; j++)
                     {
-                        if (segments[j].Length <= segmentSize)
-                        {
-                            count++;
-                            combinedLength += segments[j].Length;
-                        }
+                        count++;
+                        combinedLength += segments[j].Length;
                     }
 
                     // if we've got at least two, then combine them into a single text
@@ -303,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Text
                         var encoding = segments[i].Encoding;
                         var algorithm = segments[i].ChecksumAlgorithm;
 
-                        var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
+                        using var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
 
                         while (count > 0)
                         {
@@ -362,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var encoding = segments[0].Encoding;
                 var algorithm = segments[0].ChecksumAlgorithm;
 
-                var writer = SourceTextWriter.Create(encoding, algorithm, length);
+                using var writer = SourceTextWriter.Create(encoding, algorithm, length);
                 foreach (var segment in segments)
                 {
                     segment.Write(writer);

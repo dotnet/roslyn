@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -19,17 +21,28 @@ namespace Microsoft.CodeAnalysis.Text
         private char[]? _buffer;
         private int _currentUsed;
 
+#if DEBUG
+        private readonly int _length;
+#endif
+
         public LargeTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
             _chunks = ArrayBuilder<char[]>.GetInstance(1 + length / LargeText.ChunkSize);
             _bufferSize = Math.Min(LargeText.ChunkSize, length);
+#if DEBUG
+            _length = length;
+#endif
         }
 
         public override SourceText ToSourceText()
         {
             this.Flush();
+
+#if DEBUG
+            RoslynDebug.Assert(_chunks.Sum(chunk => chunk.Length) == _length);
+#endif
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
