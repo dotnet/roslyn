@@ -15,7 +15,8 @@ namespace BoundTreeGenerator
     internal enum TargetLanguage
     {
         VB,
-        CSharp
+        CSharp,
+        XML
     }
 
     internal enum NullHandling
@@ -292,7 +293,7 @@ namespace BoundTreeGenerator
         public bool PreferMultiLineComment { get; set; } = false;
         public bool EmitLineBreakTags { get; set; } = true;
 
-        private void WriteComment(CommentedNode node)
+        private void WriteComment(ICommentedNode node)
         {
             if (node.Comment is null or { Length: 0 })
             {

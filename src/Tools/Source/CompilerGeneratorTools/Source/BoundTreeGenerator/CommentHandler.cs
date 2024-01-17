@@ -61,7 +61,7 @@ namespace BoundTreeGenerator
 
         public static void HandleElementComment(XElement element, object obj, CommentHandlerOptions options)
         {
-            if (obj is CommentedNode commentedNode)
+            if (obj is ICommentedNode commentedNode)
             {
                 StringBuilder? strBuilder = null;
                 foreach (var commentText in GetPreviousComments(element).Reverse().Take(options.MaxCommentCount))
@@ -78,7 +78,7 @@ namespace BoundTreeGenerator
                 }
                 if (strBuilder is { })
                 {
-                    commentedNode.Comment = strBuilder.ToString().Trim();
+                    commentedNode.AddComment(strBuilder.ToString().Trim());
                 }
             }
         }
