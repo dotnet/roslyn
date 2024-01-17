@@ -122,12 +122,6 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public bool Override;
 
-        [XmlIgnore]
-        public bool OverrideSpecified
-        {
-            get { return Override; }
-        }
-
         [XmlAttribute]
         public string New;
 
