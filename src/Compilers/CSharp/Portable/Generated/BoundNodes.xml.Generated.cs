@@ -427,6 +427,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    /// <summary>An expression is classified as one of the following:<br />
+    ///   A value. Every value has an associated type.<br />
+    ///   A variable. Every variable has an associated type.<br />
+    ///   A namespace. <br />
+    ///   A type.<br />
+    ///   A method group. ...<br />
+    ///   A null literal. <br />
+    ///   An anonymous function. <br />
+    ///   A property access. <br />
+    ///   An event access. <br />
+    ///   An indexer access.<br />
+    ///   Nothing. (An expression which is a method call that returns void.)</summary>
     internal abstract partial class BoundExpression : BoundNode
     {
         protected BoundExpression(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
@@ -1006,21 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    /// <summary>An expression is classified as one of the following:<br />
-    ///   A value. Every value has an associated type.<br />
-    ///   A variable. Every variable has an associated type.<br />
-    ///   A namespace. <br />
-    ///   A type.<br />
-    ///   A method group. ...<br />
-    ///   A null literal. <br />
-    ///   An anonymous function. <br />
-    ///   A property access. <br />
-    ///   An event access. <br />
-    ///   An indexer access.<br />
-    ///   Nothing. (An expression which is a method call that returns void.)<br />
-    ///   <br />
-    /// -----------<br />
-    ///  This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything.</summary>
+    /// <summary>This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything</summary>
     internal sealed partial class BoundBadExpression : BoundExpression
     {
         public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
@@ -1295,14 +1293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    /// <summary>EricLi thought we might need a node like this to do "Color Color" correctly. Currently we're<br />
-    ///        handling that in a different way. Dev10 compiler had a node like this. <br />
-    ///        [removed 3/30/2011 by petergo]<br />
-    ///        <br />
-    ///   &lt;Node Name="BoundTypeOrName" Base="BoundExpression"&gt;<br />
-    ///     &lt;Field Name="Type" Type="BoundTypeExpression"/&gt;<br />
-    ///     &lt;Field Name="Name" Type="BoundExpression"/&gt;<br />
-    ///   &lt;/Node&gt;</summary>
     internal sealed partial class BoundUnaryOperator : BoundExpression
     {
         public BoundUnaryOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
