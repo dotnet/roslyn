@@ -14,42 +14,19 @@ namespace BoundTreeGenerator
     {
         private static int Main(string[] args)
         {
-            string language;
-            string infilename;
-            string outfilename;
-            TargetLanguage targetLanguage;
-
             if (args.Length != 3)
             {
                 Console.Error.WriteLine("Usage: \"{0} <language> <input> <output>\", where <language> is \"VB\" or \"CSharp\"", Path.GetFileNameWithoutExtension(args[0]));
                 return 1;
             }
 
-            language = args[0];
-            infilename = args[1];
-            outfilename = args[2];
+            var language = args[0];
+            var infilename = args[1];
+            var outfilename = args[2];
 
-            switch (language)
-            {
-                case "VB":
-                    targetLanguage = TargetLanguage.VB;
-                    break;
-                case "CSharp":
-                case "C#":
-                    targetLanguage = TargetLanguage.CSharp;
-                    break;
-                default:
-                    Console.Error.WriteLine("Language must be \"VB\" or \"CSharp\"");
-                    return 1;
-            }
+            var targetLanguage = ParseTargetLanguage(language);
 
-            Tree tree;
-            using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
-            {
-                var deserializer = new Deserializer();
-                deserializer.OnObjectDeserialized += (element, obj) => CommentHandler.HandleElementComment(element, obj);
-                tree = deserializer.DeserializeElement<Tree>(stream);
-            }
+            Tree tree = LoadTreeXml(infilename);
 
             if (!ValidateTree(tree))
             {
@@ -59,10 +36,51 @@ namespace BoundTreeGenerator
 
             using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
             {
-                BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
+                WriteTree(tree, outfile, targetLanguage);
             }
 
             return 0;
+        }
+
+        private static TargetLanguage ParseTargetLanguage(string languageName)
+        {
+            switch (languageName.ToLowerInvariant())
+            {
+                case "vb":
+                case "visualbasic":
+                    return TargetLanguage.VB;
+                case "csharp":
+                case "c#":
+                    return TargetLanguage.CSharp;
+                case "xml":
+                    return TargetLanguage.XML;
+                default:
+                    throw new ArgumentOutOfRangeException("Language must be \"VB\" or \"CSharp\"");
+            }
+        }
+
+        private static void WriteTree(Tree tree, StreamWriter streamWriter, TargetLanguage format)
+        {
+            if (format == TargetLanguage.XML)
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Tree));
+                serializer.Serialize(streamWriter, tree);
+            }
+            else
+            {
+                BoundNodeClassWriter.Write(streamWriter, tree, format);
+            }
+        }
+
+        private static Tree LoadTreeXml(string infilename)
+        {
+            using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
+            {
+                var deserializer = new Deserializer();
+                deserializer.OnObjectDeserialized += (element, obj) => CommentHandler.HandleElementComment(element, obj);
+                var tree = deserializer.DeserializeElement<Tree>(stream);
+                return tree;
+            }
         }
 
         private static bool ValidateTree(Tree tree)
