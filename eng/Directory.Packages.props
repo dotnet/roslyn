@@ -70,13 +70,15 @@
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.8.35898-preview.2" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
     <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.0.15" />
     <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.0.15" />
+
+    <!-- TODO: Move these to the generate-vssdk-versions.csx-generated versions (https://github.com/dotnet/roslyn/issues/71691) -->
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(VisualStudioEditorPackagesVersion)" />
 
     <!--
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
