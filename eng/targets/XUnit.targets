@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="XunitXml.TestLogger" />
     <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
