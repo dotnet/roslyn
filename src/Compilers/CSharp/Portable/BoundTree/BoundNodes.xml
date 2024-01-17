@@ -84,6 +84,21 @@
     <Field Name="Statement" Type="BoundStatement" />
   </Node>
   <AbstractNode Name="BoundExpression" Base="BoundNode">
+     <TypeComment>
+      <summary>An expression is classified as one of the following:
+  A value. Every value has an associated type.
+  A variable. Every variable has an associated type.
+  A namespace. 
+  A type.
+  A method group. ...
+  A null literal. 
+  An anonymous function. 
+  A property access. 
+  An event access. 
+  An indexer access.
+  Nothing. (An expression which is a method call that returns void.)
+      </summary>
+    </TypeComment>
     <Field Name="Type" Type="TypeSymbol?" />
   </AbstractNode>
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
@@ -204,20 +219,7 @@
   </Node>
   <Node Name="BoundBadExpression" Base="BoundExpression">
     <TypeComment>
-      <summary>An expression is classified as one of the following:
-  A value. Every value has an associated type.
-  A variable. Every variable has an associated type.
-  A namespace. 
-  A type.
-  A method group. ...
-  A null literal. 
-  An anonymous function. 
-  A property access. 
-  An event access. 
-  An indexer access.
-  Nothing. (An expression which is a method call that returns void.)
-  
------------
+      <summary>
  This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything.</summary>
     </TypeComment>
     <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true">
