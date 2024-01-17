@@ -2999,23 +2999,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
             {
                 // First visit everything else
+                var queue1 = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunc)
+                    {
+                        queue1.Add(localFunc);
+                    }
+                    else
                     {
                         VisitStatement(stmt);
                     }
                 }
 
-                // Now visit the local function bodies
-                foreach (var stmt in block.Statements)
+                // Now visit the local function bodies.
+                // We first visit those we have seen called (hence we know their starting state),
+                // repeating this while seeing more call sites inside other local functions,
+                // and only then we visit the completely unreachable bodies.
+                // This avoids unnecessary passes and incorrect starting states.
+                var queue2 = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
+                for (int c = 0; c != LocalFuncUsageCount;)
                 {
-                    if (stmt is BoundLocalFunctionStatement localFunc)
+                    c = LocalFuncUsageCount;
+                    foreach (var localFunc in queue1)
                     {
-                        TakeIncrementalSnapshot(localFunc);
-                        VisitLocalFunctionStatement(localFunc);
+                        if (HasLocalFuncUsage(localFunc.Symbol))
+                        {
+                            TakeIncrementalSnapshot(localFunc);
+                            VisitLocalFunctionStatement(localFunc);
+                        }
+                        else
+                        {
+                            queue2.Add(localFunc);
+                        }
                     }
+
+                    (queue1, queue2) = (queue2, queue1);
+                    queue2.Clear();
                 }
+
+                foreach (var localFunc in queue1)
+                {
+                    TakeIncrementalSnapshot(localFunc);
+                    VisitLocalFunctionStatement(localFunc);
+                }
+
+                queue1.Free();
+                queue2.Free();
             }
             else
             {
@@ -12088,6 +12118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// produce diagnostics and determine types.
             /// </summary>
             public LocalState StartingState;
+
             public LocalFunctionState(LocalState unreachableState)
                 : base(unreachableState.Clone(), unreachableState.Clone())
             {
