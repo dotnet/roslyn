@@ -35,7 +35,8 @@
        be built by default in vertical mode. -->
   <PropertyGroup Condition="'$(IsTestUtilityProject)' == 'true'">
     <IsShipping>false</IsShipping>
-    <ExcludeFromBuild Condition="'$(DotNetBuildFromSource)' == 'true' or '$(DotNetBuildVertical)' == 'true'">true</ExcludeFromBuild>
+    <ExcludeFromBuild Condition="'$(DotNetBuildFromSource)' == 'true' and '$(ExcludeFromBuild)' != 'false' and '$(ExcludeFromSourceBuild)' != 'false'">true</ExcludeFromBuild>
+    <ExcludeFromBuild Condition="'$(DotNetBuildVertical)' == 'true' and '$(ExcludeFromBuild)' != 'false' and '$(ExcludeFromVerticalBuild)' != 'false'">true</ExcludeFromBuild>
   </PropertyGroup>
 
 </Project>
