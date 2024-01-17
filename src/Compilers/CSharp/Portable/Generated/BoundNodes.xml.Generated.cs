@@ -1018,7 +1018,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    /// <summary>This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything</summary>
+    /// <summary>This node is used when we can't create a real expression node because things are too broken.<br />
+    ///         Example: lookup of a name fails to find anything</summary>
     internal sealed partial class BoundBadExpression : BoundExpression
     {
         public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
