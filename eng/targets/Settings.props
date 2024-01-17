@@ -13,7 +13,7 @@
     <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
     <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
 
-    <!-- TODO: https://aka.ms/nuget-package-source-mapping -->
+    <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507</NoWarn>
 
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
