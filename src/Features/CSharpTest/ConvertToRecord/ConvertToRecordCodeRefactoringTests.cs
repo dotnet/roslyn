@@ -4568,11 +4568,10 @@ namespace N
                 MarkupOptions = MarkupOptions.UseFirstDescriptor;
             }
 
-            protected override Workspace CreateWorkspaceImpl()
+            protected override Task<Workspace> CreateWorkspaceImplAsync()
             {
                 var workspace = new AdhocWorkspace();
-
-                return workspace;
+                return Task.FromResult<Workspace>(workspace);
             }
         }
 

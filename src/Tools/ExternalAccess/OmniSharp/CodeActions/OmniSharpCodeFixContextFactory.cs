@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             CancellationToken cancellationToken)
             => new(document, span, registerRefactoring, new DelegatingCodeActionOptionsProvider(options.GetCodeActionOptions), cancellationToken);
 
+        [Obsolete("Pass minimum severity.")]
         public static FixAllContext CreateFixAllContext(
             Document? document,
             TextSpan? diagnosticSpan,
@@ -40,6 +42,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
+            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+            Func<string, OmniSharpCodeActionOptions> optionsProvider,
+            CancellationToken cancellationToken)
+            => CreateFixAllContext(document, diagnosticSpan, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, DiagnosticSeverity.Hidden, fixAllDiagnosticProvider, optionsProvider, cancellationToken);
+
+        public static FixAllContext CreateFixAllContext(
+            Document? document,
+            TextSpan? diagnosticSpan,
+            Project project,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string? codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             Func<string, OmniSharpCodeActionOptions> optionsProvider,
             CancellationToken cancellationToken)
@@ -52,6 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     scope,
                     codeActionEquivalenceKey,
                     diagnosticIds,
+                    minimumSeverity,
                     fixAllDiagnosticProvider,
                     new DelegatingCodeActionOptionsProvider(languageServices => optionsProvider(languageServices.Language).GetCodeActionOptions(languageServices))),
                   CodeAnalysisProgress.None, cancellationToken);

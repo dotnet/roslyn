@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public ImmutableHashSet<string> DiagnosticIds { get; }
 
+        public DiagnosticSeverity MinimumSeverity { get; }
+
         // Note: DiagnosticSpan can be null from the back-compat public constructor of FixAllContext.
         public TextSpan? DiagnosticSpan { get; }
 
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CodeActionOptionsProvider codeActionOptionsProvider)
             : base(fixAllProvider, document, project, codeFixProvider, codeActionOptionsProvider, scope, codeActionEquivalenceKey)
@@ -42,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             DiagnosticSpan = diagnosticSpan;
             DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
+            MinimumSeverity = minimumSeverity;
             DiagnosticProvider = fixAllDiagnosticProvider;
         }
 
@@ -57,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 scope,
                 codeActionEquivalenceKey,
                 DiagnosticIds,
+                MinimumSeverity,
                 DiagnosticProvider,
                 CodeActionOptionsProvider);
 
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var triggerDocument = diagnosticsToFix.First().Key;
             var diagnosticSpan = diagnosticsToFix.First().Value.FirstOrDefault()?.Location.SourceSpan;
-            var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
+            var (diagnosticIds, minimumSeverity) = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
@@ -82,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllScope.Custom,
                 codeActionEquivalenceKey,
                 diagnosticIds,
+                minimumSeverity,
                 diagnosticProvider,
                 codeActionOptionsProvider);
         }
@@ -94,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerProject = diagnosticsToFix.First().Key;
-            var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
+            var (diagnosticIds, minimumSeverity) = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
@@ -105,22 +111,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllScope.Custom,
                 codeActionEquivalenceKey,
                 diagnosticIds,
+                minimumSeverity,
                 diagnosticProvider,
                 codeActionOptionsProvider);
         }
 
-        private static ImmutableHashSet<string> GetDiagnosticsIds(IEnumerable<ImmutableArray<Diagnostic>> diagnosticsCollection)
+        private static (ImmutableHashSet<string> diagnosticIds, DiagnosticSeverity minimumSeverity) GetDiagnosticsIds(IEnumerable<ImmutableArray<Diagnostic>> diagnosticsCollection)
         {
             var uniqueIds = ImmutableHashSet.CreateBuilder<string>();
+            var minimumSeverity = DiagnosticSeverity.Error;
             foreach (var diagnostics in diagnosticsCollection)
             {
                 foreach (var diagnostic in diagnostics)
                 {
                     uniqueIds.Add(diagnostic.Id);
+                    minimumSeverity = diagnostic.Severity < minimumSeverity ? diagnostic.Severity : minimumSeverity;
                 }
             }
 
-            return uniqueIds.ToImmutable();
+            return (uniqueIds.ToImmutable(), minimumSeverity);
         }
 
         #endregion

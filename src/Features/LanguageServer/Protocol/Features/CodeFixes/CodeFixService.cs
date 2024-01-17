@@ -764,6 +764,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                .Select(d => d.Id)
                                                .ToImmutableHashSet();
 
+                // diagnostics is already sorted by severity (descending), so the last one has the lowest severity
+                var minimumSeverity = diagnostics.Last().Severity;
+
                 var diagnosticProvider = fixAllForInSpan
                     ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
                     : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
@@ -779,6 +782,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     FixAllScope.Document,
                     fixes[0].Action.EquivalenceKey,
                     diagnosticIds,
+                    minimumSeverity,
                     diagnosticProvider,
                     fallbackOptions);
 

@@ -3,21 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -95,6 +96,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
 
 #endif
+
+            protected override FixAllContext CreateFixAllContext(
+                Document? document,
+                TextSpan? diagnosticSpan,
+                Project project,
+                CodeFixProvider codeFixProvider,
+                FixAllScope scope,
+                string? codeActionEquivalenceKey,
+                IEnumerable<string> diagnosticIds,
+                DiagnosticSeverity minimumSeverity,
+                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+                CancellationToken cancellationToken)
+            {
+                if (document is not null)
+                {
+                    var constructorInfo = typeof(FixAllContext).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, binder: null, types: new[] { typeof(Document), typeof(TextSpan?), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) }, modifiers: null);
+                    return (FixAllContext)constructorInfo.Invoke(new object?[] { document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken });
+                }
+                else
+                {
+                    var constructorInfo = typeof(FixAllContext).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, binder: null, types: new[] { typeof(Project), typeof(CodeFixProvider), typeof(FixAllScope), typeof(string), typeof(IEnumerable<string>), typeof(DiagnosticSeverity), typeof(FixAllContext.DiagnosticProvider), typeof(CancellationToken) }, modifiers: null);
+                    return (FixAllContext)constructorInfo.Invoke(new object?[] { project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken });
+                }
+            }
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
