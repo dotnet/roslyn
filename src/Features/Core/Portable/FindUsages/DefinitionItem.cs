@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -185,6 +183,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
+
+        // Kept around for binary compat with TypeScript.
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            DocumentSpan sourceSpan,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            bool displayIfNoReferences = true)
+        {
+            return Create(
+                tags, displayParts,
+                sourceSpan,
+                classifiedSpans: null,
+                nameDisplayParts, displayIfNoReferences);
+        }
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
