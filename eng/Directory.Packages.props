@@ -7,7 +7,7 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.9.47-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.9.80-preview</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -257,15 +257,14 @@
     <PackageVersion Include="xunit" Version="$(xunitVersion)" />
     <PackageVersion Include="xunit.analyzers" Version="0.12.0-pre.20" />
     <PackageVersion Include="xunit.assert" Version="$(xunitVersion)" />
+    <PackageVersion Include="xunit.core" Version="$(xunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.3.2" />
-    <PackageVersion Include="XunitXml.TestLogger" Version="2.1.26" />
     <PackageVersion Include="xunit.extensibility.core" Version="$(xunitVersion)" />
-    <PackageVersion Include="xunit.runner.console" Version="2.4.5" />
-    <PackageVersion Include="xunitrunnerwpf" Version="1.0.51" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
     <PackageVersion Include="xunit.runner.utility" Version="$(xunitVersion)" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(xunitVersion)" />
+    <PackageVersion Include="XunitXml.TestLogger" Version="2.1.26" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
