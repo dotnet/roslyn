@@ -26,7 +26,11 @@ namespace BoundTreeGenerator
             var infilename = args[1];
             var outfilename = args[2];
 
-            var targetLanguage = ParseTargetLanguage(language);
+            if (!TryParseTargetLanguage(language, out var targetLanguage))
+            {
+                Console.WriteLine("Language must be \"VB\" or \"CSharp\"");
+                return 1;
+            }
 
             Tree tree = LoadTreeXml(infilename);
 
@@ -44,19 +48,21 @@ namespace BoundTreeGenerator
             return 0;
         }
 
-        private static TargetLanguage ParseTargetLanguage(string languageName)
+        private static bool TryParseTargetLanguage(string languageName, out TargetLanguage targetLanguage)
         {
             switch (languageName.ToLowerInvariant())
             {
                 case "vb":
                 case "visualbasic":
-                    return TargetLanguage.VB;
+                    targetLanguage = TargetLanguage.VB;
+                    return true;
                 case "csharp":
                 case "c#":
-                    return TargetLanguage.CSharp;
-                default:
-                    throw new ArgumentOutOfRangeException("Language must be \"VB\" or \"CSharp\"");
+                    targetLanguage = TargetLanguage.CSharp;
+                    return true;
             }
+            targetLanguage = default;
+            return false;
         }
 
         private static Tree LoadTreeXml(string infilename)
