@@ -532,6 +532,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
+        public virtual bool TryInsertSpecificExpansion(IXMLDOMNode snippet, int startPositionInSubjectBuffer, int endPositionInSubjectBuffer, CancellationToken cancellationToken)
+        {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return false;
+            }
+
+            // The expansion itself needs to be created in the data buffer, so map everything up
+            var triggerSpan = SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer);
+            if (!TryGetSpanOnHigherBuffer(triggerSpan, textViewModel.DataBuffer, out var dataBufferSpan))
+            {
+                return false;
+            }
+
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
+            if (buffer is not IVsExpansion expansion)
+            {
+                return false;
+            }
+
+            buffer.GetLineIndexOfPosition(dataBufferSpan.Start.Position, out var startLine, out var startIndex);
+            buffer.GetLineIndexOfPosition(dataBufferSpan.End.Position, out var endLine, out var endIndex);
+
+            var textSpan = new VsTextSpan
+            {
+                iStartLine = startLine,
+                iStartIndex = startIndex,
+                iEndLine = endLine,
+                iEndIndex = endIndex
+            };
+
+            if (expansion.InsertSpecificExpansion(snippet, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
+            {
+                // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
+                // information
+                Debug.Assert(!_state.IsFullMethodCallSnippet);
+                return true;
+            }
+
+            return false;
+        }
+
         private bool TryInsertArgumentCompletionSnippet(SnapshotSpan triggerSpan, SnapshotSpan dataBufferSpan, IVsExpansion expansion, VsTextSpan textSpan, CancellationToken cancellationToken)
         {
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
