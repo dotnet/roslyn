@@ -163,6 +163,7 @@ internal partial class ScreenshotInProcess
                 // Make sure the frames are processed in order of their timestamps
                 Array.Sort(frames, (x, y) => x.elapsed.CompareTo(y.elapsed));
                 var croppedFrames = DetectChangedRegions(frames);
+
                 using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
                 {
                     var crc = new Crc32();
