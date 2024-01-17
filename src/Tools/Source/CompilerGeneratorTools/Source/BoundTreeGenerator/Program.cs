@@ -63,8 +63,12 @@ namespace BoundTreeGenerator
         {
             if (format == TargetLanguage.XML)
             {
+                var ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+                ns.Add("", "");
+                var xmlWriter = System.Xml.XmlWriter.Create(streamWriter, new System.Xml.XmlWriterSettings() { OmitXmlDeclaration = true });
+
                 var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Tree));
-                serializer.Serialize(streamWriter, tree);
+                serializer.Serialize(streamWriter, tree, ns);
             }
             else
             {
