@@ -2305,6 +2305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionMethodInExtension = 9321,
         ERR_MalformedExtensionInMetadata = 9322,
         ERR_UnderspecifiedImplicitExtension = 9328,
+        ERR_ExtensionSelfReference = 9329,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

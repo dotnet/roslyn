@@ -587,6 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteInfo);
             diagnostics.Add(identifierName, useSiteInfo);
+            // PROTOTYPE should we also look at members from implicit extension types?
             Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null);
             resultKind = result.Kind;
             result.Free();

@@ -1578,6 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Dynamic: // Not specifically mentioned in the spec, but consistent with Dev10.
                     break;
 
+                // PROTOTYPE add support for iterating over collections of extension type
                 case TypeKind.Submission:
                     // submission class is synthesized and should never appear in a foreach:
                     throw ExceptionUtilities.UnexpectedValue(enumeratorType.TypeKind);

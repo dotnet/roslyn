@@ -727,6 +727,11 @@
         <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionSelfReference">
+        <source>Extension '{0}' refers to itself in its hierarchy.</source>
+        <target state="new">Extension '{0}' refers to itself in its hierarchy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">“{0}”: 外部事件不能有初始值设定项</target>

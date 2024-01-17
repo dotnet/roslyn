@@ -1640,6 +1640,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CycleInBaseExtensions" xml:space="preserve">
     <value>Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</value>
   </data>
+  <data name="ERR_ExtensionSelfReference" xml:space="preserve">
+    <value>Extension '{0}' refers to itself in its hierarchy.</value>
+  </data>
   <data name="ERR_HidingAbstractMethod" xml:space="preserve">
     <value>'{0}' hides inherited abstract member '{1}'</value>
   </data>

@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            // first lookup members of the namespace
             if ((options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
                 this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);

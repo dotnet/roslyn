@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Symbol> builder;
             {
                 LookupResult result = LookupResult.GetInstance();
+                // PROTOTYPE test lookup to underlying type
                 this.LookupSymbolsOrMembersInternal(
                     result,
                     containerOpt,

@@ -7430,6 +7430,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            LookupOptions options = MakeOptionsForInstanceMemberLookup(invoked, leftIsBaseReference);
+            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+        }
+
+        private static LookupOptions MakeOptionsForInstanceMemberLookup(bool invoked, bool leftIsBaseReference)
+        {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
             {
@@ -7441,7 +7447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.UseBaseReferenceAccessibility;
             }
 
-            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+            return options;
         }
 
         private void BindMemberAccessReportError(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
@@ -7788,6 +7794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 if (!left.Type.IsTypeParameter()
+                    && !left.Type.IsExtension
                     && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                         isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
                         out MethodGroupResolution extensionResult))
@@ -8841,6 +8848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.TypeParameter:
                     return BindIndexerAccess(node, expr, arguments, diagnostics);
 
+                // PROTOTYPE implement indexer access on receiver of extension type
                 case TypeKind.Submission: // script class is synthesized and should not be used as a type of an indexer expression:
                 default:
                     return BadIndexerExpression(node, expr, arguments, null, diagnostics);

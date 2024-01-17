@@ -277,7 +277,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case TypeKind.Extension:
-                    this.LookupMembersInExtension(result, (NamedTypeSymbol)type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                    var extension = (NamedTypeSymbol)type;
+                    this.LookupMembersInExtension(result, extension, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+
+                    if (extension.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                    {
+                        // any viable non-methods [non-indexers] found here will hide viable methods [indexers] (with the same name) in any further base classes
+                        // short circuit looking up in extended type if we already have a viable result and we won't be adding on more
+                        if (result.IsMultiViable && !IsMethodOrIndexer(result.Symbols[0]))
+                        {
+                            break;
+                        }
+
+                        this.LookupMembersInType(result, extendedType, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                    }
                     break;
 
                 case TypeKind.Class:
@@ -1425,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: of T and the class type object. 
 
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
+                                !isInExtensionHierarchy(hiddenContainer, hidingContainer, basesBeingResolved, this.Compilation, ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1448,6 +1462,29 @@ symIsHidden:;
             else
             {
                 resultHiding.MergePrioritized(resultHidden);
+            }
+
+            return;
+
+            static bool isInExtensionHierarchy(NamedTypeSymbol hiddenContainer, NamedTypeSymbol hidingContainer, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (!hidingContainer.IsExtension)
+                {
+                    return false;
+                }
+
+                var extendedType = hidingContainer.ExtendedTypeNoUseSiteDiagnostics;
+                if (hiddenContainer.Equals(extendedType, TypeCompareKind.ConsiderEverything))
+                {
+                    return true;
+                }
+
+                if (extendedType is NamedTypeSymbol extendedNamedTypeSymbol)
+                {
+                    return IsDerivedType(baseType: hiddenContainer, derivedType: extendedNamedTypeSymbol, basesBeingResolved, compilation, useSiteInfo: ref useSiteInfo);
+                }
+
+                return false;
             }
         }
 

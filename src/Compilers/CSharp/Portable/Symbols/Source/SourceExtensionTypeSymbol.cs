@@ -230,7 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol? underlyingType = null;
             SourceLocation? underlyingTypeLocation = null;
 
-            Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
+            // TODO2 remove
+            if (basesBeingResolved != null && basesBeingResolved.ContainsReference(this.OriginalDefinition))
+            {
+                diagnostics.Add(ErrorCode.ERR_ExtensionSelfReference, Locations[0], this);
+                return new ExtensionInfo(underlyingType);
+            }
+
             var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
 
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
