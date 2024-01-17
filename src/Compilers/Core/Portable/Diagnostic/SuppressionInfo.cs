@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// then returns the corresponding <see cref="Suppression"/>s, in no specific order.
         /// Otherwise, returns an empty array.
         /// </summary>
-        public ImmutableArray<Suppression> Suppressions { get; }
+        public ImmutableArray<Suppression> ProgrammaticSuppressions { get; }
 
-        internal SuppressionInfo(string id, AttributeData? attribute, ImmutableArray<Suppression> suppressions)
+        internal SuppressionInfo(string id, AttributeData? attribute, ImmutableArray<Suppression> programmaticSuppressions)
         {
-            Debug.Assert(suppressions.All(suppression => id == suppression.SuppressedDiagnostic.Id));
+            Debug.Assert(programmaticSuppressions.All(suppression => id == suppression.SuppressedDiagnostic.Id));
             Id = id;
             Attribute = attribute;
-            Suppressions = suppressions;
+            ProgrammaticSuppressions = programmaticSuppressions;
         }
     }
 }

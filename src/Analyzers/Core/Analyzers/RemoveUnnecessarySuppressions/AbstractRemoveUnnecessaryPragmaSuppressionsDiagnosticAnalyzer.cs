@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 }
 
                 var suppressionInfo = diagnostic.GetSuppressionInfo(compilationWithAnalyzers.Compilation);
-                if (suppressionInfo == null || !suppressionInfo.Suppressions.IsEmpty)
+                if (suppressionInfo == null || !suppressionInfo.ProgrammaticSuppressions.IsEmpty)
                 {
                     // Skip diagnostics that are not suppressed in source or suppressed via programmatic suppressions from suppressors.
                     continue;

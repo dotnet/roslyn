@@ -644,7 +644,7 @@ class C { }";
             Assert.Equal(suppressionId, suppression.Descriptor.Id);
             Assert.Equal(suppressor.SuppressionDescriptor.Justification, suppression.Descriptor.Justification);
             var suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
-            Assert.Equal(suppression, suppressionInfo.Suppressions.Single());
+            Assert.Equal(suppression, suppressionInfo.ProgrammaticSuppressions.Single());
 
             const string suppressionId2 = "SPR1002";
             var suppressor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId2);
@@ -659,7 +659,7 @@ class C { }";
             Assert.Equal(suppressionId2, orderedSuppressions[1].Descriptor.Id);
             Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Descriptor.Justification);
             suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
-            AssertEx.SetEqual(programmaticSuppression.Suppressions, suppressionInfo.Suppressions);
+            AssertEx.SetEqual(programmaticSuppression.Suppressions, suppressionInfo.ProgrammaticSuppressions);
         }
 
         [CombinatorialData]
