@@ -206,8 +206,9 @@ namespace RunTests
                 [
                     "ROSLYN_TEST_IOPERATION",
                     "ROSLYN_TEST_USEDASSEMBLIES",
-                    "COMPlus_DbgEnableMiniDump",
-                    "COMPlus_DbgMiniDumpType"
+                    "DOTNET_DbgEnableMiniDump",
+                    "DOTNET_DbgMiniDumpType",
+                    "DOTNET_EnableCrashReport",
                 ];
 
                 foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
@@ -217,6 +218,8 @@ namespace RunTests
                         command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
                     }
                 }
+
+                command.AppendLine(isUnix ? "env | sort" : "set");
 
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");

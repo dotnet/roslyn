@@ -58,8 +58,9 @@ jobs:
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         ${{ if eq(parameters.miniDump, true) }}:
-          COMPlus_DbgEnableMiniDump: 1
-          COMPlus_DbgMiniDumpType: 2
+          DOTNET_DbgEnableMiniDump: 1
+          DOTNET_DbgMiniDumpType: 1
+          DOTNET_EnableCrashReport: 1
 
     - template: publish-logs.yml
       parameters:
