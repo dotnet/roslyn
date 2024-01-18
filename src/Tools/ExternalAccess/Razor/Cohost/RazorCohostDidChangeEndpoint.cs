@@ -10,16 +10,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
+[RazorMethod(Methods.TextDocumentDidChangeName)]
 [ExportRazorStatelessLspService(typeof(RazorCohostDidChangeEndpoint)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)] IRazorCohostDidChangeHandler? didChangeHandler) : ILspServiceDocumentRequestHandler<DidChangeTextDocumentParams, object?>
+internal sealed class RazorCohostDidChangeEndpoint(
+    [Import(AllowDefault = true)] IRazorCohostTextDocumentSyncHandler? razorDocSyncHandler)
+    : ILspServiceDocumentRequestHandler<DidChangeTextDocumentParams, object?>
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
@@ -41,15 +42,13 @@ internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)]
         context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        if (didChangeHandler is not null)
-        {
-            await didChangeHandler.HandleAsync(request.TextDocument.Uri, request.TextDocument.Version, text, cancellationToken).ConfigureAwait(false);
-        }
+        await razorDocSyncHandler.NotifyRazorAsync(request.TextDocument.Uri, request.TextDocument.Version, context, cancellationToken).ConfigureAwait(false);
 
         return null;
     }
 }
 
+[Obsolete("This API is made of regret, no longer functions, and will be removed very soon")]
 internal interface IRazorCohostDidChangeHandler
 {
     Task HandleAsync(Uri uri, int version, SourceText sourceText, CancellationToken cancellationToken);

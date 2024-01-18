@@ -65,7 +65,7 @@
     <Compile Include="..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />

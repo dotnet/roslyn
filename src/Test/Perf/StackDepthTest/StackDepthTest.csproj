@@ -14,7 +14,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
   <ItemGroup>
     <None Include="runner.csx" />
