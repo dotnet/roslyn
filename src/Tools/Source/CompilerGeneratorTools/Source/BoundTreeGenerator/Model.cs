@@ -11,20 +11,6 @@ using System.Xml.Serialization;
 
 namespace BoundTreeGenerator
 {
-    [XmlRoot]
-    public class Tree
-    {
-        [XmlAttribute]
-        public string Root;
-
-        [XmlElement(ElementName = "Node", Type = typeof(Node))]
-        [XmlElement(ElementName = "AbstractNode", Type = typeof(AbstractNode))]
-        [XmlElement(ElementName = "PredefinedNode", Type = typeof(PredefinedNode))]
-        [XmlElement(ElementName = "Enum", Type = typeof(EnumType))]
-        [XmlElement(ElementName = "ValueType", Type = typeof(ValueType))]
-        public List<TreeType> Types;
-    }
-
     interface ICommentedNode
     {
         ref List<CommentNode> GetCommentListField();
@@ -49,6 +35,20 @@ namespace BoundTreeGenerator
         public string Summary;
     }
 
+    [XmlRoot]
+    public class Tree
+    {
+        [XmlAttribute]
+        public string Root;
+
+        [XmlElement(ElementName = "Node", Type = typeof(Node))]
+        [XmlElement(ElementName = "AbstractNode", Type = typeof(AbstractNode))]
+        [XmlElement(ElementName = "PredefinedNode", Type = typeof(PredefinedNode))]
+        [XmlElement(ElementName = "Enum", Type = typeof(EnumType))]
+        [XmlElement(ElementName = "ValueType", Type = typeof(ValueType))]
+        public List<TreeType> Types;
+    }
+
     public class TreeType : ICommentedNode
     {
         [XmlAttribute]
@@ -63,10 +63,7 @@ namespace BoundTreeGenerator
         [XmlElement(ElementName = "TypeComment", Type = typeof(CommentNode))]
         public List<CommentNode> Comments;
 
-        ref List<CommentNode> ICommentedNode.GetCommentListField()
-        {
-            return ref Comments;
-        }
+        ref List<CommentNode> ICommentedNode.GetCommentListField() => ref Comments;
     }
 
     public class PredefinedNode : TreeType
@@ -93,15 +90,20 @@ namespace BoundTreeGenerator
         /// </summary>
         [XmlAttribute]
         public string SkipInNullabilityRewriter;
+
+        [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
+        public List<Kind> Kinds;
     }
 
-    public class Kind
+    public class Kind : ICommentedNode
     {
         [XmlAttribute]
         public string Name;
 
         [XmlElement(ElementName = "KindComment", Type = typeof(CommentNode))]
         public List<CommentNode> Comments;
+
+        ref List<CommentNode> ICommentedNode.GetCommentListField() => ref Comments;
     }
 
     public class Field : ICommentedNode
@@ -133,10 +135,7 @@ namespace BoundTreeGenerator
         [XmlElement(ElementName = "FieldComment", Type = typeof(CommentNode))]
         public List<CommentNode> Comments;
 
-        ref List<CommentNode> ICommentedNode.GetCommentListField()
-        {
-            return ref Comments;
-        }
+        ref List<CommentNode> ICommentedNode.GetCommentListField() => ref Comments;
     }
 
     public class EnumType : TreeType
@@ -159,10 +158,7 @@ namespace BoundTreeGenerator
         [XmlElement(ElementName = "FieldComment", Type = typeof(CommentNode))]
         public List<CommentNode> Comments;
 
-        ref List<CommentNode> ICommentedNode.GetCommentListField()
-        {
-            return ref Comments;
-        }
+        ref List<CommentNode> ICommentedNode.GetCommentListField() => ref Comments;
     }
 
     public class ValueType : TreeType
