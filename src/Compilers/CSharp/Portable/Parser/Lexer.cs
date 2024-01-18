@@ -1939,6 +1939,8 @@ LoopExit:
                         // not trivia
                         return;
                     case '@' when TextWindow.PeekChar(1) == '*':
+                        // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
+                        this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
                         lexMultiLineComment(ref triviaList, '@');
                         onlyWhitespaceOnLine = false;
                         break;
@@ -1992,12 +1994,6 @@ LoopExit:
 
             void lexMultiLineComment(ref SyntaxListBuilder triviaList, char delimiter)
             {
-                if (delimiter == '@')
-                {
-                    // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
-                    this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
-                }
-
                 bool isTerminated;
                 this.ScanMultiLineComment(out isTerminated, delimiter);
                 if (!isTerminated)
