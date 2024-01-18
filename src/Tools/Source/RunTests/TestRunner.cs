@@ -209,7 +209,6 @@ namespace RunTests
                     "ROSLYN_TEST_USEDASSEMBLIES"
                 ];
 
-
                 foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
                 {
                     if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
