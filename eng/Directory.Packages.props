@@ -107,7 +107,7 @@
     <!-- TODO: workaround for https://github.com/dotnet/roslyn/issues/71377 -->
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.12-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.7.40" />
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.5.12-alpha" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.4.22"/>
 
     <!--
       VS Debugger
