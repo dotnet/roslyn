@@ -6,9 +6,10 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace BoundTreeGenerator
 {
@@ -16,23 +17,41 @@ namespace BoundTreeGenerator
     {
         private static int Main(string[] args)
         {
+            string language;
+            string infilename;
+            string outfilename;
+            TargetLanguage targetLanguage;
+
             if (args.Length != 3)
             {
                 Console.Error.WriteLine("Usage: \"{0} <language> <input> <output>\", where <language> is \"VB\" or \"CSharp\"", Path.GetFileNameWithoutExtension(args[0]));
                 return 1;
             }
 
-            var language = args[0];
-            var infilename = args[1];
-            var outfilename = args[2];
+            language = args[0];
+            infilename = args[1];
+            outfilename = args[2];
 
-            if (!TryParseTargetLanguage(language, out var targetLanguage))
+            switch (language)
             {
-                Console.WriteLine("Language must be \"VB\" or \"CSharp\"");
-                return 1;
+                case "VB":
+                    targetLanguage = TargetLanguage.VB;
+                    break;
+                case "CSharp":
+                case "C#":
+                    targetLanguage = TargetLanguage.CSharp;
+                    break;
+                default:
+                    Console.Error.WriteLine("Language must be \"VB\" or \"CSharp\"");
+                    return 1;
             }
 
-            Tree tree = LoadTreeXml(infilename);
+            Tree tree;
+            var serializer = new XmlSerializer(typeof(Tree));
+            using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
+            {
+                tree = (Tree)serializer.Deserialize(reader);
+            }
 
             if (!ValidateTree(tree))
             {
@@ -46,36 +65,6 @@ namespace BoundTreeGenerator
             }
 
             return 0;
-        }
-
-        private static bool TryParseTargetLanguage(string languageName, out TargetLanguage targetLanguage)
-        {
-            switch (languageName.ToLowerInvariant())
-            {
-                case "vb":
-                case "visualbasic":
-                    targetLanguage = TargetLanguage.VB;
-                    return true;
-                case "csharp":
-                case "c#":
-                    targetLanguage = TargetLanguage.CSharp;
-                    return true;
-            }
-            targetLanguage = default;
-            return false;
-        }
-
-        private static Tree LoadTreeXml(string infilename)
-        {
-            using (var stream = new FileStream(infilename, FileMode.Open, FileAccess.Read))
-            {
-                var serializer = new XmlSerializer(typeof(Tree));
-                using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
-                {
-                    var tree = (Tree)serializer.Deserialize(reader);
-                    return tree;
-                }
-            }
         }
 
         private static bool ValidateTree(Tree tree)
