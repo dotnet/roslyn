@@ -5,6 +5,7 @@
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using InteractiveShell = Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -58,8 +59,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             public static class Project
             {
-                public static readonly CommandID ResetCSharpInteractiveFromProject = new(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
-            }
+                public static readonly string ResetCSharpInteractiveFromProject = typeof(ResetInteractiveWindowFromProjectCommand).FullName;
+        }
         }
 
         public static class Refactor

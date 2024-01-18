@@ -31,11 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 
         protected override void InitializeMenuCommands(OleMenuCommandService menuCommandService)
         {
-            var openInteractiveCommand = new MenuCommand(
-                (sender, args) => this.InteractiveWindowProvider.Open(instanceId: 0, focus: true),
-                new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.InteractiveToolWindow));
-
-            menuCommandService.AddCommand(openInteractiveCommand);
         }
     }
 }
