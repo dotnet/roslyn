@@ -2745,8 +2745,8 @@ class Program
 class Program{
     void Main()
     {
-        var f = new Goo { member;$$ }
-    }
+        var f = new Goo { member; }
+    }$$
 }";
 
             var expected = @"struct Goo { public int member; }
@@ -2757,7 +2757,7 @@ class Program{
     }
 }";
 
-            await AutoFormatOnSemicolonAsync(
+            await AutoFormatOnCloseBraceAsync(
                 code,
                 expected,
                 SyntaxKind.OpenBraceToken);

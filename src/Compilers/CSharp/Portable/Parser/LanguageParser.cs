@@ -12367,7 +12367,7 @@ done:;
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false);
+                allowSemicolonAsSeparator: true);
 
             var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
 
@@ -13432,7 +13432,12 @@ tryAgain:
                 // We're not on a valid separator, but we want to be resilient for the user accidentally using the wrong
                 // one in common cases.
                 if (allowSemicolonAsSeparator && this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
-                    return true;
+                {
+                    using var semicolonResetPoint = GetDisposableResetPoint(resetOnDispose: true);
+                    this.EatToken();
+                    bool canContinue = this.CurrentToken.Kind == closeTokenKind || isPossibleElement(this);
+                    return canContinue;
+                }
 
                 if (isPossibleElement(this))
                     return true;
