@@ -1008,12 +1008,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection : IEnumerable<int>
+                class MyCollection : IEnumerable
                 {
-                    private List<int> _items = new();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => _items.GetEnumerator();
+                    private List<object> _items = new();
                     IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
-                    public void Add(int i) { _items.Add(i); }
+                    public void Add(object o) { _items.Add(o); }
                 }
                 class Program
                 {
@@ -1022,16 +1021,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = F([1, null]);
-                        x.Report(includeType: true);
                         int?[] y = [null, 2];
                         var z = F([..y]);
-                        z.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], ");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         var x = F([1, null]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(15, 17),
+                // (17,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         var z = F([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(17, 17)
+                );
         }
 
         [Fact]
@@ -5287,6 +5289,8 @@ static class Program
                 using System.Collections;
                 S s;
                 s = [];
+                s = [1, 2];
+                s = [.. new object()];
                 struct S : IEnumerable
                 {
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
@@ -5296,37 +5300,13 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (3,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
                 // s = [];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[]").WithArguments("S", "Add").WithLocation(3, 5));
-
-            source = """
-                using System.Collections;
-                S s;
-                s = [1, 2];
-                struct S : IEnumerable
-                {
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
-                }
-                """;
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (3,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[]").WithArguments("S", "Add").WithLocation(3, 5),
+                // (4,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
                 // s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2]").WithArguments("S", "Add").WithLocation(3, 5));
-
-            source = """
-                using System.Collections;
-                S s;
-                s = [.. new object()];
-                struct S : IEnumerable
-                {
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
-                }
-                """;
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (3,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2]").WithArguments("S", "Add").WithLocation(4, 5),
+                // (5,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 // s = [.. new object()];
-                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(5, 9));
         }
 
         [Fact]
@@ -5417,29 +5397,25 @@ static class Program
                         object o;
                         c = [];
                         o = (C<object>)[];
-                        c.Report();
-                        o.Report();
                         c = [1, 2];
                         o = (C<object>)[3, 4];
-                        c.Report();
-                        o.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
+                // (15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "C<int>.Add(int)").WithLocation(15, 13),
-                // 0.cs(15,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                // (15,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(15, 13),
-                // 0.cs(19,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
+                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(19, 13),
-                // 0.cs(19,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(17, 13),
+                // (17,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(19, 13));
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(17, 13));
         }
 
         [Fact]
