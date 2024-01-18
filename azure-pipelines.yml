@@ -337,19 +337,17 @@ stages:
         testArguments: --testCoreClr
         poolParameters: ${{ parameters.ubuntuPool }}
 
-  # uncomment before merge
-  # - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - template: eng/pipelines/test-unix-job.yml
-    parameters:
-      testRunName: 'Test macOS Debug'
-      jobName: Test_macOS_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr 
-      helixQueueName: $(HelixMacOsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.ubuntuPool }}
-      miniDump: true
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job.yml
+      parameters:
+        testRunName: 'Test macOS Debug'
+        jobName: Test_macOS_Debug
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr 
+        helixQueueName: $(HelixMacOsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.ubuntuPool }}
 
 - stage: Correctness
   dependsOn: []
