@@ -4,12 +4,8 @@
 
 #nullable disable
 
-using System;
-using System.IO;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -40,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// <returns></returns>
         public static IWpfTextView GetActiveTextView()
         {
-            var monitorSelection = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
+            var monitorSelection = (IVsMonitorSelection)Shell.Package.GetGlobalService(typeof(SVsShellMonitorSelection));
             if (monitorSelection == null)
             {
                 return null;
@@ -72,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     return null;
                 }
 
-                var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+                var model = (IComponentModel)Shell.Package.GetGlobalService(typeof(SComponentModel));
                 var adapterFactory = model.GetService<IVsEditorAdaptersFactoryService>();
                 var wpfTextView = adapterFactory.GetWpfTextView(textView);
                 return wpfTextView;
