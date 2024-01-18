@@ -7,6 +7,8 @@
     <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
     <NoWarn>$(NoWarn),CA2007</NoWarn>
+    <!-- Xunit analyzer doesn't recognize benchmark attributes -->
+    <NoWarn>$(NoWarn),xUnit1013</NoWarn>
     <UseWpf>true</UseWpf>
   </PropertyGroup>
   <ItemGroup>
