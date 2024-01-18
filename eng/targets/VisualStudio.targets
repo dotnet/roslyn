@@ -136,7 +136,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
 
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+    <PackageReference Include="Microsoft.DiaSymReader.Native" ExcludeAssets="all"/>
   </ItemGroup>
 
   <Target Name="_CheckDeploymentTargetVisualStudioVersion"
