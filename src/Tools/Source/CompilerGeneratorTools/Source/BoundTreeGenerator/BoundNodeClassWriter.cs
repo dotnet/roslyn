@@ -294,7 +294,7 @@ namespace BoundTreeGenerator
 
         private void WriteComment(ICommentedNode node)
         {
-            var trimmedComment = node.Comment.Trim();
+            var trimmedComment = node.Comment?.Trim();
             if (trimmedComment is null or { Length: 0 })
             {
                 return;
