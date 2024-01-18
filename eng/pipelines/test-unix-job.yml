@@ -57,7 +57,7 @@ jobs:
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        ${{ if eq(parameters.miniDump, true }}:
+        ${{ if eq(parameters.miniDump, true) }}:
           COMPlus_DbgEnableMiniDump: 1
           COMPlus_DbgMiniDumpType: 2
 
