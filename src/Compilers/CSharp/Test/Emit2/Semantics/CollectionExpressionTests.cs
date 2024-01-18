@@ -6410,6 +6410,114 @@ static class Program
         }
 
         [Fact]
+        public void CollectionInitializerType_InaccessibleConstructor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private MyCollection() { }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    static MyCollection<T> _x = [];
+                    static MyCollection<T> _y = [default, .._x];
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,31): error CS0122: 'MyCollection<int>.MyCollection()' is inaccessible due to its protection level
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[]").WithArguments("MyCollection<int>.MyCollection()").WithLocation(16, 31),
+                // (17,31): error CS0122: 'MyCollection<int>.MyCollection()' is inaccessible due to its protection level
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, ..x]").WithArguments("MyCollection<int>.MyCollection()").WithLocation(17, 31));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_InaccessibleAdd()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    static MyCollection<T> _x = [];
+                    static MyCollection<T> _y = [default, .._x];
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,31): error CS0122: 'MyCollection<int>.Add(int)' is inaccessible due to its protection level
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[]").WithArguments("MyCollection<int>.Add(int)").WithLocation(15, 31),
+                // (16,31): error CS0122: 'MyCollection<int>.Add(int)' is inaccessible due to its protection level
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(16, 31));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_InaccessibleExtensionAdd()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    static MyCollection<T> _x = [];
+                    static MyCollection<T> _y = [default, .._x];
+                }
+                public static class Extensions
+                {
+                    internal static void Add<T>(this MyCollection<T> c, T t) { }
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.ToMetadataReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> y = [1, ..x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (5,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[]").WithArguments("MyCollection<int>", "Add").WithLocation(5, 31),
+                // (6,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<int> y = [1, ..x];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, ..x]").WithArguments("MyCollection<int>", "Add").WithLocation(6, 31));
+        }
+
+        [Fact]
         public void CollectionInitializerType_AddByValue()
         {
             string source = """
