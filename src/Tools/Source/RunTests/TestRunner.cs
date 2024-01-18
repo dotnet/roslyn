@@ -275,7 +275,7 @@ namespace RunTests
                 {
                     // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
                     // for the command to work causes too much escaping issues in MSBuild.
-                    File.WriteAllText(Path.Combine(payloadDirectory, "copy-dumps.sh"), "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;");
+                    File.WriteAllText(Path.Combine(payloadDirectory, "copy-dumps.sh"), "find . -name '*.dmp*' -exec cp {} $HELIX_DUMP_FOLDER \\;");
                     postCommands.AppendLine("./copy-dumps.sh");
                 }
                 else
