@@ -219,6 +219,11 @@ namespace RunTests
                     }
                 }
 
+                var helixDumpFolder = isUnix
+                    ? @"$HELIX_DUMP_FOLDER/crash.%d.%e.dmp"
+                    : @"%HELIX_DUMP_FOLDER%\crash.%d.%e.dmp";
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpName=\"{helixDumpFolder}\"");
+
                 command.AppendLine(isUnix ? "env | sort" : "set");
 
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
@@ -265,33 +270,12 @@ namespace RunTests
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
                 var escapedCommand = SecurityElement.Escape(command.ToString());
 
-                // We want to collect any dumps during the post command step here; these commands are ran after the
-                // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
-                // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
-                // precisely to address this problem.
-                var postCommands = new StringBuilder();
-
-                if (isUnix)
-                {
-                    // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
-                    // for the command to work causes too much escaping issues in MSBuild.
-                    File.WriteAllText(Path.Combine(payloadDirectory, "copy-dumps.sh"), "find . -name '*.dmp*' -exec cp {} $HELIX_DUMP_FOLDER \\;");
-                    postCommands.AppendLine("./copy-dumps.sh");
-                }
-                else
-                {
-                    postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
-                }
-
                 var workItem = $@"
         <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
             <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
             <Command>
                 {escapedCommand}
             </Command>
-            <PostCommands>
-                {postCommands}
-            </PostCommands>
             <Timeout>00:30:00</Timeout>
         </HelixWorkItem>
 ";
