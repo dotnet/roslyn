@@ -129,6 +129,7 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Buffers" />
       <_Dependency Remove="System.Collections.Immutable"/>
+      <_Dependency Remove="System.Configuration.ConfigurationManager"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
       <_Dependency Remove="System.IO.Packaging"/>
@@ -136,11 +137,13 @@
       <_Dependency Remove="System.Memory"/>
       <_Dependency Remove="System.Numerics.Vectors"/>
       <_Dependency Remove="System.Reflection.Metadata"/>
+      <_Dependency Remove="System.Reflection.MetadataLoadContext"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
       <_Dependency Remove="System.Resources.Extensions"/>
       <_Dependency Remove="System.Runtime.CompilerServices.Unsafe"/>
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Permissions"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
       <_Dependency Remove="System.Text.Encoding.CodePages" />
       <_Dependency Remove="System.Text.Encodings.Web" />
