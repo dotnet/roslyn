@@ -22,11 +22,15 @@ parameters:
   default: ''
 - name: poolParameters
   type: object
+- name: miniDump
+  type: boolean
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 90
+
   steps:
     - checkout: none
 
@@ -53,6 +57,9 @@ jobs:
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        ${{ if eq(parameters.miniDump, true }}:
+          COMPlus_DbgEnableMiniDump: 1
+          COMPlus_DbgMiniDumpType: 2
 
     - template: publish-logs.yml
       parameters:
