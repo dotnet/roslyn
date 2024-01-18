@@ -202,12 +202,19 @@ namespace RunTests
                 command.AppendLine(isUnix ? $"ls -l" : $"dir");
                 command.AppendLine("dotnet --info");
 
-                var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES" };
+                string[] knownEnvironmentVariables =
+                [
+                    "ROSLYN_TEST_IOPERATION",
+                    "ROSLYN_TEST_USEDASSEMBLIES",
+                    "COMPlus_DbgEnableMiniDump",
+                    "COMPlus_DbgMiniDumpType"
+                ];
+
                 foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
                 {
-                    if (string.Equals(Environment.GetEnvironmentVariable(knownEnvironmentVariable), "true", StringComparison.OrdinalIgnoreCase))
+                    if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
                     {
-                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=true");
+                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
                     }
                 }
 
