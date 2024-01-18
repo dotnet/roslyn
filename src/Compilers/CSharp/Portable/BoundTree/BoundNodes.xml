@@ -25,22 +25,22 @@
   <ValueType Name="Conversion"/>
   <ValueType Name="TextSpan"/>
   <ValueType Name="ThreeState"/>
-  <ValueType Name="UnaryOperatorKind" />
-  <ValueType Name="BinaryOperatorKind" />
-  <ValueType Name="LookupResultKind" />
-  <ValueType Name="NoOpStatementFlavor" />
-  <ValueType Name="RefKind" />
-  <ValueType Name="BoundTypeOrValueData" />
-  <ValueType Name="BoundLocalDeclarationKind" />
-  <ValueType Name="NullableAnnotation" />
-  <ValueType Name="ErrorCode" />
-  <ValueType Name="ReadOnlyBindingDiagnostic" />
-  <ValueType Name="InterpolatedStringHandlerData" />
-  <ValueType Name="WellKnownMember" />
-  <ValueType Name="CollectionExpressionTypeKind" />
-  <AbstractNode Name="BoundInitializer" Base="BoundNode" />
+  <ValueType Name="UnaryOperatorKind"/>
+  <ValueType Name="BinaryOperatorKind"/>
+  <ValueType Name="LookupResultKind"/>
+  <ValueType Name="NoOpStatementFlavor"/>
+  <ValueType Name="RefKind"/>
+  <ValueType Name="BoundTypeOrValueData"/>
+  <ValueType Name="BoundLocalDeclarationKind"/>
+  <ValueType Name="NullableAnnotation"/>
+  <ValueType Name="ErrorCode"/>
+  <ValueType Name="ReadOnlyBindingDiagnostic"/>
+  <ValueType Name="InterpolatedStringHandlerData"/>
+  <ValueType Name="WellKnownMember"/>
+  <ValueType Name="CollectionExpressionTypeKind"/>
+  <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
   <AbstractNode Name="BoundEqualsValue" Base="BoundInitializer">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Value" Type="BoundExpression">
       <FieldComment>
         <summary>Expression representing the value.</summary>
@@ -81,7 +81,7 @@
     </Field>
   </Node>
   <Node Name="BoundGlobalStatementInitializer" Base="BoundInitializer">
-    <Field Name="Statement" Type="BoundStatement" />
+    <Field Name="Statement" Type="BoundStatement"/>
   </Node>
   <AbstractNode Name="BoundExpression" Base="BoundNode">
      <TypeComment>
@@ -99,7 +99,7 @@
   Nothing. (An expression which is a method call that returns void.)
       </summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol?" />
+    <Field Name="Type" Type="TypeSymbol?"/>
   </AbstractNode>
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
     <TypeComment>
@@ -124,17 +124,17 @@
       <summary>This node is used in memory safety analysis to represent a receiver
   that will be replaced with a copy captured in a temp during IL gen.</summary>
     </TypeComment>
-    <Field Name="Receiver" Type="BoundExpression" />
-    <Field Name="LocalScopeDepth" Type="uint" />
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="VariableSymbol" Type="Symbol?" />
-    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="VariableSymbol" Type="Symbol?"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
   <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
@@ -142,64 +142,64 @@
   operator, and to represent an element-wise comparison result to convert back to bool.
   It does not survive the initial binding.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol?" Null="allow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol?" Null="allow" Override="true"/>
   </Node>
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
   It does not survive past initial binding.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundObjectOrCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>The implicit collection in an object or collection initializer expression.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="IsNewInstance" Type="bool" Null="NotApplicable" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="IsNewInstance" Type="bool" Null="NotApplicable"/>
   </Node>
   <Node Name="BoundImplicitIndexerValuePlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>This node is used to represent the argument of type Index or Range for an implicit Index or Range indexer. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <TypeComment>
       <summary>This node represents the receiver for a list pattern. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundListPatternIndexPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <TypeComment>
       <summary>This node represents the Index value of accessing an element in a list pattern. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <TypeComment>
       <summary>This node represents the receiver for a slice pattern. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <TypeComment>
       <summary>This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
   </Node>
   <Node Name="BoundDup" Base="BoundExpression">
     <TypeComment>
@@ -215,7 +215,7 @@
     <TypeComment>
       <summary>Wrapper node used to prevent passing the underlying expression by direct reference</summary>
     </TypeComment>
-    <Field Name="Expression" Type="BoundExpression" />
+    <Field Name="Expression" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundBadExpression" Base="BoundExpression">
     <TypeComment>
@@ -255,10 +255,10 @@
       <summary>This node is used to wrap the BoundBlock for a finally extracted by AsyncExceptionHandlerRewriter.
     It is processed and removed by AsyncIteratorRewriter.</summary>
     </TypeComment>
-    <Field Name="FinallyBlock" Type="BoundBlock" />
+    <Field Name="FinallyBlock" Type="BoundBlock"/>
   </Node>
   <Node Name="BoundTypeExpression" Base="BoundExpression">
-    <Field Name="AliasOpt" Type="AliasSymbol?" />
+    <Field Name="AliasOpt" Type="AliasSymbol?"/>
     <Field Name="BoundContainingTypeOpt" Type="BoundTypeExpression?">
       <FieldComment>
         <summary>We're going to stash some extra information in the Color Color case
@@ -306,7 +306,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations" />
+    <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations"/>
   </Node>
   <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
     <TypeComment>
@@ -343,7 +343,7 @@
         <summary>Type is required for this node type; may not be null</summary>
       </FieldComment>
     </Field>
-    <Field Name="Data" Type="BoundTypeOrValueData" />
+    <Field Name="Data" Type="BoundTypeOrValueData"/>
   </Node>
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -351,8 +351,8 @@
         <summary>Type is not significant for this node type; always null</summary>
       </FieldComment>
     </Field>
-    <Field Name="NamespaceSymbol" Type="NamespaceSymbol" />
-    <Field Name="AliasOpt" Type="AliasSymbol?" />
+    <Field Name="NamespaceSymbol" Type="NamespaceSymbol"/>
+    <Field Name="AliasOpt" Type="AliasSymbol?"/>
   </Node>
   
   <!--EricLi thought we might need a node like this to do "Color Color" correctly. Currently we're
@@ -369,12 +369,12 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="OperatorKind" Type="UnaryOperatorKind" />
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
-    <Field Name="MethodOpt" Type="MethodSymbol?" />
-    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="OperatorKind" Type="UnaryOperatorKind"/>
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
+    <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of method symbols from which this operator's method was chosen.
@@ -391,10 +391,10 @@
          conversion from the result of the ++ operator back to x.</summary>
       </FieldComment>
     </Field>
-    <Field Name="OperatorKind" Type="UnaryOperatorKind" />
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="MethodOpt" Type="MethodSymbol?" />
-    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow" />
+    <Field Name="OperatorKind" Type="UnaryOperatorKind"/>
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true">
       <FieldComment>
         <summary>Used as an operand to bind OperandConversion</summary>
@@ -415,7 +415,7 @@
         <summary>Could be a BoundConversion or, in some cases of an identity conversion, the ResultPlaceholder, or null for no conversion case</summary>
       </FieldComment>
     </Field>
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of method symbols from which this operator's method was chosen.
@@ -433,7 +433,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
+    <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="IsManaged" Type="bool">
       <FieldComment>
         <summary>True only in some lowered/synthesized nodes. 
@@ -453,7 +453,7 @@
        target-type. It has no natural type, and should not survive initial binding
        except in error cases that are observable via the SemanticModel.</summary>
     </TypeComment>
-    <Field Name="Operand" Type="BoundMethodGroup" />
+    <Field Name="Operand" Type="BoundMethodGroup"/>
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
       <FieldComment>
         <summary>Type is null.</summary>
@@ -464,8 +464,8 @@
     <TypeComment>
       <summary>Represents a resolved AddressOf function pointer. Not used in initial binding.</summary>
     </TypeComment>
-    <Field Name="TargetMethod" Type="MethodSymbol" />
-    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow" />
+    <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
         <summary>Non-null type is required for this node kind</summary>
@@ -478,7 +478,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
+    <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="RefersToLocation" Type="bool">
       <FieldComment>
         <summary>Used by emit to determine whether this pointer indirection is by value or by ref. If true, emit
@@ -493,9 +493,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Expression" Type="BoundExpression" />
-    <Field Name="Index" Type="BoundExpression" />
-    <Field Name="Checked" Type="bool" />
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="Index" Type="BoundExpression"/>
+    <Field Name="Checked" Type="bool"/>
     <Field Name="RefersToLocation" Type="bool">
       <FieldComment>
         <summary>Used by emit to determine whether this pointer element access is by value or by ref. If true, emit
@@ -510,14 +510,14 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="InvokedExpression" Type="BoundExpression" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="InvokedExpression" Type="BoundExpression"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Operand" Type="BoundExpression" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="GetTypeFromHandle" Type="MethodSymbol?">
       <FieldComment>
         <summary>Well-known member populated during lowering</summary>
@@ -525,13 +525,13 @@
     </Field>
   </Node>
   <Node Name="BoundMakeRefOperator" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Operand" Type="BoundExpression" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Operand" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="NullableAnnotation" Type="NullableAnnotation" />
-    <Field Name="Operand" Type="BoundExpression" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
+    <Field Name="Operand" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundFromEndIndexExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -539,8 +539,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="MethodOpt" Type="MethodSymbol?" />
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="MethodOpt" Type="MethodSymbol?"/>
   </Node>
   <Node Name="BoundRangeExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -548,9 +548,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="LeftOperandOpt" Type="BoundExpression?" />
-    <Field Name="RightOperandOpt" Type="BoundExpression?" />
-    <Field Name="MethodOpt" Type="MethodSymbol?" />
+    <Field Name="LeftOperandOpt" Type="BoundExpression?"/>
+    <Field Name="RightOperandOpt" Type="BoundExpression?"/>
+    <Field Name="MethodOpt" Type="MethodSymbol?"/>
   </Node>
   <AbstractNode Name="BoundBinaryOperatorBase" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -558,13 +558,13 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Left" Type="BoundExpression" />
-    <Field Name="Right" Type="BoundExpression" />
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
   <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
-    <Field Name="OperatorKind" Type="BinaryOperatorKind" />
-    <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Data" Type="BoundBinaryOperator.UncommonData?"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -572,18 +572,18 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Left" Type="BoundExpression" />
-    <Field Name="Right" Type="BoundExpression" />
-    <Field Name="OperatorKind" Type="BinaryOperatorKind" />
-    <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple" />
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
   <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
-    <Field Name="OperatorKind" Type="BinaryOperatorKind" />
-    <Field Name="LogicalOperator" Type="MethodSymbol" />
-    <Field Name="TrueOperator" Type="MethodSymbol" />
-    <Field Name="FalseOperator" Type="MethodSymbol" />
-    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="LogicalOperator" Type="MethodSymbol"/>
+    <Field Name="TrueOperator" Type="MethodSymbol"/>
+    <Field Name="FalseOperator" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of method symbols from which this operator's method was chosen.
@@ -626,8 +626,8 @@
          never produce an "unbound" lambda from the initial binding pass.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Left" Type="BoundExpression" />
-    <Field Name="Right" Type="BoundExpression" />
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
     <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true">
       <FieldComment>
         <summary>Used as an operand to bind LeftConversion</summary>
@@ -648,7 +648,7 @@
         <summary>Could be a BoundConversion or, in some cases of an identity conversion, the FinalPlaceholder, or null for no conversion case</summary>
       </FieldComment>
     </Field>
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of method symbols from which this operator's method was chosen.
@@ -658,9 +658,9 @@
     </Field>
   </Node>
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Left" Type="BoundExpression" />
-    <Field Name="Right" Type="BoundExpression" Null="NotApplicable" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression" Null="NotApplicable"/>
     <Field Name="IsRef" Type="bool" Null="NotApplicable">
       <FieldComment>
         <summary>This is almost always false.
@@ -694,9 +694,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Left" Type="BoundTupleExpression" Null="disallow" />
-    <Field Name="Right" Type="BoundConversion" Null="disallow" />
-    <Field Name="IsUsed" Type="bool" Null="NotApplicable" />
+    <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
+    <Field Name="Right" Type="BoundConversion" Null="disallow"/>
+    <Field Name="IsUsed" Type="bool" Null="NotApplicable"/>
   </Node>
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -704,8 +704,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="LeftOperand" Type="BoundExpression" />
-    <Field Name="RightOperand" Type="BoundExpression" />
+    <Field Name="LeftOperand" Type="BoundExpression"/>
+    <Field Name="RightOperand" Type="BoundExpression"/>
     <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true">
       <FieldComment>
         <summary>Used as an operand to bind LeftConversion</summary>
@@ -717,7 +717,7 @@
     If the node survives lowering, this property in it must be null, unless it is part of a Linq Expression Tree.</summary>
       </FieldComment>
     </Field>
-    <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable" />
+    <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
     <Field Name="Checked" Type="bool">
       <FieldComment>
         <summary>This flag reflects the evaluation context used by the operator for conversions.
@@ -729,8 +729,8 @@
     </Field>
   </Node>
   <Node Name="BoundNullCoalescingAssignmentOperator" Base="BoundExpression">
-    <Field Name="LeftOperand" Type="BoundExpression" />
-    <Field Name="RightOperand" Type="BoundExpression" />
+    <Field Name="LeftOperand" Type="BoundExpression"/>
+    <Field Name="RightOperand" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundUnconvertedConditionalOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -738,11 +738,11 @@
         <summary>Type is null.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Condition" Type="BoundExpression" />
-    <Field Name="Consequence" Type="BoundExpression" />
-    <Field Name="Alternative" Type="BoundExpression" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
-    <Field Name="NoCommonTypeError" Type="ErrorCode" />
+    <Field Name="Condition" Type="BoundExpression"/>
+    <Field Name="Consequence" Type="BoundExpression"/>
+    <Field Name="Alternative" Type="BoundExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
+    <Field Name="NoCommonTypeError" Type="ErrorCode"/>
   </Node>
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -750,13 +750,13 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="IsRef" Type="bool" />
-    <Field Name="Condition" Type="BoundExpression" />
-    <Field Name="Consequence" Type="BoundExpression" />
-    <Field Name="Alternative" Type="BoundExpression" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
-    <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow" />
-    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="IsRef" Type="bool"/>
+    <Field Name="Condition" Type="BoundExpression"/>
+    <Field Name="Consequence" Type="BoundExpression"/>
+    <Field Name="Alternative" Type="BoundExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    <Field Name="WasTargetTyped" Type="bool"/>
   </Node>
   <Node Name="BoundArrayAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -764,8 +764,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Expression" Type="BoundExpression" />
-    <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
   <Node Name="BoundArrayLength" Base="BoundExpression">
     <TypeComment>
@@ -781,7 +781,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Expression" Type="BoundExpression" />
+    <Field Name="Expression" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundAwaitableInfo" Base="BoundNode">
     <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow">
@@ -789,10 +789,10 @@
         <summary>Used to refer to the awaitable expression in GetAwaiter</summary>
       </FieldComment>
     </Field>
-    <Field Name="IsDynamic" Type="bool" />
-    <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow" />
-    <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow" />
-    <Field Name="GetResult" Type="MethodSymbol?" Null="allow" />
+    <Field Name="IsDynamic" Type="bool"/>
+    <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
+    <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
+    <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
   </Node>
   <Node Name="BoundAwaitExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -800,9 +800,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Expression" Type="BoundExpression" />
-    <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow" />
-    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable" />
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
   </Node>
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -817,15 +817,15 @@
     </Field>
   </AbstractNode>
   <Node Name="BoundTypeOfOperator" Base="BoundTypeOf">
-    <Field Name="SourceType" Type="BoundTypeExpression" />
+    <Field Name="SourceType" Type="BoundTypeExpression"/>
   </Node>
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
     <TypeComment>
       <summary>Instrumentation info attached to BoundBlock</summary>
     </TypeComment>
-    <Field Name="Local" Type="LocalSymbol" Null="disallow" />
-    <Field Name="Prologue" Type="BoundStatement" Null="disallow" />
-    <Field Name="Epilogue" Type="BoundStatement" Null="disallow" />
+    <Field Name="Local" Type="LocalSymbol" Null="disallow"/>
+    <Field Name="Prologue" Type="BoundStatement" Null="disallow"/>
+    <Field Name="Epilogue" Type="BoundStatement" Null="disallow"/>
   </Node>
   <Node Name="BoundMethodDefIndex" Base="BoundExpression">
     <TypeComment>
@@ -837,7 +837,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Method" Type="MethodSymbol" />
+    <Field Name="Method" Type="MethodSymbol"/>
   </Node>
   <Node Name="BoundLocalId" Base="BoundExpression">
     <TypeComment>
@@ -904,7 +904,7 @@
       <summary>Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module.
        Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol.</summary>
     </TypeComment>
-    <Field Name="AnalysisKind" Type="int" />
+    <Field Name="AnalysisKind" Type="int"/>
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
         <summary>Non-null type is required for this node kind</summary>
@@ -943,7 +943,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Document" Type="Cci.DebugSourceDocument" />
+    <Field Name="Document" Type="Cci.DebugSourceDocument"/>
   </Node>
   <Node Name="BoundMethodInfo" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -951,7 +951,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Method" Type="MethodSymbol" />
+    <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="GetMethodFromHandle" Type="MethodSymbol?">
       <FieldComment>
         <summary>Well-known member populated during lowering</summary>
@@ -964,7 +964,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Field" Type="FieldSymbol" />
+    <Field Name="Field" Type="FieldSymbol"/>
     <Field Name="GetFieldFromHandle" Type="MethodSymbol?">
       <FieldComment>
         <summary>Well-known member populated during lowering</summary>
@@ -991,8 +991,8 @@
         <summary>Converted default expression must have a type.</summary>
       </FieldComment>
     </Field>
-    <Field Name="TargetType" Type="BoundTypeExpression?" SkipInVisitor="true" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="TargetType" Type="BoundTypeExpression?" SkipInVisitor="true"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundIsOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1000,9 +1000,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="TargetType" Type="BoundTypeExpression" />
-    <Field Name="ConversionKind" Type="ConversionKind" />
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="TargetType" Type="BoundTypeExpression"/>
+    <Field Name="ConversionKind" Type="ConversionKind"/>
   </Node>
   <Node Name="BoundAsOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1010,8 +1010,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="TargetType" Type="BoundTypeExpression" />
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="TargetType" Type="BoundTypeExpression"/>
     <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true">
       <FieldComment>
         <summary>Used as an operand to bind OperandConversion</summary>
@@ -1030,8 +1030,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="SourceType" Type="BoundTypeExpression" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="SourceType" Type="BoundTypeExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundConversion" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1039,12 +1039,12 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="Conversion" Type="Conversion" />
-    <Field Name="IsBaseConversion" Type="bool" />
-    <Field Name="Checked" Type="bool" />
-    <Field Name="ExplicitCastInCode" Type="bool" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="Conversion" Type="Conversion"/>
+    <Field Name="IsBaseConversion" Type="bool"/>
+    <Field Name="Checked" Type="bool"/>
+    <Field Name="ExplicitCastInCode" Type="bool"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?">
       <FieldComment>
         <summary>A group instance common to all BoundConversions that represent a single Conversion. The
@@ -1081,8 +1081,8 @@
         <summary>The type is required to be an instance of the well-known type System.ReadOnlySpan&lt;T&gt;</summary>
       </FieldComment>
     </Field>
-    <Field Name="Operand" Type="BoundExpression" />
-    <Field Name="ConversionMethod" Type="MethodSymbol" />
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="ConversionMethod" Type="MethodSymbol"/>
   </Node>
   <Node Name="BoundArgList" Base="BoundExpression">
     <TypeComment>
@@ -1109,8 +1109,8 @@
  Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
   </Node>
   <Node Name="BoundFixedLocalCollectionInitializer" Base="BoundExpression">
     <TypeComment>
@@ -1150,7 +1150,7 @@
       </FieldComment>
     </Field>
   </Node>
-  <AbstractNode Name="BoundStatement" Base="BoundNode" />
+  <AbstractNode Name="BoundStatement" Base="BoundNode"/>
   <Node Name="BoundSequencePoint" Base="BoundStatement">
     <Field Name="StatementOpt" Type="BoundStatement?">
       <FieldComment>
@@ -1171,7 +1171,7 @@
       associated with next statement (which could be a fairly random statement in random scope).</summary>
       </FieldComment>
     </Field>
-    <Field Name="Span" Type="TextSpan" />
+    <Field Name="Span" Type="TextSpan"/>
   </Node>
   <Node Name="BoundSavePreviousSequencePoint" Base="BoundStatement">
     <TypeComment>
@@ -1181,7 +1181,7 @@
     the previous non-hidden sequence point is saved and associated with the
     given Identifier.</summary>
     </TypeComment>
-    <Field Name="Identifier" Type="object" />
+    <Field Name="Identifier" Type="object"/>
   </Node>
   <Node Name="BoundRestorePreviousSequencePoint" Base="BoundStatement">
     <TypeComment>
@@ -1191,14 +1191,14 @@
     previously been given in a BoundSavePreviousSequencePoint statement. This is used
     to implement breakpoints within expressions (e.g. a switch expression).</summary>
     </TypeComment>
-    <Field Name="Identifier" Type="object" />
+    <Field Name="Identifier" Type="object"/>
   </Node>
   <Node Name="BoundStepThroughSequencePoint" Base="BoundStatement">
     <TypeComment>
       <summary>This is used to set the debugger's idea of what the enclosing statement
     is without causing the debugger to stop here when single stepping.</summary>
     </TypeComment>
-    <Field Name="Span" Type="TextSpan" />
+    <Field Name="Span" Type="TextSpan"/>
   </Node>
   <Node Name="BoundBlock" Base="BoundStatementList">
     <TypeComment>
@@ -1214,9 +1214,9 @@
         Note - in VB variable's extent is the whole method and can be larger than its scope. 
         That is why unassigned use is just a warning and jumps into blocks are generally allowed.</summary>
     </TypeComment>
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;" />
-    <Field Name="HasUnsafeModifier" Type="bool" Null="NotApplicable" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="HasUnsafeModifier" Type="bool" Null="NotApplicable"/>
     <Field Name="Instrumentation" Type="BoundBlockInstrumentation?" Null="allow">
       <FieldComment>
         <summary>Optional block-level instrumentation info</summary>
@@ -1233,7 +1233,7 @@
   visibility scope is the declaring switch section. The node is added into 
   the tree during lowering phase.</summary>
     </TypeComment>
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
   </Node>
   <Node Name="BoundStateMachineScope" Base="BoundStatement">
     <TypeComment>
@@ -1241,8 +1241,8 @@
   It is used to emit debugging information that allows the EE to map 
   fields to locals.</summary>
     </TypeComment>
-    <Field Name="Fields" Type="ImmutableArray&lt;StateMachineFieldSymbol&gt;" />
-    <Field Name="Statement" Type="BoundStatement" Null="disallow" />
+    <Field Name="Fields" Type="ImmutableArray&lt;StateMachineFieldSymbol&gt;"/>
+    <Field Name="Statement" Type="BoundStatement" Null="disallow"/>
   </Node>
   <Node Name="BoundLocalDeclaration" Base="BoundStatement">
     <TypeComment>
@@ -1257,15 +1257,15 @@
         C#. We will give a good error about it at parse time, but we should preserve
         the semantic analysis of the argument list in the bound tree.</summary>
     </TypeComment>
-    <Field Name="LocalSymbol" Type="LocalSymbol" />
+    <Field Name="LocalSymbol" Type="LocalSymbol"/>
     <Field Name="DeclaredTypeOpt" Type="BoundTypeExpression?">
       <FieldComment>
         <summary>Only set for the first declaration in BoundMultipleLocalDeclarations
     unless the type is inferred</summary>
       </FieldComment>
     </Field>
-    <Field Name="InitializerOpt" Type="BoundExpression?" />
-    <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow" />
+    <Field Name="InitializerOpt" Type="BoundExpression?"/>
+    <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
     <Field Name="InferredType" Type="bool">
       <FieldComment>
         <summary>Was the type inferred via "var"?</summary>
@@ -1276,7 +1276,7 @@
     <TypeComment>
       <summary>Base node shared by BoundMultipleLocalDeclarations and BoundUsingLocalDeclarations</summary>
     </TypeComment>
-    <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;" />
+    <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </AbstractNode>
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
     <TypeComment>
@@ -1291,17 +1291,17 @@
       <summary>Bound node that represents a using local declaration
     [async] using var x = ..., y = ...;</summary>
     </TypeComment>
-    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?" />
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" />
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
     <TypeComment>
       <summary>Bound node that represents a local function declaration:
     void Foo() { }</summary>
     </TypeComment>
-    <Field Name="Symbol" Type="LocalFunctionSymbol" />
-    <Field Name="BlockBody" Type="BoundBlock?" />
-    <Field Name="ExpressionBody" Type="BoundBlock?" />
+    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <Field Name="BlockBody" Type="BoundBlock?"/>
+    <Field Name="ExpressionBody" Type="BoundBlock?"/>
   </Node>
   <Node Name="BoundNoOpStatement" Base="BoundStatement">
     <Field Name="Flavor" Type="NoOpStatementFlavor">
@@ -1316,8 +1316,8 @@
     </Field>
   </Node>
   <Node Name="BoundReturnStatement" Base="BoundStatement">
-    <Field Name="RefKind" Type="RefKind" />
-    <Field Name="ExpressionOpt" Type="BoundExpression?" />
+    <Field Name="RefKind" Type="RefKind"/>
+    <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <Field Name="Checked" Type="bool">
       <FieldComment>
         <summary>This flag reflects the evaluation context used by the return statement to convert
@@ -1329,33 +1329,33 @@
     </Field>
   </Node>
   <Node Name="BoundYieldReturnStatement" Base="BoundStatement">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
-  <Node Name="BoundYieldBreakStatement" Base="BoundStatement" />
+  <Node Name="BoundYieldBreakStatement" Base="BoundStatement"/>
   <Node Name="BoundThrowStatement" Base="BoundStatement">
-    <Field Name="ExpressionOpt" Type="BoundExpression?" />
+    <Field Name="ExpressionOpt" Type="BoundExpression?"/>
   </Node>
   <Node Name="BoundExpressionStatement" Base="BoundStatement">
-    <Field Name="Expression" Type="BoundExpression" />
+    <Field Name="Expression" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundBreakStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="GeneratedLabelSymbol"/>
   </Node>
   <Node Name="BoundContinueStatement" Base="BoundStatement">
-    <Field Name="Label" Type="GeneratedLabelSymbol" />
+    <Field Name="Label" Type="GeneratedLabelSymbol"/>
   </Node>
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
-    <Field Name="Expression" Type="BoundExpression" />
+    <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;">
       <FieldComment>
         <summary>Locals declared immediately within the switch block.</summary>
       </FieldComment>
     </Field>
-    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;" />
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;" />
-    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true" />
-    <Field Name="DefaultLabel" Type="BoundSwitchLabel?" />
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol" />
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="DefaultLabel" Type="BoundSwitchLabel?"/>
+    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
   <Node Name="BoundSwitchDispatch" Base="BoundStatement">
     <TypeComment>
@@ -1380,43 +1380,43 @@
        BoundSequence containing the state machine) permits us to (cause the verifier to) classify
        all of the labels as forward labels by producing a dummy inoperable forward jump to them.</summary>
     </TypeComment>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
-    <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
-    <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
-    <Field Name="LengthBasedStringSwitchDataOpt" Type="LengthBasedStringSwitchData?" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;"/>
+    <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="LengthBasedStringSwitchDataOpt" Type="LengthBasedStringSwitchData?"/>
   </Node>
   <Node Name="BoundIfStatement" Base="BoundStatement">
-    <Field Name="Condition" Type="BoundExpression" />
-    <Field Name="Consequence" Type="BoundStatement" />
-    <Field Name="AlternativeOpt" Type="BoundStatement?" />
+    <Field Name="Condition" Type="BoundExpression"/>
+    <Field Name="Consequence" Type="BoundStatement"/>
+    <Field Name="AlternativeOpt" Type="BoundStatement?"/>
   </Node>
   <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol" />
-    <Field Name="ContinueLabel" Type="GeneratedLabelSymbol" />
+    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
   </AbstractNode>
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="Condition" Type="BoundExpression" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Condition" Type="BoundExpression"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </AbstractNode>
-  <Node Name="BoundDoStatement" Base="BoundConditionalLoopStatement" />
-  <Node Name="BoundWhileStatement" Base="BoundConditionalLoopStatement" />
+  <Node Name="BoundDoStatement" Base="BoundConditionalLoopStatement"/>
+  <Node Name="BoundWhileStatement" Base="BoundConditionalLoopStatement"/>
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
     <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;">
       <FieldComment>
         <summary>OuterLocals are the locals declared within the loop Initializer statement and are in scope throughout the whole loop statement</summary>
       </FieldComment>
     </Field>
-    <Field Name="Initializer" Type="BoundStatement?" />
+    <Field Name="Initializer" Type="BoundStatement?"/>
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;">
       <FieldComment>
         <summary>InnerLocals are the locals declared within the loop Condition and are in scope throughout the Condition, Increment and Body.
          They are considered to be declared per iteration.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Condition" Type="BoundExpression?" />
-    <Field Name="Increment" Type="BoundStatement?" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="Condition" Type="BoundExpression?"/>
+    <Field Name="Increment" Type="BoundStatement?"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </Node>
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?">
@@ -1443,7 +1443,7 @@
  If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it).</summary>
       </FieldComment>
     </Field>
-    <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;" />
+    <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="IterationErrorExpressionOpt" Type="BoundExpression?">
       <FieldComment>
         <summary>In error scenarios where the iteration variable is some arbitrary expression, we
@@ -1459,16 +1459,16 @@
          boxing.  If this node has errors, then the conversion may not be present.</summary>
       </FieldComment>
     </Field>
-    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?" />
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </Node>
   <Node Name="BoundForEachDeconstructStep" Base="BoundNode">
     <TypeComment>
       <summary>All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration.</summary>
     </TypeComment>
-    <Field Name="DeconstructionAssignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow" />
-    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow" />
+    <Field Name="DeconstructionAssignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
   <Node Name="BoundUsingStatement" Base="BoundStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;">
@@ -1476,25 +1476,25 @@
         <summary>DeclarationsOpt and ExpressionOpt cannot both be non-null.</summary>
       </FieldComment>
     </Field>
-    <Field Name="DeclarationsOpt" Type="BoundMultipleLocalDeclarations?" />
-    <Field Name="ExpressionOpt" Type="BoundExpression?" />
-    <Field Name="Body" Type="BoundStatement" />
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" />
-    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?" />
+    <Field Name="DeclarationsOpt" Type="BoundMultipleLocalDeclarations?"/>
+    <Field Name="ExpressionOpt" Type="BoundExpression?"/>
+    <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
   </Node>
   <Node Name="BoundFixedStatement" Base="BoundStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="Declarations" Type="BoundMultipleLocalDeclarations" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Declarations" Type="BoundMultipleLocalDeclarations"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </Node>
   <Node Name="BoundLockStatement" Base="BoundStatement">
-    <Field Name="Argument" Type="BoundExpression" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="Argument" Type="BoundExpression"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </Node>
   <Node Name="BoundTryStatement" Base="BoundStatement">
-    <Field Name="TryBlock" Type="BoundBlock" />
-    <Field Name="CatchBlocks" Type="ImmutableArray&lt;BoundCatchBlock&gt;" />
-    <Field Name="FinallyBlockOpt" Type="BoundBlock?" />
+    <Field Name="TryBlock" Type="BoundBlock"/>
+    <Field Name="CatchBlocks" Type="ImmutableArray&lt;BoundCatchBlock&gt;"/>
+    <Field Name="FinallyBlockOpt" Type="BoundBlock?"/>
     <Field Name="FinallyLabelOpt" Type="LabelSymbol?">
       <FieldComment>
         <summary>When lowering trys, we sometimes extract the finally clause out of the try.
@@ -1551,14 +1551,14 @@
     Null if the exception object is not referred to.</summary>
       </FieldComment>
     </Field>
-    <Field Name="ExceptionTypeOpt" Type="TypeSymbol?" />
-    <Field Name="ExceptionFilterPrologueOpt" Type="BoundStatementList?" />
-    <Field Name="ExceptionFilterOpt" Type="BoundExpression?" />
-    <Field Name="Body" Type="BoundBlock" />
-    <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />
+    <Field Name="ExceptionTypeOpt" Type="TypeSymbol?"/>
+    <Field Name="ExceptionFilterPrologueOpt" Type="BoundStatementList?"/>
+    <Field Name="ExceptionFilterOpt" Type="BoundExpression?"/>
+    <Field Name="Body" Type="BoundBlock"/>
+    <Field Name="IsSynthesizedAsyncCatchAll" Type="bool"/>
   </Node>
   <Node Name="BoundLiteral" Base="BoundExpression">
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundUtf8String" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1566,7 +1566,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Value" Type="string" Null="disallow" />
+    <Field Name="Value" Type="string" Null="disallow"/>
   </Node>
   <Node Name="BoundThisReference" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1602,9 +1602,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="LocalSymbol" Type="LocalSymbol" />
-    <Field Name="DeclarationKind" Type="BoundLocalDeclarationKind" Null="NotApplicable" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="LocalSymbol" Type="LocalSymbol"/>
+    <Field Name="DeclarationKind" Type="BoundLocalDeclarationKind" Null="NotApplicable"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="IsNullableUnknown" Type="bool">
       <FieldComment>
         <summary>True if LocalSymbol.Type.IsNullable could not be inferred.</summary>
@@ -1617,8 +1617,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow" />
-    <Field Name="EmitExpressions" Type="PseudoVariableExpressions" Null="disallow" />
+    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <Field Name="EmitExpressions" Type="PseudoVariableExpressions" Null="disallow"/>
   </Node>
   <Node Name="BoundRangeVariable" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1626,8 +1626,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="RangeVariableSymbol" Type="RangeVariableSymbol" />
-    <Field Name="Value" Type="BoundExpression" />
+    <Field Name="RangeVariableSymbol" Type="RangeVariableSymbol"/>
+    <Field Name="Value" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundParameter" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1635,7 +1635,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ParameterSymbol" Type="ParameterSymbol" />
+    <Field Name="ParameterSymbol" Type="ParameterSymbol"/>
   </Node>
   <Node Name="BoundLabelStatement" Base="BoundStatement">
     <Field Name="Label" Type="LabelSymbol">
@@ -1667,24 +1667,24 @@
     </Field>
   </Node>
   <Node Name="BoundGotoStatement" Base="BoundStatement">
-    <Field Name="Label" Type="LabelSymbol" />
-    <Field Name="CaseExpressionOpt" Type="BoundExpression?" />
-    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
+    <Field Name="Label" Type="LabelSymbol"/>
+    <Field Name="CaseExpressionOpt" Type="BoundExpression?"/>
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?"/>
   </Node>
   <Node Name="BoundLabeledStatement" Base="BoundStatement">
     <TypeComment>
       <summary>This represents a statement which has been labeled.
   This allows us to recursively bind the labeled expression during binding.</summary>
     </TypeComment>
-    <Field Name="Label" Type="LabelSymbol" />
-    <Field Name="Body" Type="BoundStatement" />
+    <Field Name="Label" Type="LabelSymbol"/>
+    <Field Name="Body" Type="BoundStatement"/>
   </Node>
   <Node Name="BoundLabel" Base="BoundExpression">
     <TypeComment>
       <summary>This represents the bound form of a label reference (i.e. in a goto).
   It is only used for the SemanticModel API.</summary>
     </TypeComment>
-    <Field Name="Label" Type="LabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol"/>
   </Node>
   <Node Name="BoundStatementList" Base="BoundStatement">
     <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;">
@@ -1700,24 +1700,24 @@
         <summary>A compiler-generated conditional goto - jumps if condition == JumpIfTrue</summary>
       </FieldComment>
     </Field>
-    <Field Name="JumpIfTrue" Type="bool" />
-    <Field Name="Label" Type="LabelSymbol" />
+    <Field Name="JumpIfTrue" Type="bool"/>
+    <Field Name="Label" Type="LabelSymbol"/>
   </Node>
   <AbstractNode Name="BoundSwitchExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
-    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;" />
-    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true" />
-    <Field Name="DefaultLabel" Type="LabelSymbol?" />
-    <Field Name="ReportedNotExhaustive" Type="bool" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="DefaultLabel" Type="LabelSymbol?"/>
+    <Field Name="ReportedNotExhaustive" Type="bool"/>
   </AbstractNode>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow" />
-    <Field Name="WhenClause" Type="BoundExpression?" />
-    <Field Name="Value" Type="BoundExpression" Null="disallow" />
-    <Field Name="Label" Type="LabelSymbol" Null="disallow" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="WhenClause" Type="BoundExpression?"/>
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
-  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression" />
+  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression"/>
   <Node Name="BoundConvertedSwitchExpression" Base="BoundSwitchExpression">
     <TypeComment>
       <summary>Switch expressions can convert to the target type.
@@ -1735,43 +1735,43 @@
         <summary>Natural type is preserved for the purpose of semantic model. Can be `null`.</summary>
       </FieldComment>
     </Field>
-    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="WasTargetTyped" Type="bool"/>
   </Node>
   <Node Name="BoundDecisionDag" Base="BoundNode">
-    <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow" />
+    <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
-  <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode" />
+  <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode"/>
   <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode">
     <TypeComment>
       <summary>This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct.</summary>
     </TypeComment>
-    <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow" />
-    <Field Name="Next" Type="BoundDecisionDagNode" Null="disallow" />
+    <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
   <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode">
     <TypeComment>
       <summary>This node is used to indicate a point in the decision dag where a test may change the path of the decision dag.</summary>
     </TypeComment>
-    <Field Name="Test" Type="BoundDagTest" Null="disallow" />
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow" />
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode" Null="disallow" />
+    <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
   <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode">
-    <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow" />
+    <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <Field Name="WhenExpression" Type="BoundExpression?">
       <FieldComment>
         <summary>WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.</summary>
       </FieldComment>
     </Field>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow" />
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode?" />
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode?"/>
   </Node>
   <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode">
     <TypeComment>
       <summary>This node is used to indicate a point in the decision dag where the decision has been completed.</summary>
     </TypeComment>
-    <Field Name="Label" Type="LabelSymbol" />
+    <Field Name="Label" Type="LabelSymbol"/>
   </Node>
   <AbstractNode Name="BoundDagTest" Base="BoundNode">
     <Field Name="Input" Type="BoundDagTemp">
@@ -1781,9 +1781,9 @@
     </Field>
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" />
-    <Field Name="Source" Type="BoundDagEvaluation?" />
-    <Field Name="Index" Type="int" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Source" Type="BoundDagEvaluation?"/>
+    <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagTypeTest" Base="BoundDagTest">
     <Field Name="Type" Type="TypeSymbol" Null="disallow">
@@ -1799,7 +1799,7 @@
       </FieldComment>
     </Field>
   </Node>
-  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest" />
+  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest"/>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <Field Name="Value" Type="ConstantValue" Null="disallow">
       <FieldComment>
@@ -1813,7 +1813,7 @@
         <summary>Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).</summary>
       </FieldComment>
     </Field>
-    <Field Name="Value" Type="ConstantValue" Null="disallow" />
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
     <TypeComment>
@@ -1821,7 +1821,7 @@
     </TypeComment>
   </AbstractNode>
   <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
-    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow" />
+    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundDagTypeEvaluation" Base="BoundDagEvaluation">
     <Field Name="Type" Type="TypeSymbol" Null="disallow">
@@ -1831,19 +1831,19 @@
     </Field>
   </Node>
   <Node Name="BoundDagFieldEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Field" Type="FieldSymbol" Null="disallow" />
+    <Field Name="Field" Type="FieldSymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Property" Type="PropertySymbol" Null="disallow" />
-    <Field Name="IsLengthOrCount" Type="bool" />
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Property" Type="PropertySymbol" Null="disallow" />
-    <Field Name="Index" Type="int" />
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation" HasValidate="true">
-    <Field Name="IndexerType" Type="TypeSymbol" />
-    <Field Name="LengthTemp" Type="BoundDagTemp" />
+    <Field Name="IndexerType" Type="TypeSymbol"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int">
       <FieldComment>
         <summary>Negative Index values indicate positions after a slice pattern</summary>
@@ -1867,10 +1867,10 @@
     </Field>
   </Node>
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation" HasValidate="true">
-    <Field Name="SliceType" Type="TypeSymbol" />
-    <Field Name="LengthTemp" Type="BoundDagTemp" />
-    <Field Name="StartIndex" Type="int" />
-    <Field Name="EndIndex" Type="int" />
+    <Field Name="SliceType" Type="TypeSymbol"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
+    <Field Name="StartIndex" Type="int"/>
+    <Field Name="EndIndex" Type="int"/>
     <Field Name="IndexerAccess" Type="BoundExpression">
       <FieldComment>
         <summary>May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess,
@@ -1889,16 +1889,16 @@
     </Field>
   </Node>
   <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Target" Type="BoundDagTemp" />
+    <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
   <Node Name="BoundSwitchLabel" Base="BoundNode">
-    <Field Name="Label" Type="LabelSymbol" />
-    <Field Name="Pattern" Type="BoundPattern" />
-    <Field Name="WhenClause" Type="BoundExpression?" />
+    <Field Name="Label" Type="LabelSymbol"/>
+    <Field Name="Pattern" Type="BoundPattern"/>
+    <Field Name="WhenClause" Type="BoundExpression?"/>
   </Node>
   <AbstractNode Name="BoundMethodOrPropertyGroup" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -1915,13 +1915,13 @@
     gets the instance expression from the receiver should we need it.</summary>
       </FieldComment>
     </Field>
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </AbstractNode>
   <Node Name="BoundSequencePointExpression" Base="BoundExpression">
     <TypeComment>
       <summary>Use this in the event that the sequence point must be applied to expression.</summary>
     </TypeComment>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
   <Node Name="BoundSequence" Base="BoundExpression">
     <TypeComment>
@@ -1938,9 +1938,9 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="Value" Type="BoundExpression" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="Value" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundSpillSequence" Base="BoundExpression">
     <TypeComment>
@@ -1953,10 +1953,10 @@
   causes values that would be on the stack during its evaluation to be
   spilled to temporary variables.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;" />
-    <Field Name="Value" Type="BoundExpression" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>
+    <Field Name="Value" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundDynamicMemberAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -1964,24 +1964,24 @@
         <summary>Non-null type is required, and will always be "dynamic".</summary>
       </FieldComment>
     </Field>
-    <Field Name="Receiver" Type="BoundExpression" />
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeWithAnnotations&gt;" Null="allow" />
-    <Field Name="Name" Type="string" Null="disallow" />
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeWithAnnotations&gt;" Null="allow"/>
+    <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Invoked" Type="bool">
       <FieldComment>
         <summary>TODO (tomat): do we really need these flags here? it should be possible to infer them from the context</summary>
       </FieldComment>
     </Field>
-    <Field Name="Indexed" Type="bool" />
+    <Field Name="Indexed" Type="bool"/>
   </Node>
   <AbstractNode Name="BoundDynamicInvocableBase" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
   <Node Name="BoundDynamicInvocation" Base="BoundDynamicInvocableBase">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;">
       <FieldComment>
         <summary>If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise.</summary>
@@ -1989,16 +1989,16 @@
     </Field>
   </Node>
   <Node Name="BoundConditionalAccess" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Receiver" Type="BoundExpression" />
-    <Field Name="AccessExpression" Type="BoundExpression" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="AccessExpression" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="Receiver" Type="BoundExpression" />
-    <Field Name="HasValueMethodOpt" Type="MethodSymbol?" />
-    <Field Name="WhenNotNull" Type="BoundExpression" />
-    <Field Name="WhenNullOpt" Type="BoundExpression?" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="HasValueMethodOpt" Type="MethodSymbol?"/>
+    <Field Name="WhenNotNull" Type="BoundExpression"/>
+    <Field Name="WhenNullOpt" Type="BoundExpression?"/>
     <Field Name="Id" Type="int">
       <FieldComment>
         <summary>Async rewriter needs to replace receivers with their spilled values
@@ -2009,13 +2009,13 @@
     matching Id that are integers unique for the containing method body.</summary>
       </FieldComment>
     </Field>
-    <Field Name="ForceCopyOfNullableValueType" Type="bool" />
+    <Field Name="ForceCopyOfNullableValueType" Type="bool"/>
   </Node>
   <Node Name="BoundConditionalReceiver" Base="BoundExpression">
     <TypeComment>
       <summary>represents the receiver of a conditional access expression</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
     <Field Name="Id" Type="int">
       <FieldComment>
         <summary>See the comment in BoundLoweredConditionalAccess</summary>
@@ -2029,9 +2029,9 @@
         Otherwise, ReferenceTypeReceiver should be used.  
         This kind of receiver is created only by SpillSequenceSpiller and LocalRewriter.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
-    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow" />
-    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
+    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
   </Node>
   <Node Name="BoundMethodGroup" Base="BoundMethodOrPropertyGroup">
     <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeWithAnnotations&gt;" Null="allow">
@@ -2041,15 +2041,15 @@
          SPEC: an associated type argument list.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Name" Type="string" Null="disallow" />
-    <Field Name="Methods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
-    <Field Name="LookupSymbolOpt" Type="Symbol?" />
-    <Field Name="LookupError" Type="DiagnosticInfo?" />
-    <Field Name="Flags" Type="BoundMethodGroupFlags?" />
-    <Field Name="FunctionType" Type="FunctionTypeSymbol?" Null="allow" />
+    <Field Name="Name" Type="string" Null="disallow"/>
+    <Field Name="Methods" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
+    <Field Name="LookupSymbolOpt" Type="Symbol?"/>
+    <Field Name="LookupError" Type="DiagnosticInfo?"/>
+    <Field Name="Flags" Type="BoundMethodGroupFlags?"/>
+    <Field Name="FunctionType" Type="FunctionTypeSymbol?" Null="allow"/>
   </Node>
   <Node Name="BoundPropertyGroup" Base="BoundMethodOrPropertyGroup">
-    <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
+    <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;"/>
   </Node>
   <Node Name="BoundCall" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2057,22 +2057,22 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState">
       <FieldComment>
         <summary>Whether receiver will need to be cloned during emit (only valid before lowering)</summary>
       </FieldComment>
     </Field>
-    <Field Name="Method" Type="MethodSymbol" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
-    <Field Name="IsDelegateCall" Type="bool" />
-    <Field Name="Expanded" Type="bool" />
-    <Field Name="InvokedAsExtensionMethod" Type="bool" />
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" />
-    <Field Name="DefaultArguments" Type="BitVector" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="Method" Type="MethodSymbol"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="IsDelegateCall" Type="bool"/>
+    <Field Name="Expanded" Type="bool"/>
+    <Field Name="InvokedAsExtensionMethod" Type="bool"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of method symbols from which this call's method was chosen.
@@ -2087,11 +2087,11 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Event" Type="EventSymbol" />
-    <Field Name="IsAddition" Type="bool" />
-    <Field Name="IsDynamic" Type="bool" />
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
-    <Field Name="Argument" Type="BoundExpression" />
+    <Field Name="Event" Type="EventSymbol"/>
+    <Field Name="IsAddition" Type="bool"/>
+    <Field Name="IsDynamic" Type="bool"/>
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <Field Name="Argument" Type="BoundExpression"/>
   </Node>
   <Node Name="BoundAttribute" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2099,14 +2099,14 @@
         <summary>Type is required for this node type; may not be null</summary>
       </FieldComment>
     </Field>
-    <Field Name="Constructor" Type="MethodSymbol?" />
-    <Field Name="ConstructorArguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" />
-    <Field Name="ConstructorExpanded" Type="bool" />
-    <Field Name="ConstructorDefaultArguments" Type="BitVector" />
-    <Field Name="NamedArguments" Type="ImmutableArray&lt;BoundAssignmentOperator&gt;" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="Constructor" Type="MethodSymbol?"/>
+    <Field Name="ConstructorArguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="ConstructorExpanded" Type="bool"/>
+    <Field Name="ConstructorDefaultArguments" Type="BitVector"/>
+    <Field Name="NamedArguments" Type="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression">
     <TypeComment>
@@ -2118,11 +2118,11 @@
         <summary>Type is not significant for this node type; always null</summary>
       </FieldComment>
     </Field>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
-    <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow" />
-    <Field Name="Binder" Type="Binder" Null="disallow" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
   <AbstractNode Name="BoundObjectCreationExpressionBase" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2137,21 +2137,21 @@
  
      int x = new int();</summary>
     </TypeComment>
-    <Field Name="Constructor" Type="MethodSymbol" PropertyOverrides="true" />
+    <Field Name="Constructor" Type="MethodSymbol" PropertyOverrides="true"/>
     <Field Name="ConstructorsGroup" Type="ImmutableArray&lt;MethodSymbol&gt;">
       <FieldComment>
         <summary>These symbols will be returned from the GetSemanticInfo API if it examines this bound node.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true" />
-    <Field Name="Expanded" Type="bool" PropertyOverrides="true" />
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true" />
-    <Field Name="DefaultArguments" Type="BitVector" PropertyOverrides="true" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true" />
-    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="Expanded" Type="bool" PropertyOverrides="true"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="DefaultArguments" Type="BitVector" PropertyOverrides="true"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression">
     <Field Name="Elements" Type="ImmutableArray&lt;BoundNode&gt;">
@@ -2177,7 +2177,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind" />
+    <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true">
       <FieldComment>
         <summary>An expression placeholder value representing the initialized collection.</summary>
@@ -2209,7 +2209,7 @@
       </FieldComment>
     </Field>
   </Node>
-  <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase" />
+  <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>
   <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundNode">
     <Field Name="Expression" Type="BoundExpression">
       <FieldComment>
@@ -2252,8 +2252,8 @@
       <summary>Tuple literals can exist in two forms - literal and converted literal.
   This is the base node for both forms.</summary>
     </TypeComment>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow">
       <FieldComment>
         <summary>Which argument names were inferred (as opposed to explicitly provided)?</summary>
@@ -2287,21 +2287,21 @@
          When tuples are created as part of lowering, this could be null.</summary>
       </FieldComment>
     </Field>
-    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="WasTargetTyped" Type="bool"/>
   </Node>
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
-    <Field Name="Name" Type="string" Null="disallow" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true" />
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true" />
-    <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
-    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true" />
+    <Field Name="Name" Type="string" Null="disallow"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
-    <Field Name="GuidString" Type="string?" />
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true" />
-    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true" />
+    <Field Name="GuidString" Type="string?"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   <AbstractNode Name="BoundObjectInitializerExpressionBase" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2314,23 +2314,23 @@
         <summary>An expression placeholder value representing the initialized object or collection.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
-  <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase" />
+  <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase"/>
   <Node Name="BoundObjectInitializerMember" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="MemberSymbol" Type="Symbol?" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
-    <Field Name="Expanded" Type="bool" />
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" />
-    <Field Name="DefaultArguments" Type="BitVector" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="MemberSymbol" Type="Symbol?"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Expanded" Type="bool"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow">
       <FieldComment>
         <summary>Used by IOperation to reconstruct the receiver for this expression.</summary>
@@ -2343,10 +2343,10 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="MemberName" Type="string" Null="disallow" />
-    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow" />
+    <Field Name="MemberName" Type="string" Null="disallow"/>
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
   </Node>
-  <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase" />
+  <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase"/>
   <Node Name="BoundCollectionElementInitializer" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
@@ -2358,17 +2358,17 @@
         <summary>We don't hold on BoundCall directly since dynamic invocation isn't specified explicitly in the source.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ImplicitReceiverOpt" Type="BoundExpression?">
       <FieldComment>
         <summary>Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation</summary>
       </FieldComment>
     </Field>
-    <Field Name="Expanded" Type="bool" />
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" />
-    <Field Name="DefaultArguments" Type="BitVector" />
-    <Field Name="InvokedAsExtensionMethod" Type="bool" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="Expanded" Type="bool"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector"/>
+    <Field Name="InvokedAsExtensionMethod" Type="bool"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2397,8 +2397,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Constructor" Type="MethodSymbol" Null="disallow" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Constructor" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="Declarations" Type="ImmutableArray&lt;BoundAnonymousPropertyDeclaration&gt;">
       <FieldComment>
         <summary>collection of BoundAnonymousPropertyDeclaration nodes representing bound 
@@ -2416,11 +2416,11 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Property" Type="PropertySymbol" Null="disallow" />
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundNewT" Base="BoundObjectCreationExpressionBase">
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true" />
-    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true" />
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2442,9 +2442,9 @@
             extension method.</summary>
       </FieldComment>
     </Field>
-    <Field Name="MethodOpt" Type="MethodSymbol?" />
-    <Field Name="IsExtensionMethod" Type="bool" />
-    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="IsExtensionMethod" Type="bool"/>
+    <Field Name="WasTargetTyped" Type="bool"/>
   </Node>
   <Node Name="BoundArrayCreation" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2452,8 +2452,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Bounds" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="InitializerOpt" Type="BoundArrayInitialization?" />
+    <Field Name="Bounds" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="InitializerOpt" Type="BoundArrayInitialization?"/>
   </Node>
   <Node Name="BoundArrayInitialization" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -2466,14 +2466,14 @@
         <summary>Whether the containing BoundArrayCreation or BoundStackAllocArrayCreationBase has an inferred vs. explicit type.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;" />
+    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
   <AbstractNode Name="BoundStackAllocArrayCreationBase" Base="BoundExpression">
-    <Field Name="ElementType" Type="TypeSymbol" Null="disallow" />
-    <Field Name="Count" Type="BoundExpression" Null="disallow" />
-    <Field Name="InitializerOpt" Type="BoundArrayInitialization?" />
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Count" Type="BoundExpression" Null="disallow"/>
+    <Field Name="InitializerOpt" Type="BoundArrayInitialization?"/>
   </AbstractNode>
-  <Node Name="BoundStackAllocArrayCreation" Base="BoundStackAllocArrayCreationBase" />
+  <Node Name="BoundStackAllocArrayCreation" Base="BoundStackAllocArrayCreationBase"/>
   <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreationBase">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
       <FieldComment>
@@ -2487,12 +2487,12 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
-    <Field Name="FieldSymbol" Type="FieldSymbol" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
-    <Field Name="IsByValue" Type="bool" />
-    <Field Name="IsDeclaration" Type="bool" />
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <Field Name="FieldSymbol" Type="FieldSymbol"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
+    <Field Name="IsByValue" Type="bool"/>
+    <Field Name="IsDeclaration" Type="bool"/>
   </Node>
   <Node Name="BoundHoistedFieldAccess" Base="BoundExpression">
     <TypeComment>
@@ -2505,7 +2505,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="FieldSymbol" Type="FieldSymbol" />
+    <Field Name="FieldSymbol" Type="FieldSymbol"/>
   </Node>
   <Node Name="BoundPropertyAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2513,14 +2513,14 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState">
       <FieldComment>
         <summary>Whether receiver will need to be cloned during emit (only valid before lowering)</summary>
       </FieldComment>
     </Field>
-    <Field Name="PropertySymbol" Type="PropertySymbol" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="PropertySymbol" Type="PropertySymbol"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundEventAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2528,10 +2528,10 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
-    <Field Name="EventSymbol" Type="EventSymbol" />
-    <Field Name="IsUsableAsField" Type="bool" />
-    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true" />
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <Field Name="EventSymbol" Type="EventSymbol"/>
+    <Field Name="IsUsableAsField" Type="bool"/>
+    <Field Name="ResultKind" Type="LookupResultKind" PropertyOverrides="true"/>
   </Node>
   <Node Name="BoundIndexerAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2539,19 +2539,19 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="ReceiverOpt" Type="BoundExpression?" />
+    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState">
       <FieldComment>
         <summary>Whether receiver will need to be cloned during emit (only valid before lowering)</summary>
       </FieldComment>
     </Field>
-    <Field Name="Indexer" Type="PropertySymbol" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
-    <Field Name="Expanded" Type="bool" />
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" />
-    <Field Name="DefaultArguments" Type="BitVector" />
+    <Field Name="Indexer" Type="PropertySymbol"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Expanded" Type="bool"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector"/>
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true">
       <FieldComment>
         <summary>The set of indexer symbols from which this call's indexer was chosen.
@@ -2561,7 +2561,7 @@
     </Field>
   </Node>
   <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" HasValidate="true" SkipInNullabilityRewriter="true">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
     <Field Name="Receiver" Type="BoundExpression" Null="disallow">
       <FieldComment>
         <summary>The target of the index operation</summary>
@@ -2572,7 +2572,7 @@
         <summary>An expression with type Index or Range</summary>
       </FieldComment>
     </Field>
-    <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
+    <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true"/>
     <Field Name="ReceiverPlaceholder" Type="BoundImplicitIndexerReceiverPlaceholder" SkipInVisitor="true">
       <FieldComment>
         <summary>The receiver placeholder for length access and IndexerOrSliceAccess</summary>
@@ -2590,7 +2590,7 @@
     </Field>
   </Node>
   <Node Name="BoundInlineArrayAccess" Base="BoundExpression" HasValidate="true">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
     <Field Name="Expression" Type="BoundExpression" Null="disallow">
       <FieldComment>
         <summary>The target of the operation</summary>
@@ -2606,7 +2606,7 @@
         <summary>The access is an element access rather than a slice access, and it produces a value rather than a variable</summary>
       </FieldComment>
     </Field>
-    <Field Name="GetItemOrSliceHelper" Type="WellKnownMember" />
+    <Field Name="GetItemOrSliceHelper" Type="WellKnownMember"/>
   </Node>
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true">
@@ -2614,10 +2614,10 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Receiver" Type="BoundExpression" />
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" />
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" />
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="ApplicableIndexers" Type="ImmutableArray&lt;PropertySymbol&gt;">
       <FieldComment>
         <summary>If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise.</summary>
@@ -2625,16 +2625,16 @@
     </Field>
   </Node>
   <Node Name="BoundLambda" Base="BoundExpression">
-    <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true" />
+    <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow">
       <FieldComment>
         <summary>LambdaSymbol may differ from Binder.MemberSymbol after rewriting.</summary>
       </FieldComment>
     </Field>
-    <Field Name="Type" Type="TypeSymbol?" Override="true" />
-    <Field Name="Body" Type="BoundBlock" />
-    <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;" />
-    <Field Name="Binder" Type="Binder" Null="disallow" />
+    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
+    <Field Name="Body" Type="BoundBlock"/>
+    <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
   <Node Name="UnboundLambda" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -2642,8 +2642,8 @@
         <summary>Type is not significant for this node type; always null</summary>
       </FieldComment>
     </Field>
-    <Field Name="Data" Type="UnboundLambdaState" Null="disallow" />
-    <Field Name="FunctionType" Type="FunctionTypeSymbol?" Null="allow" />
+    <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
+    <Field Name="FunctionType" Type="FunctionTypeSymbol?" Null="allow"/>
     <Field Name="WithDependencies" Type="Boolean">
       <FieldComment>
         <summary>Track dependencies while binding body, etc.</summary>
@@ -2700,8 +2700,8 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Argument" Type="BoundExpression" Null="disallow" />
-    <Field Name="ConstantValueOpt" Type="ConstantValue" PropertyOverrides="true" />
+    <Field Name="Argument" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue" PropertyOverrides="true"/>
   </Node>
   <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;">
@@ -2711,20 +2711,20 @@
          string has been bound using the builder pattern, literals are replaced with calls.</summary>
       </FieldComment>
     </Field>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true" />
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </AbstractNode>
-  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase" />
+  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase"/>
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
-    <Field Name="InterpolationData" Type="InterpolatedStringHandlerData?" />
+    <Field Name="InterpolationData" Type="InterpolatedStringHandlerData?"/>
   </Node>
-  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase" />
+  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase"/>
   <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase">
     <TypeComment>
       <summary>A typed expression placeholder for the arguments to the constructor call for an interpolated string handler
        conversion. We intentionally use a placeholder for overload resolution here to ensure that no conversion
        from expression can occur. This node is only used for intermediate binding and does not survive local rewriting.</summary>
     </TypeComment>
-    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true" />
+    <Field Name="Type" Type="TypeSymbol" Null="disallow" Override="true"/>
     <Field Name="ArgumentIndex" Type="int">
       <FieldComment>
         <summary>The index in the containing member of the argument this is the placeholder for. Should be a positive number or
@@ -2733,11 +2733,11 @@
     </Field>
   </Node>
   <Node Name="BoundStringInsert" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true" />
-    <Field Name="Value" Type="BoundExpression" Null="disallow" />
-    <Field Name="Alignment" Type="BoundExpression?" />
-    <Field Name="Format" Type="BoundLiteral?" />
-    <Field Name="IsInterpolatedStringHandlerAppendCall" Type="bool" />
+    <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true"/>
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Alignment" Type="BoundExpression?"/>
+    <Field Name="Format" Type="BoundLiteral?"/>
+    <Field Name="IsInterpolatedStringHandlerAppendCall" Type="bool"/>
   </Node>
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <TypeComment>
@@ -2746,22 +2746,22 @@
          'is not Type t') will need to compensate for negated patterns. IsNegated is set if Pattern is the negated
          form of the inner pattern represented by DecisionDag.</summary>
     </TypeComment>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow" />
-    <Field Name="IsNegated" Type="bool" />
-    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true" />
-    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow" />
-    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="IsNegated" Type="bool"/>
+    <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>
   <AbstractNode Name="BoundPattern" Base="BoundNode">
-    <Field Name="InputType" Type="TypeSymbol" Null="disallow" />
-    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow" />
+    <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
   <Node Name="BoundConstantPattern" Base="BoundPattern">
-    <Field Name="Value" Type="BoundExpression" />
-    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow" />
+    <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
-  <Node Name="BoundDiscardPattern" Base="BoundPattern" />
+  <Node Name="BoundDiscardPattern" Base="BoundPattern"/>
   <AbstractNode Name="BoundObjectPattern" Base="BoundPattern">
     <Field Name="Variable" Type="Symbol?">
       <FieldComment>
@@ -2782,20 +2782,20 @@
     </Field>
   </AbstractNode>
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern">
-    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow" />
-    <Field Name="IsVar" Type="bool" />
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
+    <Field Name="IsVar" Type="bool"/>
   </Node>
   <Node Name="BoundRecursivePattern" Base="BoundObjectPattern">
-    <Field Name="DeclaredType" Type="BoundTypeExpression?" />
-    <Field Name="DeconstructMethod" Type="MethodSymbol?" />
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow" />
-    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow" />
-    <Field Name="IsExplicitNotNullTest" Type="bool" />
+    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
+    <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
   <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow" />
-    <Field Name="HasSlice" Type="bool" />
-    <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true" />
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <Field Name="HasSlice" Type="bool"/>
+    <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true">
       <FieldComment>
         <summary>May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
@@ -2814,7 +2814,7 @@
     </Field>
   </Node>
   <Node Name="BoundSlicePattern" Base="BoundPattern" HasValidate="true">
-    <Field Name="Pattern" Type="BoundPattern?" />
+    <Field Name="Pattern" Type="BoundPattern?"/>
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true">
       <FieldComment>
         <summary>May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
@@ -2833,12 +2833,12 @@
     </Field>
   </Node>
   <Node Name="BoundITuplePattern" Base="BoundPattern">
-    <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow" />
-    <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow" />
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow" />
+    <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
   </Node>
   <AbstractNode Name="BoundSubpattern" Base="BoundNode">
-    <Field Name="Pattern" Type="BoundPattern" />
+    <Field Name="Pattern" Type="BoundPattern"/>
   </AbstractNode>
   <Node Name="BoundPositionalSubpattern" Base="BoundSubpattern">
     <Field Name="Symbol" Type="Symbol?">
@@ -2853,29 +2853,29 @@
         <summary>The property or field access in a property pattern.</summary>
       </FieldComment>
     </Field>
-    <Field Name="IsLengthOrCount" Type="bool" />
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
-    <Field Name="Receiver" Type="BoundPropertySubpatternMember?" />
-    <Field Name="Symbol" Type="Symbol?" />
-    <Field Name="Type" Type="TypeSymbol" />
+    <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="Symbol" Type="Symbol?"/>
+    <Field Name="Type" Type="TypeSymbol"/>
   </Node>
   <Node Name="BoundTypePattern" Base="BoundPattern">
-    <Field Name="DeclaredType" Type="BoundTypeExpression" />
-    <Field Name="IsExplicitNotNullTest" Type="bool" />
+    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
   <Node Name="BoundBinaryPattern" Base="BoundPattern">
-    <Field Name="Disjunction" Type="bool" />
-    <Field Name="Left" Type="BoundPattern" />
-    <Field Name="Right" Type="BoundPattern" />
+    <Field Name="Disjunction" Type="bool"/>
+    <Field Name="Left" Type="BoundPattern"/>
+    <Field Name="Right" Type="BoundPattern"/>
   </Node>
   <Node Name="BoundNegatedPattern" Base="BoundPattern">
-    <Field Name="Negated" Type="BoundPattern" />
+    <Field Name="Negated" Type="BoundPattern"/>
   </Node>
   <Node Name="BoundRelationalPattern" Base="BoundPattern">
-    <Field Name="Relation" Type="BinaryOperatorKind" />
-    <Field Name="Value" Type="BoundExpression" />
-    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow" />
+    <Field Name="Relation" Type="BinaryOperatorKind"/>
+    <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
   <Node Name="BoundDiscardExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Override="true">
@@ -2885,11 +2885,11 @@
          type after inference.</summary>
       </FieldComment>
     </Field>
-    <Field Name="NullableAnnotation" Type="NullableAnnotation" />
-    <Field Name="IsInferred" Type="bool" />
+    <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
+    <Field Name="IsInferred" Type="bool"/>
   </Node>
   <Node Name="BoundThrowExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
   <AbstractNode Name="VariablePendingInference" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Null="always" Override="true">
@@ -2927,24 +2927,24 @@
         <summary>Type is not significant for this node type; always null</summary>
       </FieldComment>
     </Field>
-    <Field Name="VariableSymbol" Type="Symbol?" />
-    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable" />
+    <Field Name="VariableSymbol" Type="Symbol?"/>
+    <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">
-    <Field Name="BlockBody" Type="BoundBlock?" />
-    <Field Name="ExpressionBody" Type="BoundBlock?" />
+    <Field Name="BlockBody" Type="BoundBlock?"/>
+    <Field Name="ExpressionBody" Type="BoundBlock?"/>
   </AbstractNode>
-  <Node Name="BoundNonConstructorMethodBody" Base="BoundMethodBodyBase" />
+  <Node Name="BoundNonConstructorMethodBody" Base="BoundMethodBodyBase"/>
   <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" />
-    <Field Name="Initializer" Type="BoundStatement?" />
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Initializer" Type="BoundStatement?"/>
   </Node>
   <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
     <TypeComment>
       <summary>Node only used during nullability flow analysis to represent an expression with an updated nullability</summary>
     </TypeComment>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
-    <Field Name="Type" Type="TypeSymbol?" Override="true" />
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="NullableAnnotation" Type="NullableAnnotation">
       <FieldComment>
         <summary>We use null Type for placeholders representing out vars</summary>
@@ -2957,7 +2957,7 @@
         <summary>Non-null type is required for this node kind</summary>
       </FieldComment>
     </Field>
-    <Field Name="Receiver" Type="BoundExpression" />
+    <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="CloneMethod" Type="MethodSymbol?">
       <FieldComment>
         <summary>CloneMethod may be null in error scenarios</summary>
