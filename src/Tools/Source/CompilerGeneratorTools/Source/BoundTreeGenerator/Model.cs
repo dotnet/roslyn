@@ -49,7 +49,7 @@ namespace BoundTreeGenerator
         public string Summary;
     }
 
-    public abstract class TreeType : ICommentedNode
+    public class TreeType : ICommentedNode
     {
         [XmlAttribute]
         public string Name;
@@ -69,11 +69,7 @@ namespace BoundTreeGenerator
         }
     }
 
-    public sealed class PredefinedNode : TreeType
-    {
-    }
-
-    public sealed class ValueType : TreeType
+    public class PredefinedNode : TreeType
     {
     }
 
@@ -83,7 +79,7 @@ namespace BoundTreeGenerator
         public List<Field> Fields;
     }
 
-    public sealed class Node : AbstractNode
+    public class Node : AbstractNode
     {
         [XmlAttribute]
         public string Root;
@@ -108,7 +104,7 @@ namespace BoundTreeGenerator
         public List<CommentNode> Comments;
     }
 
-    public sealed class Field : ICommentedNode
+    public class Field : ICommentedNode
     {
         [XmlAttribute]
         public string Name;
@@ -143,7 +139,7 @@ namespace BoundTreeGenerator
         }
     }
 
-    public sealed class EnumType : TreeType
+    public class EnumType : TreeType
     {
         [XmlAttribute]
         public string Flags;
@@ -152,7 +148,7 @@ namespace BoundTreeGenerator
         public List<EnumField> Fields;
     }
 
-    public sealed class EnumField : ICommentedNode
+    public class EnumField : ICommentedNode
     {
         [XmlAttribute]
         public string Name;
@@ -167,5 +163,9 @@ namespace BoundTreeGenerator
         {
             return ref Comments;
         }
+    }
+
+    public class ValueType : TreeType
+    {
     }
 }
