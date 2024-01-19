@@ -55,14 +55,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             public static readonly CommandID ExecuteInInteractive = new(InteractiveShell::Guids.InteractiveCommandSetId, 268);
         }
 
-        public static class ProjectandSolutionContextMenus
-        {
-            public static class Project
-            {
-                public static readonly string ResetCSharpInteractiveFromProject = typeof(ResetInteractiveWindowFromProjectCommand).FullName;
-        }
-        }
-
         public static class Refactor
         {
             public const VSConstants.VSStd2KCmdID EncapsulateField = VSConstants.VSStd2KCmdID.ENCAPSULATEFIELD;
