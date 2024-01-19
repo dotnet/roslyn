@@ -43,6 +43,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
 using CommonFormattingHelpers = Microsoft.CodeAnalysis.Editor.Shared.Utilities.CommonFormattingHelpers;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -154,6 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     return VSConstants.E_INVALIDARG;
             }
         }
+
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
         internal abstract Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
@@ -174,6 +176,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 && descriptionNode?.text == s_fullMethodCallDescriptionSentinel)
             {
                 return VSConstants.S_OK;
+            }
+
+            string? newLineEnding = null;
+            var lineData = new LINEDATAEX[1];
+            if (pBuffer is IVsTextLayer layer
+                && ErrorHandler.Succeeded(layer.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, tsInSurfaceBuffer[0].iEndLine, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
+            {
+BeginningOfLineEndingsLoop:
+                switch (lineData[0].iEolType)
+                {
+                    case EOLTYPE.eolCRLF:
+                        newLineEnding = "\r\n";
+                        break;
+
+                    case EOLTYPE.eolCR:
+                        newLineEnding = "\r";
+                        break;
+
+                    case EOLTYPE.eolLF:
+                        newLineEnding = "\n";
+                        break;
+
+                    case EOLTYPE.eolUNI_LINESEP:
+                        newLineEnding = "\x2028";
+                        break;
+
+                    case (EOLTYPE)_EOLTYPE2.eolUNI_NEL:
+                        newLineEnding = "\x0085";
+                        break;
+
+                    case EOLTYPE.eolEOF:
+                        // See if there is a line above us, if not, just use CRLF
+                        if (tsInSurfaceBuffer[0].iStartLine == 0)
+                        {
+                            newLineEnding = "\r\n";
+                        }
+                        else
+                        {
+                            // If there is a line above us, use that line's lineending.
+                            layer.ReleaseLineDataEx(lineData);
+
+                            if (ErrorHandler.Succeeded(layer.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, tsInSurfaceBuffer[0].iStartLine - 1, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
+                            {
+                                if (lineData[0].iEolType != EOLTYPE.eolEOF)
+                                {
+                                    goto BeginningOfLineEndingsLoop;
+                                }
+                            }
+
+                            // Default, just use CRLF
+                            newLineEnding = "\r\n";
+                        }
+
+                        break;
+                }
+
+                layer.ReleaseLineDataEx(lineData);
+
+                // Now go through the snippet text and replace all line endings with newLineEnding
             }
 
             // Formatting a snippet isn't cancellable.
@@ -220,6 +281,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
+
+            // If the snippet spans more than one line and a specific line ending is expected, normalize the line
+            // endings inside the snippet span before continuing.
+            if (newLineEnding is not null && tsInSurfaceBuffer[0].iEndLine > tsInSurfaceBuffer[0].iStartLine)
+            {
+                var totalOffset = 0;
+                var changes = new List<TextChange>();
+                var existingText = SubjectBuffer.CurrentSnapshot.GetText(formattingSpan.ToSpan());
+                for (var i = 0; i < existingText.Length; i++)
+                {
+                    var nextLineEnding = existingText.IndexOfAny(['\r', '\n'], i);
+                    if (nextLineEnding < 0)
+                        break;
+
+                    i = nextLineEnding;
+                    if (existingText[i] == '\r' && i < existingText.Length - 1 && existingText[i + 1] == '\n')
+                    {
+                        if (newLineEnding != "\r\n")
+                        {
+                            changes.Add(new TextChange(new TextSpan(formattingSpan.Start + i, 2), newLineEnding));
+                            totalOffset += newLineEnding.Length - 2;
+                        }
+
+                        // Move to the \n, which is the last character of the currently-located line ending
+                        i++;
+                    }
+                    else if (existingText[i] is '\r' or '\n')
+                    {
+                        if (newLineEnding.Length > 1 || newLineEnding[0] != existingText[i])
+                        {
+                            changes.Add(new TextChange(new TextSpan(formattingSpan.Start + i, 2), newLineEnding));
+                            totalOffset += newLineEnding.Length - 1;
+                        }
+                    }
+                }
+
+                SubjectBuffer.ApplyChanges(changes);
+                formattingSpan = new TextSpan(formattingSpan.Start, formattingSpan.Length + totalOffset);
+            }
 
             SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 

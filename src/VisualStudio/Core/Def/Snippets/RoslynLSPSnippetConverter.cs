@@ -84,7 +84,7 @@ internal sealed class RoslynLSPSnippetConverter
                 snippetNamespace.GetName("CodeSnippets"),
                 new XElement(
                     snippetNamespace.GetName("CodeSnippet"),
-                    new XAttribute(snippetNamespace.GetName("Format"), "1.0.0"),
+                    new XAttribute("Format", "1.0.0"),
                     new XElement(
                         snippetNamespace.GetName("Header"),
                         new XElement(snippetNamespace.GetName("Title"), new XText("Converted LSP Snippet")),
@@ -92,7 +92,12 @@ internal sealed class RoslynLSPSnippetConverter
                     new XElement(
                         snippetNamespace.GetName("Snippet"),
                         new XElement(snippetNamespace.GetName("Declarations"), declarations.ToArray()),
-                        new XElement(snippetNamespace.GetName("Code"), new XCData(template.ToString()))))));
+                        new XElement(
+                            snippetNamespace.GetName("Code"),
+                            new XAttribute("Language", "csharp"),
+                            new XCData(template.ToString()))))));
+
+        vsSnippetDocument.Root.SetAttributeValue("xmlns", snippetNamespace.NamespaceName);
 
         vsSnippet = (DOMDocument)new DOMDocumentClass();
         if (!vsSnippet.loadXML(vsSnippetDocument.ToString(SaveOptions.OmitDuplicateNamespaces)))
