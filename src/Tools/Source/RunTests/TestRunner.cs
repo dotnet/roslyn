@@ -227,6 +227,13 @@ namespace RunTests
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
                 }
 
+                // https://github.com/dotnet/runtime/issues/97186#issuecomment-1899748532
+                // Helping to see if this is reproducible on Linux by disabling GC regionns
+                if (isUnix)
+                {
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=clrgc");
+                }
+
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
                 // This saves the need to scan for all the different types of dump files later and copy
                 // them around.
