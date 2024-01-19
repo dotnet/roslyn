@@ -60,7 +60,15 @@ internal sealed class LspServices : ILspServices
     }
 
     public T? GetService<T>()
-        => (T?)TryGetService(typeof(T));
+    {
+        T? service;
+
+        // Check the base services first
+        service = GetBaseServices<T>().SingleOrDefault();
+        service ??= (T?)TryGetService(typeof(T));
+
+        return service;
+    }
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
@@ -73,17 +81,6 @@ internal sealed class LspServices : ILspServices
     public object? TryGetService(Type type)
     {
         object? lspService;
-
-        // Check the base services first
-        if (_baseServices.TryGetValue(type, out var baseServices))
-        {
-            lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
-            if (lspService is not null)
-            {
-                return lspService;
-            }
-        }
-
         if (_lazyMefLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check

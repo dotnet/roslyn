@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => CompletionResolveHandler.GetTextDocumentCacheEntry(request);
+            => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 await creationService.ResolveAsync(
                     completionItem,
                     selectedItem,
-                    ProtocolConversions.DocumentToTextDocumentIdentifier(document),
+                    cacheEntry.TextDocument,
                     document,
                     new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
                     completionService,
@@ -87,19 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
         }
 
-        private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
-        {
-            Contract.ThrowIfNull(request.Data);
-            var resolveData = ((JToken)request.Data).ToObject<DocumentResolveData>();
-            if (resolveData is null)
-            {
-                Contract.Fail("Document should always be provided when resolving a completion item request.");
-                return null;
-            }
-
-            return resolveData.TextDocument;
-        }
-
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);
@@ -110,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId);
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
             if (cacheEntry == null)
             {
                 // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
