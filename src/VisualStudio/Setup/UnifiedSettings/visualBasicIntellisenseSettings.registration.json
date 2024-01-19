@@ -1,3 +1,79 @@
 {
-
+  "properties": {
+    "textEditor.visualBasic.advanced.analysis.dotnetAnalyzerDiagnosticsScope": {
+      "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "None", "Current Document", "Open Documents", "Entire Solution" ],
+      "enumLabel": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "Current Document",
+      "requiresRestart": false,
+      "order": 0,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.BackgroundAnalysisScopeOption"
+          },
+          "map": [
+            {
+              "result": "None",
+              "match": 3
+            },
+            {
+              "result": "Current Document",
+              "match": 0
+            },
+            {
+              "result": "Open Documents",
+              "match": 1
+            },
+            {
+              "result": "Entire Solution",
+              "match": 2
+            }
+          ]
+        }
+      }
+    },
+    "textEditor.visualBasic.advanced.analysis.dotnetCompilerDiagnosticsScope": {
+      "title": "@Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "None", "Current Document", "Open Documents", "Entire Solution" ],
+      "enumLabel": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "Open Documents",
+      "requiresRestart": false,
+      "order": 10,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CompilerDiagnosticsScopeOption"
+          },
+          "map": [
+            {
+              "result": "None",
+              "match": 0
+            },
+            {
+              "result": "Current Document",
+              "match": 1
+            },
+            {
+              "result": "Open Documents",
+              "match": 2
+            },
+            {
+              "result": "Entire Solution",
+              "match": 3
+            }
+          ]
+        }
+      }
+    }
+  },
+  "textEditor.visualBasic.advanced": {
+    "title": "Advanced",
+    "helpUri": "https://learn.microsoft.com/en-us/visualstudio/ide/reference/options-text-editor-basic-visual-basic",
+    "legacyOptionPageId": "F1E1021E-A781-4862-9F4B-88746A288A67"
+  }
 }
