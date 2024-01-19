@@ -3454,6 +3454,82 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void SignatureMismatch_11()
+    {
+        var source = ("""
+            using System;
+
+            struct Program
+            {
+                public readonly void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 9, 23)]
+                public static void Interceptor(this in Program x) => Console.Write("Intercepted");
+            }
+            """, "Interceptor.cs");
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Intercepted");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("ref")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71714")]
+    public void SignatureMismatch_12(string interceptorRefKind)
+    {
+        var source = ("""
+            using System;
+
+            struct Program
+            {
+                public readonly void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ($$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 9, 23)]
+                public static void Interceptor(this {{interceptorRefKind}} Program x) => Console.Write("Intercepted");
+            }
+            """, "Interceptor.cs");
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        // 'this ref readonly' should probably be compatible with 'readonly' original method.
+        // Tracked by https://github.com/dotnet/roslyn/issues/71714
+        var comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'in Program this' on 'Program.InterceptableMethod()'.
+            //     [InterceptsLocation("Program.cs", 9, 23)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 9, 23)").WithArguments("in Program this", "Program.InterceptableMethod()").WithLocation(6, 6));
+    }
+
+    [Fact]
     public void ScopedMismatch_01()
     {
         // Unsafe 'scoped' difference
@@ -4985,16 +5061,80 @@ partial struct CustomHandler
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
-    public void InterceptorStructConstrainedInterfaceMethod()
+    public void InterceptorTypeParameterObjectMethod()
     {
         var program = ("""
+            using System;
+
+            M("a");
+            void M<T>(T value)
+            {
+                Console.WriteLine(value.Equals((object)1));
+            }
+
+            public struct MyStruct { }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+
+            namespace MyInterceptors
+            {
+                public static class Interceptors
+                {
+                    [InterceptsLocation(@"Program.cs", 6, 29)]
+                    public static new bool Equals(this object value, object other) => true;
+                }
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { program, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "False");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>g__M|0_0<T>(T)", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  box        "int"
+              IL_0008:  constrained. "T"
+              IL_000e:  callvirt   "bool object.Equals(object)"
+              IL_0013:  call       "void System.Console.WriteLine(bool)"
+              IL_0018:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify(new[] { program, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "True");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>g__M|0_0<T>(T)", """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  box        "T"
+              IL_0006:  ldc.i4.1
+              IL_0007:  box        "int"
+              IL_000c:  call       "bool MyInterceptors.Interceptors.Equals(object, object)"
+              IL_0011:  call       "void System.Console.WriteLine(bool)"
+              IL_0016:  ret
+            }
+            """);
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
+    [InlineData("where T : struct, I")]
+    [InlineData("where T : I")]
+    public void InterceptorStructConstrainedInterfaceMethod(string constraints)
+    {
+        var program = ($$"""
             using System;
 
             C.M(default(MyStruct));
 
             class C
             {
-                public static void M<T>(T t) where T : struct, I
+                public static void M<T>(T t) {{constraints}}
                 {
                     t.IM();
                 }

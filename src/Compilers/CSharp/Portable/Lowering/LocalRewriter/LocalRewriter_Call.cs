@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(methodThisParameter is not null);
                 Debug.Assert(receiverOpt?.Type is not null);
                 Debug.Assert(receiverOpt.Type.Equals(interceptor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions)
-                    || (receiverOpt.Type.IsValueType && !interceptor.Parameters[0].Type.IsValueType));
+                    || (!receiverOpt.Type.IsReferenceType && interceptor.Parameters[0].Type.IsReferenceType));
                 receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
                 arguments = arguments.Insert(0, receiverOpt);
                 receiverOpt = null;
