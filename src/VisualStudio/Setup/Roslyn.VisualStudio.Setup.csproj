@@ -354,6 +354,7 @@
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="UnifiedSettings\*.registration.json" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
