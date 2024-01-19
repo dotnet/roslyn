@@ -13,7 +13,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[RazorMethod(Methods.TextDocumentDidCloseName)]
+[LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
 [ExportRazorStatelessLspService(typeof(RazorCohostDidCloseEndpoint)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
