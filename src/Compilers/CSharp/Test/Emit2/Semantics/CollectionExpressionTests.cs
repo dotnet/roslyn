@@ -28975,7 +28975,7 @@ partial class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_1()
         {
             var code = $$"""
