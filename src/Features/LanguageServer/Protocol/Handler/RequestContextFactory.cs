@@ -10,7 +10,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
+internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 
@@ -19,7 +19,7 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
         _lspServices = lspServices;
     }
 
-    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -32,7 +32,7 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
         }
 
         TextDocumentIdentifier? textDocumentIdentifier;
-        var textDocumentIdentifierHandler = methodHandler as ITextDocumentIdentifierHandler;
+        var textDocumentIdentifierHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
         if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
         {
             textDocumentIdentifier = tHandler.GetTextDocumentIdentifier(requestParam);
@@ -59,17 +59,17 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
         }
 
         bool requiresLSPSolution;
-        if (methodHandler is ISolutionRequiredHandler requiredHandler)
+        if (queueItem.MethodHandler is ISolutionRequiredHandler requiredHandler)
         {
             requiresLSPSolution = requiredHandler.RequiresLSPSolution;
         }
         else
         {
-            throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
+            throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {queueItem.MethodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
         return RequestContext.CreateAsync(
-            methodHandler.MutatesSolutionState,
+            queueItem.MutatesServerState,
             requiresLSPSolution,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,
