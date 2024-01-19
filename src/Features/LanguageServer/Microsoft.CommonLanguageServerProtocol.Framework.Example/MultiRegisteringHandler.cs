@@ -15,19 +15,19 @@ public class MultiRegisteringHandler :
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidCloseName, LanguageServerConstants.DefaultLanguageName)]
+    [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
     Task INotificationHandler<DidCloseTextDocumentParams, ExampleRequestContext>.HandleNotificationAsync(DidCloseTextDocumentParams request, ExampleRequestContext requestContext, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
+    [LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
     Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidChangeName, LanguageServerConstants.DefaultLanguageName)]
+    [LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
     Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
