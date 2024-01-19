@@ -231,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             method.TryGetThisParameter(out var methodThisParameter);
-            symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
+            var interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
+                interceptor.TryGetThisParameter(out var interceptorThisParameter) ? interceptorThisParameter : null;
             switch (methodThisParameter, interceptorThisParameterForCompare)
             {
                 case (not null, null):

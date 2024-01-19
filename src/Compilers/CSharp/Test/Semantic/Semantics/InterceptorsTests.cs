@@ -5194,4 +5194,217 @@ partial struct CustomHandler
             }
             """);
     }
+
+    [Fact]
+    public void InterceptorGeneric_01()
+    {
+        var source = ("""
+            #nullable enable
+
+            class C
+            {
+                public string? Method1<T>(T arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T>(this C s, T arg) => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorGeneric_02()
+    {
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this C<T> s, U arg) => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorGeneric_03()
+    {
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this T s, U arg) => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS9144: Cannot intercept method 'C<int>.Method1<string>(string)' with interceptor 'D.Generic<int, string>(int, string)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C<int>.Method1<string>(string)", "D.Generic<int, string>(int, string)").WithLocation(6, 6));
+    }
+
+    [Fact]
+    public void InterceptorGeneric_04()
+    {
+        // interceptor type parameter substitution meets constraints
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this C<T> s, U arg) where T : struct => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorGeneric_05()
+    {
+        // interceptor type parameter substitution violates constraints
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this C<T> s, U arg) where T : class => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'D.Generic<T, U>(C<T>, U)'
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D.Generic<T, U>(C<T>, U)", "T", "int").WithLocation(6, 6));
+    }
 }
