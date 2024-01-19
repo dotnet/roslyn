@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocalFunction(declarationSyntax).GetPublicSymbol();

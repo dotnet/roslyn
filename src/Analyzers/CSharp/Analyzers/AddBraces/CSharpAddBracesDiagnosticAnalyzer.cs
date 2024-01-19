@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var statement = context.Node;
 
             var option = context.GetCSharpAnalyzerOptions().PreferBraces;
-            if (option.Value == PreferBracesPreference.None)
+            if (option.Value == PreferBracesPreference.None ||
+                ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 firstToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));

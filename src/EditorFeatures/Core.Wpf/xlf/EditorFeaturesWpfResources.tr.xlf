@@ -17,6 +17,11 @@
         <target state="translated">Yeniden adlandırmak için Enter, önizleme için Shift+Enter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
+        <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
+        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_performing_rename_0">
         <source>Error performing rename: '{0}'</source>
         <target state="translated">Yeniden adlandırma işlemi gerçekleştirilirken hata oluştu: '{0}'</target>
@@ -32,6 +37,11 @@
         <target state="new">Generating suggestions...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_AI_suggestions">
+        <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
+        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="translated">Etkileşimli ana işlem platformu</target>
@@ -44,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
         <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
-        <target state="new">Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</target>
+        <target state="translated">Yürütme ortamını başlangıç durumuna sıfırlayın ve ana bilgisayar işleminin çalışma zamanını değiştirme seçeneğiyle geçmişi tut.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">

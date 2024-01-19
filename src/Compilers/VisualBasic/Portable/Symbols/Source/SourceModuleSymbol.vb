@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' lazily populated with the bound imports
         Private _lazyBoundImports As BoundImports
-        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ReadOnlyBindingDiagnostic(Of AssemblySymbol))
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _lazyBoundImportsAdditionalDiagnostics Is Nothing Then
                 Dim diagnosticBag = BindingDiagnosticBag.GetInstance()
                 ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, diagnosticBag)
-                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
+                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ReadOnlyBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
             End If
         End Sub
 

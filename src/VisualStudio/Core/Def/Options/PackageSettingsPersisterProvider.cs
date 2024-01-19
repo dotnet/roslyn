@@ -9,35 +9,24 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Options
+namespace Microsoft.VisualStudio.LanguageServices.Options;
+
+[Export(typeof(IOptionPersisterProvider))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class PackageSettingsPersisterProvider(
+    IThreadingContext threadingContext,
+    [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+    IGlobalOptionService optionService) : IOptionPersisterProvider
 {
-    [Export(typeof(IOptionPersisterProvider))]
-    internal sealed class PackageSettingsPersisterProvider : IOptionPersisterProvider
+    private PackageSettingsPersister? _lazyPersister;
+
+    public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly IGlobalOptionService _optionService;
-        private PackageSettingsPersister? _lazyPersister;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PackageSettingsPersisterProvider(
-            IThreadingContext threadingContext,
-            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
-            IGlobalOptionService optionService)
-        {
-            _threadingContext = threadingContext;
-            _serviceProvider = serviceProvider;
-            _optionService = optionService;
-        }
-
-        public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
-        {
-            _lazyPersister ??= new PackageSettingsPersister(_threadingContext, _serviceProvider, _optionService);
-            return new ValueTask<IOptionPersister>(_lazyPersister);
-        }
+        _lazyPersister ??= new PackageSettingsPersister(threadingContext, serviceProvider, optionService);
+        return new ValueTask<IOptionPersister>(_lazyPersister);
     }
 }

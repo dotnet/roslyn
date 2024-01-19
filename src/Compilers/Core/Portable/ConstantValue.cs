@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
         String,
         Decimal,
         DateTime,
+        // Note: new values may need handling in CryptographicHashProvider.ComputeSourceHash
     }
 
     internal abstract partial class ConstantValue : IEquatable<ConstantValue?>, IFormattable

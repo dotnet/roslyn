@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         private sealed class BraceCompletionFormattingRule : BaseFormattingRule
         {
-            private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
+            private static readonly Predicate<SuppressOperation> s_predicate = o => o.Option.IsOn(SuppressOption.NoWrapping);
 
             private static readonly ImmutableArray<BraceCompletionFormattingRule> s_instances = ImmutableArray.Create(
                 new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.None),

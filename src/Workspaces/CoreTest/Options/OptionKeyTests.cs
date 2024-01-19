@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var publicOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
             Assert.True(option.Definition.Serializer.TryParseValue("true:suggestion", out var result));
-            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), result);
+            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion.WithIsExplicitlySpecified(true)), result);
 
             Assert.Empty(publicOption.StorageLocations);
         }

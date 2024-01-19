@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck

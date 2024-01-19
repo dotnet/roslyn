@@ -158,11 +158,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots =>
                     default(ImmutableArray<Cci.ITypeReference>);
 
-                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo =>
-                    default(ImmutableArray<ClosureDebugInfo>);
+                ImmutableArray<EncClosureInfo> Cci.IMethodBody.ClosureDebugInfo =>
+                    default(ImmutableArray<EncClosureInfo>);
 
-                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo =>
-                    default(ImmutableArray<LambdaDebugInfo>);
+                ImmutableArray<EncLambdaInfo> Cci.IMethodBody.LambdaDebugInfo =>
+                    default(ImmutableArray<EncLambdaInfo>);
+
+                ImmutableArray<LambdaRuntimeRudeEditInfo> Cci.IMethodBody.OrderedLambdaRuntimeRudeEdits =>
+                    ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty;
 
                 public StateMachineStatesDebugInfo StateMachineStatesDebugInfo
                     => default;

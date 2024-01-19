@@ -1433,10 +1433,11 @@ End Class
 
                             g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000006
-  IL_0005:  throw
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000006
+  IL_000a:  throw
 }
 ")
                         End Sub).
@@ -1589,10 +1590,11 @@ End Class
 
                             g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000006
-  IL_0005:  throw
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000006
+  IL_000a:  throw
 }
 {
   // Code size       10 (0xa)
@@ -1681,10 +1683,11 @@ End Class
   IL_000c:  ret
 }
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000009
-  IL_0005:  throw
+  IL_0000:  ldstr      0x70000151
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
 }
 ")
                         End Sub).
@@ -2257,10 +2260,11 @@ End Class
 
                             g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000006
-  IL_0005:  throw
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000006
+  IL_000a:  throw
 }
 {
   // Code size       15 (0xf)
@@ -2358,11 +2362,13 @@ End Class
   IL_000c:  ret
 }
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000009
-  IL_0005:  throw
-}")
+  IL_0000:  ldstr      0x70000151
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
+}
+")
                         End Sub).
                     Verify()
             End Using
@@ -2421,11 +2427,13 @@ End Class
 
                             g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000005
-  IL_0005:  throw
-}")
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000005
+  IL_000a:  throw
+}
+")
                         End Sub).
                         AddGeneration(
                     source:="
@@ -2529,11 +2537,13 @@ End Class
 
                             g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000005
-  IL_0005:  throw
-}")
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000005
+  IL_000a:  throw
+}
+")
                         End Sub).
                         AddGeneration(
                     source:="
@@ -5853,10 +5863,11 @@ End Class
     IL_0026:  ret
 }
 {
-    // Code size        6 (0x6)
+    // Code size       11 (0xb)
     .maxstack  8
-    IL_0000:  newobj     0x0A00000A
-    IL_0005:  throw
+    IL_0000:  ldstr      0x70000005
+    IL_0005:  newobj     0x0A00000A
+    IL_000a:  throw
 }
 {
     // Code size        9 (0x9)
@@ -5894,8 +5905,6 @@ End Class
 Imports System
 
 Class C
-    Sub F()
-    End Sub
 End Class
 ",
                     edits:=
@@ -5924,10 +5933,18 @@ End Class
 
                         g.VerifyIL("
 {
-  // Code size        6 (0x6)
+  // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A000008
-  IL_0005:  throw
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000008
+  IL_000a:  throw
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x7000014E
+  IL_0005:  newobj     0x0A000008
+  IL_000a:  throw
 }
 ")
                     End Sub).
@@ -6048,12 +6065,20 @@ End Class
 
                         g.VerifyIL("
 {
-    // Code size        6 (0x6)
-    .maxstack  8
-    IL_0000:  newobj     0x0A00000D
-    IL_0005:  throw
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000299
+  IL_0005:  newobj     0x0A00000D
+  IL_000a:  throw
 }
-                            ")
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x700003E2
+  IL_0005:  newobj     0x0A00000D
+  IL_000a:  throw
+}
+")
                     End Sub).
                 Verify()
             End Using
@@ -6102,10 +6127,8 @@ End Class
 Imports System
 
 Class C
-    Sub F()
-    End Sub
 End Class
-                        ",
+",
                     edits:=
                     {
                         Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
@@ -6134,10 +6157,18 @@ End Class
 
                         g.VerifyIL("
 {
-    // Code size        6 (0x6)
-    .maxstack  8
-    IL_0000:  newobj     0x0A000009
-    IL_0005:  throw
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000009
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000152
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
 }
 ")
                     End Sub).
@@ -6245,11 +6276,19 @@ End Class
                         })
 
                         g.VerifyIL("
+    {
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x7000000D
+  IL_0005:  newobj     0x0A000023
+  IL_000a:  throw
+}
 {
-    // Code size        6 (0x6)
-    .maxstack  8
-    IL_0000:  newobj     0x0A000023
-    IL_0005:  throw
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000156
+  IL_0005:  newobj     0x0A000023
+  IL_000a:  throw
 }
 ")
                     End Sub).
@@ -6362,10 +6401,18 @@ End Class
 
                         g.VerifyIL("
 {
-    // Code size        6 (0x6)
-    .maxstack  8
-    IL_0000:  newobj     0x0A00002D
-    IL_0005:  throw
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x700002A1
+  IL_0005:  newobj     0x0A00002D
+  IL_000a:  throw
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x700003EA
+  IL_0005:  newobj     0x0A00002D
+  IL_000a:  throw
 }
 ")
                     End Sub).

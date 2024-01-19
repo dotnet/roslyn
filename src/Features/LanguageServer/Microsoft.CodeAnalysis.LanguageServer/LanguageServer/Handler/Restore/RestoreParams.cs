@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [DataContract]
 internal sealed record RestoreParams(
-    [property: DataMember(Name = "projectFilePath"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] string? ProjectFilePath
+    // An empty set of project file paths means restore all projects in the workspace.
+    [property: DataMember(Name = "projectFilePaths")] string[] ProjectFilePaths
 ) : IPartialResultParams<RestorePartialResult>
 {
     [DataMember(Name = Methods.PartialResultTokenName)]

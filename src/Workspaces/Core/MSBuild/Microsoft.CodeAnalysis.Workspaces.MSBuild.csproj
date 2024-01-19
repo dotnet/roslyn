@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild</RootNamespace>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -22,15 +22,13 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" />
 
     <!-- These PackageReferences aren't needed to make our build work, but ensure correct NuGet packaging. We get references to these packages because
          we have a ProjectReference to BuildHost.csproj, but since it's PrivateAssets="true" they don't flow into this package's package references when packaging. -->
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -47,9 +45,6 @@
          we'll just do this here rather than impacting all consumers of that package unless we find other needs in the wild.
          -->
     <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all">
-      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
   </ItemGroup>
@@ -87,7 +82,7 @@
   </Target>
 
   <!--
-    Deploy a net472 and net6.0 version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
+    Deploy a net472 and $(NetVS) version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
     it matches the runtime type of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
     side, ensuring we potential rollforward to a runtime that supports the SDK version.
 
@@ -96,14 +91,14 @@
     property that we could hook but we can't in this case.
   -->
   <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
-    <!-- When we're not doing source build we package two variants: net6.0 and net472 for the broadest compability. -->
+    <!-- When we're not doing source build we package two variants: $(NetVS) and net472 for the broadest compability. -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
         <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>$(NetVSCode)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
@@ -111,13 +106,13 @@
     <!-- For source build, we just build the SourceBuild targeted version -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>$(NetPrevious)</TargetFramework>
+        <TargetFramework>$(NetRoslynToolset)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
     <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup;GetProjectDepsJsonFile" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
       <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
     </MSBuild>
 

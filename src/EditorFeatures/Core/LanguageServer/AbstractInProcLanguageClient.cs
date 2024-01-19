@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,9 +17,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
         /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
         /// </summary>
-        public object? CustomMessageTarget => null;
+        public virtual object? CustomMessageTarget => null;
 
         /// <summary>
         /// An enum representing this server instance.
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Signals that the extension has been loaded.  The server can be started immediately, or wait for user action to start.  
         /// To start the server, invoke the <see cref="StartAsync"/> event;
         /// </summary>
-        public async Task OnLoadedAsync()
+        public virtual async Task OnLoadedAsync()
         {
             try
             {
@@ -227,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices)
         {
             var server = new RoslynLanguageServer(
@@ -257,5 +256,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// This method is called after the language server has been activated, but connection has not been established.
         /// </summary>
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractInProcLanguageClient _instance;
+
+            internal TestAccessor(AbstractInProcLanguageClient instance)
+            {
+                _instance = instance;
+            }
+
+            public AbstractLanguageServer<RequestContext>? LanguageServer => _instance._languageServer;
+        }
     }
 }

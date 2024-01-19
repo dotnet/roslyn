@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
-                effectiveSeverity: styleOption.Notification.Severity,
+                notificationOption: styleOption.Notification,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
                 properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))

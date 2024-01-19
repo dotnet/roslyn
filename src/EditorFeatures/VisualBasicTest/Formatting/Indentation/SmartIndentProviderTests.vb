@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         Public Sub GetSmartIndent2()
-            Using workspace = TestWorkspace.CreateCSharp("")
+            Using workspace = EditorTestWorkspace.CreateCSharp("")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Assert.Equal(True, globalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
 
-                Dim document = workspace.Projects.Single().Documents.Single()
+                Dim document = workspace.Documents.Single()
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
                 Dim smartIndenter = provider.CreateSmartIndent(document.GetTextView())
 
@@ -37,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         Public Sub GetSmartIndent3()
-            Using workspace = TestWorkspace.CreateCSharp("")
+            Using workspace = EditorTestWorkspace.CreateCSharp("")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(SmartIndenterOptionsStorage.SmartIndenter, False)
 
-                Dim document = workspace.Projects.Single().Documents.Single()
+                Dim document = workspace.Documents.Single()
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
                 Dim smartIndenter = provider.CreateSmartIndent(document.GetTextView())
 

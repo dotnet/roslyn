@@ -23,6 +23,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Reverse = reverse;
         }
 
+        public BidirectionalMap<T> With(T source, T target)
+        {
+            var forward = new Dictionary<T, T>(Forward.Count + 1);
+            var reverse = new Dictionary<T, T>(Reverse.Count + 1);
+
+            foreach (var entry in Forward)
+            {
+                forward.Add(entry.Key, entry.Value);
+                reverse.Add(entry.Value, entry.Key);
+            }
+
+            forward.Add(source, target);
+            reverse.Add(target, source);
+            return new(forward, reverse);
+        }
+
         public BidirectionalMap<T> With(BidirectionalMap<T> map)
         {
             if (map.Forward.Count == 0)

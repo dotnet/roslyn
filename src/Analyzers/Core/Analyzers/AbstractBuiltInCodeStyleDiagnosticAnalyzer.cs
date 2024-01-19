@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable,
+                   hasAnyCodeStyleOption: option != null)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option);
         }
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable,
+                  hasAnyCodeStyleOption: true)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
@@ -83,7 +85,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
+            {
+                Debug.Assert(option != null == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
+            }
         }
 
         /// <summary>

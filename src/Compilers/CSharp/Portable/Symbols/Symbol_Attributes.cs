@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return true;
         }
-#nullable disable
 
         /// <summary>
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that
@@ -214,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this (base) method.
         /// </para>
         /// </remarks>
-#nullable enable
         protected void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.Diagnostics.DiagnosticBag is not null);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes)
         {
             switch (node)
             {
@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
                 default: return node;
             }
         }
-        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
+        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTaskTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
             return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, newReturnType);
         }
 
-        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
+        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTaskTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
             return RemoveAsyncModifierHelpers.WithoutAsyncModifier(localFunction, newReturnType);
         }
 
-        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTypes knownTypes)
+        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTaskTypes knownTypes)
         {
             var newReturnType = returnTypeSyntax;
 
@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
                 // If the return type is Task<T>, then make the new return type "T".
                 newReturnType = returnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(returnTypeSyntax);
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt) &&
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTType) &&
                 knownTypes.IEnumerableOfTType != null)
             {
                 // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
                 newReturnType = knownTypes.IEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt) &&
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTType) &&
                 knownTypes.IEnumeratorOfTType != null)
             {
                 // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.

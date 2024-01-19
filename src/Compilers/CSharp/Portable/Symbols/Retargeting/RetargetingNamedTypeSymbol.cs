@@ -436,6 +436,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             builderArgument = null;
             return false;
         }
-#nullable disable
     }
 }

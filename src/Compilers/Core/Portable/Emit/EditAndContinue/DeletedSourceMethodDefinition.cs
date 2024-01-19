@@ -12,17 +12,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed class DeletedSourceMethodDefinition
-        : DeletedSourceDefinition<IMethodDefinition>, IMethodDefinition, IDeletedMethodDefinition
+        : DeletedSourceDefinition<IMethodDefinition>, IDeletedMethodDefinition
     {
         private readonly MethodDefinitionHandle _handle;
         private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
-        private DeletedMethodBody? _body;
+        private readonly DeletedMethodBody _body;
 
-        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
+        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, ImmutableArray<byte> bodyIL, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
             : base(oldMethod, typesUsedByDeletedMembers)
         {
             _handle = handle;
             _parameters = WrapParameters(oldMethod.Parameters);
+            _body = new DeletedMethodBody(this, bodyIL);
         }
 
         public MethodDefinitionHandle MetadataHandle
@@ -108,10 +109,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => true;
 
         public IMethodBody GetBody(EmitContext context)
-        {
-            _body ??= new DeletedMethodBody(this, context);
-            return _body;
-        }
+            => _body;
 
         public ITypeReference GetContainingType(EmitContext context)
             => throw ExceptionUtilities.Unreachable();

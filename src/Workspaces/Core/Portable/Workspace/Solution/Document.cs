@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);

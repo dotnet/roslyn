@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // list even if they can't new them directly.
             if (!isArray)
             {
-                if (type.TypeKind == TypeKind.Interface ||
-                    type.TypeKind == TypeKind.Pointer ||
-                    type.TypeKind == TypeKind.Dynamic ||
+                if (type.TypeKind is TypeKind.Interface or TypeKind.Pointer or TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
                     return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();

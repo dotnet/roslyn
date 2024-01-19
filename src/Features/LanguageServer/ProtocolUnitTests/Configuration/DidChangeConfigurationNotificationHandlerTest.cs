@@ -4,16 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -145,12 +144,13 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
+                "projects.dotnet_enable_automatic_restore"
             }.OrderBy(name => name);
 
             Assert.Equal(expectedNames, actualNames);
         }
 
-        private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)
+        private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;

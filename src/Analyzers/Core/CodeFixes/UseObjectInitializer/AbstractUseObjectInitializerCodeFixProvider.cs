@@ -45,11 +45,8 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    protected AbstractUseObjectInitializerCodeFixProvider()
-        : base(AnalyzersResources.Object_initialization_can_be_simplified,
-               nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-    {
-    }
+    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
+        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
 
     protected abstract TAnalyzer GetAnalyzer();
 

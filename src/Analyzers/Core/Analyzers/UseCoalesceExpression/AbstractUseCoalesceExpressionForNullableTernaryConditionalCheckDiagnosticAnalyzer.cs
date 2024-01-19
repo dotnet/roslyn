@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var cancellationToken = context.CancellationToken;
 
             var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var syntaxFacts = GetSyntaxFacts();
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 conditionalExpression.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 locations,
                 properties: null));
         }

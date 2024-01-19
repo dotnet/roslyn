@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ProjectAnalyzerStateSets.Default;
                 }
 
-                var hostAnalyzers = project.Solution.State.Analyzers;
+                var hostAnalyzers = project.Solution.SolutionState.Analyzers;
                 var analyzersPerReference = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {

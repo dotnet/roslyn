@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             public readonly UseVarPreference TypeStylePreference;
 
-            private readonly ReportDiagnostic _forBuiltInTypes;
-            private readonly ReportDiagnostic _whenTypeIsApparent;
-            private readonly ReportDiagnostic _elsewhere;
+            private readonly NotificationOption2 _forBuiltInTypes;
+            private readonly NotificationOption2 _whenTypeIsApparent;
+            private readonly NotificationOption2 _elsewhere;
 
             public readonly bool IsInIntrinsicTypeContext;
             public readonly bool IsTypeApparentInContext;
@@ -38,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForApparent = options.VarWhenTypeIsApparent;
                 var styleForElsewhere = options.VarElsewhere;
 
-                _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
-                _whenTypeIsApparent = styleForApparent.Notification.Severity;
-                _elsewhere = styleForElsewhere.Notification.Severity;
+                _forBuiltInTypes = styleForIntrinsicTypes.Notification;
+                _whenTypeIsApparent = styleForApparent.Notification;
+                _elsewhere = styleForElsewhere.Notification;
 
                 this.TypeStylePreference = options.GetUseVarPreference();
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                      || IsInferredPredefinedType(declaration, semanticModel);
             }
 
-            public ReportDiagnostic GetDiagnosticSeverityPreference()
+            public NotificationOption2 GetDiagnosticSeverityPreference()
                 => IsInIntrinsicTypeContext ? _forBuiltInTypes :
                    IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
 

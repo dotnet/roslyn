@@ -54,11 +54,19 @@ internal class TestDiscovery
         return success;
     }
 
+    static (string tfm, string configuration) GetTfmAndConfiguration()
+    {
+        var dir = Path.GetDirectoryName(typeof(TestDiscovery).Assembly.Location);
+        var tfm = Path.GetFileName(dir)!;
+        var configuration = Path.GetFileName(Path.GetDirectoryName(dir))!;
+        return (tfm, configuration);
+    }
+
     static (string dotnetCoreWorker, string dotnetFrameworkWorker) GetWorkers(string binDirectory)
     {
+        var (tfm, configuration) = GetTfmAndConfiguration();
         var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
-        var configuration = Directory.Exists(Path.Combine(testDiscoveryWorkerFolder, "Debug")) ? "Debug" : "Release";
-        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net8.0", "TestDiscoveryWorker.dll"),
+        return (Path.Combine(testDiscoveryWorkerFolder, configuration, tfm, "TestDiscoveryWorker.dll"),
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
@@ -120,8 +128,10 @@ internal class TestDiscovery
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
     {
-        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*.UnitTests.dll", SearchOption.AllDirectories).Where(ShouldInclude);
-        return unitTestAssemblies.ToList();
+        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*UnitTests.dll", SearchOption.AllDirectories);
+        var integrationTestAssemblies = Directory.GetFiles(binDirectory, "*IntegrationTests.dll", SearchOption.AllDirectories);
+        var assemblies = unitTestAssemblies.Concat(integrationTestAssemblies).Where(ShouldInclude);
+        return assemblies.ToList();
 
         bool ShouldInclude(string path)
         {

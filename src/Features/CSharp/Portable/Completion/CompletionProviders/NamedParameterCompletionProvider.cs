@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
         {
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-            if (within != null &&
-                (within.TypeKind == TypeKind.Struct || within.TypeKind == TypeKind.Class))
+            if (within is { TypeKind: TypeKind.Struct or TypeKind.Class })
             {
                 var type = constructorInitializer.Kind() == SyntaxKind.BaseConstructorInitializer
                     ? within.BaseType

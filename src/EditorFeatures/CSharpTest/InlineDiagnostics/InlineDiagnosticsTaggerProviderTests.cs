@@ -42,20 +42,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = EditorTestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
         {
             workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.CSharp, true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;

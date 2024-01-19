@@ -97,7 +97,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestChangeSignatureCommandDisabledInSubmission()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C

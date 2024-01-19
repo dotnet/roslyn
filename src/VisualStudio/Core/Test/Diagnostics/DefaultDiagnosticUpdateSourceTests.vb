@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
-        Private Shared Function GetDefaultDiagnosticAnalyzerService(workspace As TestWorkspace) As DefaultDiagnosticAnalyzerService
+        Private Shared Function GetDefaultDiagnosticAnalyzerService(workspace As EditorTestWorkspace) As DefaultDiagnosticAnalyzerService
             Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
             Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
             Return Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
@@ -83,7 +83,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -122,7 +122,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -161,7 +161,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -201,7 +201,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -234,7 +234,7 @@ class A
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = TestWorkspace.CreateCSharp(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -263,7 +263,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = TestWorkspace.CreateVisualBasic(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -305,7 +305,7 @@ End Class
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=composition)
+            Using workspace = EditorTestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=composition)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 

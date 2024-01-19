@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: additionalLocations,
                 modifiersAdded ? ModifiersAddedProperties : null));
         }

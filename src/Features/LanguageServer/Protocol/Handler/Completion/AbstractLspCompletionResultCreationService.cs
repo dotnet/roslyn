@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.
-            var resolveData = new CompletionResolveData() { ResultId = resultId };
+            var resolveData = new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document));
             var completionItemResolveData = capabilityHelper.SupportCompletionListData || capabilityHelper.SupportVSInternalCompletionListData
                 ? null : resolveData;
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3581,6 +3582,421 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    protected [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    internal C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71117")]
+    public async Task TestNullableMismatch()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Threading;
+
+                public class Test
+                {
+                    private object? _parameter;
+
+                    public [|Test|](object parameter)
+                    {
+                        _parameter = parameter;
+                    }
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                
+                using System.Threading;
+
+                public class Test(object parameter)
+                {
+                    private object? _parameter = parameter;
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            // Only one action should be shown to the user here.
+            // The "and remove fields" option should not be shown.
+            CodeActionsVerifier = actions => Assert.Single(actions),
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                    private object _value;
+                #pragma warning restore IDE0044
+
+                    private int? _other;
+
+                    public [|Test|](object value)
+                    {
+                        _value = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value)
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                #pragma warning restore IDE0044
+                
+                    private int? _other;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1;
+
+                #pragma warning restore IDE0044
+                    private object _value2;
+
+                    public [|Test|](object value2)
+                    {
+                        _value1 = new();
+                        _value2 = value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value2)
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1 = new();
+
+                #pragma warning restore IDE0044
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(string x)
+                {
+                    private int i = int.TryParse(x, out var result) ? result : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+                    private int r;
+
+                    public Test(string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                        r = result;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestPatternVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](object x)
+                    {
+                        i = x is string s ? s.Length : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object x)
+                {
+                    private int i = x is string s ? s.Length : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([NotNullIfNotNull(nameof(Name))] string name)
+                    {
+                        Name= name;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Diagnostics.CodeAnalysis;
+                
+                public class Goo([NotNullIfNotNull(nameof(Goo.Name))] string name)
+                {
+                    public string Name { get; } = name;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(Nested))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public class Nested { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.Nested))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public class Nested { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(E))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public event Action E;
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.E))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public event Action E;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(M))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public void M() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.M))] string name)
+                {
+                    public string Name { get; } = name;
+                
+                    public void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

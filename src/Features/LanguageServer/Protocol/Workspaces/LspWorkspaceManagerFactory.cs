@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -23,9 +24,10 @@ internal class LspWorkspaceManagerFactory : ILspServiceFactory
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        var logger = lspServices.GetRequiredService<ILspServiceLogger>();
-        var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
+        var logger = lspServices.GetRequiredService<AbstractLspLogger>();
         var miscFilesWorkspace = lspServices.GetService<LspMiscellaneousFilesWorkspace>();
-        return new LspWorkspaceManager(logger, miscFilesWorkspace, _workspaceRegistrationService, telemetryLogger);
+        var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
+        var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
+        return new LspWorkspaceManager(logger, miscFilesWorkspace, _workspaceRegistrationService, languageInfoProvider, telemetryLogger);
     }
 }

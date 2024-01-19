@@ -40,11 +40,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">L'ultimo elemento di una classe di caratteri deve essere una sottrazione</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">Se si accede alla variabile catturata '{0}' a cui non è stato ancora eseguito l'accesso in {1}, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Aggiungi l'attributo 'DebuggerDisplay'</target>
@@ -113,11 +108,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">Se si aggiunge {0}, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Se si aggiunge {0} che accede alle variabili catturate '{1}' e {2}' dichiarate in ambiti diversi, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -317,7 +307,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns {0}</source>
-        <target state="needs-review-translation">L'attività attesa restituisce '{0}'</target>
+        <target state="translated">L'attività attesa restituisce {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -365,24 +355,9 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">Se si acquisisce la variabile '{0}' che non è stata acquisita prima, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">Se si interrompe l'accesso alla variabile catturata '{0}' in {1}, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
         <target state="translated">Per non acquisire il parametro del costruttore primario '{0}' di '{1}' è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Se si interrompe l'acquisizione della variabile '{0}', è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -668,11 +643,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Se si elimina {0}, è necessario riavviare l'applicazione perché l'operazione non è supportata dal runtime.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">Se si elimina la variabile catturata '{0}', è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Directives_from_0">
@@ -2565,11 +2535,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Rimuovi le variabili non usate</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Se si rimuove {0} che ha effettuato l'accesso alle variabili catturate '{1}' e {2}' dichiarate in ambiti diversi, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
         <source>Removing {0} that contains an active statement requires restarting the application.</source>
         <target state="translated">Se si rimuove {0} che contiene un'istruzione attiva, è necessario riavviare l'applicazione.</target>
@@ -2877,7 +2842,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="new">Unwrap collection</target>
+        <target state="translated">Annulla il wrapping della raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3052,7 +3017,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="new">Wrap collection</target>
+        <target state="translated">Esegui il wrapping della raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3087,7 +3052,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="new">Wrap long collection</target>
+        <target state="translated">Esegui il wrapping della raccolta lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">

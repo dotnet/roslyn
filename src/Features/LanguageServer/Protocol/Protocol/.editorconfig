@@ -1,0 +1,22 @@
+[*.cs]
+
+# CS0436: Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+dotnet_diagnostic.CS0436.severity = none
+
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+dotnet_diagnostic.CS8618.severity = none
+
+# CS8765: Nullability of type of parameter 'other' doesn't match overridden member (possibly because of nullability attributes).
+dotnet_diagnostic.CS8765.severity = none
+
+# CS8767: Nullability of reference types in type of parameter 'other' of 'bool CodeDescription.Equals(CodeDescription other)' doesn't match implicitly implemented member 'bool IEquatable<CodeDescription>.Equals(CodeDescription? other)' (possibly because of nullability attributes).
+dotnet_diagnostic.CS8767.severity = none
+
+# CS8603: Possible null reference return.
+dotnet_diagnostic.CS8603.severity = none
+
+# CS8604: Possible null reference argument for parameter 'uriString' in 'Uri.Uri(string uriString)'.
+dotnet_diagnostic.CS8604.severity = none
+
+# RS0030:  The symbol 'Uri.Uri(string)' is banned in this project
+dotnet_diagnostic.RS0030.severity = none

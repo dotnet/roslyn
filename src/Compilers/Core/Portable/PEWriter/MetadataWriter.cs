@@ -470,10 +470,13 @@ namespace Microsoft.Cci
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            this.CreateUserStringIndices();
             this.CreateInitialAssemblyRefIndex();
             this.CreateInitialFileRefIndex();
             this.CreateIndicesForModule();
+
+            // Snapshot user strings only after indexing all types and members.
+            // EnC method deletes discovered during indexing may contribute new strings.
+            this.CreateUserStringIndices();
 
             // Find all references and assign tokens.
             _referenceVisitor = this.CreateReferenceVisitor();
@@ -486,13 +489,7 @@ namespace Microsoft.Cci
 
         private void CreateUserStringIndices()
         {
-            _pseudoStringTokenToStringMap = new List<string>();
-
-            foreach (string str in this.module.GetStrings())
-            {
-                _pseudoStringTokenToStringMap.Add(str);
-            }
-
+            _pseudoStringTokenToStringMap = [.. module.GetStrings()];
             _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Count];
         }
 
@@ -4143,8 +4140,8 @@ namespace Microsoft.Cci
             return new EditAndContinueMethodDebugInformation(
                 methodBody.MethodId.Ordinal,
                 encLocalSlots,
-                methodBody.ClosureDebugInfo,
-                methodBody.LambdaDebugInfo,
+                methodBody.ClosureDebugInfo.SelectAsArray(static info => info.DebugInfo),
+                methodBody.LambdaDebugInfo.SelectAsArray(static info => info.DebugInfo),
                 methodBody.StateMachineStatesDebugInfo.States);
         }
 

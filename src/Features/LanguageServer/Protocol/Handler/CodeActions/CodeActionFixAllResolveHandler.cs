@@ -11,11 +11,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.UnifiedSuggestions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 

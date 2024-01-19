@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -148,11 +148,12 @@ internal sealed class LanguageServerProjectSystem
         {
             var tasks = new List<Task>();
 
+            var projectsThatNeedRestore = new ConcurrentSet<string>();
             foreach (var projectToLoad in projectPathsToLoadOrReload)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var (errorKind, preferredBuildHostKind) = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
+                    var (errorKind, preferredBuildHostKind, projectNeedsRestore) = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -171,10 +172,25 @@ internal sealed class LanguageServerProjectSystem
                             await ShowToastNotification.ShowToastNotificationAsync(errorKind.Value, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
                         }
                     }
+
+                    if (projectNeedsRestore)
+                    {
+                        projectsThatNeedRestore.Add(projectToLoad.Path);
+                    }
                 }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
+
+            if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
+            {
+                // Tell the client to restore any projects with unresolved dependencies.
+                // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
+                // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
+                //
+                // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore.ToImmutableHashSet(), cancellationToken);
+            }
         }
         finally
         {
@@ -195,7 +211,7 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<(LSP.MessageType? FailureType, BuildHostProcessKind? PreferredKind)> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    private async Task<(LSP.MessageType? FailureType, BuildHostProcessKind? PreferredKind, bool HasUnresolvedDependencies)> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKind = null;
 
@@ -213,7 +229,7 @@ internal sealed class LanguageServerProjectSystem
                 {
                     _ = LogDiagnostics(projectPath, diagnosticLogItems);
                     // We have total failures in evaluation, no point in continuing.
-                    return (LSP.MessageType.Error, preferredBuildHostKind);
+                    return (LSP.MessageType.Error, preferredBuildHostKind, false);
                 }
 
                 var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
@@ -223,12 +239,12 @@ internal sealed class LanguageServerProjectSystem
                 var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
                 if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
                 {
-                    return (null, null);
+                    return (null, null, false);
                 }
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
-                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos = new();
+                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
                     // If we already have the project, just update it
@@ -265,15 +281,15 @@ internal sealed class LanguageServerProjectSystem
                     _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
                 }
 
-                return (errorLevel, preferredBuildHostKind);
+                return (errorLevel, preferredBuildHostKind, projectFileInfos.Values.Any(info => info.NeedsRestore));
             }
 
-            return (null, null);
+            return (null, null, false);
         }
         catch (Exception e)
         {
             _logger.LogError(e, string.Format(LanguageServerResources.Exception_thrown_while_loading_0, projectToLoad.Path));
-            return (LSP.MessageType.Error, preferredBuildHostKind);
+            return (LSP.MessageType.Error, preferredBuildHostKind, false);
         }
 
         LSP.MessageType? LogDiagnostics(string projectPath, ImmutableArray<DiagnosticLogItem> diagnosticLogItems)

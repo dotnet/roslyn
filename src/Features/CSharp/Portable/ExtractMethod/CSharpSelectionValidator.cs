@@ -128,12 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var expressionNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
-            if (!expressionNode.IsAnyAssignExpression())
-            {
+            if (expressionNode is not AssignmentExpressionSyntax assign)
                 return selectionInfo;
-            }
-
-            var assign = (AssignmentExpressionSyntax)expressionNode;
 
             // make sure there is a visible token at right side expression
             if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)
@@ -212,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            if (!firstTokenInSelection.UnderValidContext() || !lastTokenInSelection.UnderValidContext())
+            if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
             {
                 return new SelectionInfo
                 {
@@ -268,6 +264,61 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 FirstTokenInOriginalSpan = firstTokenInSelection,
                 LastTokenInOriginalSpan = lastTokenInSelection
             };
+        }
+
+        private static bool UnderValidContext(SyntaxToken token)
+            => token.GetAncestors<SyntaxNode>().Any(n => CheckTopLevel(n, token.Span));
+
+        private static bool CheckTopLevel(SyntaxNode node, TextSpan span)
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return ContainsInBlockBody(block, span);
+                case ArrowExpressionClauseSyntax expressionBodiedMember:
+                    return ContainsInExpressionBodiedMemberBody(expressionBodiedMember, span);
+                case FieldDeclarationSyntax field:
+                    {
+                        foreach (var variable in field.Declaration.Variables)
+                        {
+                            if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                    }
+
+                case GlobalStatementSyntax _:
+                    return true;
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return constructorInitializer.ContainsInArgument(span);
+            }
+
+            return false;
+        }
+
+        private static bool ContainsInBlockBody(BlockSyntax block, TextSpan textSpan)
+        {
+            if (block == null)
+            {
+                return false;
+            }
+
+            var blockSpan = TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart);
+            return blockSpan.Contains(textSpan);
+        }
+
+        private static bool ContainsInExpressionBodiedMemberBody(ArrowExpressionClauseSyntax expressionBodiedMember, TextSpan textSpan)
+        {
+            if (expressionBodiedMember == null)
+            {
+                return false;
+            }
+
+            var expressionBodiedMemberBody = TextSpan.FromBounds(expressionBodiedMember.Expression.SpanStart, expressionBodiedMember.Expression.Span.End);
+            return expressionBodiedMemberBody.Contains(textSpan);
         }
 
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(

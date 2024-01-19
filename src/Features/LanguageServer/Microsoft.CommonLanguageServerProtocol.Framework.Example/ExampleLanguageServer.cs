@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
@@ -27,8 +27,8 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
 
         var _ = AddHandlers(serviceCollection)
             .AddSingleton<ILspLogger>(_logger)
-            .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
-            .AddSingleton<IHandlerProvider>(s => GetHandlerProvider())
+            .AddSingleton<AbstractRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
+            .AddSingleton<AbstractHandlerProvider>(s => HandlerProvider)
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton(this);
 

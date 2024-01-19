@@ -2622,6 +2622,59 @@ print Goodbye, World";
             // TODO: multiple files, quotes, etc.
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71022")]
+        public void ParseReferencesAlias()
+        {
+            assert(@"/r:a=util.dll", @"util.dll", ["a"], false);
+            assert(@"/r:""a=util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:""c:\users\app=exe\util.dll""", @"c:\users\app=exe\util.dll", [], false);
+            assert(@"/r:a=b=util.dll", @"b=util.dll", ["a"], false);
+            assert(@"/r:""a=b""=util.dll", @"a=b=util.dll", [], false);
+            assert(@"/r:\""a=b\""=util.dll", @"""a=b""=util.dll", [], false);
+            assert(@"/r:a""b=util.dll", "ab=util.dll", [], false);
+            assert(@"/r:a\""b=util.dll", @"a""b=util.dll", [], false);
+            assert(@"/r:""a""=""util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:\""a\""=\""util.dll""", @"""a""=""util.dll", [], false);
+
+            void assert(string arg, string expectedRef, string[] expectedAliases, bool expectedEmbed)
+            {
+                var result = parseRef(arg);
+                Assert.Equal(expectedRef, result.Reference);
+                Assert.Equal(expectedAliases, result.Properties.Aliases);
+                Assert.Equal(expectedEmbed, result.Properties.EmbedInteropTypes);
+            }
+
+            CommandLineReference parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                Assert.Equal(2, parsedArgs.MetadataReferences.Length);
+                Assert.Empty(parsedArgs.Errors);
+                return parsedArgs.MetadataReferences[1];
+            }
+        }
+
+        [Fact]
+        public void ParseReferencesAliasErrors()
+        {
+            parseRef(@"/reference:a\b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a\b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a$b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a$b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a=util.dll,util2.dll").Verify(
+                Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithLocation(1, 1));
+
+            parseRef(@"/reference:a=").Verify(
+                Diagnostic(ErrorCode.ERR_AliasMissingFile).WithArguments("a").WithLocation(1, 1));
+
+            ImmutableArray<Diagnostic> parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                return parsedArgs.Errors;
+            }
+        }
+
         [Fact]
         public void ParseAnalyzers()
         {
