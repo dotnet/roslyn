@@ -231,7 +231,7 @@ namespace RunTests
                 // Helping to see if this is reproducible on Linux by disabling GC regionns
                 if (isUnix)
                 {
-                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=clrgc");
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=libclrgc.so");
                 }
 
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
