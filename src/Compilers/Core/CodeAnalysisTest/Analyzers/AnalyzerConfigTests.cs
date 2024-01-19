@@ -1003,12 +1003,13 @@ dotnet_diagnostic.cs000.severity = {severity}
             configs.Add(Parse($@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = error {delimiter} ignored text
+dotnet_diagnostic.cs001.severity = warning {delimiter} ignored text
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(["/test.cs"], configs);
             configs.Free();
 
-            Assert.Equal([CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))], Array.ConvertAll(options, o => o.TreeOptions));
+            Assert.Equal([CreateImmutableDictionary(("cs000", ReportDiagnostic.Error), ("cs001", ReportDiagnostic.Warn))], Array.ConvertAll(options, o => o.TreeOptions));
         }
 
         [Fact]
