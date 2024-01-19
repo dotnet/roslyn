@@ -13,8 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Lowers a lock statement to a try-finally block that calls Monitor.Enter and Monitor.Exit
-        /// before and after the body, respectively.
+        /// Lowers a lock statement to a try-finally block that calls (before and after the body, respectively):
+        /// <list type="bullet">
+        /// <item>Lock.EnterLockScope and Lock+Scope.Dispose if the argument is of type Lock, or</item>
+        /// <item>Monitor.Enter and Monitor.Exit.</item>
+        /// </list>
         /// </summary>
         public override BoundNode VisitLockStatement(BoundLockStatement node)
         {
@@ -35,6 +38,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArgument.Syntax,
                     rewrittenArgument.ConstantValueOpt,
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
+            }
+
+            if (argumentType.IsWellKnownTypeLock() &&
+                TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Lock__EnterLockScope, out MethodSymbol enterLockScope) &&
+                TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Lock__Scope__Dispose, out MethodSymbol lockScopeDispose))
+            {
+                // lock (x) { body } -> using (x.EnterLockScope()) { body }
+
+                var tryBlock = rewrittenBody is BoundBlock block ? block : BoundBlock.SynthesizedNoLocals(lockSyntax, rewrittenBody);
+
+                var enterLockScopeCall = BoundCall.Synthesized(
+                    rewrittenArgument.Syntax,
+                    rewrittenArgument,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    enterLockScope);
+
+                BoundLocal boundTemp = _factory.StoreToTemp(enterLockScopeCall,
+                    out BoundAssignmentOperator tempAssignment,
+                    syntaxOpt: rewrittenArgument.Syntax,
+                    kind: SynthesizedLocalKind.Using);
+                var expressionStatement = new BoundExpressionStatement(rewrittenArgument.Syntax, tempAssignment);
+
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(
+                    rewrittenArgument.Syntax,
+                    rewrittenArgument.Syntax,
+                    tryBlock,
+                    boundTemp,
+                    awaitKeywordOpt: default,
+                    awaitOpt: null,
+                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockScopeDispose));
+
+                return new BoundBlock(
+                    lockSyntax,
+                    locals: ImmutableArray.Create(boundTemp.LocalSymbol),
+                    statements: ImmutableArray.Create(expressionStatement, tryFinally));
             }
 
             if (argumentType.Kind == SymbolKind.TypeParameter)

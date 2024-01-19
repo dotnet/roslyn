@@ -267,6 +267,11 @@
         <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement scope type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A lock statement scope type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
         <target state="translated">型 '{0}' の using ステートメント リソースは、非同期メソッドまたは非同期ラムダ式では使用できません。</target>
@@ -2560,6 +2565,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">実行時に操作がオーバーフローする可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

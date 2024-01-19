@@ -4443,6 +4443,20 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
                         1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Threading_Lock__EnterLockScope
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Lock - WellKnownType.ExtSentinel),   // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Lock__Scope - WellKnownType.ExtSentinel), // Return Type
+
+                // System_Threading_Lock__Scope__Dispose
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Lock__Scope - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4992,6 +5006,8 @@ namespace Microsoft.CodeAnalysis
                 "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
                 "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
+                "EnterLockScope",                           // System_Threading_Lock__EnterLockScope
+                "Dispose",                                  // System_Threading_Lock__Scope__Dispose
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

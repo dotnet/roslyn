@@ -2078,6 +2078,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
 
+        internal static bool IsWellKnownTypeLock(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol.Name == "Lock" && typeSymbol.ContainingType is null &&
+                typeSymbol.IsContainedInNamespace("System", "Threading");
+        }
+
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
             if (typeSymbol.Name != name || typeSymbol.ContainingType is object)

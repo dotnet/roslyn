@@ -639,6 +639,9 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
         System_Collections_Generic_List_T__AddRange,
 
+        System_Threading_Lock__EnterLockScope,
+        System_Threading_Lock__Scope__Dispose,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

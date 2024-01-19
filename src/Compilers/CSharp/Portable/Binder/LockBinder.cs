@@ -54,6 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, exprType);
                 hasErrors = true;
             }
+            else if (exprType.IsWellKnownTypeLock() &&
+                Compilation.GetWellKnownType(WellKnownType.System_Threading_Lock__Scope) is { } scopeType)
+            {
+                CheckRestrictedTypeInAsyncMethod(
+                    originalBinder.ContainingMemberOrLambda,
+                    scopeType,
+                    diagnostics,
+                    exprSyntax,
+                    errorCode: ErrorCode.ERR_BadSpecialByRefLock);
+            }
 
             BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);

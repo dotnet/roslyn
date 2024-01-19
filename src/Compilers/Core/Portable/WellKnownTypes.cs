@@ -337,6 +337,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
+        System_Threading_Lock,
+        System_Threading_Lock__Scope,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -662,6 +665,9 @@ namespace Microsoft.CodeAnalysis
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
+
+            "System.Threading.Lock",
+            "System.Threading.Lock+Scope",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

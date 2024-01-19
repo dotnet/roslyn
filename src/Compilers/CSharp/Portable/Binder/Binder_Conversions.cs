@@ -279,6 +279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors && conversion.Exists)
                 {
                     ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
+
+                    if (conversion.Kind == ConversionKind.ImplicitReference &&
+                        source.Type is { } sourceType &&
+                        sourceType.IsWellKnownTypeLock())
+                    {
+                        diagnostics.Add(ErrorCode.WRN_ConvertingLock, source.Syntax);
+                    }
                 }
 
                 return new BoundConversion(
