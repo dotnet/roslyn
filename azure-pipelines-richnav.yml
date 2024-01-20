@@ -46,13 +46,20 @@ jobs:
   timeoutInMinutes: ${{ parameters.timeout }}
   variables:
     EnableRichCodeNavigation: true
+    Configuration: Debug
 
   steps:
     - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -restore -build -configuration Debug -prepareMachine
+        arguments: -ci -restore -build -configuration $(Configuration) -prepareMachine -pack /p:DotNetUseShippingVersions=true
+
+    - task: PowerShell@2
+      displayName: Get LSIF Package Version
+      inputs:
+        filePath: eng/set-package-version-variable.ps1
+        arguments: -folder $(Build.SourcesDirectory)/artifacts/packages/$(Configuration)/NonShipping -packageName Microsoft.CodeAnalysis.Lsif.Generator
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload
@@ -60,6 +67,9 @@ jobs:
         languages: 'csharp'
         environment: production
         richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
+        lsifToolFeed: $(Build.SourcesDirectory)/artifacts/packages/$(Configuration)/NonShipping
+        csharpVersion: $(MicrosoftCodeAnalysisLsifGeneratorPackageVersion)
+
       continueOnError: true
       env:
         DOTNET_ROOT: $(Build.SourcesDirectory)/.dotnet
