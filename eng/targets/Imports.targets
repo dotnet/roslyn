@@ -3,6 +3,7 @@
 <Project>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
+  <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -49,9 +50,6 @@
 
     <!--https://github.com/dotnet/sdk/issues/37826 -->
     <MSBuildWarningsAsMessages Condition="'$(OutputType)' == 'Library'">$(MSBuildWarningsAsMessages);NETSDK1206</MSBuildWarningsAsMessages>
-
-    <!-- Avoid running VSIX targets in WPF temp projects -->
-    <GetVsixSourceItemsDependsOn Condition="'$(IsWpfTempProject)' == 'true'"/>
   </PropertyGroup>
 
   <!--
