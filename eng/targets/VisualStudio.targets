@@ -4,7 +4,7 @@
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
-    
+
     <!-- 
       Transitive references get passed to all VS command line tools related to VSIX, VSCT, etc ... processsing. 
       These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
@@ -134,9 +134,9 @@
   </ItemGroup>
 
   <Target Name="_CheckDeploymentTargetVisualStudioVersion"
-		      Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
+          Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
           BeforeTargets="DeployVsixExtensionFiles"
-	       	DependsOnTargets="GetVsixDeploymentPath">
+          DependsOnTargets="GetVsixDeploymentPath">
 
     <Error Text="Deployment to Dev16 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
@@ -155,4 +155,12 @@
       <ExtensionJsonOutputGroupOutput Include="$(OutDir)\.vsextension\extension.json" Condition="Exists('$(OutDir)\.vsextension\extension.json')" TargetPath=".vsextension\extension.json" />
     </ItemGroup>
   </Target>
+
+  <!--
+    Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props creates content items for all files in .vsextension dir.
+    NuGet includes content items in package, by default but these items should only be included in the VSIX.
+  -->
+  <ItemGroup>
+    <Content Update=".vsextension\**\*" Pack="false" />
+  </ItemGroup>
 </Project>
