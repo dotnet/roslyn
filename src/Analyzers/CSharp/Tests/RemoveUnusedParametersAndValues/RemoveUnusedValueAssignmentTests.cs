@@ -1641,8 +1641,8 @@ $@"class C
 {{
     C M(C y, C z)
     {{
-        {fix} = M2();
         C x;
+        {fix} = M2();
         (x, y) = (y ?? z, z);
         return x;
     }}

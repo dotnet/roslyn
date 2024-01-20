@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -15,15 +15,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IFieldSymbol symbol)
             => true;
 
-        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IFieldSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return symbol.AssociatedSymbol != null
-                ? new(ImmutableArray.Create(symbol.AssociatedSymbol))
-                : new(ImmutableArray<ISymbol>.Empty);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+
+            await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
+
+            if (symbol.AssociatedSymbol != null)
+                symbols.Add(symbol.AssociatedSymbol);
+
+            return symbols.ToImmutable();
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var definitionToBackingField = CreateDefinitionToBackingFieldMap(propertyReferences);
 
             var q = from r in propertyReferences
-                    where r.Definition is IPropertySymbol
+                    where IsReplaceablePropertyReference(r, out _)
                     from loc in r.Locations
                     select (property: (IPropertySymbol)r.Definition, location: loc);
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             foreach (var reference in propertyReferences)
             {
-                if (reference.Definition is IPropertySymbol property)
+                if (IsReplaceablePropertyReference(reference, out var property))
                 {
                     var backingField = GetBackingField(property);
                     definitionToBackingField[property] = backingField;
@@ -131,6 +131,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             }
 
             return definitionToBackingField.ToImmutable();
+        }
+
+        private static bool IsReplaceablePropertyReference(ReferencedSymbol reference, [NotNullWhen(true)] out IPropertySymbol? property)
+        {
+            property = null;
+            if (reference.Definition is IPropertySymbol { ContainingType.IsAnonymousType: false } prop)
+                property = prop;
+            return property is not null;
         }
 
         private static bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
@@ -320,10 +328,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var result = new MultiDictionary<DocumentId, IPropertySymbol>();
             foreach (var referencedSymbol in referencedSymbols)
             {
+                if (!IsReplaceablePropertyReference(referencedSymbol, out var definition))
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var definition = referencedSymbol.Definition as IPropertySymbol;
-                if (definition?.DeclaringSyntaxReferences.Length > 0)
+                if (definition.DeclaringSyntaxReferences.Length > 0)
                 {
                     var syntax = await definition.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                     if (syntax != null)

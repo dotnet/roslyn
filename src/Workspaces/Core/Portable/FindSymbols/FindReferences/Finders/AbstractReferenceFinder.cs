@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -901,6 +904,142 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return result.ToImmutableAndClear();
+        }
+
+        protected static async ValueTask DiscoverImpliedSymbolsAsync(
+            TSymbol symbol, Solution solution, ArrayBuilder<ISymbol> symbolBuilder, CancellationToken cancellationToken)
+        {
+            var name = symbol.Name;
+
+            var symbolSet = PooledHashSet<ISymbol>.GetInstance();
+            var documentQueue = new ConcurrentQueue<Document>();
+            Task? documentProcessingTask = null;
+
+            foreach (var project in solution.Projects)
+            {
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (compilation is null)
+                    continue;
+
+                var allDocuments = await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                foreach (var document in allDocuments)
+                {
+                    if (!document.SupportsSemanticModel)
+                        continue;
+
+                    var treeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (treeIndex is null)
+                        continue;
+
+                    if (!treeIndex.ProbablyContainsIdentifier(name))
+                        continue;
+
+                    AskProcessDocumentForSymbols(document);
+                }
+            }
+
+            if (documentProcessingTask is not null)
+                await documentProcessingTask.ConfigureAwait(false);
+
+            symbolBuilder.AddRange(symbolSet);
+            symbolSet.Free();
+
+            void AskProcessDocumentForSymbols(Document document)
+            {
+                var trigger = documentQueue.IsEmpty;
+                documentQueue.Enqueue(document);
+                if (trigger)
+                {
+                    documentProcessingTask = Task.Run(ProcessQueuedDocumentsAsync, cancellationToken);
+                }
+            }
+
+            async ValueTask ProcessQueuedDocumentsAsync()
+            {
+                while (!documentQueue.IsEmpty)
+                {
+                    var dequeued = documentQueue.TryDequeue(out var document);
+                    if (!dequeued)
+                        break;
+
+                    var semanticModel = await document!.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
+
+                    Debug.Assert(semanticModel is not null);
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    if (root is null)
+                        continue;
+
+                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    // Instead of getting all symbols from the hash set, invoke this semantic operation in every node we encounter
+
+                    var allDocumentSymbols = semanticModel.GetAllDeclaredSymbols(root, cancellationToken);
+                    foreach (var descendantNode in root.DescendantNodes())
+                    {
+                        var documentSymbol = semanticModel.GetDeclaredSymbol(descendantNode, cancellationToken);
+                        if (documentSymbol is null)
+                            continue;
+
+                        if (documentSymbol is not ITypeSymbol documentTypeSymbol)
+                            continue;
+
+                        if (documentTypeSymbol.IsAnonymousType)
+                        {
+                            foreach (var property in documentTypeSymbol.GetValidAnonymousTypeProperties())
+                            {
+                                if (symbol.Name != property.Name)
+                                    continue;
+
+                                var propertyDeclarationSyntax = await property.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                                if (!syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(propertyDeclarationSyntax))
+                                    continue;
+
+                                var assignedExpression = syntaxFacts.GetAssignedExpressionForAnonymousTypeDeclarator(propertyDeclarationSyntax);
+                                if (assignedExpression is null)
+                                    continue;
+
+                                var symbolInfo = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken);
+                                var nestedSymbol = symbolInfo.Symbol;
+                                if (symbol.Equals(nestedSymbol))
+                                {
+                                    symbolSet.Add(property);
+                                }
+                            }
+                        }
+                        else if (documentTypeSymbol.IsTupleType)
+                        {
+                            foreach (var tupleMember in documentTypeSymbol.GetMembers(symbol.Name))
+                            {
+                                if (tupleMember is not IFieldSymbol)
+                                    continue;
+
+                                var tupleArgumentDeclarationSyntax = await tupleMember.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                                if (!syntaxFacts.IsInferredTupleMemberDeclarator(tupleArgumentDeclarationSyntax))
+                                    continue;
+
+                                var assignedExpression = syntaxFacts.GetAssignedExpressionForTupleMemberDeclarator(tupleArgumentDeclarationSyntax);
+                                if (assignedExpression is null)
+                                    continue;
+
+                                var symbolInfo = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken);
+                                var nestedSymbol = symbolInfo.Symbol;
+                                if (symbol.Equals(nestedSymbol))
+                                {
+                                    symbolSet.Add(tupleMember);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

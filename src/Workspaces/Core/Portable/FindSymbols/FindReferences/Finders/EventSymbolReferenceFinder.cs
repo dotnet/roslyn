@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -15,22 +16,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IEventSymbol symbol)
             => true;
 
-        protected sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IEventSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+
+            await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
+
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
-                                                     .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                                     .ToImmutableArray<ISymbol>();
+                                                     .Where(f => symbol.Equals(f.AssociatedSymbol));
+            symbols.AddRange(backingFields);
 
             var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                            .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
-                                                            .CastArray<ISymbol>();
+                                                            .Where(n => symbol.Equals(n.AssociatedSymbol));
+            symbols.AddRange(associatedNamedTypes);
 
-            return new(backingFields.Concat(associatedNamedTypes));
+            return symbols.ToImmutable();
         }
 
         protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
