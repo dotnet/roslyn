@@ -9,16 +9,16 @@ using System.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestHandlerProvider : AbstractHandlerProvider
+internal class TestHandlerProvider : IHandlerProvider
 {
     private readonly IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> _providers;
 
     public TestHandlerProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> providers)
         => _providers = providers;
 
-    public override IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string language)
-        => _providers.Single(p => p.metadata.MethodName == method && p.metadata.Language == language).provider;
+    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+        => _providers.Single(p => p.metadata.MethodName == method).provider;
 
-    public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
+    public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
         => _providers.Select(p => p.metadata).ToImmutableArray();
 }
