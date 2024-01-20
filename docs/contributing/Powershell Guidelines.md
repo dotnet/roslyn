@@ -113,7 +113,7 @@ Invoke-Expression "& $command $args"
 Exec-Command $command $args
 ```
 
-## Comarisons with null
+## Comparisons with null
 Whenever comparing with `$null` always make sure to put `$null` on the left hand side of the 
 operator. For non-collection types this doesn't really affect behavior. For collection types though
 having a collection on the left hand side changes the meaning of `-ne` and `-eq`. Instead of checking
