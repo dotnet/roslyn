@@ -294,7 +294,6 @@
     <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
-    
     <!--
       The version of Roslyn we build Source Generators against that are built in this
       repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
