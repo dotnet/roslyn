@@ -6,10 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    /// <summary>
+    /// NOTE: For Razor test usage only
+    /// </summary>
     internal interface IRazorLanguageServerFactoryWrapper
     {
         [Obsolete("Use the overload that takes a IRazorTestCapabilitiesProvider")]
@@ -27,5 +31,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             bool isGenerated = false,
             bool designTimeOnly = false,
             IRazorDocumentServiceProvider? razorDocumentServiceProvider = null);
+
+        /// <summary>
+        /// Supports the creation of a Roslyn LSP server for functional tests
+        /// </summary>
+        void AddJsonConverters(JsonSerializer jsonSerializer);
     }
 }

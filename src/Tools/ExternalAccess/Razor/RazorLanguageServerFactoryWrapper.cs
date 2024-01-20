@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 .WithDocumentServiceProvider(documentServiceProvider);
         }
 
+        public void AddJsonConverters(JsonSerializer jsonSerializer)
+        {
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonSerializer);
+        }
+
         private class RazorCapabilitiesProvider : ICapabilitiesProvider
         {
 #pragma warning disable CS0618 // Type or member is obsolete
