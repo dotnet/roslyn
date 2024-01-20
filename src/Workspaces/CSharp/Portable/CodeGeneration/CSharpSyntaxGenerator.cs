@@ -1478,12 +1478,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Virtual |
             DeclarationModifiers.Unsafe;
 
-        private static readonly DeclarationModifiers s_eventFieldModifiers =
-            DeclarationModifiers.New |
-            DeclarationModifiers.ReadOnly |
-            DeclarationModifiers.Static |
-            DeclarationModifiers.Unsafe;
-
         private static readonly DeclarationModifiers s_indexerModifiers =
             DeclarationModifiers.Abstract |
             DeclarationModifiers.Extern |
@@ -1577,8 +1571,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_indexerModifiers;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    return s_eventFieldModifiers;
-
                 case SyntaxKind.EventDeclaration:
                     return s_eventModifiers;
 

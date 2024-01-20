@@ -4644,6 +4644,48 @@ public class C : IDisposable
                 """);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66966")]
+        [InlineData("abstract")]
+        [InlineData("virtual")]
+        public void TestGenerateAbstractOrVirtualEvent(string modifier)
+        {
+            var comp = Compile(
+                $$"""public abstract class C { public {{modifier}} event System.EventHandler MyEvent; }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("MyEvent").First();
+
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                $$"""
+                public {{modifier}} event global::System.EventHandler MyEvent;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66966")]
+        public void TestGenerateSealedOrOverrideEvent()
+        {
+            var comp = Compile(
+                """
+                public abstract class C
+                {
+                    public abstract event System.EventHandler MyEvent;
+                }
+
+                public class C2 : C
+                {
+                    public sealed override event System.EventHandler MyEvent;
+                }
+                """);
+
+            var symbol = comp.GlobalNamespace.GetMembers("C2").First().GetMembers("MyEvent").First();
+
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public sealed override event global::System.EventHandler MyEvent;
+                """);
+        }
+
         #endregion
 
         #region DeclarationModifiers
