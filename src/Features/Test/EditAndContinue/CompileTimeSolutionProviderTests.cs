@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var designTimeFilePath = Path.Combine(TempRoot.Root, "a", $"X.{kind}.g.cs");
 
             var generator = new TestSourceGenerator() { ExecuteImpl = context => context.AddSource($"a_X_{kind}.g.cs", "") };
-            var sourceGeneratedPathPrefix = Path.Combine(typeof(TestSourceGenerator).Assembly.GetName().Name, typeof(TestSourceGenerator).FullName);
+            var sourceGeneratedPathPrefix = Path.Combine(typeof(TestSourceGenerator).Assembly.GetName().Name!, typeof(TestSourceGenerator).FullName);
             var analyzerConfigId = DocumentId.CreateNewId(projectId);
             var documentId = DocumentId.CreateNewId(projectId);
             var additionalDocumentId = DocumentId.CreateNewId(projectId);

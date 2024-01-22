@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return [];
+            return ImmutableArray<IMethodSymbol>.Empty;
         }
 
         public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return [];
+            return ImmutableArray<IMethodSymbol>.Empty;
         }
 
         private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (node == null)
-                return [];
+                return ImmutableArray<ISymbol>.Empty;
 
             return node switch
             {
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
             {
                 var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
-                return type is null ? [] : [type];
+                return type is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(type);
             }
         }
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
-                return [];
+                return ImmutableArray<ISymbol>.Empty;
 
             // If we're on 'var' then asking for the symbol-info will get us the symbol *without* nullability
             // information. Check for that, and try to return the type with nullability info if it has it.
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type.Equals(symbol, SymbolEqualityComparer.Default) &&
                     !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
                 {
-                    return [type];
+                    return ImmutableArray.Create<ISymbol>(type);
                 }
             }
 
