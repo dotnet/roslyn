@@ -1,42 +1,28 @@
 {
   "properties": {
-    "textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters": {
-      "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+    "textEditor.c#.intellisense.completion.dotnetTriggerCompletionOnTypingLetters": {
+      "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "default": "Current Document",
+      "default": true,
       "requiresRestart": false,
       "order": 0,
       "migration": {
-        "enumIntegerToString": {
+        "pass": {
           "input": {
             "store": "SettingsManager",
-            "path": "TextEditor.CSharp.Specific.BackgroundAnalysisScopeOption"
-          },
-          "map": [
-            {
-              "result": "None",
-              "match": 3
-            },
-            {
-              "result": "Current Document",
-              "match": 0
-            },
-            {
-              "result": "Open Documents",
-              "match": 1
-            },
-            {
-              "result": "Entire Solution",
-              "match": 2
-            }
-          ]
+            "path": "TextEditor.CSharp.Specific.TriggerOnTypingLetters"
+          }
         }
       }
     }
   },
-  "textEditor.c#.Intellisense": {
-    "title": "@103;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-    "helpUri": "TBD",
-    "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
+  "categories": {
+    "textEditor.c#": {
+    },
+    "textEditor.c#.intellisense": {
+      "title": "@103;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "helpUri": "TBD",
+      "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
+    }
   }
 }
