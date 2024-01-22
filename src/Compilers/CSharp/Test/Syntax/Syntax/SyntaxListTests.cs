@@ -240,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             newMethodDeclaration.AddAttributeLists(attributes);
         }
 
-        [Fact]
-        public void AddNamespaceAttributeListsAndModifiers()
+        [Theory, CombinatorialData]
+        public void AddNamespaceAttributeListsAndModifiers(bool collectionExpression)
         {
             var declaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("M"));
 
@@ -250,8 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             declaration = declaration.AddAttributeLists(new[]
             {
-                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
+                SyntaxFactory.AttributeList(collectionExpression
+                    ? [SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr"))]
+                    : SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
             });
 
             Assert.True(declaration.AttributeLists.Count == 1);
