@@ -44,15 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        public void TestSeparatedListInsert()
+        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        public void TestSeparatedListInsert(bool collectionExpression)
         {
-            TestSeparatedListInsertWorker(SyntaxFactory.SeparatedList<ExpressionSyntax>());
-            TestSeparatedListInsertWorker([]);
-        }
-
-        private void TestSeparatedListInsertWorker(SeparatedSyntaxList<ExpressionSyntax> list)
-        {
+            var list = collectionExpression
+                ? []
+                : SyntaxFactory.SeparatedList<ExpressionSyntax>();
             var addList = list.Insert(0, SyntaxFactory.ParseExpression("x"));
             Assert.Equal("x", addList.ToFullString());
 
