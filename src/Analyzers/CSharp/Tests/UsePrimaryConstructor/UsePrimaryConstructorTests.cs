@@ -4006,6 +4006,8 @@ public partial class UsePrimaryConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+                using System.Collections.Generic;
                 using System.Reflection;
 
                 public class C
