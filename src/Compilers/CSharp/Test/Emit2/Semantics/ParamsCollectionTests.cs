@@ -6197,8 +6197,8 @@ class Program
             VerifyParamAttribute(test1, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true);
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true);
@@ -6211,8 +6211,8 @@ class Program
             test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true);
@@ -6320,8 +6320,8 @@ class Program
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
@@ -6335,8 +6335,8 @@ class Program
             test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
@@ -6444,8 +6444,8 @@ class Program
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
@@ -6459,8 +6459,8 @@ class Program
             test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
             VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
@@ -6562,8 +6562,8 @@ class Program
             VerifyParamAttribute(test1, isParamArray: true);
             VerifyParamAttribute(test2, isParamCollection: true);
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true);
             VerifyParamAttribute(test2, isParamCollection: true);
@@ -6576,8 +6576,8 @@ class Program
             test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            test1.GetAttributes();
-            test2.GetAttributes();
+            Assert.Empty(test1.GetAttributes());
+            Assert.Empty(test2.GetAttributes());
 
             VerifyParamAttribute(test1, isParamArray: true);
             VerifyParamAttribute(test2, isParamCollection: true);
