@@ -1719,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (modifiers.IsPartial)
                 list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
 
-            return SyntaxFactory.TokenList(list);
+            return [.. list];
         }
 
         private protected override SyntaxNode TypeParameter(string name)

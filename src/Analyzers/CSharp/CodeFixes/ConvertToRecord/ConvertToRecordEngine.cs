@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                         tokens = tokens.Replace(tokens[^1], tokens[^1].WithoutLeadingTrivia());
                                     }
 
-                                    return text.WithTextTokens(SyntaxFactory.TokenList(tokens));
+                                    return text.WithTextTokens([.. tokens]);
                                 }
                                 return node;
                             }).AsImmutable();

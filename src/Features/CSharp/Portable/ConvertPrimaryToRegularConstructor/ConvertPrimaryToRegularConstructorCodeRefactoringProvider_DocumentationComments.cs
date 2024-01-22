@@ -101,7 +101,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             else
             {
                 // Otherwise, replace with newlines stripped.
-                content[^1] = xmlText.WithTextTokens(TokenList(tokens.Take(lastIndex)));
+                content[^1] = xmlText.WithTextTokens([.. tokens.Take(lastIndex)]);
             }
         }
     }
