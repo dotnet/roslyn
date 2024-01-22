@@ -44,11 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         public void TestSeparatedListInsert()
         {
-            var list = SyntaxFactory.SeparatedList<ExpressionSyntax>();
+            TestSeparatedListInsertWorker(SyntaxFactory.SeparatedList<ExpressionSyntax>());
+            TestSeparatedListInsertWorker([]);
+        }
+
+        private void TestSeparatedListInsertWorker(SeparatedSyntaxList<ExpressionSyntax> list)
+        {
             var addList = list.Insert(0, SyntaxFactory.ParseExpression("x"));
             Assert.Equal("x", addList.ToFullString());
 
@@ -227,6 +231,7 @@ c,b", insertAfterEOL.ToFullString());
         public void TestAddInsertRemoveOnEmptyList()
         {
             DoTestAddInsertRemoveOnEmptyList(SyntaxFactory.SeparatedList<SyntaxNode>());
+            DoTestAddInsertRemoveOnEmptyList([]);
             DoTestAddInsertRemoveOnEmptyList(default(SeparatedSyntaxList<SyntaxNode>));
         }
 
