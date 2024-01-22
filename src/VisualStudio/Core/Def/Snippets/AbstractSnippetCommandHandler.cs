@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -36,21 +35,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
         private readonly EditorOptionsService _editorOptionsService;
-        private readonly SVsServiceProvider _serviceProvider;
+        private readonly IVsService<IVsTextManager2> _textManager;
 
         public string DisplayName => FeaturesResources.Snippets;
 
         public AbstractSnippetCommandHandler(
             IThreadingContext threadingContext,
             EditorOptionsService editorOptionsService,
-            SVsServiceProvider serviceProvider)
+            IVsService<IVsTextManager2> textManager)
             : base(threadingContext)
         {
             _editorOptionsService = editorOptionsService;
-            _serviceProvider = serviceProvider;
+            _textManager = textManager;
         }
 
-        protected abstract ISnippetExpansionClientFactory GetSnippetExpansionClientFactory();
+        protected ISnippetExpansionClientFactory GetSnippetExpansionClientFactory(Document document)
+            => document.GetRequiredLanguageService<ISnippetExpansionClientFactory>();
+
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
         protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
@@ -287,12 +288,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            return GetSnippetExpansionClientFactory().GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
+            return GetSnippetExpansionClientFactory(document).GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)
         {
-            var textManager = (IVsTextManager2)_serviceProvider.GetService(typeof(SVsTextManager));
+            var textManager = ThreadingContext.JoinableTaskFactory.Run(() => _textManager.GetValueOrNullAsync(CancellationToken.None));
             if (textManager == null)
             {
                 expansionManager = null;

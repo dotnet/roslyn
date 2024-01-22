@@ -3,12 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
@@ -17,7 +17,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.TextManager.Interop
@@ -34,24 +33,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits AbstractSnippetCommandHandler
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
-        Private ReadOnly _expansionClientFactory As Lazy(Of ISnippetExpansionClientFactory)
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
             threadingContext As IThreadingContext,
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-            serviceProvider As SVsServiceProvider,
-            editorOptionsService As EditorOptionsService,
-            workspace As Lazy(Of VisualStudioWorkspace))
-            MyBase.New(threadingContext, editorOptionsService, serviceProvider)
+            textManager As IVsService(Of SVsTextManager, IVsTextManager2),
+            editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext, editorOptionsService, textManager)
             _editorAdaptersFactoryService = editorAdaptersFactoryService
-            _expansionClientFactory = New Lazy(Of ISnippetExpansionClientFactory)(
-                Function()
-                    Return workspace.Value.Services _
-                        .GetLanguageServices(LanguageNames.VisualBasic) _
-                        .GetRequiredService(Of ISnippetExpansionClientFactory)()
-                End Function)
         End Sub
 
         Protected Overrides Function IsSnippetExpansionContext(document As Document, startPosition As Integer, cancellationToken As CancellationToken) As Boolean
@@ -62,10 +53,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 Not syntaxTree.FindTokenOnRightOfPosition(startPosition, cancellationToken).HasAncestor(Of XmlElementSyntax)()
         End Function
 
-        Protected Overrides Function GetSnippetExpansionClientFactory() As ISnippetExpansionClientFactory
-            Return _expansionClientFactory.Value
-        End Function
-
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean
             Debug.Assert(Not surroundWith)
 
@@ -74,9 +61,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 Return False
             End If
 
+            Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            If document Is Nothing Then
+                Return False
+            End If
+
             expansionManager.InvokeInsertionUI(
                 _editorAdaptersFactoryService.GetViewAdapter(textView),
-                GetSnippetExpansionClientFactory().GetSnippetExpansionClient(textView, subjectBuffer),
+                GetSnippetExpansionClientFactory(document).GetSnippetExpansionClient(textView, subjectBuffer),
                 Guids.VisualBasicDebuggerLanguageId,
                 bstrTypes:=Nothing,
                 iCountTypes:=0,

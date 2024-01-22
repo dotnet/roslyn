@@ -541,10 +541,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspaceFixture.Target.CurrentDocument.Id);
             var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
             var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
-            customCommitCompletionProvider.Commit(completionItem, textView, textBuffer, textView.TextSnapshot, commitChar);
+            customCommitCompletionProvider.Commit(completionItem, document, textView, textBuffer, textView.TextSnapshot, commitChar);
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = textView.Caret.Position.BufferPosition.Position;

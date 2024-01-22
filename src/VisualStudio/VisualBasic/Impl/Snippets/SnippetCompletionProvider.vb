@@ -26,17 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
-        Private ReadOnly _expansionClientFactory As Lazy(Of ISnippetExpansionClientFactory)
-
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(workspace As Lazy(Of VisualStudioWorkspace))
-            _expansionClientFactory = New Lazy(Of ISnippetExpansionClientFactory)(
-                Function()
-                    Return workspace.Value.Services _
-                        .GetLanguageServices(LanguageNames.VisualBasic) _
-                        .GetRequiredService(Of ISnippetExpansionClientFactory)()
-                End Function)
+        Public Sub New()
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -102,11 +94,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
 
         Public Sub Commit(completionItem As CompletionItem,
+                          document As Document,
                           textView As ITextView,
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = _expansionClientFactory.Value.GetSnippetExpansionClient(textView, subjectBuffer)
+            Dim expansionClientFactory = document.GetRequiredLanguageService(Of ISnippetExpansionClientFactory)()
+            Dim snippetClient = expansionClientFactory.GetSnippetExpansionClient(textView, subjectBuffer)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

@@ -3,11 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -16,14 +18,13 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports Moq
+Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
@@ -34,43 +35,64 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             ' Remove the default completion presenters to prevent them from conflicting with the test one
             ' that we are adding.
             MyBase.New(workspaceElement,
-                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider), GetType(StubVsEditorAdaptersFactoryService)}.Concat(If(extraParts, {})).ToList(),
+                       extraExportedTypes:=AugmentExtraTypesForSnippetTests(extraParts),
                        workspaceKind:=workspaceKind,
-                       excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
+                       excludedTypes:=AugmentExcludedTypesForSnippetTests(excludedTypes),
                        includeFormatCommandHandler:=False)
 
             Workspace.GlobalOptions.SetGlobalOption(SnippetsOptionsStorage.Snippets, True)
 
-            Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
-            mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
+            Dim snippetCommandHandler As ICommandHandler
+            If languageName = LanguageNames.CSharp Then
+                snippetCommandHandler = Workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().Single(
+                    Function(commandHandler)
+                        Return TryCast(commandHandler, CSharp.Snippets.SnippetCommandHandler) IsNot Nothing
+                    End Function)
+            Else
+                snippetCommandHandler = Workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().Single(
+                    Function(commandHandler)
+                        Return TryCast(commandHandler, VisualBasic.Snippets.SnippetCommandHandler) IsNot Nothing
+                    End Function)
+            End If
 
-            Dim globalOptions = Workspace.GetService(Of IGlobalOptionService)
+            Me.SnippetCommandHandler = DirectCast(snippetCommandHandler, AbstractSnippetCommandHandler)
+
             Dim editorOptionsService = Workspace.GetService(Of EditorOptionsService)()
-            Dim indentationManager = Workspace.GetService(Of IIndentationManagerService)()
+            Dim snippetExpansionClientFactory = Workspace.Services.GetLanguageServices(languageName).GetRequiredService(Of ISnippetExpansionClientFactory)()
+            SnippetExpansionClient = CType(snippetExpansionClientFactory.GetSnippetExpansionClient(TextView, SubjectBuffer), MockSnippetExpansionClient)
 
-            SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
-                DirectCast(New CSharp.Snippets.SnippetCommandHandler(
-                    Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
-                    mockSVsServiceProvider.Object,
-                    editorOptionsService,
-                    Workspace.ExportProvider.GetExport(Of VisualStudioWorkspace)), AbstractSnippetCommandHandler),
-                New VisualBasic.Snippets.SnippetCommandHandler(
-                    Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
-                    mockSVsServiceProvider.Object,
-                    editorOptionsService,
-                    Workspace.ExportProvider.GetExport(Of VisualStudioWorkspace)))
-
-            SnippetExpansionClient = New MockSnippetExpansionClient(
-                Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                startActiveSession,
-                If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId),
-                TextView,
-                SubjectBuffer,
-                editorOptionsService)
-            TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
+            If startActiveSession Then
+                SnippetExpansionClient.TryHandleTabReturnValue = True
+                SnippetExpansionClient.TryHandleBackTabReturnValue = True
+                SnippetExpansionClient.TryHandleEscapeReturnValue = True
+                SnippetExpansionClient.TryHandleReturnReturnValue = True
+            End If
         End Sub
+
+        Private Shared Function AugmentExtraTypesForSnippetTests(extraParts As IEnumerable(Of Type)) As IEnumerable(Of Type)
+            Return If(extraParts, Type.EmptyTypes).Concat(
+                {
+                    GetType(TestSignatureHelpPresenter),
+                    GetType(IntelliSenseTestState),
+                    GetType(MockCompletionPresenterProvider),
+                    GetType(StubVsEditorAdaptersFactoryService),
+                    GetType(CSharp.Snippets.SnippetCommandHandler),
+                    GetType(MockCSharpSnippetExpansionClientFactory),
+                    GetType(VisualBasic.Snippets.SnippetCommandHandler),
+                    GetType(MockVisualBasicSnippetExpansionClientFactory),
+                    GetType(MockServiceProvider),
+                    GetType(StubVsServiceExporter(Of )),
+                    GetType(StubVsServiceExporter(Of ,))
+                })
+        End Function
+
+        Private Shared Function AugmentExcludedTypesForSnippetTests(excludedTypes As IEnumerable(Of Type)) As IEnumerable(Of Type)
+            Return If(excludedTypes, Type.EmptyTypes).Concat(
+                {
+                    GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                    GetType(FormatCommandHandler)
+                })
+        End Function
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
 
@@ -141,31 +163,117 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Sub
         End Class
 
+        <ExportLanguageService(GetType(ISnippetExpansionClientFactory), LanguageNames.CSharp, ServiceLayer.Test)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend Class MockCSharpSnippetExpansionClientFactory
+            Inherits AbstractSnippetExpansionClientFactory
+
+            Private ReadOnly _threadingContext As IThreadingContext
+            Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
+            Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
+            Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
+            Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+            Private ReadOnly _editorOptionsService As EditorOptionsService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(
+            threadingContext As IThreadingContext,
+            signatureHelpControllerProvider As SignatureHelpControllerProvider,
+            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+            editorOptionsService As EditorOptionsService)
+
+                _threadingContext = threadingContext
+                _signatureHelpControllerProvider = signatureHelpControllerProvider
+                _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
+                _editorAdaptersFactoryService = editorAdaptersFactoryService
+                _argumentProviders = argumentProviders.ToImmutableArray()
+                _editorOptionsService = editorOptionsService
+            End Sub
+
+            Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
+                Return New MockSnippetExpansionClient(
+                _threadingContext,
+                Guids.CSharpLanguageServiceId,
+                textView,
+                subjectBuffer,
+                _signatureHelpControllerProvider,
+                _editorCommandHandlerServiceFactory,
+                _editorAdaptersFactoryService,
+                _argumentProviders,
+                _editorOptionsService)
+            End Function
+        End Class
+
+        <ExportLanguageService(GetType(ISnippetExpansionClientFactory), LanguageNames.VisualBasic, ServiceLayer.Test)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend Class MockVisualBasicSnippetExpansionClientFactory
+            Inherits AbstractSnippetExpansionClientFactory
+
+            Private ReadOnly _threadingContext As IThreadingContext
+            Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
+            Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
+            Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
+            Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+            Private ReadOnly _editorOptionsService As EditorOptionsService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(
+            threadingContext As IThreadingContext,
+            signatureHelpControllerProvider As SignatureHelpControllerProvider,
+            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+            editorOptionsService As EditorOptionsService)
+
+                _threadingContext = threadingContext
+                _signatureHelpControllerProvider = signatureHelpControllerProvider
+                _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
+                _editorAdaptersFactoryService = editorAdaptersFactoryService
+                _argumentProviders = argumentProviders.ToImmutableArray()
+                _editorOptionsService = editorOptionsService
+            End Sub
+
+            Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
+                Return New MockSnippetExpansionClient(
+                _threadingContext,
+                Guids.VisualBasicDebuggerLanguageId,
+                textView,
+                subjectBuffer,
+                _signatureHelpControllerProvider,
+                _editorCommandHandlerServiceFactory,
+                _editorAdaptersFactoryService,
+                _argumentProviders,
+                _editorOptionsService)
+            End Function
+        End Class
+
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
 
             Public Sub New(threadingContext As IThreadingContext,
-                           startActiveSession As Boolean,
                            languageServiceGuid As Guid,
                            textView As ITextView,
                            subjectBuffer As ITextBuffer,
+                           signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                           editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                           editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                           argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
                            editorOptionsService As EditorOptionsService)
                 MyBase.New(threadingContext,
                            languageServiceGuid,
                            textView,
                            subjectBuffer,
-                           signatureHelpControllerProvider:=Nothing,
-                           editorCommandHandlerServiceFactory:=Nothing,
-                           Nothing,
-                           ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty,
+                           signatureHelpControllerProvider,
+                           editorCommandHandlerServiceFactory,
+                           editorAdaptersFactoryService,
+                           argumentProviders,
                            editorOptionsService)
-
-                If startActiveSession Then
-                    TryHandleTabReturnValue = True
-                    TryHandleBackTabReturnValue = True
-                    TryHandleEscapeReturnValue = True
-                    TryHandleReturnReturnValue = True
-                End If
             End Sub
 
             Public Property TryHandleReturnCalled As Boolean

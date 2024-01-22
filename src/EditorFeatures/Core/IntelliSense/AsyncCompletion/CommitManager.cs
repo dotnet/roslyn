@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var provider = completionService.GetProvider(roslynItem, document.Project);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
-                customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
+                customCommitProvider.Commit(roslynItem, document, view, subjectBuffer, triggerSnapshot, commitCharacter);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
