@@ -1199,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
                 var receiver = new BoundDisposableValuePlaceholder(syntax, enumeratorType);
-                patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, BindingDiagnosticBag.Discarded);
+                patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, BindingDiagnosticBag.Discarded, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
                     Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
@@ -1207,9 +1207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
-
-                    // PROTOTYPE(ParamsCollections): Test this code path
-                    bool expanded = patternDisposeMethod.HasParamsParameter();
 
                     BindDefaultArgumentsAndParamsCollection(
                         syntax,

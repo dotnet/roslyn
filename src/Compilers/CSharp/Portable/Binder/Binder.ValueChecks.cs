@@ -4795,7 +4795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                             TypeWithAnnotations.Create(elementAccess.Expression.Type),
                                                             ImmutableArray<CustomModifier>.Empty,
-                                                            isParams: false,
+                                                            isParamArray: false,
+                                                            isParamCollection: false,
                                                             parameterRefKind
                                                             )),
                 resultRefKind,
@@ -4834,7 +4835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                             TypeWithAnnotations.Create(inlineArray.Type),
                                                             ImmutableArray<CustomModifier>.Empty,
-                                                            isParams: false,
+                                                            isParamArray: false,
+                                                            isParamCollection: false,
                                                             parameterRefKind
                                                             )),
                 RefKind.None,

@@ -639,6 +639,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
                     case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
+                    case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1019,6 +1020,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

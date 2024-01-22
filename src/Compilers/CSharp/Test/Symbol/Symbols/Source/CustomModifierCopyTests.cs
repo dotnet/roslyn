@@ -530,11 +530,23 @@ public class Derived2 : Derived
             var derived2N = derived2Class.GetMember<MethodSymbol>("N");
 
             Assert.True(baseM.Parameters.Single().IsParams, "Base.M.IsParams should be true");
+            Assert.True(baseM.Parameters.Single().IsParamArray, "Base.M.IsParams should be true");
+            Assert.False(baseM.Parameters.Single().IsParamCollection);
             Assert.False(baseN.Parameters.Single().IsParams, "Base.N.IsParams should be false");
+            Assert.False(baseN.Parameters.Single().IsParamArray, "Base.N.IsParams should be false");
+            Assert.False(baseN.Parameters.Single().IsParamCollection);
             Assert.True(derivedM.Parameters.Single().IsParams, "Derived.M.IsParams should be true"); //NB: does not reflect source
+            Assert.True(derivedM.Parameters.Single().IsParamArray, "Derived.M.IsParams should be true"); //NB: does not reflect source
+            Assert.False(derivedM.Parameters.Single().IsParamCollection);
             Assert.False(derivedN.Parameters.Single().IsParams, "Derived.N.IsParams should be false"); //NB: does not reflect source
+            Assert.False(derivedN.Parameters.Single().IsParamArray, "Derived.N.IsParams should be false"); //NB: does not reflect source
+            Assert.False(derivedN.Parameters.Single().IsParamCollection);
             Assert.True(derived2M.Parameters.Single().IsParams, "Derived2.M.IsParams should be true");
+            Assert.True(derived2M.Parameters.Single().IsParamArray, "Derived2.M.IsParams should be true");
+            Assert.False(derived2M.Parameters.Single().IsParamCollection);
             Assert.False(derived2N.Parameters.Single().IsParams, "Derived2.N.IsParams should be false");
+            Assert.False(derived2N.Parameters.Single().IsParamArray, "Derived2.N.IsParams should be false");
+            Assert.False(derived2N.Parameters.Single().IsParamCollection);
         }
 
         /// <summary>
@@ -689,11 +701,23 @@ public class Derived2 : Derived
             var derived2Indexer2 = (PropertySymbol)derived2Class.GetMembers().Where(IsPropertyWithSingleParameter(SpecialType.System_Int64, isArrayType: true)).Single();
 
             Assert.True(baseIndexer1.Parameters.Single().IsParams, "Base.Indexer1.IsParams should be true");
+            Assert.True(baseIndexer1.Parameters.Single().IsParamArray, "Base.Indexer1.IsParams should be true");
+            Assert.False(baseIndexer1.Parameters.Single().IsParamCollection);
             Assert.False(baseIndexer2.Parameters.Single().IsParams, "Base.Indexer2.IsParams should be false");
+            Assert.False(baseIndexer2.Parameters.Single().IsParamArray, "Base.Indexer2.IsParams should be false");
+            Assert.False(baseIndexer2.Parameters.Single().IsParamCollection);
             Assert.True(derivedIndexer1.Parameters.Single().IsParams, "Derived.Indexer1.IsParams should be true"); //Indexer2B: does not reflect source
+            Assert.True(derivedIndexer1.Parameters.Single().IsParamArray, "Derived.Indexer1.IsParams should be true"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer1.Parameters.Single().IsParamCollection);
             Assert.False(derivedIndexer2.Parameters.Single().IsParams, "Derived.Indexer2.IsParams should be false"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer2.Parameters.Single().IsParamArray, "Derived.Indexer2.IsParams should be false"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer2.Parameters.Single().IsParamCollection);
             Assert.True(derived2Indexer1.Parameters.Single().IsParams, "Derived2.Indexer1.IsParams should be true");
+            Assert.True(derived2Indexer1.Parameters.Single().IsParamArray, "Derived2.Indexer1.IsParams should be true");
+            Assert.False(derived2Indexer1.Parameters.Single().IsParamCollection);
             Assert.False(derived2Indexer2.Parameters.Single().IsParams, "Derived2.Indexer2.IsParams should be false");
+            Assert.False(derived2Indexer2.Parameters.Single().IsParamArray, "Derived2.Indexer2.IsParams should be false");
+            Assert.False(derived2Indexer2.Parameters.Single().IsParamCollection);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]

@@ -126,6 +126,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property IsParamArray As Boolean Implements IParameterSymbol.IsParams
 
+        Private ReadOnly Property IsParamCollection As Boolean Implements IParameterSymbol.IsParamCollection
+            Get
+                Return False
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this parameter was declared as Optional. 
         ''' </summary>

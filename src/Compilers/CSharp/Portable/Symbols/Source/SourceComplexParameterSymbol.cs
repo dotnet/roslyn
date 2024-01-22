@@ -1500,7 +1500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
 
-        public sealed override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
+        public sealed override bool IsParamArray => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0 && this.parameterType.IsSZArray();
+
+        public sealed override bool IsParamCollection => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0 && !this.parameterType.IsSZArray();
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 

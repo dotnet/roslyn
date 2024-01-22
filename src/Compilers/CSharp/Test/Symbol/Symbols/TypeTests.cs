@@ -1572,6 +1572,8 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.True(paras[0].IsOptional);
             Assert.True(paras[1].IsParams);
+            Assert.True(paras[1].IsParamArray);
+            Assert.False(paras[1].IsParamCollection);
             memType = paras[0].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Double), memType.GetNullableUnderlyingType());
             memType = paras[1].Type;

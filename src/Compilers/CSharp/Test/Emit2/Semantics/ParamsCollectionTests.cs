@@ -4,8 +4,11 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,6 +20,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
+        private const string ParamCollectionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class ParamCollectionAttribute : Attribute
+    {
+        public ParamCollectionAttribute() { }
+    }
+}
+";
+
+        private static void VerifyParamAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
+        {
+            VerifyParams(parameter, isParamArray: isParamArray, isParamCollection: isParamCollection);
+
+            var peParameter = (PEParameterSymbol)parameter;
+            PEModule module = ((PEModuleSymbol)peParameter.ContainingModule).Module;
+
+            Assert.Equal(isParamArray, module.HasParamArrayAttribute(peParameter.Handle));
+            Assert.Equal(isParamCollection, module.HasParamCollectionAttribute(peParameter.Handle));
+        }
+
+        private static void VerifyParams(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
+        {
+            Assert.Equal(isParamArray, parameter.IsParamArray);
+            Assert.Equal(isParamCollection, parameter.IsParamCollection);
+            Assert.Equal(isParamArray | isParamCollection, parameter.IsParams);
+        }
+
+        private static void VerifyParams(IParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
+        {
+            VerifyParams(parameter.GetSymbol<ParameterSymbol>(), isParamArray: isParamArray, isParamCollection: isParamCollection);
+        }
+
         private static string ExpectedOutput(string output)
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -53,13 +89,21 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                             Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
                             : Verification.Skipped,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: ExpectedOutput(@"
 0
 1: 1 ... 1
@@ -229,11 +273,19 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: ExpectedOutput(@"
 0
 1: 1 ... 1
@@ -482,11 +534,19 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: ExpectedOutput(@"
 0
 1: 1 ... 1
@@ -621,11 +681,19 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: @"
 0
 1: 1 ... 1
@@ -823,10 +891,18 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: @"
 0
 1: 1 ... 1
@@ -996,11 +1072,19 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                sourceSymbolValidator: static (m) =>
+                {
+                    VerifyParams(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
+                symbolValidator: static (m) =>
+                {
+                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                },
                 expectedOutput: ExpectedOutput(@"
 0
 1: 1 ... 1
@@ -1107,20 +1191,283 @@ class Program
         }
 
         [Fact]
-        public void WRN_ParamsArrayInLambdaOnly()
+        public void WRN_ParamsArrayInLambdaOnly_01()
         {
             var src = """
 using System.Collections.Generic;
 
-System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
+class Program
+{
+    static void Main()
+    {
+        System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
+        l(null);
+    }
+}
 """;
-            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+
+            CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamAttribute(l1.Parameters.Last());
+
+                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                }).VerifyDiagnostics(
+                    // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                    //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
+                    Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 72)
+                    );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single());
+            AssertEx.Equal("params System.Collections.Generic.IEnumerable<System.Int64> x", parameter.ToTestDisplayString());
+            VerifyParams(parameter, isParamCollection: true);
+
+            var src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Action<long[]> l = (params long[] x) => {};
+        l(null);
+    }
+}
+""";
+
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe);
+
+            comp.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
 
             comp.VerifyDiagnostics(
-                // (3,64): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
-                // System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(3, 64)
+                // (5,36): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //         System.Action<long[]> l = (params long[] x) => {};
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(5, 36),
+                // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         System.Action<long[]> l = (params long[] x) => {};
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(5, 50)
                 );
+
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            tree = comp.SyntaxTrees.Single();
+            model = comp.GetSemanticModel(tree);
+
+            parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single());
+            AssertEx.Equal("params System.Int64[] x", parameter.ToTestDisplayString());
+            VerifyParams(parameter, isParamArray: true);
+
+            CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamAttribute(l1.Parameters.Last());
+                }).VerifyDiagnostics(
+                    // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                    //         System.Action<long[]> l = (params long[] x) => {};
+                    Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(5, 50)
+                    );
+        }
+
+        [Fact]
+        public void WRN_ParamsArrayInLambdaOnly_02()
+        {
+            // public delegate void D1([ParamArrayAttribute] IEnumerable<int> args);
+            // public delegate void D2([ParamCollectionAttribute] int[] args);
+            var il = @"
+.class public auto ansi sealed D1
+    extends [mscorlib]System.MulticastDelegate
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            object 'object',
+            native int 'method'
+        ) runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance void Invoke (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> args
+        ) runtime managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+    }
+}
+
+.class public auto ansi sealed D2
+    extends [mscorlib]System.MulticastDelegate
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            object 'object',
+            native int 'method'
+        ) runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance void Invoke (
+            int32[] args
+        ) runtime managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        D1 l1 = (params IEnumerable<int> x) => {};
+        D2 l2 = (params int[] x) => {};
+        l1 = (IEnumerable<int> x) => {};
+        l2 = (int[] x) => {};
+        l1(null);
+        l2(null);
+    }
+}
+""";
+            CreateCompilationWithIL(src, il).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WRN_ParamsArrayInLambdaOnly_03()
+        {
+            var src = """
+using System.Collections.Generic;
+
+public delegate void D1(params IEnumerable<int> args);
+public delegate void D2(params int[] args);
+
+class Program
+{
+    static void Main()
+    {
+        D1 l1 = (params IEnumerable<int> x) => {};
+        D2 l2 = (params int[] x) => {};
+        l1 = (IEnumerable<int> x) => {};
+        l2 = (int[] x) => {};
+        l1(null);
+        l2(null);
+    }
+}
+""";
+            CreateCompilation(src).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParamCollectionInLocalFunctionOnly()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        void local (params IEnumerable<long> x) {};
+        local(1);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+
+            CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamAttribute(l1.Parameters.Last());
+
+                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                }).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single());
+            AssertEx.Equal("params System.Collections.Generic.IEnumerable<System.Int64> x", parameter.ToTestDisplayString());
+            VerifyParams(parameter, isParamCollection: true);
+
+            var src2 = """
+class Program
+{
+    static void Main()
+    {
+        void local (params long[] x) {};
+        local(1);
+    }
+}
+""";
+
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe);
+
+            comp.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+
+            comp.VerifyDiagnostics(
+                // (5,21): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //         void local (params long[] x) {};
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params long[] x").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(5, 21)
+                );
+
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            tree = comp.SyntaxTrees.Single();
+            model = comp.GetSemanticModel(tree);
+
+            parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single());
+            AssertEx.Equal("params System.Int64[] x", parameter.ToTestDisplayString());
+            VerifyParams(parameter, isParamArray: true);
+
+            CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamAttribute(l1.Parameters.Last());
+                }).VerifyDiagnostics();
         }
 
         [Theory]
@@ -2061,6 +2408,7 @@ class Program2
                 var parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First());
                 AssertEx.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
                 Assert.False(parameter.IsParams);
+                Assert.False(parameter.IsParamCollection);
 
                 CompileAndVerify(comp2,
                     symbolValidator: (m) =>
@@ -2068,8 +2416,7 @@ class Program2
                         var lambda = m.GlobalNamespace.GetMember<MethodSymbol>("Program1.<>c.<Test1>b__0_0");
                         ParameterSymbol parameter = lambda.Parameters.Single();
 
-                        Assert.False(parameter.IsParams);
-                        WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameter, expected: false);
+                        VerifyParamAttribute(parameter);
                         Assert.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
                     }
                     ).VerifyDiagnostics(); // No language version diagnostics as expected. The 'params' modifier doesn't even make it to symbol and metadata.
@@ -2079,13 +2426,14 @@ class Program2
         [Fact]
         public void DelegateNaturalType_01()
         {
-            var src = @"
+            var src1 = @"
 public class Params
 {
     static public void Test1(params System.ReadOnlySpan<long> a) { System.Console.WriteLine(a.Length); }
     static public void Test2(params long[] a) { System.Console.WriteLine(a.Length); }
 }
-
+";
+            var src2 = @"
 class Program
 {
     static void Main()
@@ -2101,17 +2449,54 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            verify(comp, attributeIsEmbedded: true);
 
-            CompileAndVerify(
-                comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
-                expectedOutput: ExpectedOutput(@"
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            verify(comp2, attributeIsEmbedded: true);
+
+            var comp3 = CreateCompilation(src1 + ParamCollectionAttributeSource, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var comp4 = CreateCompilation(src2, references: [comp3.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            verify(comp4, attributeIsEmbedded: false);
+
+            var comp5 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseModule);
+            comp5.VerifyDiagnostics();
+
+            void verify(CSharpCompilation comp, bool attributeIsEmbedded)
+            {
+                // We want to test attribute embedding 
+                Assert.Equal(attributeIsEmbedded, comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor) is null);
+
+                CompileAndVerify(
+                    comp,
+                    verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                    symbolValidator: (m) =>
+                    {
+                        MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+
+                        MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+
+                        if (attributeIsEmbedded)
+                        {
+                            Assert.NotNull(m.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+                        }
+                        else
+                        {
+                            Assert.Empty(m.GlobalNamespace.GetMembers("System"));
+                        }
+                    },
+                    expectedOutput: ExpectedOutput(@"
 1
 1
 0
 0
 ")).VerifyDiagnostics();
+            }
         }
 
         [Fact]
@@ -2133,17 +2518,57 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp, attributeIsEmbedded: true);
 
-            CompileAndVerify(
-                comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
-                expectedOutput: ExpectedOutput(@"
+            var comp1 = CreateCompilation(ParamCollectionAttributeSource, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation(src, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp2, attributeIsEmbedded: false);
+
+            void verify(CSharpCompilation comp, bool attributeIsEmbedded)
+            {
+                // We want to test attribute embedding 
+                Assert.Equal(attributeIsEmbedded, comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor) is null);
+
+                CompileAndVerify(
+                    comp,
+                    verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                    symbolValidator: (m) =>
+                    {
+                        MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+
+                        MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+
+                        // Note, no attributes on lambdas
+
+                        MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamAttribute(l1.Parameters.Last());
+
+                        MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamAttribute(l2.Parameters.Last());
+
+                        if (attributeIsEmbedded)
+                        {
+                            Assert.NotNull(m.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+                        }
+                        else
+                        {
+                            Assert.Empty(m.GlobalNamespace.GetMembers("System"));
+                        }
+                    },
+                    expectedOutput: ExpectedOutput(@"
 1
 1
 0
 0
 ")).VerifyDiagnostics();
+            }
         }
 
         [Fact]
@@ -2222,6 +2647,145 @@ Action
 <>f__AnonymousDelegate2`1[System.Int64]
  True
 ")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DelegateNaturalType_04()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var x1 = Test1;
+        var x2 = Test2;
+
+        x1(1);
+        x2(2);
+
+        x1();
+        x2();
+
+        static void Test1(params System.ReadOnlySpan<long> a) { System.Console.WriteLine(a.Length); }
+        static void Test2(params long[] a) { System.Console.WriteLine(a.Length); }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp, attributeIsEmbedded: true);
+
+            var comp1 = CreateCompilation(ParamCollectionAttributeSource, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation(src, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp2, attributeIsEmbedded: false);
+
+            void verify(CSharpCompilation comp, bool attributeIsEmbedded)
+            {
+                // We want to test attribute embedding 
+                Assert.Equal(attributeIsEmbedded, comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor) is null);
+
+                CompileAndVerify(
+                    comp,
+                    verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                    symbolValidator: (m) =>
+                    {
+                        MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+
+                        MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
+                        AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
+                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+
+                        // Note, no attributes on local functions
+
+                        MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
+                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamAttribute(l1.Parameters.Last());
+
+                        MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
+                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamAttribute(l2.Parameters.Last());
+
+                        if (attributeIsEmbedded)
+                        {
+                            Assert.NotNull(m.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+                        }
+                        else
+                        {
+                            Assert.Empty(m.GlobalNamespace.GetMembers("System"));
+                        }
+                    },
+                    expectedOutput: ExpectedOutput(@"
+1
+1
+0
+0
+")).VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void DelegateNaturalType_05()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+
+public class Params
+{
+    static public void Test1(params IEnumerable<long> a) {}
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        var x1 = Params.Test1;
+
+        x1(1);
+        x1();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+
+            comp2.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DelegateNaturalType_06()
+        {
+            var src1 = @"
+public class Params
+{
+    static public void Test1(params long[] a) {}
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        var x1 = Params.Test1;
+
+        x1(1);
+        x1();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+
+            comp2.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            comp2.VerifyDiagnostics(
+                // (6,18): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //         var x1 = Params.Test1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Params.Test1").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -5551,6 +6115,2875 @@ class Program
                 //         Expression<System.Action> e4 = () => Test([]);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[]").WithLocation(11, 51)
                 );
+        }
+
+        [Fact]
+        public void MetadataImport_01_Method()
+        {
+            // public class Params
+            // {
+            //     static public void Test1(params System.Collections.Generic.IEnumerable<long> a) { System.Console.Write("Test1"); }
+            //     static public void Test2(params long[] a) { System.Console.Write("Test2"); }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig static 
+        void Test1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig static 
+        void Test2 (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            VerifyParamAttribute(test1, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true);
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true);
+
+            AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
+            AssertEx.Equal("System.ParamArrayAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
+
+            comp = CreateCompilationWithIL("", il);
+
+            test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true);
+
+            AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
+            AssertEx.Equal("System.ParamArrayAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Params.Test1(1);
+        Params.Test2(2);
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_02_Method()
+        {
+            // public class Params
+            // {
+            //     static public void Test1([ParamCollectionAttribute, ParamArrayAttribute] System.Collections.Generic.IEnumerable<long> a) { System.Console.Write("Test1"); }
+            //     static public void Test2([ParamCollectionAttribute, ParamArrayAttribute] long[] a) { System.Console.Write("Test2"); }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig static 
+        void Test1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig static 
+        void Test2 (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            var attributes = new[] { "System.ParamArrayAttribute", "System.Runtime.CompilerServices.ParamCollectionAttribute" };
+            AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+            AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+
+            comp = CreateCompilationWithIL("", il);
+
+            test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+            AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Params.Test1(1);
+        Params.Test2(2);
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_03_Method()
+        {
+            // public class Params
+            // {
+            //     static public void Test1([ParamArrayAttribute, ParamCollectionAttribute] System.Collections.Generic.IEnumerable<long> a) { System.Console.Write("Test1"); }
+            //     static public void Test2([ParamArrayAttribute, ParamCollectionAttribute] long[] a) { System.Console.Write("Test2"); }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig static 
+        void Test1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig static 
+        void Test2 (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            var attributes = new[] { "System.ParamArrayAttribute", "System.Runtime.CompilerServices.ParamCollectionAttribute" };
+            AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+            AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+
+            comp = CreateCompilationWithIL("", il);
+
+            test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+
+            AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+            AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Params.Test1(1);
+        Params.Test2(2);
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_04_Method()
+        {
+            // public class Params
+            // {
+            //     static public void Test1([ParamArrayAttribute] System.Collections.Generic.IEnumerable<long> a) { System.Console.Write("Test1"); }
+            //     static public void Test2([ParamCollectionAttribute] long[] a) { System.Console.Write("Test2"); }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig static 
+        void Test1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig static 
+        void Test2 (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            VerifyParamAttribute(test1, isParamArray: true);
+            VerifyParamAttribute(test2, isParamCollection: true);
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true);
+            VerifyParamAttribute(test2, isParamCollection: true);
+
+            AssertEx.Equal("System.ParamArrayAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
+            AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
+
+            comp = CreateCompilationWithIL("", il);
+
+            test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
+            test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
+
+            test1.GetAttributes();
+            test2.GetAttributes();
+
+            VerifyParamAttribute(test1, isParamArray: true);
+            VerifyParamAttribute(test2, isParamCollection: true);
+
+            AssertEx.Equal("System.ParamArrayAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
+            AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Params.Test1(1);
+        Params.Test2(2);
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IEnumerable<long>'
+                //         Params.Test1(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic.IEnumerable<long>").WithLocation(6, 22),
+                // (7,22): error CS1503: Argument 1: cannot convert from 'int' to 'params long[]'
+                //         Params.Test2(2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "params long[]").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        public void MetadataImport_05_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[params System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         get
+            //         { System.Console.Write("Test1"); return 0; }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[params long[] a]
+            //     {
+            //         get
+            //         { System.Console.Write("Test2"); return 0; }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .get instance int32 Params1::get_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .get instance int32 Params2::get_Item(int64[])
+    }
+
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        _ = new Params2()[2];
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_06_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamCollectionAttribute, ParamArrayAttribute] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamCollectionAttribute, ParamArrayAttribute] get
+            //         { System.Console.Write("Test2"); return 0; }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .get instance int32 Params1::get_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .get instance int32 Params2::get_Item(int64[])
+    }
+
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        _ = new Params2()[2];
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_07_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamArrayAttribute, ParamCollectionAttribute] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamArrayAttribute, ParamCollectionAttribute] get
+            //         { System.Console.Write("Test2"); return 0; }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .get instance int32 Params1::get_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .get instance int32 Params2::get_Item(int64[])
+    }
+
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        _ = new Params2()[2];
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_08_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamArrayAttribute] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamCollectionAttribute] get
+            //         { System.Console.Write("Test2"); return 0; }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .get instance int32 Params1::get_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int64[] a
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .get instance int32 Params2::get_Item(int64[])
+    }
+
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true);
+            VerifyParams(test2, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        _ = new Params2()[2];
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IEnumerable<long>'
+                //         _ = new Params1()[1];
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic.IEnumerable<long>").WithLocation(6, 27),
+                // (7,27): error CS1503: Argument 1: cannot convert from 'int' to 'params long[]'
+                //         _ = new Params2()[2];
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "params long[]").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void MetadataImport_09_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[params System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[params long[] a]
+            //     {
+            //         set
+            //         { System.Console.Write("Test2"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .set instance void Params1::set_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int64[] a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .set instance void Params2::set_Item(int64[], int32)
+    }
+
+}
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        new Params1()[1] = 0;
+        new Params2()[2] = 0;
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_10_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamCollectionAttribute, ParamArrayAttribute] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamCollectionAttribute, ParamArrayAttribute] set
+            //         { System.Console.Write("Test2"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .set instance void Params1::set_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int64[] a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .set instance void Params2::set_Item(int64[], int32)
+    }
+
+}
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        new Params1()[1] = 0;
+        new Params2()[2] = 0;
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_11_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamArrayAttribute, ParamCollectionAttribute] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamArrayAttribute, ParamCollectionAttribute] set
+            //         { System.Console.Write("Test2"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .set instance void Params1::set_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int64[] a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .set instance void Params2::set_Item(int64[], int32)
+    }
+
+}
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true, isParamCollection: true);
+            VerifyParams(test2, isParamArray: true, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        new Params1()[1] = 0;
+        new Params2()[2] = 0;
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Test1Test2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MetadataImport_12_Property()
+        {
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [ParamArrayAttribute] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [ParamCollectionAttribute] set
+            //         { System.Console.Write("Test2"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .set instance void Params1::set_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int64[] a,
+            int32 'value'
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .set instance void Params2::set_Item(int64[], int32)
+    }
+
+}
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL("", il);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: true);
+            VerifyParams(test2, isParamCollection: true);
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        new Params1()[1] = 0;
+        new Params2()[2] = 0;
+    }
+}
+";
+            comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,23): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IEnumerable<long>'
+                //         new Params1()[1] = 0;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic.IEnumerable<long>").WithLocation(6, 23),
+                // (7,23): error CS1503: Argument 1: cannot convert from 'int' to 'params long[]'
+                //         new Params2()[2] = 0;
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "params long[]").WithLocation(7, 23)
+                );
+        }
+
+        [Flags]
+        public enum ParamsAttributes
+        {
+            None = 0,
+            Array = 1,
+            Collection = 2,
+            Both = Array | Collection,
+        }
+
+        private string GetAttributesIL(ParamsAttributes attributes)
+        {
+            if (attributes == ParamsAttributes.None)
+            {
+                return "";
+            }
+
+            string result = @"        .param [1]
+";
+
+            if ((attributes & ParamsAttributes.Array) != 0)
+            {
+                result += @"
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+";
+            }
+
+            if ((attributes & ParamsAttributes.Collection) != 0)
+            {
+                result += @"
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+";
+            }
+
+            return result;
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MetadataImport_13_Property(ParamsAttributes getAttributes, ParamsAttributes setAttributes)
+        {
+            if (getAttributes == setAttributes)
+            {
+                return;
+            }
+
+            var getAttributesString = GetAttributesIL(getAttributes);
+            var setAttributesString = GetAttributesIL(setAttributes);
+
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> a]
+            //     {
+            //         [getAttributes] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //         [setAttributes] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            // public class Params2
+            // {
+            //     public int this[long[] a]
+            //     {
+            //         [getAttributes] get
+            //         { System.Console.Write("Test2"); return 0; }
+            //         [setAttributes] set
+            //         { System.Console.Write("Test2"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+        ) cil managed 
+    {
+        " + getAttributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a,
+            int32 'value'
+        ) cil managed 
+    {
+        " + setAttributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> a
+    )
+    {
+        .get instance int32 Params1::get_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>)
+        .set instance void Params1::set_Item(class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>, int32)
+    }
+}
+
+.class public auto ansi beforefieldinit Params2
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int64[] a
+        ) cil managed 
+    {
+        " + getAttributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int64[] a,
+            int32 'value'
+        ) cil managed 
+    {
+        " + setAttributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test2""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        int64[] a
+    )
+    {
+        .get instance int32 Params2::get_Item(int64[])
+        .set instance void Params2::set_Item(int64[], int32)
+    }
+
+}
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        _ = new Params2()[2];
+        new Params1()[1] = 0;
+        new Params2()[2] = 0;
+    }
+}
+";
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+            var test2 = comp.GetMember<PropertySymbol>("Params2." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: (setAttributes & ParamsAttributes.Array) != 0, isParamCollection: (setAttributes & ParamsAttributes.Collection) != 0);
+            VerifyParams(test2, isParamArray: (setAttributes & ParamsAttributes.Array) != 0, isParamCollection: (setAttributes & ParamsAttributes.Collection) != 0);
+
+            string getModifier = getAttributes == ParamsAttributes.None ? "" : "params ";
+            string setModifier = setAttributes == ParamsAttributes.None ? "" : "params ";
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1545: Property, indexer, or event 'Params1.this[params IEnumerable<long>]' is not supported by the language; try directly calling accessor methods 'Params1.get_Item(params IEnumerable<long>)' or 'Params1.set_Item(params IEnumerable<long>, int)'
+                //         _ = new Params1()[1];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "new Params1()[1]").WithArguments("Params1.this[" + setModifier + "System.Collections.Generic.IEnumerable<long>]", "Params1.get_Item(" + getModifier + "System.Collections.Generic.IEnumerable<long>)", "Params1.set_Item(" + setModifier + "System.Collections.Generic.IEnumerable<long>, int)").WithLocation(6, 13),
+                // (7,13): error CS1545: Property, indexer, or event 'Params2.this[params long[]]' is not supported by the language; try directly calling accessor methods 'Params2.get_Item(params long[])' or 'Params2.set_Item(params long[], int)'
+                //         _ = new Params2()[2];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "new Params2()[2]").WithArguments("Params2.this[" + setModifier + "long[]]", "Params2.get_Item(" + getModifier + "long[])", "Params2.set_Item(" + setModifier + "long[], int)").WithLocation(7, 13),
+                // (8,9): error CS1545: Property, indexer, or event 'Params1.this[params IEnumerable<long>]' is not supported by the language; try directly calling accessor methods 'Params1.get_Item(params IEnumerable<long>)' or 'Params1.set_Item(params IEnumerable<long>, int)'
+                //         new Params1()[1] = 0;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "new Params1()[1]").WithArguments("Params1.this[" + setModifier + "System.Collections.Generic.IEnumerable<long>]", "Params1.get_Item(" + getModifier + "System.Collections.Generic.IEnumerable<long>)", "Params1.set_Item(" + setModifier + "System.Collections.Generic.IEnumerable<long>, int)").WithLocation(8, 9),
+                // (9,9): error CS1545: Property, indexer, or event 'Params2.this[params long[]]' is not supported by the language; try directly calling accessor methods 'Params2.get_Item(params long[])' or 'Params2.set_Item(params long[], int)'
+                //         new Params2()[2] = 0;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "new Params2()[2]").WithArguments("Params2.this[" + setModifier + "long[]]", "Params2.get_Item(" + getModifier + "long[])", "Params2.set_Item(" + setModifier + "long[], int)").WithLocation(9, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MetadataImport_14_Property(ParamsAttributes parameterType, ParamsAttributes parameterAttributes)
+        {
+            if (parameterAttributes == ParamsAttributes.None ||
+                parameterType is not (ParamsAttributes.Array or ParamsAttributes.Collection) ||
+                (parameterAttributes & parameterType) == 0)
+            {
+                return;
+            }
+
+            var attributesString = GetAttributesIL(parameterAttributes);
+            bool isArrayType = parameterType == ParamsAttributes.Array;
+            var typeString = isArrayType ? "int64[]" : "class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>";
+
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> or long[] a]
+            //     {
+            //         [parameterAttributes] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //         [parameterAttributes] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            " + typeString + @" a
+        ) cil managed 
+    {
+        " + attributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            " + typeString + @" a,
+            int32 'value'
+        ) cil managed 
+    {
+        " + attributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        " + typeString + @" a
+    )
+    {
+        .get instance int32 Params1::get_Item(" + typeString + @")
+        .set instance void Params1::set_Item(" + typeString + @", int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        new Params1()[1] = 0;
+    }
+}
+";
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: (parameterAttributes & ParamsAttributes.Array) != 0, isParamCollection: (parameterAttributes & ParamsAttributes.Collection) != 0);
+
+            CompileAndVerify(comp, expectedOutput: "Test1Test1").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MetadataImport_15_Property(ParamsAttributes parameterType, ParamsAttributes parameterAttributes)
+        {
+            switch (parameterType, parameterAttributes)
+            {
+                case (ParamsAttributes.Array, ParamsAttributes.Collection):
+                case (ParamsAttributes.Collection, ParamsAttributes.Array):
+                    break;
+                default:
+                    return;
+            }
+
+            var attributesString = GetAttributesIL(parameterAttributes);
+            bool isArrayType = parameterType == ParamsAttributes.Array;
+            var typeString = isArrayType ? "int64[]" : "class [mscorlib]System.Collections.Generic.IEnumerable`1<int64>";
+
+            // public class Params1
+            // {
+            //     public int this[System.Collections.Generic.IEnumerable<long> or long[] a]
+            //     {
+            //         [parameterAttributes] get
+            //         { System.Console.Write("Test1"); return 0; }
+            //         [parameterAttributes] set
+            //         { System.Console.Write("Test1"); }
+            //     }
+            // }
+            string il = @"
+.class public auto ansi beforefieldinit Params1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            " + typeString + @" a
+        ) cil managed 
+    {
+        " + attributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+
+    .method public hidebysig specialname 
+        instance void set_Item (
+            " + typeString + @" a,
+            int32 'value'
+        ) cil managed 
+    {
+        " + attributesString + @"
+        .maxstack 8
+
+        IL_0000: ldstr ""Test1""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item(
+        " + typeString + @" a
+    )
+    {
+        .get instance int32 Params1::get_Item(" + typeString + @")
+        .set instance void Params1::set_Item(" + typeString + @", int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        _ = new Params1()[1];
+        new Params1()[1] = 0;
+    }
+}
+";
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.ReleaseExe);
+
+            var test1 = comp.GetMember<PropertySymbol>("Params1." + WellKnownMemberNames.Indexer).Parameters.Last();
+
+            VerifyParams(test1, isParamArray: parameterAttributes == ParamsAttributes.Array, isParamCollection: parameterAttributes == ParamsAttributes.Collection);
+
+            if (isArrayType)
+            {
+                comp.VerifyDiagnostics(
+                    // (6,27): error CS1503: Argument 1: cannot convert from 'int' to 'params long[]'
+                    //         _ = new Params1()[1];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params long[]").WithLocation(6, 27),
+                    // (7,23): error CS1503: Argument 1: cannot convert from 'int' to 'params long[]'
+                    //         new Params1()[1] = 0;
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params long[]").WithLocation(7, 23)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (6,27): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IEnumerable<long>'
+                    //         _ = new Params1()[1];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic.IEnumerable<long>").WithLocation(6, 27),
+                    // (7,23): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IEnumerable<long>'
+                    //         new Params1()[1] = 0;
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic.IEnumerable<long>").WithLocation(7, 23)
+                    );
+            }
+        }
+
+        [Fact]
+        public void UsingPatternWithParamsTest()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+ref struct S1
+{
+    public void Dispose(params IEnumerable<int> args){ }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (S1 c = new S1())
+        {
+        }
+        S1 c1b = new S1();
+        using (c1b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternWithParamsTest_Foreach()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+ref struct S1
+{
+    public void Dispose(params IEnumerable<int> args){ }
+    public int Current => 0;
+    public bool MoveNext() => false;
+}
+
+class C2
+{
+    public S1 GetEnumerator() => default;
+
+    static void Main()
+    {
+        foreach (var i in new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ERR_ExplicitImplParams_01()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+interface I1
+{
+    void M1(params IEnumerable<int> args);
+    void M2(IEnumerable<int> args);
+    void M3(params IEnumerable<int> args);
+}
+class C2 : I1
+{
+    void I1.M1(IEnumerable<int> args) {}
+    void I1.M2(params IEnumerable<int> args) {}
+    void I1.M3(params IEnumerable<int> args) {}
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (13,13): error CS0466: 'C2.I1.M2(params IEnumerable<int>)' should not have a params parameter since 'I1.M2(IEnumerable<int>)' does not
+                //     void I1.M2(params IEnumerable<int> args) {}
+                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "M2").WithArguments("C2.I1.M2(params System.Collections.Generic.IEnumerable<int>)", "I1.M2(System.Collections.Generic.IEnumerable<int>)").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ERR_ExplicitImplParams_02()
+        {
+            // public interface I1
+            // {
+            //     void M1([ParamArrayAttribute]  IEnumerable<int> args);
+            //     void M2([ParamCollectionAttribute]  int[] args);
+            // }
+            var il = @"
+.class interface public auto ansi abstract beforefieldinit I1
+{
+    .method public hidebysig newslot abstract virtual 
+        instance void M1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> args
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+    }
+
+    .method public hidebysig newslot abstract virtual 
+        instance void M2 (
+            int32[] args
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source = @"
+using System.Collections.Generic;
+
+class C1 : I1
+{
+    void I1.M1(IEnumerable<int> args) {}
+    void I1.M2(int[] args) {}
+}
+
+class C2 : I1
+{
+    void I1.M1(params IEnumerable<int> args) {}
+    void I1.M2(params int[] args) {}
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmbedAttribute_01_Constructor()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    public Program(params IEnumerable<long> x)
+    {
+    }
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program..ctor",
+                "Program..ctor(params System.Collections.Generic.IEnumerable<System.Int64> x)",
+                // (5,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     public Program(params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 20)
+                );
+        }
+
+        private void VerifyAttributeEmbedding(string src, string memberName, string memberDisplay, params DiagnosticDescription[] moduleDiagnostic)
+        {
+            VerifyAttributeEmbedding(src1: src, src2: null, memberName, memberDisplay, moduleDiagnostic);
+        }
+
+        private void VerifyAttributeEmbedding(string src1, string src2, string memberName, string memberDisplay, params DiagnosticDescription[] moduleDiagnostic)
+        {
+            IEnumerable<MetadataReference> references = src2 is null ? [] : [CreateCompilation(src2).ToMetadataReference()];
+
+            var comp = CreateCompilation(src1, references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.MakeMemberMissing(WellKnownMember.System_ParamArrayAttribute__ctor);
+            verify(comp, attributeIsEmbedded: true);
+
+            var comp1 = CreateCompilation(ParamCollectionAttributeSource, options: TestOptions.ReleaseDll);
+            var comp1Ref = comp1.ToMetadataReference();
+            var comp2 = CreateCompilation(src1, references: references.Concat([comp1Ref]), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp2, attributeIsEmbedded: false);
+            Assert.Contains(comp1Ref, comp2.GetUsedAssemblyReferences());
+
+            var comp3 = CreateCompilation(src1, references, options: TestOptions.ReleaseModule);
+            comp3.VerifyEmitDiagnostics(moduleDiagnostic);
+            Assert.NotEmpty(moduleDiagnostic);
+
+            var comp4 = CreateCompilation(src1, references: references.Concat([comp1Ref]), options: TestOptions.ReleaseModule.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp4, attributeIsEmbedded: false);
+            Assert.Contains(comp1Ref, comp4.GetUsedAssemblyReferences());
+
+            const string brokenParamCollectionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class ParamCollectionAttribute : Attribute
+    {
+        public ParamCollectionAttribute(int x) { }
+    }
+}
+";
+
+            var comp5 = CreateCompilation(brokenParamCollectionAttributeSource, options: TestOptions.ReleaseDll);
+            var comp5Ref = comp5.ToMetadataReference();
+            var comp6 = CreateCompilation(src1, references: references.Concat([comp5Ref]), options: TestOptions.ReleaseDll);
+            comp6.VerifyEmitDiagnostics(
+                // (5,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ParamCollectionAttribute..ctor'
+                //     public Program(params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, moduleDiagnostic[0].SquiggledText).WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute", ".ctor").WithLocation(moduleDiagnostic[0].LocationLine, moduleDiagnostic[0].LocationCharacter)
+                );
+
+            var comp7 = CreateCompilation(src1, references: references.Concat([comp5Ref]), options: TestOptions.ReleaseModule);
+            comp7.VerifyEmitDiagnostics(
+                // (5,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ParamCollectionAttribute..ctor'
+                //     public Program(params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, moduleDiagnostic[0].SquiggledText).WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute", ".ctor").WithLocation(moduleDiagnostic[0].LocationLine, moduleDiagnostic[0].LocationCharacter)
+                );
+
+            void verify(CSharpCompilation comp, bool attributeIsEmbedded)
+            {
+                // We want to test attribute embedding 
+                Assert.Equal(attributeIsEmbedded, comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor) is null);
+
+                CompileAndVerify(
+                    comp,
+                    symbolValidator: (m) =>
+                    {
+                        string adjustedMemberName = memberName;
+                        string adjustedMemberDisplay = memberDisplay;
+                        if (comp.Options.OutputKind == OutputKind.NetModule && memberName.StartsWith("<>"))
+                        {
+                            adjustedMemberName = adjustedMemberName.Replace("<>", "<" + comp.SourceAssembly.Name + ">");
+                            adjustedMemberDisplay = adjustedMemberDisplay.Replace("<>", "<" + comp.SourceAssembly.Name + ">");
+                        }
+
+                        MethodSymbol member = m.GlobalNamespace.GetMember<MethodSymbol>(adjustedMemberName);
+                        AssertEx.Equal(adjustedMemberDisplay, member.ToTestDisplayString());
+                        VerifyParamAttribute(member.Parameters[0], isParamCollection: true);
+
+                        if (member.AssociatedSymbol is PropertySymbol prop)
+                        {
+                            VerifyParams(prop.Parameters[0], isParamCollection: true);
+                        }
+
+                        if (attributeIsEmbedded)
+                        {
+                            Assert.NotNull(m.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+                        }
+                        else if (!m.GlobalNamespace.GetMembers("System").IsEmpty)
+                        {
+                            Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                        }
+                    },
+                    verify: comp.Options.OutputKind != OutputKind.NetModule ?
+                                Verification.Passes :
+                                Verification.Fails with
+                                {
+                                    PEVerifyMessage = "The module  was expected to contain an assembly manifest.",
+                                    ILVerifyMessage = "The format of a DLL or executable being loaded is invalid"
+                                }
+                    ).VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void EmbedAttribute_02_Delegate()
+        {
+            var src = """
+using System.Collections.Generic;
+
+delegate void Program(params IEnumerable<long> x);
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.Invoke",
+                "void Program.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> x)",
+                // (3,23): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                // delegate void Program(params IEnumerable<long> x);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_03_AnonymousDelegate_FromMember()
+        {
+            var src1 = @"
+class Program
+{
+    static void Main()
+    {
+        var x1 = Params.Test1;
+
+        x1(1);
+    }
+}
+";
+            var src2 = @"
+using System.Collections.Generic;
+
+public class Params
+{
+    static public void Test1(params IEnumerable<long> a) { }
+}
+";
+            VerifyAttributeEmbedding(
+                src1,
+                src2,
+                "<>f__AnonymousDelegate0.Invoke",
+                "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
+                // (6,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         var x1 = Params.Test1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Params.Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_04_AnonymousDelegate_FromLambda()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = (params IEnumerable<long> a) => {};
+
+        x1(1);
+    }
+}
+";
+            VerifyAttributeEmbedding(
+                src,
+                "<>f__AnonymousDelegate0.Invoke",
+                "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
+                // (8,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         var x1 = (params IEnumerable<long> a) => {};
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> a").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(8, 19)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_05_AnonymousDelegate_FromLambda_ExpressionTree()
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Test((params IEnumerable<long> a) => {});
+    }
+    
+    static void Test<T>(Expression<T> e){}
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.Test<T>(Expression<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test((params IEnumerable<long> a) => {});
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Program.Test<T>(System.Linq.Expressions.Expression<T>)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_06_AnonymousDelegate_FromLocalFunction()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = Test1;
+
+        x1(1);
+
+        void Test1(params IEnumerable<long> a) { }
+    }
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "<>f__AnonymousDelegate0.Invoke",
+                "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
+                // (7,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         var x1 = Test1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_07_RegularMethod()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    void Test(params IEnumerable<long> x)
+    {
+    }
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.Test",
+                "void Program.Test(params System.Collections.Generic.IEnumerable<System.Int64> x)",
+                // (5,15): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     void Test(params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_08_Operator()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class Program
+{
+    public static implicit operator Program(params List<long> x)
+    {
+        return null;
+    }
+
+    public static Program operator +(Program x, params List<long> y)
+    {
+        return null;
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (6,45): error CS1670: params is not valid in this context
+                //     public static implicit operator Program(params List<long> x)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(6, 45),
+                // (11,49): error CS1670: params is not valid in this context
+                //     public static Program operator +(Program x, params List<long> y)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(11, 49)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_09_Property_get()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    int this[params IEnumerable<long> x]
+        => 0;
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.get_Item",
+                "System.Int32 Program.this[params System.Collections.Generic.IEnumerable<System.Int64> x].get",
+                // (5,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     int this[params IEnumerable<long> x]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_10_Property_get()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    int this[params IEnumerable<long> x]
+    { get => 0; set {} }
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.get_Item",
+                "System.Int32 Program.this[params System.Collections.Generic.IEnumerable<System.Int64> x].get",
+                // (5,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     int this[params IEnumerable<long> x]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_11_Property_set()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    int this[params IEnumerable<long> x]
+    {set{}}
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.set_Item",
+                "void Program.this[params System.Collections.Generic.IEnumerable<System.Int64> x].set",
+                // (5,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     int this[params IEnumerable<long> x]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void EmbedAttribute_12_Property_set()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    int this[params IEnumerable<long> x]
+    {get => 0; set{}}
+}
+""";
+            VerifyAttributeEmbedding(
+                src,
+                "Program.set_Item",
+                "void Program.this[params System.Collections.Generic.IEnumerable<System.Int64> x].set",
+                // (5,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //     int this[params IEnumerable<long> x]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> x").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAcrossAssemblyBoundary_01_Method()
+        {
+            var src1 = """
+using System.Collections.Generic;
+using System.Linq;
+
+public class Params
+{
+    public static void Test(params IEnumerable<long> a)
+    {
+        var array = a.ToArray();
+        if (array.Length == 0)
+        {
+            System.Console.WriteLine(array.Length);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", array.Length, array[0], array[array.Length - 1]);
+        }
+    }
+}
+""";
+            var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Params.Test();
+        Params.Test(1);
+        Params.Test(2, 3);
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1);
+
+            verify(image: true);
+            verify(image: false);
+
+            void verify(bool image)
+            {
+                var comp2 = CreateCompilation(src2, references: [image ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+
+                CompileAndVerify(
+                    comp2,
+                    verify: image ? Verification.Passes : Verification.Skipped,
+                    expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAcrossAssemblyBoundary_02_Property(bool hasSet)
+        {
+            var src1 = """
+using System.Collections.Generic;
+using System.Linq;
+
+public class Params
+{
+    public int this[char c, params IEnumerable<long> a]
+    {
+        get
+        {
+            var array = a.ToArray();
+            if (array.Length == 0)
+            {
+                System.Console.WriteLine(array.Length);
+            }
+            else
+            {
+                System.Console.WriteLine("{0}: {1} ... {2}", array.Length, array[0], array[array.Length - 1]);
+            }
+
+            return 0;
+        }
+""" + (hasSet ? """
+        set {}
+""" :
+"") +
+            """
+    }
+}
+""";
+            var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var p = new Params();
+        _ = p['a'];
+        _ = p['b', 1];
+        _ = p['c', 2, 3];
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1);
+
+            verify(image: true);
+            verify(image: false);
+
+            void verify(bool image)
+            {
+                var comp2 = CreateCompilation(src2, references: [image ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+
+                CompileAndVerify(
+                    comp2,
+                    verify: image ? Verification.Passes : Verification.Skipped,
+                    expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAcrossAssemblyBoundary_03_Property(bool hasGet)
+        {
+            var src1 = """
+using System.Collections.Generic;
+using System.Linq;
+
+public class Params
+{
+    public int this[char c, params IEnumerable<long> a]
+    {
+        set
+        {
+            var array = a.ToArray();
+            if (array.Length == 0)
+            {
+                System.Console.WriteLine(array.Length);
+            }
+            else
+            {
+                System.Console.WriteLine("{0}: {1} ... {2}", array.Length, array[0], array[array.Length - 1]);
+            }
+        }
+""" + (hasGet ? """
+        get => 0;
+""" :
+"") +
+            """
+    }
+}
+""";
+            var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var p = new Params();
+        p['a'] = 0;
+        p['b', 1] = 1;
+        p['c', 2, 3] = 2;
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1);
+
+            verify(image: true);
+            verify(image: false);
+
+            void verify(bool image)
+            {
+                var comp2 = CreateCompilation(src2, references: [image ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+
+                CompileAndVerify(
+                    comp2,
+                    verify: image ? Verification.Passes : Verification.Skipped,
+                    expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+            }
         }
     }
 }

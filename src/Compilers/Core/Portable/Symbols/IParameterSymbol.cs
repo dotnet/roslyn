@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis
         bool IsParams { get; }
 
         /// <summary>
+        /// Returns true if the parameter was declared as a parameter collection. 
+        /// </summary>
+        bool IsParamCollection { get; } // PROTOTYPE(ParamsCollections): API changes need to go though review.
+
+        /// <summary>
         /// Returns true if the parameter is optional.
         /// </summary>
         bool IsOptional { get; }
