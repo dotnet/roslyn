@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.List<SyntaxNode>());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxList<SyntaxNode>));
         }
 

@@ -11,6 +11,7 @@ Microsoft.CodeAnalysis.SeparatedSyntaxList
 Microsoft.CodeAnalysis.SyntaxList
 static Microsoft.CodeAnalysis.SeparatedSyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+static Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxNodeOrToken> nodesAndTokens) -> Microsoft.CodeAnalysis.SyntaxNodeOrTokenList
 static Microsoft.CodeAnalysis.SyntaxTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxToken> tokens) -> Microsoft.CodeAnalysis.SyntaxTokenList
 static Microsoft.CodeAnalysis.SyntaxTriviaList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxTrivia> trivias) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation) -> void

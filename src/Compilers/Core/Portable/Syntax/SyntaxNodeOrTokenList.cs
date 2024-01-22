@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNodeOrToken"/> structures.
     /// </summary>
+    [CollectionBuilder(typeof(SyntaxNodeOrTokenList), "Create")]
     public readonly struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
     {
         /// <summary>
@@ -61,6 +63,26 @@ namespace Microsoft.CodeAnalysis
         public SyntaxNodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
             : this((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens)
         {
+        }
+
+        public static SyntaxNodeOrTokenList Create(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens.Length == 0)
+                return default;
+
+            return new SyntaxNodeOrTokenList(CreateNode(nodesAndTokens));
+        }
+
+        private static SyntaxNode? CreateNode(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens == null)
+            {
+                throw new ArgumentNullException(nameof(nodesAndTokens));
+            }
+
+            var builder = new SyntaxNodeOrTokenListBuilder(nodesAndTokens.Length);
+            builder.Add(nodesAndTokens);
+            return builder.ToList().Node;
         }
 
         private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
