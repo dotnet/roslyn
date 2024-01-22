@@ -5200,10 +5200,11 @@ partial struct CustomHandler
     {
         var source = ("""
             #nullable enable
+            using System;
 
             class C
             {
-                public string? Method1<T>(T arg) => null;
+                public string Method1<T>(T arg) => "Original";
             }
 
             static class Program
@@ -5213,7 +5214,7 @@ partial struct CustomHandler
                     var c = new C();
                     string? x = null;
 
-                    c.Method1(x);
+                    Console.Write(c.Method1(x));
                 }
             }
             """, "Program.cs");
@@ -5224,16 +5225,16 @@ partial struct CustomHandler
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)]
-                public static string? Generic<T>(this C s, T arg) => arg?.ToString();
+                [InterceptsLocation("Program.cs", 16, 25)]
+                public static string Generic<T>(this C s, T arg) => "Interceptor";
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
 
-        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
-        comp.VerifyEmitDiagnostics();
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Interceptor");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -5241,10 +5242,11 @@ partial struct CustomHandler
     {
         var source = ("""
             #nullable enable
+            using System;
 
             class C<T>
             {
-                public string? Method1<U>(U arg) => null;
+                public string Method1<U>(U arg) => "Original";
             }
 
             static class Program
@@ -5254,7 +5256,7 @@ partial struct CustomHandler
                     var c = new C<int>();
                     string? x = null;
 
-                    c.Method1(x);
+                    Console.Write(c.Method1(x));
                 }
             }
             """, "Program.cs");
@@ -5265,16 +5267,16 @@ partial struct CustomHandler
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)]
-                public static string? Generic<T, U>(this C<T> s, U arg) => arg?.ToString();
+                [InterceptsLocation("Program.cs", 16, 25)]
+                public static string Generic<T, U>(this C<T> s, U arg) => "Interceptor";
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
 
-        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
-        comp.VerifyEmitDiagnostics();
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Interceptor");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
