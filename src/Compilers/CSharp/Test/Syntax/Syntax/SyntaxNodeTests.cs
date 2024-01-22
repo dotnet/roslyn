@@ -1817,14 +1817,16 @@ namespace Microsoft.CSharp.Test
             Assert.False(trivia.IsDirective);
         }
 
-        [Fact]
-        public void SyntaxNames()
+        [Theory, CombinatorialData]
+        public void SyntaxNames(bool collectionExpression)
         {
             var cc = SyntaxFactory.Token(SyntaxKind.ColonColonToken);
             var lt = SyntaxFactory.Token(SyntaxKind.LessThanToken);
             var gt = SyntaxFactory.Token(SyntaxKind.GreaterThanToken);
             var dot = SyntaxFactory.Token(SyntaxKind.DotToken);
-            var gp = SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
+            var gp = collectionExpression
+                ? [SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))]
+                : SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
 
             var externAlias = SyntaxFactory.IdentifierName("alias");
             var goo = SyntaxFactory.IdentifierName("Goo");
