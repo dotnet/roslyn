@@ -1064,8 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxList<AttributeListSyntax> AsAssemblyAttributes(IEnumerable<AttributeListSyntax> attributes)
         {
-            return SyntaxFactory.List(
-                    attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)))));
+            return [.. attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword))))];
         }
 
         private static SyntaxList<AttributeListSyntax> WithRequiredTargetSpecifier(SyntaxList<AttributeListSyntax> attributes, SyntaxNode declaration)
@@ -2569,10 +2568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static AccessorListSyntax AsAccessorList(IEnumerable<SyntaxNode> nodes, SyntaxKind parentKind)
-        {
-            return SyntaxFactory.AccessorList(
-                SyntaxFactory.List(nodes.Select(n => AsAccessor(n, parentKind)).WhereNotNull()));
-        }
+            => SyntaxFactory.AccessorList([.. nodes.Select(n => AsAccessor(n, parentKind)).WhereNotNull()]);
 
         private static AccessorDeclarationSyntax? AsAccessor(SyntaxNode node, SyntaxKind parentKind)
         {
@@ -3130,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         private static SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode>? nodes)
-            => nodes == null ? default : SyntaxFactory.List(nodes.Select(AsStatement));
+            => nodes == null ? default : [.. nodes.Select(AsStatement)];
 
         private static StatementSyntax AsStatement(SyntaxNode node)
         {
@@ -3513,7 +3509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.TryStatement(
                 CreateBlock(tryStatements),
-                catchClauses != null ? SyntaxFactory.List(catchClauses.Cast<CatchClauseSyntax>()) : default,
+                catchClauses != null ? [.. catchClauses.Cast<CatchClauseSyntax>()] : default,
                 finallyStatements != null ? SyntaxFactory.FinallyClause(CreateBlock(finallyStatements)) : null);
         }
 

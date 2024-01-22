@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var result = new List<T>(syntaxList);
             result.RemoveRange(index, count);
-            return SyntaxFactory.List(result);
+            return [.. result];
         }
 
         public static SyntaxList<T> ToSyntaxList<T>(this IEnumerable<T> sequence) where T : SyntaxNode
-            => SyntaxFactory.List(sequence);
+            => [.. sequence];
 
         public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
             => list.Take(index).Concat(item).Concat(list.Skip(index)).ToSyntaxList();

@@ -1430,25 +1430,23 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithAccessorList(
-                    SyntaxFactory.AccessorList(
-                        SyntaxFactory.List<AccessorDeclarationSyntax>(
-                            new AccessorDeclarationSyntax[] {
-                                SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.AddAccessorDeclaration)
-                                .WithExpressionBody(
-                                    SyntaxFactory.ArrowExpressionClause(
-                                        SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.NullLiteralExpression)))
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                                SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.RemoveAccessorDeclaration)
-                                .WithExpressionBody(
-                                    SyntaxFactory.ArrowExpressionClause(
-                                        SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.NullLiteralExpression)))
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))})))
+                    SyntaxFactory.AccessorList([
+                        SyntaxFactory.AccessorDeclaration(
+                            SyntaxKind.AddAccessorDeclaration)
+                        .WithExpressionBody(
+                            SyntaxFactory.ArrowExpressionClause(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NullLiteralExpression)))
+                        .WithSemicolonToken(
+                            SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                        SyntaxFactory.AccessorDeclaration(
+                            SyntaxKind.RemoveAccessorDeclaration)
+                        .WithExpressionBody(
+                            SyntaxFactory.ArrowExpressionClause(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NullLiteralExpression)))
+                        .WithSemicolonToken(
+                            SyntaxFactory.Token(SyntaxKind.SemicolonToken))]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public event EventHandler Event { add => null; remove => null; }");

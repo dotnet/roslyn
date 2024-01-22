@@ -173,12 +173,7 @@ public class SomeAttribute : System.Attribute { }
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,
-                        members: SyntaxFactory.List(
-                            new MemberDeclarationSyntax[]
-                            {
-                                property,
-                                property
-                            }))
+                        members: [property, property])
                 }));
 
             Assert.NotNull(compilation);

@@ -4642,17 +4642,13 @@ class innerClass
                 SyntaxFactory.ParseTypeName("int"),
                 null,
                 SyntaxFactory.Identifier("Prop"),
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.List(
-                        new AccessorDeclarationSyntax[]
-                        {
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.GetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.SetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))
-                        })));
+                SyntaxFactory.AccessorList([
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.GetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.SetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))]));
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();

@@ -2332,7 +2332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             updatedAccessors.Add(updatedAccessor);
                         }
 
-                        var updatedAccessorList = property.AccessorList.WithAccessors(SyntaxFactory.List<AccessorDeclarationSyntax>(updatedAccessors));
+                        var updatedAccessorList = property.AccessorList.WithAccessors([.. updatedAccessors]);
                         member = property.ReplaceNode(property.AccessorList, updatedAccessorList);
                     }
                 }
@@ -2372,7 +2372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             updatedAccessors.Add(updatedAccessor);
                         }
 
-                        var updatedAccessorList = property.AccessorList.WithAccessors(SyntaxFactory.List<AccessorDeclarationSyntax>(updatedAccessors));
+                        var updatedAccessorList = property.AccessorList.WithAccessors([.. updatedAccessors]);
                         member = property.ReplaceNode(property.AccessorList, updatedAccessorList);
                     }
                 }
