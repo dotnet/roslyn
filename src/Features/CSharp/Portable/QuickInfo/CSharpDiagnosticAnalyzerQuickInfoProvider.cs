@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             string errorCode, TextSpan location)
         {
-            var hostAnalyzers = document.Project.Solution.State.Analyzers;
+            var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
             var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
             var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);

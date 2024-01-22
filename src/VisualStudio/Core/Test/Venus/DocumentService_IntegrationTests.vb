@@ -65,7 +65,7 @@ class {|Definition:C1|}
             ' https://github.com/dotnet/roslyn/issues/46279
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
-            Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
                 Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
@@ -133,7 +133,7 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim codelensService = New RemoteCodeLensReferencesService(workspace.GlobalOptions)
 
@@ -177,7 +177,7 @@ class C { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
+            Using workspace = EditorTestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -217,7 +217,7 @@ class { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -270,7 +270,7 @@ class { }
                 Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
 
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
-                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, EditorTestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 
                     Dim mappedTestDocument = testWorkspace.Documents.First(Function(d) d.Id <> testDocument.Id)
@@ -308,7 +308,7 @@ class { }
                 Public Shared ReadOnly Instance As Excerpter = New Excerpter()
 
                 Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, classificationOptions As ClassificationOptions, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
-                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, EditorTestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 
                     Dim mappedTestDocument = testWorkspace.Documents.First(Function(d) d.Id <> testDocument.Id)

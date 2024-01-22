@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     ? ImmutableArray<ISymbol?>.Empty
                     : semanticFacts
                         .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
-                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .WhereAsArray(s => s != null && !s.Equals(declaredSymbol))
                         .SelectAsArray(s => MapSymbol(s, type));
             }
 

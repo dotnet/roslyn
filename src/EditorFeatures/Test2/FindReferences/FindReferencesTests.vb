@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
+            Using workspace = EditorTestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As TestWorkspace) As Dictionary(Of String, HashSet(Of String))
+        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As EditorTestWorkspace) As Dictionary(Of String, HashSet(Of String))
             Dim additionalPropertyKeys = workspace.Documents.SelectMany(Function(d) d.AnnotatedSpans.Keys.Where(Function(key) key.StartsWith(AdditionalPropertyKey)).Select(Function(key) key.Substring(AdditionalPropertyKey.Length)))
             Dim additionalPropertiesMap As New Dictionary(Of String, HashSet(Of String))
             For Each key In additionalPropertyKeys
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
 
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
                 workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -518,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <Fact>
         Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
-            Using workspace = TestWorkspace.Create("
+            Using workspace = EditorTestWorkspace.Create("
 <Workspace>
     <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
         <Document FilePath='C.cs'>
@@ -589,7 +589,7 @@ partial class C
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
         Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
-            Using workspace = TestWorkspace.Create("
+            Using workspace = EditorTestWorkspace.Create("
 <Workspace>
     <Project Language=""NoCompilation"" AssemblyName=""NoCompilationAssembly"" CommonReferencesPortable=""true"">
         <Document>

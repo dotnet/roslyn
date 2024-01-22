@@ -2400,12 +2400,12 @@ class C
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler CreateCommandHandler(EditorTestWorkspace workspace)
         {
             return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _compilationOutputsProvider = compilationOutputsProvider;
             SourceTextProvider = sourceTextProvider;
             _reportTelemetry = ReportTelemetry;
-            _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
+            _telemetry = new DebuggingSessionTelemetry(solution.SolutionState.SolutionAttributes.TelemetryId);
 
             Id = id;
             DebuggerService = debuggerService;

@@ -6,14 +6,14 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.CSharp.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.CSharp.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -127,7 +127,7 @@ class C
 
                 AssertCompletionItemsInRelativeOrder(state, expectedItems)
 
-                Await state.AssertSelectedCompletionItem("★ MyAB", isHardSelected:=True) ' hard-selected since filter text is empty
+                Await state.AssertSelectedCompletionItem("★ MyAB", isHardSelected:=False)
             End Using
         End Function
 
@@ -342,7 +342,7 @@ class Test
                 }
 
                 AssertCompletionItemsInRelativeOrder(state, expectedItems1)
-                Await state.AssertSelectedCompletionItem("★ FirstDefault", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("★ FirstDefault", isHardSelected:=False)
 
                 Dim expectedItems2 = New List(Of ValueTuple(Of String, Boolean)) From {
                     CreateExpectedItem("★ FirstDefault", isPromoted:=True),
@@ -398,7 +398,7 @@ class Test
                 }
 
                 AssertCompletionItemsInRelativeOrder(state, expectedItems1)
-                Await state.AssertSelectedCompletionItem("★ SecondStarred", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("★ SecondStarred", isHardSelected:=False)
 
                 Dim expectedItems2 = New List(Of ValueTuple(Of String, Boolean)) From {
                     CreateExpectedItem("★ FirstStarred", isPromoted:=False),
@@ -465,7 +465,7 @@ class Test
                 }
 
                 AssertCompletionItemsInRelativeOrder(state, expectedItems1)
-                Await state.AssertSelectedCompletionItem("★ if", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("★ if", isHardSelected:=False)
 
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -583,6 +583,41 @@ $$
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
                 Await state.AssertSelectedCompletionItem("★ ItemExpanded1", isHardSelected:=False)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSelectionOfPromotedDefaultItemWithEmptyFilterTextTriggeredOnArgument() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+using System.Text;
+public class Program
+{
+    static string Title { get; } = "";
+    static void Main(string[] args)
+    {
+        var sb = new StringBuilder();
+        sb.Append$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=True,
+                extraExportedTypes:={GetType(MockDefaultSource)}.ToList())
+
+                MockDefaultSource.Defaults = ImmutableArray.Create("Title")
+                state.SendTypeChars("(")
+
+                Dim expectedItems1 = New List(Of ValueTuple(Of String, Boolean)) From {
+                    CreateExpectedItem("★ Title", isPromoted:=True),
+                    CreateExpectedItem("Title", isPromoted:=False)
+                }
+
+                AssertCompletionItemsInRelativeOrder(state, expectedItems1)
+                Await state.AssertSelectedCompletionItem("★ Title", isHardSelected:=False)
+
+                state.SendTypeChars("""")
+                Await state.AssertLineTextAroundCaret("        sb.Append(""", "")
             End Using
         End Function
 

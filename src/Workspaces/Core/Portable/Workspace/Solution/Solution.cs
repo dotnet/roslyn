@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -26,38 +25,45 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public partial class Solution
     {
-        // SolutionState that doesn't hold onto Project/Document
-        private readonly SolutionState _state;
+        private readonly SolutionCompilationState _compilationState;
 
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private Solution(SolutionState state)
+        private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
-            _state = state;
+            _compilationState = compilationState;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences))
+        internal Solution(
+            Workspace workspace,
+            SolutionInfo.SolutionAttributes solutionAttributes,
+            SolutionOptionSet options,
+            IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionCompilationState(
+                      new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                      workspace.PartialSemanticsEnabled))
         {
         }
 
-        internal SolutionState State => _state;
+        internal SolutionState SolutionState => CompilationState.SolutionState;
 
-        internal int WorkspaceVersion => _state.WorkspaceVersion;
+        internal SolutionCompilationState CompilationState => _compilationState;
 
-        internal bool PartialSemanticsEnabled => _state.PartialSemanticsEnabled;
+        internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
+
+        internal bool PartialSemanticsEnabled => _compilationState.PartialSemanticsEnabled;
 
         /// <summary>
         /// Per solution services provided by the host environment.  Use this instead of <see
         /// cref="Workspace.Services"/> when possible.
         /// </summary>
-        public SolutionServices Services => _state.Services;
+        public SolutionServices Services => this.SolutionState.Services;
 
-        internal string? WorkspaceKind => _state.WorkspaceKind;
+        internal string? WorkspaceKind => this.SolutionState.WorkspaceKind;
 
-        internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
+        internal ProjectState? GetProjectState(ProjectId projectId) => this.SolutionState.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -68,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
 #pragma warning disable CS0618 // Type or member is obsolete (TODO: obsolete the property)
-                return _state.Services.WorkspaceServices.Workspace;
+                return this.SolutionState.Services.WorkspaceServices.Workspace;
 #pragma warning restore
             }
         }
@@ -76,22 +82,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
-        public SolutionId Id => _state.Id;
+        public SolutionId Id => this.SolutionState.Id;
 
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string? FilePath => _state.FilePath;
+        public string? FilePath => this.SolutionState.FilePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
         /// </summary>
-        public VersionStamp Version => _state.Version;
+        public VersionStamp Version => this.SolutionState.Version;
 
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
-        public IReadOnlyList<ProjectId> ProjectIds => _state.ProjectIds;
+        public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
 
         /// <summary>
         /// A list of all the projects contained by the solution.
@@ -101,12 +107,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The version of the most recently modified project.
         /// </summary>
-        public VersionStamp GetLatestProjectVersion() => _state.GetLatestProjectVersion();
+        public VersionStamp GetLatestProjectVersion() => this.SolutionState.GetLatestProjectVersion();
 
         /// <summary>
         /// True if the solution contains a project with the specified project ID.
         /// </summary>
-        public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => _state.ContainsProject(projectId);
+        public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => this.SolutionState.ContainsProject(projectId);
 
         /// <summary>
         /// Gets the project in this solution with the specified project ID. 
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly Func<ProjectId, Solution, Project> s_createProjectFunction = CreateProject;
         private static Project CreateProject(ProjectId projectId, Solution solution)
         {
-            var state = solution.State.GetProjectState(projectId);
+            var state = solution.SolutionState.GetProjectState(projectId);
             Contract.ThrowIfNull(state);
             return new Project(solution, state);
         }
@@ -139,9 +145,8 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            var projectState = _state.GetProjectState(assemblySymbol);
-
-            return projectState == null ? null : GetProject(projectState.Id);
+            var projectId = SolutionCompilationState.GetProjectId(assemblySymbol);
+            return GetProject(projectId);
         }
 
         /// <summary>
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
         internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
-            => _state.GetOriginatingProjectId(symbol);
+            => _compilationState.GetOriginatingProjectId(symbol);
 
         /// <inheritdoc cref="GetOriginatingProjectId"/>
         internal Project? GetOriginatingProject(ISymbol symbol)
@@ -174,17 +179,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the solution contains the document in one of its projects
         /// </summary>
-        public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsDocument(documentId);
+        public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsDocument(documentId);
 
         /// <summary>
         /// True if the solution contains the additional document in one of its projects
         /// </summary>
-        public bool ContainsAdditionalDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAdditionalDocument(documentId);
+        public bool ContainsAdditionalDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsAdditionalDocument(documentId);
 
         /// <summary>
         /// True if the solution contains the analyzer config document in one of its projects
         /// </summary>
-        public bool ContainsAnalyzerConfigDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
+        public bool ContainsAnalyzerConfigDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsAnalyzerConfigDocument(documentId);
 
         /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
@@ -195,9 +200,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
-        {
-            return State.GetDocumentState(syntaxTree, projectId)?.Id;
-        }
+            => _compilationState.GetDocumentState(syntaxTree, projectId)?.Id;
 
         /// <summary>
         /// Gets the document in this solution with the specified document ID.
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                var documentState = State.GetDocumentState(syntaxTree, projectId);
+                var documentState = _compilationState.GetDocumentState(syntaxTree, projectId);
 
                 if (documentState is SourceGeneratedDocumentState)
                 {
@@ -326,13 +329,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProject(ProjectInfo projectInfo)
         {
-            var newState = _state.AddProject(projectInfo);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddProject(projectInfo);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -340,13 +338,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveProject(ProjectId projectId)
         {
-            var newState = _state.RemoveProject(projectId);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveProject(projectId);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -362,13 +355,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(assemblyName));
             }
 
-            var newState = _state.WithProjectAssemblyName(projectId, assemblyName);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectAssemblyName(projectId, assemblyName);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -378,13 +366,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectOutputFilePath(projectId, outputFilePath);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectOutputFilePath(projectId, outputFilePath);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -394,13 +377,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -410,13 +388,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectCompilationOutputInfo(projectId, info);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(projectId, info);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -426,13 +399,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -442,13 +410,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -463,13 +426,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newState = _state.WithProjectName(projectId, name);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectName(projectId, name);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -479,13 +437,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectFilePath(projectId, filePath);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectFilePath(projectId, filePath);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -501,13 +454,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var newState = _state.WithProjectCompilationOptions(projectId, options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectCompilationOptions(projectId, options);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -523,13 +471,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var newState = _state.WithProjectParseOptions(projectId, options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectParseOptions(projectId, options);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -541,13 +484,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithHasAllInformation(projectId, hasAllInformation);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithHasAllInformation(projectId, hasAllInformation);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -559,13 +497,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithRunAnalyzers(projectId, runAnalyzers);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithRunAnalyzers(projectId, runAnalyzers);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -586,13 +519,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(documentIds));
             }
 
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectDocumentsOrder(projectId, documentIds);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -631,7 +559,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var projectReference in collection)
             {
-                if (_state.ContainsProjectReference(projectId, projectReference))
+                if (this.SolutionState.ContainsProjectReference(projectId, projectReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
                 }
@@ -640,13 +568,8 @@ namespace Microsoft.CodeAnalysis
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
-            var newState = _state.AddProjectReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddProjectReferences(projectId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -659,19 +582,16 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             if (projectReference == null)
-            {
                 throw new ArgumentNullException(nameof(projectReference));
-            }
 
             CheckContainsProject(projectId);
 
-            var newState = _state.RemoveProjectReference(projectId, projectReference);
-            if (newState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.ProjectReferences.Contains(projectReference))
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
-            }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveProjectReference(projectId, projectReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -694,13 +614,8 @@ namespace Microsoft.CodeAnalysis
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
 
-            var newState = _state.WithProjectReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectReferences(projectId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -737,19 +652,14 @@ namespace Microsoft.CodeAnalysis
             PublicContract.RequireUniqueNonNullItems(collection, nameof(metadataReferences));
             foreach (var metadataReference in collection)
             {
-                if (_state.ContainsMetadataReference(projectId, metadataReference))
+                if (this.SolutionState.ContainsMetadataReference(projectId, metadataReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
                 }
             }
 
-            var newState = _state.AddMetadataReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddMetadataReferences(projectId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -765,17 +675,14 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (metadataReference == null)
-            {
                 throw new ArgumentNullException(nameof(metadataReference));
-            }
 
-            var newState = _state.RemoveMetadataReference(projectId, metadataReference);
-            if (newState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.MetadataReferences.Contains(metadataReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveMetadataReference(projectId, metadataReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -790,16 +697,10 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectMetadataReferences(
-                projectId,
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences));
 
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectMetadataReferences(projectId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -840,19 +741,14 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var analyzerReference in collection)
             {
-                if (_state.ContainsAnalyzerReference(projectId, analyzerReference))
+                if (this.SolutionState.ContainsAnalyzerReference(projectId, analyzerReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
                 }
             }
 
-            var newState = _state.AddAnalyzerReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -868,17 +764,14 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            var newState = _state.RemoveAnalyzerReference(projectId, analyzerReference);
-            if (newState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(projectId, analyzerReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -893,16 +786,10 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectAnalyzerReferences(
-                projectId,
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(projectId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -931,19 +818,14 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var analyzerReference in collection)
             {
-                if (_state.AnalyzerReferences.Contains(analyzerReference))
+                if (this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_reference);
                 }
             }
 
-            var newState = _state.AddAnalyzerReferences(collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddAnalyzerReferences(collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -955,17 +837,13 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            var newState = _state.RemoveAnalyzerReference(analyzerReference);
-            if (newState == _state)
-            {
+            if (!this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
-            }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(analyzerReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -975,15 +853,10 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
         public Solution WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            var newState = _state.WithAnalyzerReferences(
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAnalyzerReferences(collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         private static SourceCodeKind GetSourceCodeKind(ProjectState project)
@@ -1097,13 +970,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
         public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newState = _state.AddDocuments(documentInfos);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddDocuments(documentInfos);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1143,13 +1011,8 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newState = _state.AddAdditionalDocuments(documentInfos);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddAdditionalDocuments(documentInfos);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1196,20 +1059,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ProjectState GetRequiredProjectState(ProjectId projectId)
-            => _state.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
+            => this.SolutionState.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
         /// <summary>
         /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
         /// </summary>
         public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newState = _state.AddAnalyzerConfigDocuments(documentInfos);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddAnalyzerConfigDocuments(documentInfos);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1232,13 +1090,8 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveDocuments(documentIds);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveDocuments(documentIds);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1261,13 +1114,8 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveAdditionalDocuments(documentIds);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveAdditionalDocuments(documentIds);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1290,13 +1138,8 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerConfigDocuments(documentIds);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1311,13 +1154,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newState = _state.WithDocumentName(documentId, name);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentName(documentId, name);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1328,15 +1166,10 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsDocument(documentId);
 
-            var newState = _state.WithDocumentFolders(documentId,
-                PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentFolders(documentId, collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1354,13 +1187,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var newState = _state.WithDocumentFilePath(documentId, filePath);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentFilePath(documentId, filePath);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1381,13 +1209,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentText(documentId, text, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1408,13 +1231,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAdditionalDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAdditionalDocumentText(documentId, text, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1435,13 +1253,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAnalyzerConfigDocumentText(documentId, text, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1462,13 +1275,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentId, textAndVersion, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentText(documentId, textAndVersion, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1489,13 +1297,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAdditionalDocumentText(documentId, textAndVersion, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAdditionalDocumentText(documentId, textAndVersion, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1516,13 +1319,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1543,19 +1341,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentSyntaxRoot(documentId, root, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentSyntaxRoot(documentId, root, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
-            var newState = _state.WithDocumentContentsFrom(documentId, documentState);
-            return newState == _state ? this : new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1578,13 +1371,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
             }
 
-            var newState = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1605,13 +1393,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
-
-            // Note: state is currently not reused.
-            // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-            Debug.Assert(newState != _state);
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.UpdateDocumentTextLoader(documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1632,13 +1415,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
-
-            // Note: state is currently not reused.
-            // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-            Debug.Assert(newState != _state);
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1659,13 +1437,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
-
-            // Note: state is currently not reused.
-            // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-            Debug.Assert(newState != _state);
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1678,8 +1451,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            return new Solution(newCompilationState);
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
@@ -1696,18 +1469,13 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
-            return _state.GetRelatedDocumentIds(documentId);
+            return this.SolutionState.GetRelatedDocumentIds(documentId);
         }
 
         internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newState = _state.WithNewWorkspace(workspaceKind, workspaceVersion, services);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1741,13 +1509,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentText(documentIds, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentText(documentIds, text, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1757,10 +1520,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
-            var newSolution = newState != _state ? new Solution(newState) : this;
-            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newCompilationState != _compilationState
+                ? new Solution(newCompilationState)
+                : this;
+
+            var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
             Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
         }
@@ -1771,13 +1538,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithoutFrozenSourceGeneratedDocuments()
         {
-            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithoutFrozenSourceGeneratedDocuments();
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1790,13 +1552,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
         {
-            var newState = _state.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1817,23 +1574,23 @@ namespace Microsoft.CodeAnalysis
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
         /// <see cref="TextDocument.FilePath"/> that matches the given file path.
         /// </summary>
-        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => _state.GetDocumentIdsWithFilePath(filePath);
+        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => this.SolutionState.GetDocumentIdsWithFilePath(filePath);
 
         /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
-        public ProjectDependencyGraph GetProjectDependencyGraph() => _state.GetProjectDependencyGraph();
+        public ProjectDependencyGraph GetProjectDependencyGraph() => this.SolutionState.GetProjectDependencyGraph();
 
         /// <summary>
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options => _state.Options;
+        public OptionSet Options => this.SolutionState.Options;
 
         /// <summary>
         /// Analyzer references associated with the solution.
         /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
 
         /// <summary>
         /// Creates a new solution instance with the specified <paramref name="options"/>.
@@ -1853,13 +1610,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithOptions(SolutionOptionSet options)
         {
-            var newState = _state.WithOptions(options: options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithOptions(options);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         private void CheckContainsProject(ProjectId projectId)
@@ -1966,7 +1718,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
                 }
 
-                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (this.SolutionState.ContainsTransitiveReference(projectReference.ProjectId, projectId))
                 {
                     throw new InvalidOperationException(
                         string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
@@ -1984,15 +1736,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private void CheckSubmissionProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences, bool ignoreExistingReferences)
         {
-            var projectState = _state.GetRequiredProjectState(projectId);
+            var projectState = this.SolutionState.GetRequiredProjectState(projectId);
 
             var isSubmission = projectState.IsSubmission;
-            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => this.SolutionState.GetRequiredProjectState(p.ProjectId).IsSubmission);
 
             foreach (var projectReference in projectReferences)
             {
                 // Note: need to handle reference to a project that's not included in the solution:
-                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                var referencedProjectState = this.SolutionState.GetProjectState(projectReference.ProjectId);
                 if (referencedProjectState != null && referencedProjectState.IsSubmission)
                 {
                     if (!isSubmission)

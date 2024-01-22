@@ -223,15 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
-            if (method != null)
-            {
-                builder.Add(method);
-            }
+            builder.AddIfNotNull(method);
 
             foreach (var nested in deconstruction.Nested)
-            {
                 FlattenDeconstructionMethods(nested, ref builder);
-            }
         }
 
         public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
@@ -300,12 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
             {
                 var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
-                if (type is null)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return ImmutableArray.Create<ISymbol>(type);
+                return type is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(type);
             }
         }
 

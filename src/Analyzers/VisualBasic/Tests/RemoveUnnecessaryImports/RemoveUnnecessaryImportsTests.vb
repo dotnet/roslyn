@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryImports
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
     Partial Public Class RemoveUnnecessaryImportsTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer(),

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
 
-        protected abstract TestWorkspace CreateWorkspace(string fileContents);
+        protected abstract EditorTestWorkspace CreateWorkspace(string fileContents);
 
         private protected abstract Task BaseVerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -891,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyItemInLinkedFilesAsync(string xmlString, string expectedItem, string expectedDescription)
         {
-            using (var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition()))
+            using (var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition()))
             {
                 var position = testWorkspace.Documents.First().CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesAsynchronousCall()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class C { C() { new C(); } }");
             var context = new MockFindUsagesContext();
             var presenter = new MockStreamingFindUsagesPresenter(context);
 

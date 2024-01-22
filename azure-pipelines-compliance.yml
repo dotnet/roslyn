@@ -38,6 +38,7 @@ steps:
   inputs:
     filePath: eng/build.ps1
     arguments: -ci
+               -prepareMachine
                -restore
                -build
                -configuration $(BuildConfiguration)

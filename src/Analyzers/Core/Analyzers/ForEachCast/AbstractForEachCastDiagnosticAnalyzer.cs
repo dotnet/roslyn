@@ -45,18 +45,10 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(context =>
-            {
-                var compilation = context.Compilation;
-                var ienumerableType = compilation.IEnumerableType();
-                var ienumerableOfTType = compilation.IEnumerableOfTType();
-                if (ienumerableType != null && ienumerableOfTType != null)
-                    context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context, ienumerableType, ienumerableOfTType), GetSyntaxKinds());
-            });
+            context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context), GetSyntaxKinds());
         }
 
-        protected void AnalyzeSyntax(
-            SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumerableOfTType)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -84,11 +76,35 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
 
             var (conversion, collectionElementType) = GetForEachInfo(semanticModel, node);
+            if (collectionElementType is null)
+                return;
 
             // Don't bother checking conversions that are problematic for other reasons.  The user will already have a
             // compiler error telling them the foreach is in error.
             if (!conversion.Exists)
                 return;
+
+            // Consider:
+            // public class C : IEnumerable<Match>
+            // {
+            //     public IEnumerator GetEnumerator() => null; // compiler picks this for the foreach loop.
+            //
+            //     IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
+            // }
+
+            // This collection have GetEnumerator method that returns non-strongly-typed IEnumerator, but also implements strongly-typed IEnumerable<T> explicitly.
+            // In this case, the compiler chooses the non-strongly-typed GetEnumerator and adds explicit cast for `foreach (Match m in new C())`.
+            // This cast can fail if the collection is badly implemented such that the strongly-typed and non-strongly-typed GetEnumerator implemetations return different types.
+            // Given it's very rare that implementation can be bad, and to reduce false positives, we adjust collectionElementType for the case above to be `Match` instead of object.
+            if (collectionElementType.SpecialType == SpecialType.System_Object)
+            {
+                var ienumerableOfT = collectionType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+                if (ienumerableOfT is not null)
+                {
+                    collectionElementType = ienumerableOfT.TypeArguments[0];
+                    conversion = context.Compilation.ClassifyCommonConversion(collectionElementType, iterationType);
+                }
+            }
 
             // If the conversion was implicit, then everything is ok.  Implicit conversions are safe and do not throw at runtime.
             if (conversion.IsImplicit)
@@ -98,9 +114,6 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // to keep as is since being an implicit-conversion means the API indicates it should always be safe to
             // happen at runtime.
             if (conversion.IsUserDefined && conversion.MethodSymbol is { Name: WellKnownMemberNames.ImplicitConversionName })
-                return;
-
-            if (collectionElementType is null)
                 return;
 
             // We had a conversion that was explicit.  These are potentially unsafe as they can throw at runtime.
@@ -116,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // So, to detect if we're in a legacy situation, we look for iterations that are returning an object-type
             // where the collection itself didn't implement `IEnumerable<T>` in some way.
             if (option.Value == ForEachExplicitCastInSourcePreference.WhenStronglyTyped &&
-                !IsStronglyTyped(ienumerableOfTType, collectionType, collectionElementType))
+                !IsStronglyTyped(collectionType, collectionElementType))
             {
                 return;
             }
@@ -126,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(static (i, ienumerableType) => i.Equals(ienumerableType), ienumerableType) &&
+            var isFixable = collectionType.SpecialType == SpecialType.System_Collections_IEnumerable || collectionType.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -140,9 +153,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 iterationType.ToDisplayString()));
         }
 
-        private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
+        private static bool IsStronglyTyped(ITypeSymbol collectionType, ITypeSymbol collectionElementType)
             => collectionElementType.SpecialType != SpecialType.System_Object ||
-               collectionType.OriginalDefinition.Equals(ienumerableOfTType) ||
-               collectionType.AllInterfaces.Any(static (i, ienumerableOfTType) => i.OriginalDefinition.Equals(ienumerableOfTType), ienumerableOfTType);
+               collectionType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+               collectionType.AllInterfaces.Any(static i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
     }
 }
