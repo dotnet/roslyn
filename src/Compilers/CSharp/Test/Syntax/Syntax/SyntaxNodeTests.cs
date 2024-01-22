@@ -1870,20 +1870,13 @@ namespace Microsoft.CSharp.Test
             Assert.Equal("Bar", aliasQualifiedGeneric.GetUnqualifiedName().Identifier.ValueText);
         }
 
-        [Fact]
-        public void ZeroWidthTokensInListAreUnique1()
+        [Theory, CombinatorialData]
+        public void ZeroWidthTokensInListAreUnique1(bool collectionExpression)
         {
             var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
-            var list = SyntaxFactory.TokenList(someToken, someToken);
-            Assert.Equal(someToken, someToken);
-            Assert.NotEqual(list[0], list[1]);
-        }
-
-        [Fact]
-        public void ZeroWidthTokensInListAreUnique2()
-        {
-            var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
-            SyntaxTokenList list = [someToken, someToken];
+            var list = collectionExpression
+                ? [someToken, someToken]
+                : SyntaxFactory.TokenList(someToken, someToken);
             Assert.Equal(someToken, someToken);
             Assert.NotEqual(list[0], list[1]);
         }
