@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             if (nodesAndTokens.Length == 0)
                 return default;
 
-            return new SyntaxNodeOrTokenList(CreateNode(nodesAndTokens));
+            return new SyntaxNodeOrTokenList(CreateNode(nodesAndTokens), index: 0);
         }
 
         private static SyntaxNode? CreateNode(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
