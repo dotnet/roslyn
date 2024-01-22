@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [Theory]
         [InlineData(null)]
         [InlineData(typeof(SyntaxNode))]
-        public void TestCanAccessNonExistentSyntaxProperty(Type type)
+        public void TestCanAccessNonExistentSyntaxProperty(Type? type)
         {
             var fallbackResult = new object();
 
@@ -39,7 +39,7 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [Theory]
         [InlineData(null)]
         [InlineData(typeof(EmptySymbol))]
-        public void TestCanAccessNonExistentSymbolProperty(Type type)
+        public void TestCanAccessNonExistentSymbolProperty(Type? type)
         {
             var fallbackResult = new object();
 
@@ -58,7 +58,7 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [Theory]
         [InlineData(null)]
         [InlineData(typeof(SyntaxNode))]
-        public void TestCanAccessNonExistentMethodWithArgument(Type type)
+        public void TestCanAccessNonExistentMethodWithArgument(Type? type)
         {
             var fallbackResult = new object();
 
