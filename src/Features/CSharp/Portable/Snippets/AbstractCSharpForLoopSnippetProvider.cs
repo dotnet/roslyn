@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -48,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             TypeSyntax? iteratorTypeSyntax = null;
 
+            var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
+
             if (inlineExpressionInfo is null)
             {
                 iteratorTypeSyntax = compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax();
@@ -55,11 +56,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             else
             {
                 var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
-                Debug.Assert(inlineExpressionType is not null && (inlineExpressionType.IsIntegralType() || inlineExpressionType.IsNativeIntegerType));
-                iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
-            }
+                Debug.Assert(inlineExpressionType is not null);
 
-            var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
+                if (IsSuitableIntegerType(inlineExpressionType))
+                {
+                    iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
+                }
+                else
+                {
+                    var lengthProperty = FindLengthProperty(inlineExpressionType, semanticModel.Compilation);
+                    var countProperty = FindCountProperty(inlineExpressionType, semanticModel.Compilation);
+
+                    Debug.Assert(lengthProperty is null ^ countProperty is null);
+
+                    if (lengthProperty is not null)
+                    {
+                        iteratorTypeSyntax = lengthProperty.Type.GenerateTypeSyntax();
+                        inlineExpression = generator.MemberAccessExpression(inlineExpression, "Length");
+                    }
+                    else
+                    {
+                        Debug.Assert(countProperty is not null);
+                        iteratorTypeSyntax = countProperty.Type.GenerateTypeSyntax();
+                        inlineExpression = generator.MemberAccessExpression(inlineExpression, "Count");
+                    }
+                }
+            }
 
             var variableDeclaration = SyntaxFactory.VariableDeclaration(
                 iteratorTypeSyntax,
