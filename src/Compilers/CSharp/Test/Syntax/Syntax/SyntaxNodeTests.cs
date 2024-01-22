@@ -1867,10 +1867,19 @@ namespace Microsoft.CSharp.Test
         }
 
         [Fact]
-        public void ZeroWidthTokensInListAreUnique()
+        public void ZeroWidthTokensInListAreUnique1()
         {
             var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
             var list = SyntaxFactory.TokenList(someToken, someToken);
+            Assert.Equal(someToken, someToken);
+            Assert.NotEqual(list[0], list[1]);
+        }
+
+        [Fact]
+        public void ZeroWidthTokensInListAreUnique2()
+        {
+            var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
+            SyntaxTokenList list = [someToken, someToken];
             Assert.Equal(someToken, someToken);
             Assert.NotEqual(list[0], list[1]);
         }

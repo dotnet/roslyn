@@ -57,10 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Fact]
-        public void TestAddInsertRemoveReplace()
+        public void TestAddInsertRemoveReplace1()
         {
-            var list = SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
+            TestAddInsertRemoveReplaceWorker(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")));
+            TestAddInsertRemoveReplaceWorker([SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")]);
+        }
 
+        private void TestAddInsertRemoveReplaceWorker(SyntaxTokenList list)
+        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
