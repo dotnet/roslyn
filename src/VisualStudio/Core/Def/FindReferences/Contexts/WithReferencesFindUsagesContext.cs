@@ -71,13 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 using var _1 = ArrayBuilder<Entry>.GetInstance(out var declarations);
                 using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
-
-                for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
+                foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    var declarationLocation = definition.SourceSpans[i];
-                    var classifiedSpans = definition.ClassifiedSpans[i];
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, classifiedSpans, HighlightSpanKind.Definition, SymbolUsageInfo.None,
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
                         additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
@@ -119,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, reference.ClassifiedSpans,
+                        bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.SymbolUsageInfo,
                         reference.AdditionalProperties,

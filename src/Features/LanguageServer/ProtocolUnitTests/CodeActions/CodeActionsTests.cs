@@ -213,6 +213,12 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.NotNull(data!.NestedCodeActions);
         Assert.NotEmpty(data!.NestedCodeActions);
 
+        // Asserts that the second NestedAction's path is correct
+        var nestedActionData = GetCodeActionResolveData(data!.NestedCodeActions!.Value[1]);
+        Assert.NotNull(nestedActionData);
+        Assert.Equal("Inline 'A()'", nestedActionData!.CodeActionPath[0]);
+        Assert.Equal("Inline and keep 'A()'", nestedActionData!.CodeActionPath[1]);
+
         // Asserts that there is a Command present on an action with nested actions
         Assert.NotNull(inline.Command);
     }

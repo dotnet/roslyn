@@ -927,6 +927,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.RawKind == kind &&
                 this.flags == flags &&
+                this.SlotCount == 1 &&
                 this.GetSlot(0) == child1;
         }
 
@@ -936,6 +937,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.RawKind == kind &&
                 this.flags == flags &&
+                this.SlotCount == 2 &&
                 this.GetSlot(0) == child1 &&
                 this.GetSlot(1) == child2;
         }
@@ -946,6 +948,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.RawKind == kind &&
                 this.flags == flags &&
+                this.SlotCount == 3 &&
                 this.GetSlot(0) == child1 &&
                 this.GetSlot(1) == child2 &&
                 this.GetSlot(2) == child3;

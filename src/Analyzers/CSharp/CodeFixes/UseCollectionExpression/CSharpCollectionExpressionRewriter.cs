@@ -424,8 +424,27 @@ internal static class CSharpCollectionExpressionRewriter
 
                 Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
 
-                foreach (var expression in expressions)
-                    yield return CreateCollectionElement(match.UseSpread, expression);
+                if (match.UseSpread && expressions is [CollectionExpressionSyntax collectionExpression])
+                {
+                    // If we're spreading a collection expression, just insert those inner collection expression
+                    // elements as is into the outer collection expression.
+                    foreach (var element in collectionExpression.Elements)
+                    {
+                        if (element is SpreadElementSyntax spreadElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
+                        }
+                        else if (element is ExpressionElementSyntax expressionElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var expression in expressions)
+                        yield return CreateCollectionElement(match.UseSpread, expression);
+                }
             }
             else if (node is ForEachStatementSyntax foreachStatement)
             {
