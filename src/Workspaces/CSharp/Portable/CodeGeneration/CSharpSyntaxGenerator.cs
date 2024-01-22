@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private SeparatedSyntaxList<EnumMemberDeclarationSyntax> AsEnumMembers(IEnumerable<SyntaxNode>? members)
-            => members != null ? SyntaxFactory.SeparatedList(members.Select(this.AsEnumMember)) : default;
+            => members != null ? [.. members.Select(this.AsEnumMember)] : default;
 
         private protected override SyntaxNode DelegateDeclaration(
             string name,
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static TypeParameterListSyntax? AsTypeParameterList(IEnumerable<SyntaxNode>? typeParameterNodes)
         {
             var typeParameters = typeParameterNodes != null
-                ? SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNodes.Cast<TypeParameterSyntax>()))
+                ? SyntaxFactory.TypeParameterList([.. typeParameterNodes.Cast<TypeParameterSyntax>()])
                 : null;
 
             return typeParameters?.Parameters.Count > 0 ? typeParameters : null;
