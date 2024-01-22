@@ -60,7 +60,7 @@ class B
                 [
                     SyntaxFactory.ClassDeclaration(
                         default,
-                        SyntaxFactory.TokenList(),
+                        modifiers: [],
                         SyntaxFactory.Identifier("My"),
                         null,
                         SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute"))]),
@@ -72,7 +72,7 @@ class B
                             SyntaxFactory.AttributeList([
                                     SyntaxFactory.Attribute(
                                         SyntaxFactory.ParseName("My"))])],
-                        modifiers: SyntaxFactory.TokenList(),
+                        modifiers: [],
                         identifier: SyntaxFactory.Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
@@ -144,7 +144,7 @@ public class SomeAttribute : System.Attribute { }
 }";
             var property = SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
-                modifiers: SyntaxFactory.TokenList(),
+                modifiers: [],
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
                         SyntaxKind.StringKeyword)),
@@ -168,7 +168,7 @@ public class SomeAttribute : System.Attribute { }
                 {
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: default,
-                        modifiers: SyntaxFactory.TokenList(),
+                        modifiers: [],
                         identifier: SyntaxFactory.Identifier("PropertyTest"),
                         typeParameterList: null,
                         baseList: null,

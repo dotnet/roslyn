@@ -1925,7 +1925,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindIn:
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindNone:
-                    newModifiers = SyntaxFactory.TokenList();
+                    newModifiers = [];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray:
