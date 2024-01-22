@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.NodeOrTokenList());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxNodeOrTokenList));
         }
 
