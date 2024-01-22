@@ -15351,7 +15351,7 @@ implicit extension E for C
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionInvocation_TypeReceiver_Simple_ExpressionTree()
     {
-        // PROTOTYPE decide whether to allow expression tree scenarios
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => C.M(42);
@@ -15415,7 +15415,7 @@ implicit extension E for C
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionInvocation_InstanceReceiver_Simple_ExpressionTree()
     {
-        // PROTOTYPE decide whether to allow expression tree scenarios
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => new C().M(42);
@@ -16043,6 +16043,62 @@ public static class E2
 
         Assert.Equal(new[] { "void C.M(System.Int32 a)", "void C.M(System.Int32 c)" },
             model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionInvocation_AmbiguityWithExtensionOnBaseType()
+    {
+        // TODO2
+        var source = """
+System.Console.Write(new C().M(42));
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public int M(int i) => throw null;
+}
+
+implicit extension E2 for C
+{
+    public int M(int i) => i;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,30): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(int)' and 'E2.M(int)'
+            // System.Console.Write(new C().M(42));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M(int)", "E2.M(int)").WithLocation(1, 30)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(42)");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+
+        source = """
+System.Console.Write(new C().M(42));
+
+public class Base { }
+
+public class C : Base { }
+
+public static class E1
+{
+    public static int M(this Base b, int i) => throw null;
+}
+
+public static class E2
+{
+    public static int M(this C c, int i) => i;
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -19954,7 +20010,7 @@ implicit extension E for C
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionIndexerAccess_Simple_Getter_ExpressionTree()
     {
-        // PROTOTYPE decide whether to allow expression tree scenarios
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => new C()[42].ToString();
@@ -19979,7 +20035,7 @@ implicit extension E for C
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionIndexerAccess_Simple_Setter_ExpressionTree()
     {
-        // PROTOTYPE decide whether to allow expression tree scenarios
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => new C()[42] = 43;
@@ -20091,6 +20147,7 @@ implicit extension E2 for C
     public int this[int i] => i;
 }
 """;
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -20751,6 +20808,25 @@ implicit extension E for C
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
         Assert.Equal("System.Int32 E.this[System.Int32 i, [System.Int32 j = 2]] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_DictionaryInitializer()
+    {
+        var source = """
+System.Console.Write(new C() { [1] = 42, [2] = 43 });
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { set { System.Console.Write($"{i}={value} "); } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
     }
 
     [Fact]

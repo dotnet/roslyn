@@ -9385,7 +9385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is not null);
 
             if (receiver.Kind == BoundKind.BaseReference
-                || receiver.Type.IsTypeParameter() // PROTOTYPE need to confirm what we want for extension indexer access on type parameters
+                || receiver.Type.IsTypeParameter() // PROTOTYPE need to confirm what we want for extension indexer access on type parameters or values of type parameters
                 || analyzedArguments.HasDynamicArgument) // PROTOTYPE need to confirm what we want for dynamic access
             {
                 extensionIndexerAccess = null;
@@ -9429,6 +9429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
                 CollectIndexers(lookupResult, indexerGroup);
+                lookupResult.Free();
 
                 var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
                 bool allowRefOmittedArguments = originalBinder.AllowRefOmittedArguments(receiver);
