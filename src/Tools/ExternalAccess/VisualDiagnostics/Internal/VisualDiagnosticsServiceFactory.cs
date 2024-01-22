@@ -4,22 +4,17 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using CompModel = System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
-using System.Linq;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 
@@ -68,7 +63,7 @@ internal sealed class VIsualDiagnosticsServiceFactory : ILspServiceFactory
             }
         }
 
-        public Task OnInitializedAsync(LSP.ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
             return Task.CompletedTask;

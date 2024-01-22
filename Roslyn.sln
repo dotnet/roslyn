@@ -1,7 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ﻿
 =======
 >>>>>>> 8a98ca56667 (Add EA.VisualDiagnostics to the solution)
+=======
+﻿
+>>>>>>> f602f2abe41 (update to Workspage service)
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31319.15
@@ -541,6 +545,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator", "src\Tools\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj", "{09AEDEE4-6358-47C9-8022-3BD37A518070}"
 EndProject
+<<<<<<< HEAD
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTestBuildProject", "src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj", "{4D9D7A28-BB44-4F3F-81DA-14F39B853718}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities", "src\Features\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities.csproj", "{5BABC440-4F1B-46E8-9068-DD7F02ED25D3}"
@@ -549,6 +554,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Feat
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics", "src\Tools\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj", "{6D819E80-BA2F-4317-8368-37F8F4434D3A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics", "src\Tools\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj", "{567443BA-18A6-4A94-B078-A4988DD4016E}"
+=======
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics", "src\Tools\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj", "{6D819E80-BA2F-4317-8368-37F8F4434D3A}"
+>>>>>>> f602f2abe41 (update to Workspage service)
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1606,6 +1614,7 @@ Global
 		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{09AEDEE4-6358-47C9-8022-3BD37A518070} = {8977A560-45C2-4EC2-A849-97335B382C74}
+<<<<<<< HEAD
 		{4D9D7A28-BB44-4F3F-81DA-14F39B853718} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
 		{5BABC440-4F1B-46E8-9068-DD7F02ED25D3} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{5762E483-75CE-4328-A410-511F30737712} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
@@ -1613,6 +1622,9 @@ Global
 		{5BABC440-4F1B-46E8-9068-DD7F02ED25D3} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{5762E483-75CE-4328-A410-511F30737712} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{567443BA-18A6-4A94-B078-A4988DD4016E} = {8977A560-45C2-4EC2-A849-97335B382C74}
+=======
+		{6D819E80-BA2F-4317-8368-37F8F4434D3A} = {8977A560-45C2-4EC2-A849-97335B382C74}
+>>>>>>> f602f2abe41 (update to Workspage service)
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
@@ -1686,7 +1698,6 @@ Global
 		src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.projitems*{dc8c78cc-b6fe-47bf-93b1-b65a1c67c08d}*SharedItemsImports = 5
 		src\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems*{e512c6c1-f085-4ad7-b0d9-e8f1a0a2a510}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\vbc\VbcCommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
-		src\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems*{e645b517-5766-46fb-aa4a-d4d30c9e3be6}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{e8f0baa5-7327-43d1-9a51-644e81ae55f1}*SharedItemsImports = 13
 		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{e919dd77-34f8-4f57-8058-4d3ff4c2b241}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems*{e9dbfa41-7a9c-49be-bd36-fd71b31aa9fe}*SharedItemsImports = 13
