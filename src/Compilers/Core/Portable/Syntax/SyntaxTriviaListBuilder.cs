@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
 
             items.Slice(offset, length).CopyTo(_nodes.AsSpan().Slice(_count, length));
+            _count += length;
         }
 
         public void Add(in SyntaxTriviaList list)
