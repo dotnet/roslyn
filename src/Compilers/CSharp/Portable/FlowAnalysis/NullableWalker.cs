@@ -3059,6 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunc = node.Symbol;
+            var reachable = HasLocalFuncUsage(localFunc);
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
 
             // The starting state (`state`) is the top state ("maybe null").
@@ -3071,10 +3072,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             startingState.ForEach(
                 (slot, variables) =>
                 {
-                    var symbol = variables[variables.RootSlot(slot)].Symbol;
-                    if (Symbol.IsCaptured(symbol, localFunc))
+                    if (reachable)
                     {
-                        SetState(ref state, slot, GetState(ref startingState, slot));
+                        var symbol = variables[variables.RootSlot(slot)].Symbol;
+                        if (Symbol.IsCaptured(symbol, localFunc))
+                        {
+                            SetState(ref state, slot, GetState(ref startingState, slot));
+                        }
+                    }
+                    else if (variables[slot].ContainingSlot == 0)
+                    {
+                        // For unreachable local functions, top-level variables are set to "not null",
+                        // ignoring nested slots to avoid depending on slot allocation order
+                        // (e.g., whether we have seen a class field or not already).
+                        SetState(ref state, slot, NullableFlowState.NotNull);
                     }
                 },
                 _variables);
