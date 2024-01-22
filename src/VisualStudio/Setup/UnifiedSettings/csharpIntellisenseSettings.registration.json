@@ -14,6 +14,22 @@
           }
         }
       }
+    },
+    "textEditor.c#.intellisense.completion.dotnetTriggerCompletionOnDeletion": {
+      "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": false,
+      "requiresRestart": false,
+      "order": 10,
+      "visibleWhen": "${config:textEditor.c#.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.TriggerOnDeletion"
+          }
+        }
+      }
     }
   },
   "categories": {
