@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     constraintClauses: default,
                     body: SyntaxFactory.Block(
                         SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
+                            [],
                             SyntaxKind.OpenBraceToken,
                             [SyntaxFactory.EndOfLine(Environment.NewLine)]),
                         [.. statements],

@@ -1190,7 +1190,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                    SyntaxFactory.MethodDeclaration(
                        SyntaxFactory.PredefinedType(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.ObjectKeyword,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))),
@@ -1202,7 +1202,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                        SyntaxFactory.ParameterList()
                         .WithCloseParenToken(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.CloseParenToken,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))))
@@ -1211,7 +1211,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                            SyntaxFactory.ImplicitObjectCreationExpression())
                        .WithArrowToken(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.EqualsGreaterThanToken,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))))
@@ -1263,7 +1263,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 SyntaxFactory.ConversionOperatorDeclaration(
                     SyntaxFactory.Token(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         SyntaxKind.ImplicitKeyword,
                         SyntaxFactory.TriviaList(
                             SyntaxFactory.Space)),
@@ -1271,7 +1271,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.Token(SyntaxKind.StringKeyword)))
                 .WithModifiers(
                     [SyntaxFactory.Token(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         SyntaxKind.StaticKeyword,
                         SyntaxFactory.TriviaList(
                             SyntaxFactory.Space))])
@@ -1283,7 +1283,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxFactory.TypeArgumentList([SyntaxFactory.IdentifierName("C")]))))
                 .WithOperatorKeyword(
                     SyntaxFactory.Token(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         SyntaxKind.OperatorKeyword,
                         SyntaxFactory.TriviaList(
                             SyntaxFactory.Space)))
@@ -1294,13 +1294,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             .WithType(
                                 SyntaxFactory.IdentifierName(
                                     SyntaxFactory.Identifier(
-                                        SyntaxFactory.TriviaList(),
+                                        [],
                                         "C",
                                         SyntaxFactory.TriviaList(
                                             SyntaxFactory.Space))))])
                     .WithCloseParenToken(
                         SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
+                            [],
                             SyntaxKind.CloseParenToken,
                             SyntaxFactory.TriviaList(
                                 SyntaxFactory.Space))))
@@ -1310,7 +1310,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxKind.NullLiteralExpression))
                     .WithArrowToken(
                         SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
+                            [],
                             SyntaxKind.EqualsGreaterThanToken,
                             SyntaxFactory.TriviaList(
                                 SyntaxFactory.Space))))

@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxToken InterpolatedStringTextToken(string content, string value)
             => SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(),
+                [],
                 SyntaxKind.InterpolatedStringTextToken,
                 content, value,
-                SyntaxFactory.TriviaList());
+                []);
 
         public override SyntaxNode Interpolation(SyntaxNode syntaxNode)
             => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);

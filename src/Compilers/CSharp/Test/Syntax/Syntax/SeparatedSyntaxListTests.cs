@@ -303,8 +303,7 @@ c,b", insertAfterEOL.ToFullString());
             Assert.False(list.Any(SyntaxKind.WhereClause));
         }
 
-        [Fact]
-        [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2630")]
         public void ReplaceSeparator()
         {
             var list = SyntaxFactory.SeparatedList<SyntaxNode>(
