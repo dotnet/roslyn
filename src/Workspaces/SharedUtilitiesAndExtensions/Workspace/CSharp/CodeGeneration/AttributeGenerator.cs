@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                               .WhereNotNull().ToList();
                 return attributeNodes.Count == 0
                     ? default
-                    : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
+                    : [SyntaxFactory.AttributeList(
                         target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
-                        [.. attributeNodes]));
+                        [.. attributeNodes])];
             }
             else
             {
