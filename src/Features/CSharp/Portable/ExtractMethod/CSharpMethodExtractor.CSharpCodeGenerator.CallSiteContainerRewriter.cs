@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitBlock(node);
                     }
 
-                    return node.WithStatements(VisitList(ReplaceStatements(node.Statements)).ToSyntaxList());
+                    return node.WithStatements([.. VisitList(ReplaceStatements(node.Statements))]);
                 }
 
                 public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitSwitchSection(node);
                     }
 
-                    return node.WithStatements(VisitList(ReplaceStatements(node.Statements)).ToSyntaxList());
+                    return node.WithStatements([.. VisitList(ReplaceStatements(node.Statements))]);
                 }
 
                 // only for single statement or expression
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // add new statements to replace
                     newList.InsertRange(firstIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
 
-                    return newList.ToSyntaxList();
+                    return [.. newList];
                 }
 
                 private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     newMembers.InsertRange(firstMemberIndex,
                         _statementsOrMemberOrAccessorToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
 
-                    return newMembers.ToSyntaxList();
+                    return [.. newMembers];
                 }
 
                 public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)

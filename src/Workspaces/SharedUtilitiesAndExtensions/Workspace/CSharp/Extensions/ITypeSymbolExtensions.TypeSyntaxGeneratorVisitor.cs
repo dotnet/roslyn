@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     arrayType = arrayType.ElementType as IArrayTypeSymbol;
                 }
 
-                TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, ranks.ToSyntaxList());
+                TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, [.. ranks]);
 
                 if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
                 {

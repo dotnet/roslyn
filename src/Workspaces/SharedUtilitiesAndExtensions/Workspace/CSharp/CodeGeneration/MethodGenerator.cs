@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, info, cancellationToken);
 
             var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
-            return destination.WithMembers(members.ToSyntaxList());
+            return destination.WithMembers([.. members]);
         }
 
         internal static CompilationUnitSyntax AddMethodTo(
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 cancellationToken);
 
             var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
-            return destination.WithMembers(members.ToSyntaxList());
+            return destination.WithMembers([.. members]);
         }
 
         internal static TypeDeclarationSyntax AddMethodTo(
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
             }
 
-            return attributes.ToSyntaxList();
+            return [.. attributes];
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AddConstraintClauses(clauses, typeParameter);
             }
 
-            return clauses.Count == 0 ? default : clauses.ToSyntaxList();
+            return [.. clauses];
         }
 
         private static void AddConstraintClauses(

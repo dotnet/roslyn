@@ -3530,7 +3530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return SyntaxFactory.SwitchStatement(
                     (ExpressionSyntax)expression,
-                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList());
+                    [.. caseClauses.Cast<SwitchSectionSyntax>()]);
             }
             else
             {
@@ -3540,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     (ExpressionSyntax)expression,
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken),
                     SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList(),
+                    [.. caseClauses.Cast<SwitchSectionSyntax>()],
                     SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
             }
         }
@@ -3551,7 +3551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.SwitchSection(
-                labels.Cast<SwitchLabelSyntax>().ToSyntaxList(),
+                [.. labels.Cast<SwitchLabelSyntax>()],
                 AsStatementList(statements));
         }
 

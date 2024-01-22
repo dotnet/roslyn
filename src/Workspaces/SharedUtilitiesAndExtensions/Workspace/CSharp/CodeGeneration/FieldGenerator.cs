@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // declaration.
             var members = Insert(destination.Members, declaration, info, availableIndices,
                 after: m => LastField(m, declaration), before: FirstMember);
-            return destination.WithMembers(members.ToSyntaxList());
+            return destination.WithMembers([.. members]);
         }
 
         internal static TypeDeclarationSyntax AddFieldTo(
