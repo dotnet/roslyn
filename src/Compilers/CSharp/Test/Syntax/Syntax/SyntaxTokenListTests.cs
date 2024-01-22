@@ -56,15 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<NotSupportedException>(() => default(SyntaxTokenList.Reversed.Enumerator).Equals(default(SyntaxTokenList.Reversed.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemoveReplace1()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemoveReplace(bool collectionExpression)
         {
-            TestAddInsertRemoveReplaceWorker(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")));
-            TestAddInsertRemoveReplaceWorker([SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")]);
-        }
+            var list = collectionExpression
+                ? [SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")]
+                : SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
 
-        private void TestAddInsertRemoveReplaceWorker(SyntaxTokenList list)
-        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
