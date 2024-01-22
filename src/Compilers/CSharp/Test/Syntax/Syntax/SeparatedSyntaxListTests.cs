@@ -307,15 +307,15 @@ c,b", insertAfterEOL.ToFullString());
         public void ReplaceSeparator(bool collectionExpression)
         {
             var list = collectionExpression
-                ? SyntaxFactory.SeparatedList<SyntaxNode>(
+                ? [SyntaxFactory.IdentifierName("A"),
+                   SyntaxFactory.IdentifierName("B"),
+                   SyntaxFactory.IdentifierName("C")]
+                : SyntaxFactory.SeparatedList<SyntaxNode>(
                     new[] {
                         SyntaxFactory.IdentifierName("A"),
                         SyntaxFactory.IdentifierName("B"),
                         SyntaxFactory.IdentifierName("C"),
-                    })
-                : [SyntaxFactory.IdentifierName("A"),
-                   SyntaxFactory.IdentifierName("B"),
-                   SyntaxFactory.IdentifierName("C")];
+                    });
 
             var newComma = SyntaxFactory.Token(
                 collectionExpression ? SyntaxFactory.TriviaList(SyntaxFactory.Space) : [SyntaxFactory.Space],

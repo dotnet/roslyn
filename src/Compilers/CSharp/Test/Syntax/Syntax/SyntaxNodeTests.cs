@@ -1913,15 +1913,20 @@ namespace Microsoft.CSharp.Test
             Assert.NotEqual(sizes.GetSeparator(1), sizes.GetSeparator(2));
         }
 
-        [Fact]
-        public void ZeroWidthStructuredTrivia()
+        [Theory, CombinatorialData]
+        public void ZeroWidthStructuredTrivia(bool collectionExpression)
         {
             // create zero width structured trivia (not sure how these come about but its not impossible)
             var zeroWidth = SyntaxFactory.ElseDirectiveTrivia(SyntaxFactory.MissingToken(SyntaxKind.HashToken), SyntaxFactory.MissingToken(SyntaxKind.ElseKeyword), SyntaxFactory.MissingToken(SyntaxKind.EndOfDirectiveToken), false, false);
             Assert.Equal(0, zeroWidth.Width);
 
             // create token with more than one instance of same zero width structured trivia!
-            var someToken = SyntaxFactory.Identifier(default(SyntaxTriviaList), "goo", SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
+            var someToken = SyntaxFactory.Identifier(
+                default(SyntaxTriviaList),
+                "goo",
+                collectionExpression
+                    ? [SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)]
+                    : SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
 
             // create node with this token
             var someNode = SyntaxFactory.IdentifierName(someToken);
