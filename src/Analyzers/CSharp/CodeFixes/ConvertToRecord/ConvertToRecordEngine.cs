@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             if (exteriorTrivia == null)
             {
                 // we didn't find any substantive doc comments, just give the current non-doc comments
-                return SyntaxFactory.TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
+                return [.. classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic())];
             }
 
             var propertyParamComments = CreateParamComments(propertyResults, exteriorTrivia!.Value, lineFormattingOptions);
@@ -654,19 +654,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             if (classDocComment == null || lastComment == classDocComment)
             {
                 // doc comment was last non-whitespace/newline trivia or there was no class doc comment originally
-                return SyntaxFactory.TriviaList(classTrivia
+                return [.. classTrivia
                     .Where(trivia => !trivia.IsDocComment())
                     .Concat(propertyNonDocComments)
                     .Append(SyntaxFactory.Trivia(newClassDocComment))
-                    .Select(trivia => trivia.AsElastic()));
+                    .Select(trivia => trivia.AsElastic())];
             }
             else
             {
                 // there were comments after doc comment
-                return SyntaxFactory.TriviaList(classTrivia
+                return [.. classTrivia
                     .Replace(classDocComment.Value, SyntaxFactory.Trivia(newClassDocComment))
                     .Concat(propertyNonDocComments)
-                    .Select(trivia => trivia.AsElastic()));
+                    .Select(trivia => trivia.AsElastic())];
             }
         }
 
