@@ -655,8 +655,8 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
 
-        [Fact]
-        public void TestFindTokenInLargeList()
+        [Theory, CombinatorialData]
+        public void TestFindTokenInLargeList(bool collectionExpression)
         {
             var identifier = SyntaxFactory.Identifier("x");
             var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
@@ -679,7 +679,9 @@ a + b";
                 missingArgument, missingComma,
                 argument);
 
-            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
+            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(collectionExpression
+                ? [.. nodesAndTokens]
+                : SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
             var invocation = SyntaxFactory.InvocationExpression(name, argumentList);
             CheckFindToken(invocation);
         }
