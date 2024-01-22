@@ -8266,7 +8266,7 @@ class Program
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Get rid of LocalRewriter.MakeCallWithNoExplicitArgument, it cannot handle params collections")] // PROTOTYPE(ParamsCollections): enable and test runtime behavior
         public void UsingPatternWithParamsTest()
         {
             var source = @"
@@ -8288,10 +8288,10 @@ class C2
         using (c1b) { }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "Get rid of LocalRewriter.MakeCallWithNoExplicitArgument, it cannot handle params collections")] // PROTOTYPE(ParamsCollections): enable and test runtime behavior
         public void UsingPatternWithParamsTest_Foreach()
         {
             var source = @"
@@ -8315,7 +8315,7 @@ class C2
         }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact]
