@@ -4638,7 +4638,7 @@ class innerClass
 
             var property = SyntaxFactory.PropertyDeclaration(
                 attributeLists: [],
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                [SyntaxFactory.Token(SyntaxKind.PublicKeyword)],
                 SyntaxFactory.ParseTypeName("int"),
                 null,
                 SyntaxFactory.Identifier("Prop"),

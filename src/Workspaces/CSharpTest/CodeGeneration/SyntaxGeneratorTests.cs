@@ -1272,12 +1272,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.PredefinedType(
                         SyntaxFactory.Token(SyntaxKind.StringKeyword)))
                 .WithModifiers(
-                    SyntaxFactory.TokenList(
-                        SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
-                            SyntaxKind.StaticKeyword,
-                            SyntaxFactory.TriviaList(
-                                SyntaxFactory.Space))))
+                    [SyntaxFactory.Token(
+                        SyntaxFactory.TriviaList(),
+                        SyntaxKind.StaticKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space))])
                 .WithExplicitInterfaceSpecifier(
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.GenericName(

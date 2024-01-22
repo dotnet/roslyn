@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxToken"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTokenList), methodName: "Create")]
     public readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
         private readonly SyntaxNode? _parent;
@@ -59,7 +61,21 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public static SyntaxTokenList Create(ReadOnlySpan<SyntaxToken> tokens)
+        {
+            if (tokens.Length == 0)
+                return default;
+
+            if (tokens.Length == 1)
+                return new SyntaxTokenList(tokens[0]);
+
+            return new SyntaxTokenList(parent: null, CreateNode(tokens), position: 0, index: 0);
+        }
+
         private static GreenNode? CreateNode(SyntaxToken[] tokens)
+            => CreateNode(tokens.AsSpan());
+
+        private static GreenNode? CreateNode(ReadOnlySpan<SyntaxToken> tokens)
         {
             if (tokens == null)
             {

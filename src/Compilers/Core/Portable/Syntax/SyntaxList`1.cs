@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNode"/>.
     /// </summary>
-    [CollectionBuilder(typeof(Microsoft.CodeAnalysis.SyntaxList), methodName: "Create")]
+    [CollectionBuilder(typeof(SyntaxList), methodName: "Create")]
     public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {

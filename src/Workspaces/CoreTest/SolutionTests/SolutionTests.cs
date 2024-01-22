@@ -2586,7 +2586,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (language == LanguageNames.CSharp)
             {
                 var classNode = syntaxRoot.DescendantNodes().OfType<CS.Syntax.ClassDeclarationSyntax>().Single();
-                newSyntaxRoot = syntaxRoot.ReplaceNode(classNode, classNode.WithModifiers(CS.SyntaxFactory.TokenList(CS.SyntaxFactory.ParseToken("public"))));
+                newSyntaxRoot = syntaxRoot.ReplaceNode(classNode, classNode.WithModifiers([CS.SyntaxFactory.ParseToken("public")]));
             }
             else
             {
