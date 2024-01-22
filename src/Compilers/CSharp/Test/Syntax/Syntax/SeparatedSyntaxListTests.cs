@@ -301,9 +301,7 @@ c,b", insertAfterEOL.ToFullString());
         public void ReplaceSeparator(bool collectionExpression)
         {
             var list = collectionExpression
-                ? [SyntaxFactory.IdentifierName("A"),
-                   SyntaxFactory.IdentifierName("B"),
-                   SyntaxFactory.IdentifierName("C")]
+                ? [SyntaxFactory.IdentifierName("A"), SyntaxFactory.IdentifierName("B"), SyntaxFactory.IdentifierName("C")]
                 : SyntaxFactory.SeparatedList<SyntaxNode>(
                     new[] {
                         SyntaxFactory.IdentifierName("A"),
