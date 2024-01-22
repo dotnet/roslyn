@@ -616,5 +616,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedAction_Application_Summary = 743,
         SuggestedAction_Preview_Delay = 744,
         SuggestedAction_Preview_Summary = 745,
+
+        LSP_DocumentIdCacheMiss = 746,
     }
 }
