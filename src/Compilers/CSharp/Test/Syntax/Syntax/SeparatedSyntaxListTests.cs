@@ -90,12 +90,20 @@ c,b", insertAfterEOL.ToFullString());
         [Fact]
         public void TestAddInsertRemove()
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+            TestAddInsertRemoveWorker(SyntaxFactory.SeparatedList<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A"),
                     SyntaxFactory.ParseExpression("B"),
-                    SyntaxFactory.ParseExpression("C") });
+                    SyntaxFactory.ParseExpression("C") }));
 
+            TestAddInsertRemoveWorker([
+                SyntaxFactory.ParseExpression("A"),
+                SyntaxFactory.ParseExpression("B"),
+                SyntaxFactory.ParseExpression("C")]);
+        }
+
+        private void TestAddInsertRemoveWorker(SeparatedSyntaxList<SyntaxNode> list)
+        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
