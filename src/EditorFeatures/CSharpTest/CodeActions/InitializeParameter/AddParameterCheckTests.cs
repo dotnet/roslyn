@@ -1085,6 +1085,42 @@ class C
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestUpdateExpressionBody4()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(int v, [||]string s) => v switch
+                    {
+                        _ => 0
+                    };
+                }
+                """,
+                """
+                using System;
+                
+                class C
+                {
+                    int M(int v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+
+                        return v switch
+                        {
+                            _ => 0
+                        };
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
