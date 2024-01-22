@@ -1767,7 +1767,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var specifier = target != null
                 ? SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Identifier(target),
-                    SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.ColonToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)))
+                    SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.ColonToken, [SyntaxFactory.Space]))
                 : null;
 
             return SyntaxFactory.AttributeList(
@@ -2307,7 +2307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     if (method.Body != null && method.Body.Statements.Count == 0)
                     {
-                        member = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.SemicolonToken, method.Body.CloseBraceToken.TrailingTrivia));
+                        member = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.SemicolonToken, method.Body.CloseBraceToken.TrailingTrivia));
                     }
                 }
                 else
@@ -2328,7 +2328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                                 continue;
                             }
 
-                            var updatedAccessor = accessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.SemicolonToken, accessor.Body.CloseBraceToken.TrailingTrivia));
+                            var updatedAccessor = accessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token([SyntaxFactory.ElasticMarker], SyntaxKind.SemicolonToken, accessor.Body.CloseBraceToken.TrailingTrivia));
                             updatedAccessors.Add(updatedAccessor);
                         }
 

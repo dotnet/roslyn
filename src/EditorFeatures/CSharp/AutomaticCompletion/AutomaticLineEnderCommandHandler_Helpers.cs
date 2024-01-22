@@ -847,14 +847,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             => SyntaxFactory.Token(
                     leading: SyntaxTriviaList.Empty,
                     kind: SyntaxKind.OpenBraceToken,
-                    trailing: SyntaxTriviaList.Create(GetNewLineTrivia(formattingOptions)))
+                    trailing: [GetNewLineTrivia(formattingOptions)])
                 .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
         private static SyntaxToken GetCloseBrace(SyntaxFormattingOptions formattingOptions)
             => SyntaxFactory.Token(
                 leading: SyntaxTriviaList.Empty,
                 kind: SyntaxKind.CloseBraceToken,
-                trailing: SyntaxTriviaList.Create(GetNewLineTrivia(formattingOptions)));
+                trailing: [GetNewLineTrivia(formattingOptions)]);
 
         private static SyntaxTrivia GetNewLineTrivia(SyntaxFormattingOptions formattingOptions)
         {

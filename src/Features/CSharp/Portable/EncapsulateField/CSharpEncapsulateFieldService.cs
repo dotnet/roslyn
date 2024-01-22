@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             var tempAnnotation = new SyntaxAnnotation();
             var escapedName = originalFieldName.EscapeIdentifier();
             var newIdentifier = SyntaxFactory.Identifier(
-                    leading: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker),
+                    leading: [SyntaxFactory.ElasticMarker],
                     contextualKind: SyntaxKind.IdentifierName,
                     text: escapedName,
                     valueText: originalFieldName,
-                    trailing: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
+                    trailing: [SyntaxFactory.ElasticMarker])
                 .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
                 .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
 
