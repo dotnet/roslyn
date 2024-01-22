@@ -303,20 +303,24 @@ c,b", insertAfterEOL.ToFullString());
             Assert.False(list.Any(SyntaxKind.WhereClause));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2630")]
-        public void ReplaceSeparator()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/2630")]
+        public void ReplaceSeparator(bool collectionExpression)
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
-                new[] {
-                    SyntaxFactory.IdentifierName("A"),
-                    SyntaxFactory.IdentifierName("B"),
-                    SyntaxFactory.IdentifierName("C"),
-                });
+            var list = collectionExpression
+                ? SyntaxFactory.SeparatedList<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.IdentifierName("A"),
+                        SyntaxFactory.IdentifierName("B"),
+                        SyntaxFactory.IdentifierName("C"),
+                    })
+                : [SyntaxFactory.IdentifierName("A"),
+                   SyntaxFactory.IdentifierName("B"),
+                   SyntaxFactory.IdentifierName("C")];
 
             var newComma = SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(SyntaxFactory.Space),
+                collectionExpression ? SyntaxFactory.TriviaList(SyntaxFactory.Space) : [SyntaxFactory.Space],
                 SyntaxKind.CommaToken,
-                SyntaxFactory.TriviaList());
+                collectionExpression ? SyntaxFactory.TriviaList() : []);
             var newList = list.ReplaceSeparator(
                 list.GetSeparator(1),
                 newComma);
