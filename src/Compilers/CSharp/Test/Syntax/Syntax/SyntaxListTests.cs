@@ -41,14 +41,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAddInsertRemoveReplace()
+        public void TestAddInsertRemoveReplace1()
         {
             var list = SyntaxFactory.List<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A "),
                     SyntaxFactory.ParseExpression("B "),
                     SyntaxFactory.ParseExpression("C ") });
+            TestAddInsertRemoveReplaceWorker(list);
+        }
 
+        [Fact]
+        public void TestAddInsertRemoveReplace2()
+        {
+            TestAddInsertRemoveReplaceWorker([
+                SyntaxFactory.ParseExpression("A "),
+                SyntaxFactory.ParseExpression("B "),
+                SyntaxFactory.ParseExpression("C ")]);
+        }
+
+        private void TestAddInsertRemoveReplaceWorker(SyntaxList<SyntaxNode> list)
+        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
