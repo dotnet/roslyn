@@ -1,10 +1,8 @@
 {
   "properties": {
-    "textEditor.c#.advanced.analysis.dotnetAnalyzerDiagnosticsScope": {
+    "textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters": {
       "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "type": "string",
-      "enum": [ "None", "Current Document", "Open Documents", "Entire Solution" ],
-      "enumLabel": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "type": "boolean",
       "default": "Current Document",
       "requiresRestart": false,
       "order": 0,
@@ -34,46 +32,11 @@
           ]
         }
       }
-    },
-    "textEditor.c#.advanced.analysis.dotnetCompilerDiagnosticsScope": {
-      "title": "@Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "type": "string",
-      "enum": [ "None", "Current Document", "Open Documents", "Entire Solution" ],
-      "enumLabel": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
-      "default": "Open Documents",
-      "requiresRestart": false,
-      "order": 10,
-      "migration": {
-        "enumIntegerToString": {
-          "input": {
-            "store": "SettingsManager",
-            "path": "TextEditor.CSharp.Specific.CompilerDiagnosticsScopeOption"
-          },
-          "map": [
-            {
-              "result": "None",
-              "match": 0
-            },
-            {
-              "result": "Current Document",
-              "match": 1
-            },
-            {
-              "result": "Open Documents",
-              "match": 2
-            },
-            {
-              "result": "Entire Solution",
-              "match": 3
-            }
-          ]
-        }
-      }
     }
   },
-  "textEditor.c#.advanced": {
-    "title": "Advanced",
-    "helpUri": "https://learn.microsoft.com/visualstudio/ide/reference/options-text-editor-csharp-advanced",
-    "legacyOptionPageId": "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF"
+  "textEditor.c#.Intellisense": {
+    "title": "@103;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+    "helpUri": "TBD",
+    "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
   }
 }

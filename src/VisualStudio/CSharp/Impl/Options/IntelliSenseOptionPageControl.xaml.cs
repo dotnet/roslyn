@@ -19,15 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
-            BindToOption(Automatically_complete_statement_on_semicolon, CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon);
-
-            BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.CSharp);
-            BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
-
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.CSharp);
             Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp) == true;
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
             AddSearchHandler(Show_completion_list_after_a_character_is_deleted);
+
+            BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
+            BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
+            BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.CSharp);
+
+            BindToOption(Automatically_complete_statement_on_semicolon, CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Never_include_snippets, CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.NeverInclude, LanguageNames.CSharp);
             BindToOption(Always_include_snippets, CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude, LanguageNames.CSharp);
@@ -38,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Always_add_new_line_on_enter, CompletionOptionsStorage.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.CSharp);
 
             BindToOption(Show_name_suggestions, CompletionOptionsStorage.ShowNameSuggestions, LanguageNames.CSharp);
-            BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
             AddSearchHandler(Show_items_from_unimported_namespaces);
