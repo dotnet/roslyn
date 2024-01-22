@@ -87,23 +87,20 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal("a,c, /* b is best */ b", insertBeforeMultiLineComment.ToFullString());
         }
 
-        [Fact]
-        public void TestAddInsertRemove()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemove(bool collectionExpression)
         {
-            TestAddInsertRemoveWorker(SyntaxFactory.SeparatedList<SyntaxNode>(
-                new[] {
+            var list = collectionExpression
+                ? [
                     SyntaxFactory.ParseExpression("A"),
                     SyntaxFactory.ParseExpression("B"),
-                    SyntaxFactory.ParseExpression("C") }));
+                    SyntaxFactory.ParseExpression("C")]
+                : SyntaxFactory.SeparatedList<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.ParseExpression("A"),
+                        SyntaxFactory.ParseExpression("B"),
+                        SyntaxFactory.ParseExpression("C") });
 
-            TestAddInsertRemoveWorker([
-                SyntaxFactory.ParseExpression("A"),
-                SyntaxFactory.ParseExpression("B"),
-                SyntaxFactory.ParseExpression("C")]);
-        }
-
-        private void TestAddInsertRemoveWorker(SeparatedSyntaxList<SyntaxNode> list)
-        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
