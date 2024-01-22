@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTriviaList), methodName: "Create")]
     public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
@@ -65,7 +67,21 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public static SyntaxTriviaList Create(ReadOnlySpan<SyntaxTrivia> trivias)
+        {
+            if (trivias.Length == 0)
+                return default;
+
+            if (trivias.Length == 1)
+                return new SyntaxTriviaList(trivias[0]);
+
+            return new SyntaxTriviaList(token: default, CreateNode(trivias), position: 0, index: 0);
+        }
+
         private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
+            => CreateNode(trivias.AsSpan());
+
+        private static GreenNode? CreateNode(ReadOnlySpan<SyntaxTrivia> trivias)
         {
             if (trivias == null)
             {
