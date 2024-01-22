@@ -1852,7 +1852,7 @@ class C { int Y => 2; }
         [Fact]
         public async Task HasChanges()
         {
-            using var _ = CreateWorkspace(out var solution, out var service);
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var pathA = Path.Combine(TempRoot.Root, "A.cs");
             var pathB = Path.Combine(TempRoot.Root, "B.cs");
@@ -1902,6 +1902,17 @@ class C { int Y => 2; }
 
             // remove a project:
             Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveProject(projectD.Id), CancellationToken.None));
+
+            // add a project that doesn't support EnC:
+
+            oldSolution = solution;
+            var projectE = solution.AddProject("E", "E", NoCompilationConstants.LanguageName);
+            solution = projectE.Solution;
+
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+            // remove a project that doesn't support EnC:
+            Assert.False(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
 
             EndDebuggingSession(debuggingSession);
         }
@@ -3677,9 +3688,7 @@ class C { int Y => 1; }
         [CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
-            var composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
-
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
             var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;

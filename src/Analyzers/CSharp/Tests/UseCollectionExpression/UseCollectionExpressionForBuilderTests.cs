@@ -997,6 +997,45 @@ public partial class UseCollectionExpressionForBuilderTests
         }.RunAsync();
     }
 
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
+    public async Task TestAddRange5(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        {{pattern}}
+                        [|builder.{|CS0121:AddRange|}(|][1, 2, 3]);
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        Goo([1, 2, 3]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task TestMoveToImmutable()
     {

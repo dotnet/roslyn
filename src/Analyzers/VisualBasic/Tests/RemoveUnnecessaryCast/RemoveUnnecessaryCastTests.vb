@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryCast
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
     Partial Public Class RemoveUnnecessaryCastTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer(),

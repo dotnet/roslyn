@@ -938,9 +938,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (bestPromotedItemSoFar < 0)
                     return initialSelection;
 
-                // If user hasn't typed anything, we'd like to hard select the default item.
-                // This way, they can easily commit the default item which matches what WLC shows.
-                var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : initialSelection.SelectionHint;
+                // If user hasn't typed anything, we'd like to soft select the default item.
+                // This way, the selection won't get in the way of typing.
+                var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.SoftSelected : initialSelection.SelectionHint;
                 return initialSelection with { SelectedItemIndex = bestPromotedItemSoFar, SelectionHint = selectionHint };
             }
 

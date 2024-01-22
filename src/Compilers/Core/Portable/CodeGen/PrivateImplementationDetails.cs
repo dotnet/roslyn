@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 
-        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Private;
+        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
 
         public override bool IsValueType => true;
 
