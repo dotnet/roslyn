@@ -40,23 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemoveReplace()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemoveReplace(bool collectionExpression)
         {
-            TestAddInsertRemoveReplaceWorker(SyntaxFactory.List<SyntaxNode>(
-                new[] {
+            var list = collectionExpression
+                ? [
                     SyntaxFactory.ParseExpression("A "),
                     SyntaxFactory.ParseExpression("B "),
-                    SyntaxFactory.ParseExpression("C ") }));
+                    SyntaxFactory.ParseExpression("C ")]
+                : SyntaxFactory.List<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.ParseExpression("A "),
+                        SyntaxFactory.ParseExpression("B "),
+                        SyntaxFactory.ParseExpression("C ") });
 
-            TestAddInsertRemoveReplaceWorker([
-                SyntaxFactory.ParseExpression("A "),
-                SyntaxFactory.ParseExpression("B "),
-                SyntaxFactory.ParseExpression("C ")]);
-        }
-
-        private void TestAddInsertRemoveReplaceWorker(SyntaxList<SyntaxNode> list)
-        {
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
             Assert.Equal("B", list[1].ToString());
