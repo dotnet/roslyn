@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new /// <inheritdoc/> comment.
-                var xmlSpaceAfterTripleSlash = Token(leading: TriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
+                var xmlSpaceAfterTripleSlash = Token(leading: [DocumentationCommentExterior("///")], SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
                 var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
                 var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
                 var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
 
             usingDeclarationStatement = declarationStatement
                 .WithoutLeadingTrivia()
-                .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
+                .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, [SyntaxFactory.Space]));
             return true;
         }
     }

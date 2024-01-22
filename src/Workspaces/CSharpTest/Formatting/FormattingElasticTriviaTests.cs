@@ -45,10 +45,9 @@ class B
                 usings: default,
                 attributeLists: [SyntaxFactory.AttributeList(
                                     SyntaxFactory.Token(
-                                        SyntaxFactory.TriviaList(
-                                            SyntaxFactory.Trivia(
-                                                SyntaxFactory.LineDirectiveTrivia(
-                                                    SyntaxFactory.Literal("99", 99), false))),
+                                        [SyntaxFactory.Trivia(
+                                            SyntaxFactory.LineDirectiveTrivia(
+                                                SyntaxFactory.Literal("99", 99), false))],
                                         SyntaxKind.OpenBracketToken,
                                         SyntaxFactory.TriviaList()),
                                     SyntaxFactory.AttributeTargetSpecifier(

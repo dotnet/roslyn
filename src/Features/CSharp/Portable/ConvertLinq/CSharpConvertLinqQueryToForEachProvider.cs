@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         SyntaxFactory.Token(
                             SyntaxFactory.TriviaList(),
                             SyntaxKind.OpenBraceToken,
-                            SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
+                            [SyntaxFactory.EndOfLine(Environment.NewLine)]),
                         [.. statements],
                         SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
                     expressionBody: null);
