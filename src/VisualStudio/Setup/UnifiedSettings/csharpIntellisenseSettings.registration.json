@@ -20,7 +20,7 @@
       "type": "boolean",
       "default": false,
       "requiresRestart": false,
-      "order": 10,
+      "order": 1,
       "visibleWhen": "${config:textEditor.c#.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
       "migration": {
         "pass": {
@@ -36,12 +36,42 @@
       "type": "boolean",
       "default": true,
       "requiresRestart": false,
-      "order": 20,
+      "order": 10,
       "migration": {
         "pass": {
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.TriggerInArgumentLists"
+          }
+        }
+      }
+    },
+    "textEditor.c#.intellisense.completion.dotnetHighlightMatchingPortionsOfCompletionListItems": {
+      "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": false,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.HighlightMatchingPortionsOfCompletionListItems"
+          }
+        }
+      }
+    },
+    "textEditor.c#.intellisense.completion.dotnetShowCompletionItemFilters": {
+      "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": false,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowCompletionItemFilters"
           }
         }
       }
