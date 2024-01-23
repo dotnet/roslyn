@@ -19,9 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             InitializeComponent();
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.CSharp);
-            Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp) == true;
+            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, onNullValue: () => false);
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
-            AddSearchHandler(Show_completion_list_after_a_character_is_deleted);
 
             BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
@@ -53,13 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
             Show_completion_list_after_a_character_is_deleted.IsChecked = false;
-            Show_completion_list_after_a_character_is_deleted_Unchecked(sender, e);
+            this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: false);
         }
-
-        private void Show_completion_list_after_a_character_is_deleted_Checked(object sender, RoutedEventArgs e)
-            => this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: true);
-
-        private void Show_completion_list_after_a_character_is_deleted_Unchecked(object sender, RoutedEventArgs e)
-            => this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: false);
     }
 }
