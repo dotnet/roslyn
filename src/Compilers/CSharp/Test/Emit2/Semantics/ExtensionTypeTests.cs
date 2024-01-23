@@ -16048,7 +16048,6 @@ public static class E2
     [Fact]
     public void ExtensionInvocation_AmbiguityWithExtensionOnBaseType()
     {
-        // TODO2
         var source = """
 System.Console.Write(new C().M(42));
 
