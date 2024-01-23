@@ -248,7 +248,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     {
                         var item = DefinitionItem.Create(
                             ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
-                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
+                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span),
+                            classifiedSpans: null);
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
@@ -725,11 +726,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var document = solution.GetDocument(location.SourceTree);
                     if (document != null)
                     {
-                        var documentSpan = new DocumentSpan(document, location.SourceSpan);
                         return DefinitionItem.Create(
                             tags: ImmutableArray<string>.Empty,
                             displayParts: ImmutableArray<TaggedText>.Empty,
-                            documentSpan,
+                            new DocumentSpan(document, location.SourceSpan),
+                            classifiedSpans: null,
                             nameDisplayParts: ImmutableArray<TaggedText>.Empty);
                     }
                 }
