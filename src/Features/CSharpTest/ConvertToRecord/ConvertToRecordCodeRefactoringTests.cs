@@ -110,7 +110,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record [|C|](int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record [|C|](int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -341,7 +341,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public readonly record struct [|C|](int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -406,7 +406,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P) : B;
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -431,7 +431,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -468,7 +468,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -500,7 +500,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, int Bar, int Foo) : B(Foo, Bar);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -542,7 +542,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -573,7 +573,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -595,7 +595,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -617,7 +617,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record struct C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -639,7 +639,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public readonly record struct C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     // if there are both init and set properties, convert both but keep set property override
@@ -666,7 +666,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -688,7 +688,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C<TA, TB>(TA? P, TB? B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -719,7 +719,7 @@ public class ConvertToRecordCodeRefactoringTests
                         where TB : IEnumerable<TA>;
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -748,7 +748,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C([property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false")] bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -781,7 +781,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C([property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false")] bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -810,7 +810,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C([/*comment before*/ property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false") /* comment after*/] bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -837,7 +837,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -868,7 +868,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -906,7 +906,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -941,7 +941,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -968,7 +968,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -995,7 +995,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1023,7 +1023,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1056,7 +1056,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1089,7 +1089,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1122,7 +1122,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1161,7 +1161,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1194,7 +1194,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1227,7 +1227,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1270,7 +1270,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1302,7 +1302,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1334,7 +1334,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1366,7 +1366,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1411,7 +1411,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1444,7 +1444,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1487,7 +1487,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1530,7 +1530,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1569,7 +1569,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1597,7 +1597,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1625,7 +1625,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1660,7 +1660,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1688,7 +1688,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1719,7 +1719,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1755,7 +1755,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1791,7 +1791,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1837,7 +1837,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1873,7 +1873,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1925,7 +1925,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1955,7 +1955,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -1989,7 +1989,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2036,7 +2036,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2066,7 +2066,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2096,7 +2096,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2126,7 +2126,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2156,7 +2156,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2184,7 +2184,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2214,7 +2214,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2244,7 +2244,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2293,7 +2293,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2342,7 +2342,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2389,7 +2389,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2436,7 +2436,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2463,7 +2463,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2491,7 +2491,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2524,7 +2524,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2560,7 +2560,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2598,7 +2598,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2626,7 +2626,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2650,7 +2650,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2678,7 +2678,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(bool B, int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2706,7 +2706,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(bool B = false, int P = 0);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2745,7 +2745,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2797,7 +2797,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2856,7 +2856,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2915,7 +2915,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -2954,7 +2954,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3003,7 +3003,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3048,7 +3048,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3090,7 +3090,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3138,7 +3138,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3179,7 +3179,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3220,7 +3220,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3259,7 +3259,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3296,7 +3296,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3338,7 +3338,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3377,7 +3377,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3440,7 +3440,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3491,7 +3491,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3535,7 +3535,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3595,7 +3595,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3657,7 +3657,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3689,7 +3689,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3724,7 +3724,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3769,7 +3769,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3810,7 +3810,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3856,7 +3856,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3902,7 +3902,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3944,7 +3944,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -3985,7 +3985,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4026,7 +4026,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4063,7 +4063,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4104,7 +4104,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4135,7 +4135,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4182,7 +4182,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4233,7 +4233,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4274,7 +4274,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4329,7 +4329,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4401,7 +4401,7 @@ public class ConvertToRecordCodeRefactoringTests
                     changedMarkup2
                 }
             }
-        }.RunAsync().ConfigureAwait(false);
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1932546")]
@@ -4449,7 +4449,7 @@ public class ConvertToRecordCodeRefactoringTests
             }
             """;
 
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     #region selection
@@ -4466,7 +4466,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -4481,7 +4481,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -4496,7 +4496,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     [Fact]
@@ -4528,7 +4528,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
     [Fact]
@@ -4549,7 +4549,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4570,7 +4570,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """;
-        await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
     [Fact]
@@ -4587,7 +4587,7 @@ public class ConvertToRecordCodeRefactoringTests
                 }
             }
             """;
-        await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        await TestNoRefactoringAsync(initialMarkup);
     }
 
     #endregion
@@ -4635,7 +4635,7 @@ public class ConvertToRecordCodeRefactoringTests
             TestCode = initialMarkup,
             FixedCode = changedMarkup,
         };
-        await test.RunAsync().ConfigureAwait(false);
+        await test.RunAsync();
     }
 
     private static Task TestNoRefactoringAsync(string initialMarkup)
