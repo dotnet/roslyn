@@ -189,6 +189,25 @@
           }
         }
       }
+    },
+    "textEditor.c#.intellisense.completion.dotnetShowNewSnippetExperience": {
+      "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": false,
+      "alternateDefault": {
+        "flagName": "Roslyn.SnippetCompletion",
+        "default": true
+      },
+      "requiresRestart": false,
+      "order": 80,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowNewSnippetExperience"
+          }
+        }
+      }
     }
   },
   "categories": {
