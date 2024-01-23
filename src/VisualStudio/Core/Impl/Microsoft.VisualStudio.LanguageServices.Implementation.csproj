@@ -39,6 +39,7 @@
     <Reference Include="WindowsFormsIntegration" />
     <EmbeddedResource Update="SolutionExplorerShim.resx" GenerateSource="true" />
     <PackageReference Include="Microsoft.CSharp" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" />
   </ItemGroup>

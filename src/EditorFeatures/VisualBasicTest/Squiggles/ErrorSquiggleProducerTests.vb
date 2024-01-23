@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = EditorTestWorkspace.CreateVisualBasic(content)
+
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
@@ -34,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^")
-            Assert.Equal(1, spans.Count())
+            Assert.Equal(1, spans.Count)
 
             Dim firstSpan = spans.First()
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
@@ -59,7 +63,7 @@ End Class")
         Dim x = <xml>
     End Sub
 End Class")
-            Assert.Equal(5, spans.Count())
+            Assert.Equal(5, spans.Count)
         End Function
 
         <WpfFact>
@@ -69,10 +73,13 @@ End Class")
     End Sub
 End Class")
 
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
-                Assert.Equal(1, spans.Count())
+                Assert.Equal(1, spans.Count)
 
                 Dim firstSpan = spans.First()
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.span.Tag.ErrorType)
@@ -116,6 +123,9 @@ End Class"
             }
 
             Using workspace = EditorTestWorkspace.CreateVisualBasic(content, composition:=SquiggleUtilities.CompositionWithSolutionCrawler)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim language = workspace.Projects.Single().Language
 
                 workspace.GlobalOptions.SetGlobalOption(

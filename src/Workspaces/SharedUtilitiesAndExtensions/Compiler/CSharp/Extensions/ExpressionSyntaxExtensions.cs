@@ -32,6 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
+        public static ExpressionSyntax WalkDownSuppressions(this ExpressionSyntax expression)
+        {
+            while (expression is PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfixExpression)
+                expression = postfixExpression.Operand;
+
+            return expression;
+        }
+
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 

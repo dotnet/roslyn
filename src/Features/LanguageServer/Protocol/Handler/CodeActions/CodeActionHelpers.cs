@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public static async Task<LSP.CodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
-            TextDocument document,
+            Document document,
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Used by CodeActionResolveHandler and RunCodeActionHandler.
         /// </remarks>
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            TextDocument document,
+            Document document,
             LSP.Range selection,
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
-            TextDocument document,
+            Document document,
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
