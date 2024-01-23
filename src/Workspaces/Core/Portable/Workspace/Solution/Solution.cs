@@ -47,13 +47,11 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        // TODO(cyrusn): Remove and update references to access this.State.
-        private SolutionState _state => this.State;
-        internal SolutionState State => CompilationState.Solution;
+        internal SolutionState SolutionState => CompilationState.SolutionState;
 
         internal SolutionCompilationState CompilationState => _compilationState;
 
-        internal int WorkspaceVersion => _state.WorkspaceVersion;
+        internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
 
         internal bool PartialSemanticsEnabled => _compilationState.PartialSemanticsEnabled;
 
@@ -61,11 +59,11 @@ namespace Microsoft.CodeAnalysis
         /// Per solution services provided by the host environment.  Use this instead of <see
         /// cref="Workspace.Services"/> when possible.
         /// </summary>
-        public SolutionServices Services => _state.Services;
+        public SolutionServices Services => this.SolutionState.Services;
 
-        internal string? WorkspaceKind => _state.WorkspaceKind;
+        internal string? WorkspaceKind => this.SolutionState.WorkspaceKind;
 
-        internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
+        internal ProjectState? GetProjectState(ProjectId projectId) => this.SolutionState.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
 #pragma warning disable CS0618 // Type or member is obsolete (TODO: obsolete the property)
-                return _state.Services.WorkspaceServices.Workspace;
+                return this.SolutionState.Services.WorkspaceServices.Workspace;
 #pragma warning restore
             }
         }
@@ -84,22 +82,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
-        public SolutionId Id => _state.Id;
+        public SolutionId Id => this.SolutionState.Id;
 
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string? FilePath => _state.FilePath;
+        public string? FilePath => this.SolutionState.FilePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
         /// </summary>
-        public VersionStamp Version => _state.Version;
+        public VersionStamp Version => this.SolutionState.Version;
 
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
-        public IReadOnlyList<ProjectId> ProjectIds => _state.ProjectIds;
+        public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
 
         /// <summary>
         /// A list of all the projects contained by the solution.
@@ -109,12 +107,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The version of the most recently modified project.
         /// </summary>
-        public VersionStamp GetLatestProjectVersion() => _state.GetLatestProjectVersion();
+        public VersionStamp GetLatestProjectVersion() => this.SolutionState.GetLatestProjectVersion();
 
         /// <summary>
         /// True if the solution contains a project with the specified project ID.
         /// </summary>
-        public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => _state.ContainsProject(projectId);
+        public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => this.SolutionState.ContainsProject(projectId);
 
         /// <summary>
         /// Gets the project in this solution with the specified project ID. 
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly Func<ProjectId, Solution, Project> s_createProjectFunction = CreateProject;
         private static Project CreateProject(ProjectId projectId, Solution solution)
         {
-            var state = solution.State.GetProjectState(projectId);
+            var state = solution.SolutionState.GetProjectState(projectId);
             Contract.ThrowIfNull(state);
             return new Project(solution, state);
         }
@@ -181,17 +179,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the solution contains the document in one of its projects
         /// </summary>
-        public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsDocument(documentId);
+        public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsDocument(documentId);
 
         /// <summary>
         /// True if the solution contains the additional document in one of its projects
         /// </summary>
-        public bool ContainsAdditionalDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAdditionalDocument(documentId);
+        public bool ContainsAdditionalDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsAdditionalDocument(documentId);
 
         /// <summary>
         /// True if the solution contains the analyzer config document in one of its projects
         /// </summary>
-        public bool ContainsAnalyzerConfigDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
+        public bool ContainsAnalyzerConfigDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => this.SolutionState.ContainsAnalyzerConfigDocument(documentId);
 
         /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
@@ -561,7 +559,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var projectReference in collection)
             {
-                if (_state.ContainsProjectReference(projectId, projectReference))
+                if (this.SolutionState.ContainsProjectReference(projectId, projectReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
                 }
@@ -584,20 +582,15 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             if (projectReference == null)
-            {
                 throw new ArgumentNullException(nameof(projectReference));
-            }
 
             CheckContainsProject(projectId);
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = _state.RemoveProjectReference(projectId, projectReference);
-            if (stateChange.NewSolutionState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.ProjectReferences.Contains(projectReference))
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
-            }
 
-            var newCompilationState = _compilationState.RemoveProjectReference(stateChange);
+            var newCompilationState = _compilationState.RemoveProjectReference(projectId, projectReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -659,7 +652,7 @@ namespace Microsoft.CodeAnalysis
             PublicContract.RequireUniqueNonNullItems(collection, nameof(metadataReferences));
             foreach (var metadataReference in collection)
             {
-                if (_state.ContainsMetadataReference(projectId, metadataReference))
+                if (this.SolutionState.ContainsMetadataReference(projectId, metadataReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
                 }
@@ -682,18 +675,13 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (metadataReference == null)
-            {
                 throw new ArgumentNullException(nameof(metadataReference));
-            }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = _state.RemoveMetadataReference(projectId, metadataReference);
-            if (stateChange.NewSolutionState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.MetadataReferences.Contains(metadataReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveMetadataReference(stateChange);
+            var newCompilationState = _compilationState.RemoveMetadataReference(projectId, metadataReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -753,13 +741,13 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var analyzerReference in collection)
             {
-                if (_state.ContainsAnalyzerReference(projectId, analyzerReference))
+                if (this.SolutionState.ContainsAnalyzerReference(projectId, analyzerReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
                 }
             }
 
-            var newCompilationState = _compilationState.AddAnalyzerReferences(_state.AddAnalyzerReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -776,18 +764,13 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = _state.RemoveAnalyzerReference(projectId, analyzerReference);
-            if (stateChange.NewSolutionState == _state)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(stateChange, analyzerReference);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(projectId, analyzerReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -835,13 +818,13 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var analyzerReference in collection)
             {
-                if (_state.AnalyzerReferences.Contains(analyzerReference))
+                if (this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_reference);
                 }
             }
 
-            var newCompilationState = _compilationState.AddAnalyzerReferences(_state.AddAnalyzerReferences(collection));
+            var newCompilationState = _compilationState.AddAnalyzerReferences(collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -854,17 +837,12 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            var newState = _state.RemoveAnalyzerReference(analyzerReference);
-            if (newState == _state)
-            {
+            if (!this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(analyzerReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -877,7 +855,7 @@ namespace Microsoft.CodeAnalysis
         {
             var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            var newCompilationState = _compilationState.WithAnalyzerReferences(_state.WithAnalyzerReferences(collection));
+            var newCompilationState = _compilationState.WithAnalyzerReferences(collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1081,7 +1059,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ProjectState GetRequiredProjectState(ProjectId projectId)
-            => _state.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
+            => this.SolutionState.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
         /// <summary>
         /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
@@ -1491,7 +1469,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
-            return _state.GetRelatedDocumentIds(documentId);
+            return this.SolutionState.GetRelatedDocumentIds(documentId);
         }
 
         internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
@@ -1596,23 +1574,23 @@ namespace Microsoft.CodeAnalysis
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
         /// <see cref="TextDocument.FilePath"/> that matches the given file path.
         /// </summary>
-        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => _state.GetDocumentIdsWithFilePath(filePath);
+        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => this.SolutionState.GetDocumentIdsWithFilePath(filePath);
 
         /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
-        public ProjectDependencyGraph GetProjectDependencyGraph() => _state.GetProjectDependencyGraph();
+        public ProjectDependencyGraph GetProjectDependencyGraph() => this.SolutionState.GetProjectDependencyGraph();
 
         /// <summary>
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options => _state.Options;
+        public OptionSet Options => this.SolutionState.Options;
 
         /// <summary>
         /// Analyzer references associated with the solution.
         /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
 
         /// <summary>
         /// Creates a new solution instance with the specified <paramref name="options"/>.
@@ -1740,7 +1718,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
                 }
 
-                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (this.SolutionState.ContainsTransitiveReference(projectReference.ProjectId, projectId))
                 {
                     throw new InvalidOperationException(
                         string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
@@ -1758,15 +1736,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private void CheckSubmissionProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences, bool ignoreExistingReferences)
         {
-            var projectState = _state.GetRequiredProjectState(projectId);
+            var projectState = this.SolutionState.GetRequiredProjectState(projectId);
 
             var isSubmission = projectState.IsSubmission;
-            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => this.SolutionState.GetRequiredProjectState(p.ProjectId).IsSubmission);
 
             foreach (var projectReference in projectReferences)
             {
                 // Note: need to handle reference to a project that's not included in the solution:
-                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                var referencedProjectState = this.SolutionState.GetProjectState(projectReference.ProjectId);
                 if (referencedProjectState != null && referencedProjectState.IsSubmission)
                 {
                     if (!isSubmission)

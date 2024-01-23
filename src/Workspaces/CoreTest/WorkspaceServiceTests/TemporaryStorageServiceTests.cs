@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,10 +19,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+#if NETCOREAPP
+    [SupportedOSPlatform("windows")]
+#endif
     [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class TemporaryStorageServiceTests
     {
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStreamStorageExceptions()
         {
             using var workspace = new AdhocWorkspace();
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(null!).Wait());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestZeroLengthStreams()
         {
             using var workspace = new AdhocWorkspace();
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
             using var workspace = new AdhocWorkspace();
@@ -169,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest1()
         {
             using var workspace = new AdhocWorkspace();
@@ -196,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest2()
         {
             using var workspace = new AdhocWorkspace();
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(index, stream.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest3()
         {
             using var workspace = new AdhocWorkspace();

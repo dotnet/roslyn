@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1134,6 +1135,7 @@ sasquatch";
         {
             var source =
 @"using System;
+using System.Globalization;
 
 class Program
 {
@@ -1195,13 +1197,13 @@ class Program
                 Console.WriteLine(""double.NaN !"");
                 break;
             case float f when f is float g:
-                Console.WriteLine(""float "" + g);
+                Console.WriteLine(""float "" + g.ToString(CultureInfo.InvariantCulture));
                 break;
             case double d when d is double e:
-                Console.WriteLine(""double "" + e);
+                Console.WriteLine(""double "" + e.ToString(CultureInfo.InvariantCulture));
                 break;
             case decimal d when d is decimal e:
-                Console.WriteLine(""decimal "" + e);
+                Console.WriteLine(""decimal "" + e.ToString(CultureInfo.InvariantCulture));
                 break;
             case null:
                 Console.WriteLine(""null"");
@@ -1214,7 +1216,7 @@ class Program
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            var expectedOutput = FormattableString.Invariant(
 $@"0.0d !
 0.0d !
 double {2.1}
@@ -1231,7 +1233,7 @@ float.NaN !
 0.0m !
 decimal {2.1m}
 1.0m !
-null";
+null");
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

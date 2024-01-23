@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class BraceHighlightingTests : AbstractBraceHighlightingTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
-            => TestWorkspace.CreateCSharp(markup, parseOptions: options);
+        protected override EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options)
+            => EditorTestWorkspace.CreateCSharp(markup, parseOptions: options);
 
         [WpfTheory]
         [InlineData("""

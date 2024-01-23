@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
             {
-                typeParam.ForceComplete(null, default(CancellationToken));
+                typeParam.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             // force lazy init
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var p in _lazyParameters)
             {
                 // Force complete parameters to retrieve all diagnostics
-                p.ForceComplete(null, default(CancellationToken));
+                p.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             ComputeReturnType();

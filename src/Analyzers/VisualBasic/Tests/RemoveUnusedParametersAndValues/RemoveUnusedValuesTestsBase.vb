@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Public MustInherit Class RemoveUnusedValuesTestsBase
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedValuesCodeFixProvider())

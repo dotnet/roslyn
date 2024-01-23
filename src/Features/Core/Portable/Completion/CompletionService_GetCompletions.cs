@@ -41,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
         {
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
+            // Publicly available options do not affect this API. Force complete results from this public API since
+            // external consumers do not have access to Roslyn's waiters.
+            var completionOptions = CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true };
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
             return GetCompletionsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);

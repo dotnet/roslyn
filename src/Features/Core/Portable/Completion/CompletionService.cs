@@ -101,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
             var languageServices = document?.Project.Services ?? _services.GetLanguageServices(Language);
 
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
+            // Publicly available options do not affect this API. Force complete results from this public API since
+            // external consumers do not have access to Roslyn's waiters.
+            var completionOptions = CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true };
             var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionSet.Empty;
 
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
@@ -369,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-load project providers only.
         /// </summary>
-        internal void TriggerLoadProjectProviders(Project project)
-                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
+        internal void TriggerLoadProjectProviders(Project project, CompletionOptions options)
+                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, options);
 
         internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);
@@ -385,8 +386,8 @@ namespace Microsoft.CodeAnalysis.Completion
             public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
-            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+            public ImmutableArray<CompletionProvider> GetProjectProviders(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProviders(project);
 
             public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

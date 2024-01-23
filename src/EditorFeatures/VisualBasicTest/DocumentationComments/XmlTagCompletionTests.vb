@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class XmlTagCompletionTests
         Inherits AbstractXmlTagCompletionTests
 
-        Private Protected Overrides Function CreateCommandHandler(testWorkspace As TestWorkspace) As IChainedCommandHandler(Of TypeCharCommandArgs)
+        Private Protected Overrides Function CreateCommandHandler(testWorkspace As EditorTestWorkspace) As IChainedCommandHandler(Of TypeCharCommandArgs)
             Return testWorkspace.ExportProvider.GetCommandHandler(Of XmlTagCompletionCommandHandler)("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)
         End Function
 
-        Private Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(initialMarkup)
+        Private Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(initialMarkup)
         End Function
 
         <WpfFact>

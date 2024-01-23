@@ -169,9 +169,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
 
             var project = _activeDocument.Project;
-            var service = _host.GetNavigateToSearchService(project);
-            if (service == null)
-                return;
+            var service = GetNavigateToSearchService(project);
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
             await service.SearchDocumentAsync(
@@ -179,6 +177,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 r => _callback.AddItemAsync(project, r, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
+
+        private INavigateToSearchService GetNavigateToSearchService(Project project)
+            => _host.GetNavigateToSearchService(project) ?? NoOpNavigateToSearchService.Instance;
 
         private async Task SearchAllProjectsAsync(
             bool isFullyLoaded,
@@ -239,54 +240,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             using var result = TemporaryArray<ImmutableArray<Project>>.Empty;
 
-            // Get the initial set of project groups.  But filter out any projects that don't have an associated search
-            // service.  No point examining them or adding progress items for them.
-            foreach (var group in GetOrderedProjectsToProcessWorker())
+            using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
+
+            // First, if there's an active document, search that project first, prioritizing that active document and
+            // all visible documents from it.
+            if (_activeDocument != null)
             {
-                var groupCopy = group.WhereAsArray(p => _host.GetNavigateToSearchService(p) != null);
-                if (!groupCopy.IsEmpty)
-                    result.Add(groupCopy);
+                processedProjects.Add(_activeDocument.Project);
+                result.Add(ImmutableArray.Create(_activeDocument.Project));
             }
+
+            // Next process all visible docs that were not from the active project.
+            using var buffer = TemporaryArray<Project>.Empty;
+            foreach (var doc in _visibleDocuments)
+            {
+                if (processedProjects.Add(doc.Project))
+                    buffer.Add(doc.Project);
+            }
+
+            if (buffer.Count > 0)
+                result.Add(buffer.ToImmutableAndClear());
+
+            // Finally, process the remainder of projects
+            foreach (var project in _solution.Projects)
+            {
+                if (processedProjects.Add(project))
+                    buffer.Add(project);
+            }
+
+            if (buffer.Count > 0)
+                result.Add(buffer.ToImmutableAndClear());
 
             return result.ToImmutableAndClear();
-
-            ImmutableArray<ImmutableArray<Project>> GetOrderedProjectsToProcessWorker()
-            {
-                using var result = TemporaryArray<ImmutableArray<Project>>.Empty;
-
-                using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
-
-                // First, if there's an active document, search that project first, prioritizing that active document and
-                // all visible documents from it.
-                if (_activeDocument != null)
-                {
-                    processedProjects.Add(_activeDocument.Project);
-                    result.Add(ImmutableArray.Create(_activeDocument.Project));
-                }
-
-                // Next process all visible docs that were not from the active project.
-                using var buffer = TemporaryArray<Project>.Empty;
-                foreach (var doc in _visibleDocuments)
-                {
-                    if (processedProjects.Add(doc.Project))
-                        buffer.Add(doc.Project);
-                }
-
-                if (buffer.Count > 0)
-                    result.Add(buffer.ToImmutableAndClear());
-
-                // Finally, process the remainder of projects
-                foreach (var project in _solution.Projects)
-                {
-                    if (processedProjects.Add(project))
-                        buffer.Add(project);
-                }
-
-                if (buffer.Count > 0)
-                    result.Add(buffer.ToImmutableAndClear());
-
-                return result.ToImmutableAndClear();
-            }
         }
 
         /// <summary>
@@ -327,7 +312,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
             {
-                var groups = projectGroup.GroupBy(p => _host.GetNavigateToSearchService(p) ?? throw ExceptionUtilities.Unreachable());
+                var groups = projectGroup.GroupBy(GetNavigateToSearchService);
 
                 if (!parallel)
                 {
@@ -436,9 +421,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             //
             // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process
             // in the desired order if we process serially.
-            var allProjects = _solution.GetProjectDependencyGraph()
-                                       .GetDependencySets(cancellationToken)
-                                       .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
+            var allProjects = _solution
+                .GetProjectDependencyGraph()
+                .GetDependencySets(cancellationToken)
+                .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
 
             return ProcessOrderedProjectsAsync(
                 parallel: false,
@@ -460,6 +446,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     }
                 },
                 cancellationToken);
+        }
+
+        private sealed class NoOpNavigateToSearchService : INavigateToSearchService
+        {
+            public static readonly INavigateToSearchService Instance = new NoOpNavigateToSearchService();
+
+            private NoOpNavigateToSearchService()
+            {
+            }
+
+            public IImmutableSet<string> KindsProvided
+                => ImmutableHashSet<string>.Empty;
+
+            public bool CanFilter
+                => false;
+
+            public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+            {
+                foreach (var _ in projects)
+                    await onProjectCompleted().ConfigureAwait(false);
+            }
         }
     }
 }

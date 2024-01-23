@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

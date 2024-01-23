@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return ValueTaskFactory.CompletedTask;
             }
 
-            public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project)
+            public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project, CompletionOptions options)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
@@ -101,9 +101,14 @@ namespace Microsoft.CodeAnalysis.Completion
                     return ImmutableArray<CompletionProvider>.Empty;
                 }
 
-                // Don't load providers if they are not already cached,
-                // return immediately and load them in background instead.
+                // On primary completion paths, don't load providers if they are not already cached,
+                // return immediately and load them in background instead. If the test hook
+                // 'ForceExpandedCompletionIndexCreation' is set, calculate the values immediately.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1620947
+                if (options.ForceExpandedCompletionIndexCreation)
+                {
+                    return ProjectCompletionProvider.GetExtensions(_service.Language, project.AnalyzerReferences);
+                }
 
                 if (ProjectCompletionProvider.TryGetCachedExtensions(project.AnalyzerReferences, out var providers))
                     return providers;
@@ -153,14 +158,17 @@ namespace Microsoft.CodeAnalysis.Completion
                     return provider;
 
                 using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
-                return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project).FirstOrDefault(isNameMatchingProviderPredicate);
+
+                // Publicly available options will not impact this call, since the completion item must have already
+                // existed if it produced the input completion item.
+                return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, CompletionOptions.Default).FirstOrDefault(isNameMatchingProviderPredicate);
             }
 
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
                 Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
             {
                 var allCompletionProviders = FilterProviders(GetImportedAndBuiltInProviders(roles), trigger, options);
-                var projectCompletionProviders = FilterProviders(GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project), trigger, options);
+                var projectCompletionProviders = FilterProviders(GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, options), trigger, options);
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
@@ -278,12 +286,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     return _providerManager.GetImportedAndBuiltInProviders(roles);
                 }
 
-                public async Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                public ImmutableArray<CompletionProvider> GetProjectProviders(Project project)
                 {
-                    _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                    await _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-                    // Now the extension cache is guaranteed to be populated.
-                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
+                    // Force-load the extension completion providers
+                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(
+                        project,
+                        CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true });
                 }
             }
         }

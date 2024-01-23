@@ -265,7 +265,7 @@ class A {
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
@@ -283,7 +283,7 @@ class A {
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -499,7 +499,7 @@ class B {";
             await OpenDocumentAsync(testLspServer, csproj1Document);
 
             // This opens all documents in the workspace and ensures buffers are created.
-            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id).GetTextBuffer();
+            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id)!.GetTextBuffer();
 
             // Set CSProj2 as the active context and get diagnostics.
             testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
