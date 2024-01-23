@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
@@ -143,7 +144,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             async Task<bool> TagEqualsAsync()
             {
-                var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
+                var actualTags = await TestServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
                 if (expectedTags.Length != actualTags.Length)
                     return false;

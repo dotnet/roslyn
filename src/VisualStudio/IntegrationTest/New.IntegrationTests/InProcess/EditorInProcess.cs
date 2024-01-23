@@ -425,19 +425,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var view = await GetActiveTextViewAsync(cancellationToken);
-            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
-
-            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<IErrorTag>(view);
-            var tags = aggregator
-                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
-
-            return tags.SelectAsArray(tag => new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), tag.Tag));
-        }
-
         public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
@@ -453,11 +440,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
 
             var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-            var tags = aggregator
-                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Cast<IMappingTagSpan<ITag>>();
+            var tags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
 
-            return tags.SelectAsArray(tag => new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (TTag)tag.Tag));
+            return tags.SelectAsArray(tag => new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), tag.Tag));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
