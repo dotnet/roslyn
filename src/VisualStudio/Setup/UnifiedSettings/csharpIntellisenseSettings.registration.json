@@ -90,6 +90,75 @@
           }
         }
       }
+    },
+    "textEditor.c#.intellisense.completion.dotnetSnippetsBehavior": {
+      "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "string",
+      "enum": [ "Default", "NeverInclude", "AlwaysInclude", "IncludeAfterTypingIdentifierQuestionTab" ],
+      "enumItemLabels": [ "@Default_;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Never_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Always_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Include_snippets_when_Tab_is_typed_after_an_identifier;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
+      "default": "Default",
+      "requiresRestart": false,
+      "order": 40,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SnippetsBehavior"
+          },
+          "map": [
+            {
+              "result": "Default",
+              "match": 0
+            },
+            {
+              "result": "NeverInclude",
+              "match": 1
+            },
+            {
+              "result": "AlwaysInclude",
+              "match": 2
+            },
+            {
+              "result": "IncludeAfterTypingIdentifierQuestionTab",
+              "match": 3
+            }
+          ]
+        }
+      }
+    },
+    "textEditor.c#.intellisense.completion.dotnetReturnKeyCompletionBehavior": {
+      "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "string",
+      "enum": [ "Default", "Never", "AfterFullyTypedWord", "Always" ],
+      "default": "Default",
+      "requiresRestart": false,
+      "order": 50,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.EnterKeyBehavior"
+          },
+          "map": [
+            {
+              "result": "Default",
+              "match": 0
+            },
+            {
+              "result": "Never",
+              "match": 1
+            },
+            {
+              "result": "Always",
+              "match": 2
+            },
+            {
+              "result": "AfterFullyTypedWord",
+              "match": 3
+            }
+          ]
+        }
+      }
     }
   },
   "categories": {
