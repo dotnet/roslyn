@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
             AddSearchHandler(Tab_twice_to_insert_arguments);
 
-            Show_new_snippet_experience.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp);
-            AddSearchHandler(Show_new_snippet_experience);
+            BindToOption(Show_new_snippet_experience, CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp,
+                onNullValue: () => this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag));
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
@@ -69,12 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Tab_twice_to_insert_arguments.IsThreeState = false;
             this.OptionStore.SetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, value: Tab_twice_to_insert_arguments.IsChecked);
-        }
-
-        private void Show_new_snippet_experience_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            Show_new_snippet_experience.IsThreeState = false;
-            this.OptionStore.SetOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, value: Show_new_snippet_experience.IsChecked);
         }
     }
 }
