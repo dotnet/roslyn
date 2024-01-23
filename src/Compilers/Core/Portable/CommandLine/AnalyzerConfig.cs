@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
         // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-        private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+        private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*$", RegexOptions.Compiled);
 
         /// <summary>
         /// Key that indicates if this config is a global config
