@@ -75,6 +75,21 @@
           }
         }
       }
+    },
+    "textEditor.c#.intellisense.completion.csharpCompleteStatementOnSemicolon": {
+      "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": false,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.AutomaticallyCompleteStatementOnSemicolon"
+          }
+        }
+      }
     }
   },
   "categories": {
