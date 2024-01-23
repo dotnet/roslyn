@@ -74,27 +74,15 @@
 
                     <CheckBox x:Uid="Show_items_from_unimported_namespaces"
                                   x:Name="Show_items_from_unimported_namespaces"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_items_from_unimported_namespaces}" 
-                              Checked="Show_items_from_unimported_namespaces_CheckedChanged"       
-                              Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
-                              Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
-                              IsThreeState="True"/>
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_items_from_unimported_namespaces}" />
 
                     <CheckBox x:Uid="Tab_twice_to_insert_arguments"
                                   x:Name="Tab_twice_to_insert_arguments"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" 
-                              Checked="Tab_twice_to_insert_arguments_CheckedChanged"
-                              Unchecked="Tab_twice_to_insert_arguments_CheckedChanged"
-                              Indeterminate="Tab_twice_to_insert_arguments_CheckedChanged"
-                              IsThreeState="True"/>
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" />
 
                     <CheckBox x:Uid="Show_new_snippet_experience"
                                   x:Name="Show_new_snippet_experience"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_new_snippet_experience_experimental}"
-                              Checked="Show_new_snippet_experience_CheckedChanged"
-                              Unchecked="Show_new_snippet_experience_CheckedChanged"
-                              Indeterminate="Show_new_snippet_experience_CheckedChanged"
-                              IsThreeState="True"/>
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_new_snippet_experience_experimental}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>
