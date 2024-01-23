@@ -463,7 +463,7 @@ internal static class ConvertToRecordEngine
         foreach (var (documentID, documentLocations) in documentLookup)
         {
             var documentEditor = await solutionEditor
-                    .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
+                .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
             if (documentEditor.OriginalDocument.Project.Language != LanguageNames.CSharp)
             {
                 // since this is a CSharp-dependent file, we need to have specific VB support.
@@ -481,15 +481,14 @@ internal static class ConvertToRecordEngine
 
             foreach (var objectCreationExpression in objectCreationExpressions)
             {
-                var objectCreationOperation = (IObjectCreationOperation)documentEditor.SemanticModel
-                    .GetRequiredOperation(objectCreationExpression, cancellationToken);
+                var operation = documentEditor.SemanticModel.GetRequiredOperation(objectCreationExpression, cancellationToken);
+                if (operation is not IObjectCreationOperation objectCreationOperation)
+                    continue;
 
                 var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
                     objectCreationOperation, positionalParameters);
                 if (expressions.IsEmpty)
-                {
                     continue;
-                }
 
                 var expressionIndices = expressions.SelectAsArray(
                     // if initializer was null we wouldn't have found expressions
