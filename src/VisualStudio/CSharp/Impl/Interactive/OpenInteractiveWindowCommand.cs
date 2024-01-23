@@ -19,32 +19,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 /// </summary>
 [VisualStudioContribution]
 internal class OpenInteractiveWindowCommand(
-    MefInjection<IThreadingContext> threadingContext,
-    MefInjection<CSharpVsInteractiveWindowProvider> interactiveWindowProvider) : Command
+    MefInjection<IThreadingContext> mefThreadingContext,
+    MefInjection<CSharpVsInteractiveWindowProvider> mefInteractiveWindowProvider) : Command
 {
-    private IThreadingContext? _threadingContext;
-    private CSharpVsInteractiveWindowProvider? _interactiveWindowProvider;
-
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName%")
     {
         Placements = new[] { CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000) },
         // TODO: Shortcuts https://github.com/dotnet/roslyn/issues/3941
     };
 
-    public override async Task InitializeAsync(CancellationToken cancellationToken)
-    {
-        await base.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-        _threadingContext = await threadingContext.GetServiceAsync().ConfigureAwait(false);
-        _interactiveWindowProvider = await interactiveWindowProvider.GetServiceAsync().ConfigureAwait(false);
-    }
-
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(_threadingContext);
-        Contract.ThrowIfNull(_interactiveWindowProvider);
+        var threadingContext = await mefThreadingContext.GetServiceAsync().ConfigureAwait(false);
+        var interactiveWindowProvider = await mefInteractiveWindowProvider.GetServiceAsync().ConfigureAwait(false);
 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        _ = _interactiveWindowProvider.Open(instanceId: 0, focus: true);
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        _ = interactiveWindowProvider.Open(instanceId: 0, focus: true);
     }
 }
