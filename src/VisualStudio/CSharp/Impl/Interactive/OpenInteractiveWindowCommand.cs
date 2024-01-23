@@ -46,6 +46,5 @@ internal class OpenInteractiveWindowCommand(
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _ = _interactiveWindowProvider.Open(instanceId: 0, focus: true);
-        await TaskScheduler.Default;
     }
 }

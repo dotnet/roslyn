@@ -88,8 +88,6 @@ internal class ResetInteractiveWindowFromProjectCommand(
         await resetInteractive.ExecuteAsync(vsInteractiveWindow.InteractiveWindow, CSharpVSResources.CSharp_Interactive).ConfigureAwait(true);
         resetInteractive.ExecutionCompleted += FocusWindow;
 
-        await TaskScheduler.Default;
-
         void FocusWindow(object s, EventArgs e)
         {
             // We have to set focus to the Interactive Window *after* the wait indicator is dismissed.
