@@ -16096,8 +16096,8 @@ public static class E2
     public static int M(this C c, int i) => i;
 }
 """;
-        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -20809,7 +20809,7 @@ implicit extension E for C
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
     public void ExtensionIndexerAccess_DictionaryInitializer()
     {
         var source = """
