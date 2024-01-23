@@ -4798,7 +4798,7 @@ public readonly struct [|S|]
             VerifySyntax<StructDeclarationSyntax>(
                 Generator.Declaration(symbol),
                 """
-                public struct S
+                public ref struct S
                 {
                     public global::System.Int32 Value;
                     public ref global::System.Int32 RefValue;
