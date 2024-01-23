@@ -40,15 +40,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     [
                         "CS0246", // The type or namespace name {'csharp_blazor_project'|'App'} could not be found (are you missing a using directive or an assembly reference?)
                     ],
-                "wpf" =>
-                    [
-                        "CS5001", // Program does not contain a static 'Main' method suitable for an entry point
-                        "CS0103", // The name 'InitializeComponent' does not exist in the current context"
-                    ],
-                "wpfusercontrollib" =>
-                    [
-                        "CS0103", // The name 'InitializeComponent' does not exist in the current context"
-                    ],
                 _ => Array.Empty<string>(),
             };
 
@@ -61,10 +52,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var ignoredDiagnostics = templateName switch
             {
-                "wpf" =>
-                    [
-                        "BC30420", // 'Sub Main' was not found in 'visual_basic_wpf_project'.
-                    ],
                 _ => Array.Empty<string>(),
             };
 
