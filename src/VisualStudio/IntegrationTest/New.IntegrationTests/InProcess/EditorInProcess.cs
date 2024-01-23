@@ -427,8 +427,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
         {
-            // return GetTagsAsync<IErrorTag>(cancellationToken);
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var view = await GetActiveTextViewAsync(cancellationToken);
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
