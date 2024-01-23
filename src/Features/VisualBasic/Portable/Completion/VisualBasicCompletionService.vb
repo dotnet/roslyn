@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Friend Overrides Function SupportsTriggerOnDeletion(options As CompletionOptions) As Boolean
             ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
             ' Only if the option is false do we not want to trigger.
-            Return If(options.TriggerOnDeletion = False, False, True)
+            Return If(options.TriggerOnTyping AndAlso options.TriggerOnDeletion = False, False, True)
         End Function
     End Class
 End Namespace
