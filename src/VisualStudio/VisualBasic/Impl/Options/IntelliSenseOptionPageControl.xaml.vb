@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -17,7 +16,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.VisualBasic)
             BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.VisualBasic, function() True)
-            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked.Value
 
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.VisualBasic)
             BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.VisualBasic)
@@ -32,15 +30,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Show_items_from_unimported_namespaces, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, function() True)
             BindToOption(Tab_twice_to_insert_arguments, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, function() False)
-        End Sub
-
-        Private Sub Show_completion_list_after_a_character_is_typed_OnChecked(sender As Object, e As RoutedEventArgs)
-            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked.Value
-        End Sub
-
-        Private Sub Show_completion_list_after_a_character_is_typed_OnUnchecked(sender As Object, e As RoutedEventArgs)
-            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked.Value
-            Show_completion_list_after_a_character_is_deleted.IsChecked = False
         End Sub
     End Class
 End Namespace
