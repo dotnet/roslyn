@@ -602,10 +602,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState)
+        DocumentId documentId, DocumentState documentState, bool force)
     {
         return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState), documentId);
+            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, force), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -1022,6 +1022,10 @@ internal sealed partial class SolutionCompilationState
             var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
             using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
 
+            // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the set of
+            // linked document ids our state says are in it.  Note: all of these trees should share the same green
+            // trees, as that is setup in Soltion.WithFrozenPartialCompilationIncludingSpecificDocument.  This helps
+            // ensure that the cost here is low for files with lots of linked siblings.
             foreach (var currentDocumentId in allDocumentIds)
             {
                 var document = this.SolutionState.GetRequiredDocumentState(currentDocumentId);
@@ -1030,12 +1034,6 @@ internal sealed partial class SolutionCompilationState
 
             using (this.StateLock.DisposableWait(cancellationToken))
             {
-                // in progress solutions are disabled for some testing
-                if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
-                {
-                    return this;
-                }
-
                 SolutionCompilationState? currentPartialSolution = null;
                 _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
 

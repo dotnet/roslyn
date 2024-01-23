@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState);
+                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, force: false);
                 }
 
                 return solution;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var relatedDocumentId in relatedDocumentIds)
                     {
                         if (processedDocuments.Add(relatedDocumentId))
-                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState);
+                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, force: false);
                     }
                 }
 
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, force: false);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
