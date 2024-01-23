@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -199,11 +200,11 @@ internal partial class SolutionCompilationState
         private static SkeletonReferenceSet? CreateSkeletonSet(
             SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var storage = TryCreateMetadataStorage(services, compilation, cancellationToken);
-            if (storage == null)
+            var stream = TryCreateMetadataStorage(services, compilation, cancellationToken);
+            if (stream == null)
                 return null;
 
-            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
+            var metadata = AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
@@ -230,7 +231,7 @@ internal partial class SolutionCompilationState
             return false;
         }
 
-        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
+        private static SerializableBytes.PooledStream? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -242,7 +243,7 @@ internal partial class SolutionCompilationState
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    using var stream = SerializableBytes.CreateWritableStream();
+                    var stream = SerializableBytes.CreateWritableStream();
 
                     var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
@@ -250,13 +251,9 @@ internal partial class SolutionCompilationState
                     {
                         logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                        var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage();
-
                         stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
 
-                        return storage;
+                        return stream;
                     }
 
                     if (logger != null)

@@ -25,6 +25,4 @@ internal enum WellKnownSynchronizationKind
     MetadataReference,
     AnalyzerReference,
     SourceText,
-
-    SerializableSourceText,
 }

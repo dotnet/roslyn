@@ -96,7 +96,7 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
         {
             Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
-            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
+            result[FrozenSourceGeneratedDocumentText] = await compilationState.FrozenSourceGeneratedDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
 
         ChecksumCollection.Find(compilationState.SolutionState.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
@@ -348,7 +348,7 @@ internal sealed class DocumentStateChecksums(
 
         if (searchingChecksumsLeft.Remove(Text))
         {
-            result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
+            result[Text] = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

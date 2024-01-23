@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cacheResult) : ITextAndVersionSource
+internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAndVersionSource
 {
     private sealed class LazyValueWithOptions(LoadableTextAndVersionSource source, LoadTextOptions options)
     {
@@ -20,19 +20,11 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
-        /// Strong reference to the loaded text and version.  Only held onto once computed if <see cref="Source"/>.<see
-        /// cref="CacheResult"/> is <see langword="true"/>.  Once held onto, this will be returned from all calls to
-        /// <see cref="TryGetValue"/>, <see cref="GetValue"/> or <see cref="GetValueAsync"/>.  Once non-null will always
-        /// remain non-null.
+        /// Strong reference to the loaded text and version.  Only held onto once computed.  Once held onto, this will
+        /// be returned from all calls to <see cref="TryGetValue"/>, <see cref="GetValue"/> or <see
+        /// cref="GetValueAsync"/>.  Once non-null will always remain non-null.
         /// </summary>
         private TextAndVersion? _instance;
-
-        /// <summary>
-        /// Weak reference to the loaded text and version that we create whenever the value is computed.  We will
-        /// attempt to return from this if still alive when clients call back into this.  If neither this, nor <see
-        /// cref="_instance"/> are available, the value will be reloaded.  Once non-null, this will always be non-null.
-        /// </summary>
-        private WeakReference<TextAndVersion>? _weakInstance;
 
         private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
             => Source.Loader.LoadTextAsync(Options, cancellationToken);
@@ -43,10 +35,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
         public bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
             value = _instance;
-            if (value != null)
-                return true;
-
-            return _weakInstance?.TryGetTarget(out value) == true && value != null;
+            return value != null;
         }
 
         public TextAndVersion GetValue(CancellationToken cancellationToken)
@@ -58,7 +47,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = LoadSynchronously(cancellationToken);
-                        UpdateWeakAndStrongReferences_NoLock(textAndVersion);
+                        UpdateWeakReference_NoLock(textAndVersion);
                     }
                 }
             }
@@ -75,7 +64,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = await LoadAsync(cancellationToken).ConfigureAwait(false);
-                        UpdateWeakAndStrongReferences_NoLock(textAndVersion);
+                        UpdateWeakReference_NoLock(textAndVersion);
                     }
                 }
             }
@@ -83,27 +72,15 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
             return textAndVersion;
         }
 
-        private void UpdateWeakAndStrongReferences_NoLock(TextAndVersion textAndVersion)
+        private void UpdateWeakReference_NoLock(TextAndVersion textAndVersion)
         {
             Contract.ThrowIfTrue(_gate.CurrentCount != 0);
 
-            if (this.Source.CacheResult)
-            {
-                // if our source wants us to hold onto the value strongly, do so.  No need to involve the weak-refs as
-                // this will now hold onto the value forever.
-                _instance = textAndVersion;
-            }
-            else
-            {
-                // Update the weak ref, so we can return the same instance if anything else is holding onto it.
-                _weakInstance ??= new WeakReference<TextAndVersion>(textAndVersion);
-                _weakInstance.SetTarget(textAndVersion);
-            }
+            _instance = textAndVersion;
         }
     }
 
     public readonly TextLoader Loader = loader;
-    public readonly bool CacheResult = cacheResult;
 
     private LazyValueWithOptions? _lazyValue;
 

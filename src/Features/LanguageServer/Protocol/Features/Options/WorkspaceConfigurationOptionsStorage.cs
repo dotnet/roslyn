@@ -15,7 +15,6 @@ internal static class WorkspaceConfigurationOptionsStorage
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
             RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
 
@@ -24,9 +23,6 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "dotnet_storage_cloud_cache", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
-
-    public static readonly Option2<bool> DisableRecoverableText = new(
-        "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
