@@ -15,25 +15,39 @@ internal class DotNetSdkLocator
 
     static DotNetSdkLocator()
     {
-        var solutionFolder = GetSolutionFolder();
-
-        if (!TryGetSDKVersion(solutionFolder, out var version))
-        {
-            return;
-        }
-
-        if (TryGetSdkPath(solutionFolder, version, out var sdkPath))
+        if (TryGetGlobalJsonPath(out var globalJsonPath)
+            && TryGetSDKVersion(globalJsonPath, out var version)
+            && TryGetSdkPath(globalJsonPath, version, out var sdkPath))
         {
             SdkPath = sdkPath;
         }
 
         return;
 
+        static bool TryGetGlobalJsonPath(
+            [NotNullWhen(true)] out string? globalJsonPath)
+        {
+            globalJsonPath = null;
+
+            var path = typeof(DotNetSdkMSBuildInstalled).Assembly.Location;
+            while (path is not null)
+            {
+                var possibleGlobalJsonPath = Path.Combine(path, "global.json");
+                if (File.Exists(possibleGlobalJsonPath))
+                {
+                    globalJsonPath = possibleGlobalJsonPath;
+                    return true;
+                }
+                path = Path.GetDirectoryName(path);
+            }
+
+            return false;
+        }
+
         static bool TryGetSDKVersion(
-            string solutionFolder,
+            string globalJsonPath,
             [NotNullWhen(true)] out string? version)
         {
-            var globalJsonPath = Path.Combine(solutionFolder, "global.json");
             var globalJsonString = File.ReadAllText(globalJsonPath);
             version = JsonNode.Parse(globalJsonString)
                 ?["sdk"]
@@ -43,14 +57,15 @@ internal class DotNetSdkLocator
         }
 
         static bool TryGetSdkPath(
-            string solutionFolder,
+            string globalJsonPath,
             string version,
             [NotNullWhen(true)] out string? sdkPath)
         {
             sdkPath = null;
 
             // use the local SDK if its there
-            var sdkFolder = Path.Combine(solutionFolder, ".dotnet");
+            var rootFolder = Path.GetDirectoryName(globalJsonPath)!;
+            var sdkFolder = Path.Combine(rootFolder, ".dotnet");
             var localSDK = Path.Combine(sdkFolder, "sdk", version);
             if (Directory.Exists(localSDK))
             {
@@ -60,8 +75,7 @@ internal class DotNetSdkLocator
 
             // check if sdk is installed
             var programFilesSDKFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet");
-            var programFilesSDK = Path.Combine(
-                programFilesSDKFolder, "sdk", version);
+            var programFilesSDK = Path.Combine(programFilesSDKFolder, "sdk", version);
             if (Directory.Exists(programFilesSDK))
             {
                 sdkPath = programFilesSDKFolder;
@@ -74,9 +88,7 @@ internal class DotNetSdkLocator
                 return false;
             }
 
-            var specifiedSDKFolder = Path.Combine(
-            specifiedSDKPath,
-            "dotnet", "sdk", version);
+            var specifiedSDKFolder = Path.Combine(specifiedSDKPath, "dotnet", "sdk", version);
             if (Directory.Exists(specifiedSDKFolder))
             {
                 sdkPath = specifiedSDKPath;
@@ -84,17 +96,6 @@ internal class DotNetSdkLocator
             }
 
             return false;
-        }
-
-        static string GetSolutionFolder()
-        {
-            // Expected assembly path:
-            //  <solutionFolder>\artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests\<Configuration>\<TFM>\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll
-            var assemblyLocation = typeof(DotNetSdkMSBuildInstalled).Assembly.Location;
-            var solutionFolder = Directory.GetParent(assemblyLocation)
-                ?.Parent?.Parent?.Parent?.Parent?.Parent?.FullName;
-            Assumes.NotNull(solutionFolder);
-            return solutionFolder;
         }
     }
 }
