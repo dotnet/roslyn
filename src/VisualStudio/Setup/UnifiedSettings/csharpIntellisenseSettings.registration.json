@@ -190,6 +190,21 @@
         }
       }
     },
+    "textEditor.c#.intellisense.completion.dotnetEnableArgumentCompletionSnippets": {
+      "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "requiresRestart": false,
+      "order": 80,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.EnableArgumentCompletionSnippets"
+          }
+        }
+      }
+    },
     "textEditor.c#.intellisense.completion.dotnetShowNewSnippetExperience": {
       "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -199,7 +214,7 @@
         "default": true
       },
       "requiresRestart": false,
-      "order": 80,
+      "order": 90,
       "migration": {
         "pass": {
           "input": {
