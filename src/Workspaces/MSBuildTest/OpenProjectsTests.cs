@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -118,38 +119,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 TestOutputHelper.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
             }
 
-            // Clean up previous run
-            CleanupProject(templateName, languageName);
+            using var projectDirectory = (DisposableDirectory)SolutionDirectory;
 
-            var projectFilePath = GenerateProjectFromTemplate(templateName, languageName, TestOutputHelper);
+            var projectFilePath = GenerateProjectFromTemplate(projectDirectory.Path, templateName, languageName, TestOutputHelper);
 
             await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics);
 
-            // Clean up successful run
-            CleanupProject(templateName, languageName);
-
             return;
 
-            void CleanupProject(string templateName, string languageName)
+            string GenerateProjectFromTemplate(string projectPath, string templateName, string languageName, ITestOutputHelper outputHelper)
             {
-                var projectPath = GetProjectPath(templateName, languageName);
-
-                if (Directory.Exists(projectPath))
-                {
-                    Directory.Delete(projectPath, recursive: true);
-                }
-            }
-
-            string GetProjectPath(string templateName, string languageName)
-            {
-                var languagePrefix = languageName.Replace("#", "Sharp").Replace(' ', '_').ToLower();
-                var projectName = $"{languagePrefix}_{templateName}_project";
-                return Path.Combine(SolutionDirectory.Path, projectName);
-            }
-
-            string GenerateProjectFromTemplate(string templateName, string languageName, ITestOutputHelper outputHelper)
-            {
-                var projectPath = GetProjectPath(templateName, languageName);
                 var projectFilePath = GetProjectFilePath(projectPath, languageName);
 
                 CreateNewProject(templateName, projectPath, languageName, outputHelper);
@@ -205,12 +184,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 throw new InvalidOperationException($"The dotnet restore operation failed.");
             }
 
-            async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
+            static async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
             {
                 using var workspace = CreateMSBuildWorkspace();
                 var project = await workspace.OpenProjectAsync(projectFilePath, cancellationToken: CancellationToken.None);
 
-                AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the '{templateName}' template.");
+                AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
                 var compilation = await project.GetCompilationAsync();
                 Assert.NotNull(compilation);
@@ -227,12 +206,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var unnecessaryIgnoreDiagnostics = ignoredDiagnostics
                     .Where(id => !reportedDiagnosticIds.Contains(id));
 
-                AssertEx.Empty(unnecessaryIgnoreDiagnostics, $"The following diagnostics are unnecessarily being ignored for the '{templateName}' template.");
+                AssertEx.Empty(unnecessaryIgnoreDiagnostics, $"The following diagnostics are unnecessarily being ignored for the template.");
 
                 var filteredDiagnostics = nonHiddenDiagnostics
                     .Where(diagnostic => ignoredDiagnostics.Contains(diagnostic.Id) != true);
 
-                AssertEx.Empty(filteredDiagnostics, $"The following compiler diagnostics are being reported for the '{templateName}' template.");
+                AssertEx.Empty(filteredDiagnostics, $"The following compiler diagnostics are being reported for the template.");
             }
         }
 
