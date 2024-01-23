@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
             Show_completion_list_after_a_character_is_deleted.IsChecked = false;
-            this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: false);
         }
     }
 }
