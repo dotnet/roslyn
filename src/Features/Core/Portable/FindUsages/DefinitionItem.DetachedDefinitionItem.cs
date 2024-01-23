@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.FindUsages.DefinitionItem;
@@ -77,7 +76,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public async Task<DefaultDefinitionItem?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             using var converted = TemporaryArray<DocumentSpan>.Empty;
-            using var convertedClassifiedSpans = TemporaryArray<ClassifiedSpansAndHighlightSpan?>.Empty;
             foreach (var ss in SourceSpans)
             {
                 var documentSpan = await ss.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -85,14 +83,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return null;
 
                 converted.Add(documentSpan.Value);
-
-                // todo: consider serializing this data.
-                convertedClassifiedSpans.Add(null);
             }
 
             return new DefaultDefinitionItem(
                 Tags, DisplayParts, NameDisplayParts, OriginationParts,
-                converted.ToImmutableAndClear(), convertedClassifiedSpans.ToImmutableAndClear(),
+                converted.ToImmutableAndClear(),
                 Properties, DisplayableProperties, DisplayIfNoReferences);
         }
     }

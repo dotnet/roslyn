@@ -46,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
                     New DocumentSpan(document, referenceSpan),
-                    classifiedSpans:=Nothing,
                     ClassificationOptions.Default, CancellationToken.None)
 
                 ' This is the classification of the line, starting at the beginning of the highlight, and going to the end of that line.
@@ -220,7 +219,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
                     New DocumentSpan(document, referenceSpan),
-                    classifiedSpans:=Nothing,
                     ClassificationOptions.Default, CancellationToken.None)
 
                 ' string classification should not overlap u8 classification.

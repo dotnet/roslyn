@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
     /// </summary>
     internal sealed class TimedTelemetryLogBlock : IDisposable
     {
-#pragma warning disable IDE0052 // Remove unread private members - Not used in debug builds
         private readonly KeyValueLogMessage _logMessage;
         private readonly int _minThresholdMs;
+#pragma warning disable IDE0052 // Remove unread private members - Not used in debug builds
         private readonly ITelemetryLog _telemetryLog;
-        private readonly SharedStopwatch _stopwatch;
 #pragma warning restore IDE0052 // Remove unread private members
+        private readonly SharedStopwatch _stopwatch;
 
         public TimedTelemetryLogBlock(KeyValueLogMessage logMessage, int minThresholdMs, ITelemetryLog telemetryLog)
         {
@@ -32,11 +32,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void Dispose()
         {
-            // Don't add elapsed information in debug bits or while under debugger.
-#if !DEBUG
-            if (Debugger.IsAttached)
-                return;
-
             var elapsed = (int)_stopwatch.Elapsed.TotalMilliseconds;
             if (elapsed >= _minThresholdMs)
             {
@@ -47,9 +42,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
                     m.AddRange(_logMessage.Properties);
                 });
 
-                _telemetryLog.Log(logMessage);
-            }
+#if !DEBUG
+                // Don't skew telemetry results by logging in debug bits or under debugger.
+                if (!Debugger.IsAttached)
+                    _telemetryLog.Log(logMessage);
 #endif
+                logMessage.Free();
+            }
+
+            _logMessage.Free();
         }
     }
 }
