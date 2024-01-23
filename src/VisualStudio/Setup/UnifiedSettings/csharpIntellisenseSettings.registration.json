@@ -30,6 +30,21 @@
           }
         }
       }
+    },
+    "textEditor.c#.intellisense.completion.dotnetTriggerCompletionInArgumentLists": {
+      "title": "@Automatically_show_completion_list_in_argument_lists;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": false,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.TriggerInArgumentLists"
+          }
+        }
+      }
     }
   },
   "categories": {
