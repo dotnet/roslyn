@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Show_name_suggestions, CompletionOptionsStorage.ShowNameSuggestions, LanguageNames.CSharp);
 
-            Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
-            AddSearchHandler(Show_items_from_unimported_namespaces);
+            BindToOption(Show_items_from_unimported_namespaces, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, onNullValue: static () => true);
 
             Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
             AddSearchHandler(Tab_twice_to_insert_arguments);
@@ -65,12 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void Show_completion_list_after_a_character_is_deleted_Unchecked(object sender, RoutedEventArgs e)
             => this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: false);
-
-        private void Show_items_from_unimported_namespaces_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            Show_items_from_unimported_namespaces.IsThreeState = false;
-            this.OptionStore.SetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value: Show_items_from_unimported_namespaces.IsChecked);
-        }
 
         private void Tab_twice_to_insert_arguments_CheckedChanged(object sender, RoutedEventArgs e)
         {
