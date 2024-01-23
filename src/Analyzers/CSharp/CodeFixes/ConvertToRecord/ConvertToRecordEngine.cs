@@ -210,7 +210,7 @@ internal static class ConvertToRecordEngine
                     var modifiedConstructor = constructor
                         .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
                         .WithInitializer(SyntaxFactory.ConstructorInitializer(
-                                SyntaxKind.ThisConstructorInitializer,
+                            SyntaxKind.ThisConstructorInitializer,
                                 SyntaxFactory.ArgumentList([.. expressions.Select(SyntaxFactory.Argument)])));
 
                     documentEditor.ReplaceNode(constructor, modifiedConstructor);
@@ -433,7 +433,7 @@ internal static class ConvertToRecordEngine
             return [];
         }
 
-        return [.. result.Declaration.AttributeLists.Select(attributeList =>
+        return [.. result.Declaration.AttributeLists.SelectAsArray(attributeList =>
         {
             if (attributeList.Target == null)
             {
@@ -462,7 +462,7 @@ internal static class ConvertToRecordEngine
         foreach (var (documentID, documentLocations) in documentLookup)
         {
             var documentEditor = await solutionEditor
-                    .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
+                .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
             if (documentEditor.OriginalDocument.Project.Language != LanguageNames.CSharp)
             {
                 // since this is a CSharp-dependent file, we need to have specific VB support.
@@ -480,15 +480,14 @@ internal static class ConvertToRecordEngine
 
             foreach (var objectCreationExpression in objectCreationExpressions)
             {
-                var objectCreationOperation = (IObjectCreationOperation)documentEditor.SemanticModel
-                    .GetRequiredOperation(objectCreationExpression, cancellationToken);
+                var operation = documentEditor.SemanticModel.GetRequiredOperation(objectCreationExpression, cancellationToken);
+                if (operation is not IObjectCreationOperation objectCreationOperation)
+                    continue;
 
                 var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
                     objectCreationOperation, positionalParameters);
                 if (expressions.IsEmpty)
-                {
                     continue;
-                }
 
                 var expressionIndices = expressions.SelectAsArray(
                     // if initializer was null we wouldn't have found expressions
@@ -535,8 +534,7 @@ internal static class ConvertToRecordEngine
                     return SyntaxFactory.ObjectCreationExpression(
                         updatedObjectCreation.NewKeyword,
                         updatedObjectCreation.Type.WithoutTrailingTrivia(),
-                        SyntaxFactory.ArgumentList([.. updatedExpressions
-                            .Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia()))]),
+                        SyntaxFactory.ArgumentList([.. updatedExpressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia()))]),
                         newInitializer);
                 });
             }
@@ -635,8 +633,8 @@ internal static class ConvertToRecordEngine
                             .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/**"))
                             .WithTrailingTrivia(exteriorTrivia)))
                         .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
-                    SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
-                        .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
+                        SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
+                            .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
             else
             {

@@ -29,7 +29,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" />

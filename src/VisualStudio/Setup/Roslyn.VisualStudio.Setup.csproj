@@ -333,14 +333,9 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.core" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" PkgDefEntry="CodeBase" />
-    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.e_sqlite3.net45" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.dynamic_cdecl" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" PkgDefEntry="CodeBase" />
-    <!-- Code base is provided by the LSP client for released VS versions in order to ensure only 1 version of these assemblies are loaded. -->
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
-    <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
-    <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
