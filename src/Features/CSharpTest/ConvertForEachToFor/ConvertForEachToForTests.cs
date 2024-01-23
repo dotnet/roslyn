@@ -19,10 +19,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-    public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest
+    public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(
-            Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertForEachToForCodeRefactoringProvider();
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);

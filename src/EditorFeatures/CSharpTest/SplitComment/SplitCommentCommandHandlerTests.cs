@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     [Trait(Traits.Feature, Traits.Features.SplitComment)]
     public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup)
-            => TestWorkspace.CreateCSharp(markup);
+        protected override EditorTestWorkspace CreateWorkspace(string markup)
+            => EditorTestWorkspace.CreateCSharp(markup);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact]

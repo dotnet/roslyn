@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -718,6 +717,62 @@ public class Class2
 {
     public int LongOtherStuff$$Field;
 }", HangMitigatingCancellationToken);
+        }
+
+        [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
+        public async Task VerifyRenameLinkedDocumentsAsync()
+        {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
+            var projectName = "MultiTFMProject";
+            await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", @"
+<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+</Project>
+", HangMitigatingCancellationToken);
+
+            var startCode = @"
+public class TestClass
+{
+}
+";
+            await TestServices.SolutionExplorer.AddFileAsync(projectName, "TestClass.cs", startCode, cancellationToken: HangMitigatingCancellationToken);
+
+            var referencedCode = @"
+public class MyClass
+{
+    void Method()
+    {
+        TestClass x = new TestClass();
+    }
+}";
+            await TestServices.SolutionExplorer.AddFileAsync(projectName, "MyClass.cs", referencedCode, cancellationToken: HangMitigatingCancellationToken);
+            // We made csproj changes, so need to wait for PS to finish all the tasks before moving on.
+            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorer.OpenFileAsync(projectName, "TestClass.cs", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(projectName, "MyClass.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("TestClass", charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.HOME, "M", "y", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync(
+                @"
+public class MyClass
+{
+    void Method()
+    {
+        MyTestClass$$ x = new MyTestClass();
+    }
+}", HangMitigatingCancellationToken);
+            // Make sure the file is renamed. If the file is not found, this call would throw exception
+            await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
         }
     }
 }

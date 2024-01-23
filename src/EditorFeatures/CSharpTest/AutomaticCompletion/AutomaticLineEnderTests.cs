@@ -1988,6 +1988,114 @@ public class Foo
         }
 
         [WpfFact]
+        public void TestArrayInitializer1()
+        {
+            Test(
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = new int[] { 1, 2 };
+                        $$
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = n$$ew in$$t[$$]$$ {$$ 1$$, 2 $$};
+                    }
+                }
+                """);
+        }
+
+        [WpfFact]
+        public void TestArrayInitializer2()
+        {
+            Test(
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = new[] { 1, 2 };
+                        $$
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = n$$ew[$$]$$ {$$ 1$$, 2 $$};
+                    }
+                }
+                """);
+        }
+
+        [WpfFact]
+        public void TestCollectionInitializerWithNonEmptyInitializer()
+        {
+            Test(
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        var a = new List<int>() { 1, 2 };
+                        $$
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        var a = n$$ew Lis$$t<int$$>($$) {$$ 1$$, 2 $$};
+                    }
+                }
+                """);
+        }
+
+        [WpfFact]
+        public void TestCollectionExpression()
+        {
+            Test(
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = [1, 2];
+                        $$
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+                public class Bar
+                {
+                    public void M()
+                    {
+                        int[] a = $$[$$ 1$$, 2 $$];
+                    }
+                }
+                """);
+        }
+
+        [WpfFact]
         public void TestIfStatementWithInnerStatement()
         {
             Test(@"
@@ -3239,10 +3347,10 @@ public class Bar
 
         protected override string Language => LanguageNames.CSharp;
 
-        protected override Action CreateNextHandler(TestWorkspace workspace)
+        protected override Action CreateNextHandler(EditorTestWorkspace workspace)
             => () => { };
 
-        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace)
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
         {
             return Assert.IsType<AutomaticLineEnderCommandHandler>(
                 workspace.GetService<ICommandHandler>(

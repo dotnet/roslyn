@@ -1137,6 +1137,30 @@ class MyClass
         }
 
         [Fact]
+        public async Task InstanceConstructorIsUsed_RecordCopyConstructor()
+        {
+            var code = """
+                       var a = new A();
+                       
+                       sealed record A()
+                       {
+                           private A(A other) => throw new System.NotImplementedException();
+                       }
+                       """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task PropertyIsRead()
         {
             var code = """

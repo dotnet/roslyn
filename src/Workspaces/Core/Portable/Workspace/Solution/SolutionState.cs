@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
-        public ProjectState? GetProjectState(ProjectId? projectId)
-            => projectId != null && _projectIdToProjectStateMap.TryGetValue(projectId, out var state) ? state : null;
+        public ProjectState? GetProjectState(ProjectId projectId)
+            => _projectIdToProjectStateMap.TryGetValue(projectId, out var state) ? state : null;
 
         public ProjectState GetRequiredProjectState(ProjectId projectId)
         {

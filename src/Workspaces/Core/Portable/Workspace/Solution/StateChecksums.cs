@@ -85,7 +85,7 @@ internal sealed class SolutionStateChecksums(
             result[Checksum] = this;
 
         if (searchingChecksumsLeft.Remove(Attributes))
-            result[Attributes] = compilationState.Solution.SolutionAttributes;
+            result[Attributes] = compilationState.SolutionState.SolutionAttributes;
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
         {
@@ -99,14 +99,14 @@ internal sealed class SolutionStateChecksums(
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        ChecksumCollection.Find(compilationState.Solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+        ChecksumCollection.Find(compilationState.SolutionState.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
         if (searchingChecksumsLeft.Count == 0)
             return;
 
         if (assetHint.ProjectId != null)
         {
-            var projectState = compilationState.Solution.GetProjectState(assetHint.ProjectId);
+            var projectState = compilationState.SolutionState.GetProjectState(assetHint.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
@@ -117,11 +117,11 @@ internal sealed class SolutionStateChecksums(
         {
             Contract.ThrowIfTrue(assetHint.DocumentId != null);
 
-            // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
-            // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
-            // that we don't unnecessarily walk all documents looking just for those.
+            // Before doing a depth-first-search *into* each project, first run across all the project at their top
+            // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
+            // instance that we don't unnecessarily walk all documents looking just for those.
 
-            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
+            foreach (var (_, projectState) in compilationState.SolutionState.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
@@ -135,13 +135,13 @@ internal sealed class SolutionStateChecksums(
 
             // Now actually do the depth first search into each project.
 
-            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
+            foreach (var (_, projectState) in compilationState.SolutionState.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
 
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been
-                // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
+                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
+                // compute the checksum tree for a subset of projects that were all that a feature needed.
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                     await projectStateChecksums.FindAsync(projectState, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }

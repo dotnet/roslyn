@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
+            using var workspace = EditorTestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact]
         public async Task MultipleTaggersAndDispose()
         {
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
+            using var workspace = EditorTestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact]
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
+            using var workspace = EditorTestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // succeed, but other squiggle tests fail, then it is likely an issue with the 
             // diagnostics engine not actually reporting all diagnostics properly.
 
-            using var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = EditorTestWorkspace.CreateCSharp(
                 new string[] { "class A { }" },
                 parseOptions: CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // succeed, but other squiggle tests fail, then it is likely an issue with the 
             // diagnostics engine not actually reporting all diagnostics properly.
 
-            using var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = EditorTestWorkspace.CreateCSharp(
                 new string[] { "class A { }" },
                 parseOptions: CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);

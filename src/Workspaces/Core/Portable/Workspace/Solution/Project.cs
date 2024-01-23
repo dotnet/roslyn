@@ -797,6 +797,6 @@ namespace Microsoft.CodeAnalysis
             => this.Name;
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
-            => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+            => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
     }
 }

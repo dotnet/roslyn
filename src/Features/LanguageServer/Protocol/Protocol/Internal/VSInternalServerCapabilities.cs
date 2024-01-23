@@ -164,5 +164,16 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets the value which indicates what support the server has for code mapping.
+        /// </summary>
+        [DataMember(Name = "_vs_mapCodeProvider")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool MapCodeProvider
+        {
+            get;
+            set;
+        }
     }
 }

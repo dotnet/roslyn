@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
                             Console.$$
                 """;//, @"Beep"
 
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
 

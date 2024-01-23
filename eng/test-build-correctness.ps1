@@ -31,6 +31,7 @@ try {
   }
 
   $ci = $true
+  $prepareMachine = $true
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot

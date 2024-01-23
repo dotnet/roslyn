@@ -7,12 +7,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
@@ -26,12 +26,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class EditAndContinueLanguageService(
+        IServiceBrokerProvider serviceBrokerProvider,
         Lazy<IHostWorkspaceProvider> workspaceProvider,
         Lazy<IManagedHotReloadService> debuggerService,
         IDiagnosticAnalyzerService diagnosticService,
         EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
         PdbMatchingSourceTextProvider sourceTextProvider,
-        IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+        IDiagnosticsRefresher diagnosticRefresher,
+        IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class NoSessionException : InvalidOperationException
         {
@@ -45,9 +47,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
         private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
         private readonly Lazy<IManagedHotReloadService> _debuggerService = debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource = diagnosticUpdateSource;
+        private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
 
         public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider = workspaceProvider;
 
@@ -89,8 +93,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
             => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
 
-        internal void Disable()
-            => _disabled = true;
+        internal void Disable(Exception e)
+        {
+            _disabled = true;
+
+            var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
+
+            _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
+                .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+        }
 
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
@@ -130,10 +141,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
+                // the service failed, error has been reported - disable further operations
+                Disable(e);
             }
-
-            // the service failed, error has been reported - disable further operations
-            _disabled = _debuggingSession == null;
         }
 
         public async ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -154,7 +164,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
+                Disable(e);
                 return;
             }
 
@@ -185,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
+                Disable(e);
                 return;
             }
         }
@@ -205,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
+                Disable(e);
             }
         }
 
@@ -271,7 +281,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    _disabled = true;
+                    Disable(e);
                 }
             }
 

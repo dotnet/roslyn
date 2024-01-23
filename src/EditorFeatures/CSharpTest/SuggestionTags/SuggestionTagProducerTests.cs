@@ -53,7 +53,7 @@ class C {
 
         private static async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));

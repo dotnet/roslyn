@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(document.FilePath != null);
-                var uri = CreateAbsoluteUri(document.FilePath);
+                var uri = document.GetURI();
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)

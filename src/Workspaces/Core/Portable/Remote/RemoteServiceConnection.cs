@@ -40,12 +40,12 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     // solution, no callback
 
     public abstract ValueTask<bool> TryInvokeAsync(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         Func<TService, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
 
@@ -64,13 +64,13 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     // project, no callback
 
     public abstract ValueTask<bool> TryInvokeAsync(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         ProjectId projectId,
         Func<TService, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         ProjectId projectId,
         Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
@@ -90,12 +90,12 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     // solution, callback
 
     public abstract ValueTask<bool> TryInvokeAsync(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
 
@@ -114,13 +114,13 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     // project, callback
 
     public abstract ValueTask<bool> TryInvokeAsync(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         ProjectId projectId,
         Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-        SolutionCompilationState solution,
+        SolutionCompilationState compilationState,
         ProjectId projectId,
         Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
@@ -140,8 +140,8 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     // multiple solution, no callback
 
     public abstract ValueTask<bool> TryInvokeAsync(
-        SolutionCompilationState solution1,
-        SolutionCompilationState solution2,
+        SolutionCompilationState compilationState1,
+        SolutionCompilationState compilationState2,
         Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 

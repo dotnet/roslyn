@@ -47,6 +47,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
+        private enum SemicolonBehavior
+        {
+            /// <summary>
+            /// This command handler does not participate in handling the typing behavior of the current semicolon.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// This command handler moves the caret, but does not insert the necessary semicolon.
+            /// </summary>
+            Insert,
+
+            /// <summary>
+            /// This command handler moves the caret, and overtypes an existing semicolon in the process. No additional
+            /// semicolon is needed.
+            /// </summary>
+            Overtype,
+        }
+
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler) => nextCommandHandler();
 
         public string DisplayName => CSharpEditorResources.Complete_statement_on_semicolon;
@@ -54,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args, executionContext);
-            if (!willMoveSemicolon)
+            if (willMoveSemicolon == SemicolonBehavior.None)
             {
                 // Pass this on without altering the undo stack
                 nextCommandHandler();
@@ -64,37 +83,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             using var transaction = CaretPreservingEditTransaction.TryCreate(CSharpEditorResources.Complete_statement_on_semicolon, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
             // Determine where semicolon should be placed and move caret to location
-            BeforeExecuteCommand(speculative: false, args, executionContext);
-
-            // Insert the semicolon using next command handler
-            nextCommandHandler();
+            if (BeforeExecuteCommand(speculative: false, args, executionContext) != SemicolonBehavior.Overtype)
+            {
+                // Insert the semicolon using next command handler
+                nextCommandHandler();
+            }
 
             transaction?.Complete();
         }
 
-        private bool BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
+        private SemicolonBehavior BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
-                return false;
+                return SemicolonBehavior.None;
             }
 
             var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretOpt.HasValue)
             {
-                return false;
+                return SemicolonBehavior.None;
             }
 
             if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
             {
-                return false;
+                return SemicolonBehavior.None;
             }
 
             var caret = caretOpt.Value;
             var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return false;
+                return SemicolonBehavior.None;
             }
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
@@ -103,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
             {
-                return false;
+                return SemicolonBehavior.None;
             }
 
             return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret: caret, caret, syntaxFacts, currentNode,
@@ -149,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return true;
         }
 
-        private static bool MoveCaretToSemicolonPosition(
+        private static SemicolonBehavior MoveCaretToSemicolonPosition(
             bool speculative,
             TypeCharCommandArgs args,
             Document document,
@@ -165,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 IsInAStringOrCharacter(currentNode, caret))
             {
                 // Don't complete statement.  Return without moving the caret.
-                return false;
+                return SemicolonBehavior.None;
             }
 
             if (currentNode.Kind() is
@@ -179,12 +199,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     SyntaxKind.UncheckedExpression or
                     SyntaxKind.TypeOfExpression or
                     SyntaxKind.TupleExpression or
+                    SyntaxKind.ObjectInitializerExpression or
+                    SyntaxKind.ArrayInitializerExpression or
+                    SyntaxKind.CollectionInitializerExpression or
+                    SyntaxKind.CollectionExpression or
                     SyntaxKind.SwitchExpression)
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
                 {
-                    return false;
+                    return SemicolonBehavior.None;
                 }
 
                 // set caret to just outside the delimited span and analyze again
@@ -192,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 var newCaretPosition = currentNode.Span.End;
                 if (newCaretPosition == caret.Position)
                 {
-                    return false;
+                    return SemicolonBehavior.None;
                 }
 
                 // We know the current node has delimiters due to the Kind() check above, so isInsideDelimiters is
@@ -201,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
                 if (!TryGetStartingNode(root, newCaret, out currentNode, cancellationToken))
-                    return false;
+                    return SemicolonBehavior.None;
 
                 return MoveCaretToSemicolonPosition(
                     speculative, args, document, root, originalCaret, newCaret, syntaxFacts, currentNode, isInsideDelimiters, cancellationToken);
@@ -210,10 +234,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 if (IsInConditionOfDoStatement(currentNode, caret))
                 {
-                    return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, true);
+                    return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, isInsideDelimiters: true);
                 }
 
-                return false;
+                return SemicolonBehavior.None;
             }
             else if (syntaxFacts.IsStatement(currentNode)
                 || CanHaveSemicolon(currentNode))
@@ -274,30 +298,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return (caret >= condition.Span.Start && caret <= condition.Span.End);
         }
 
-        private static bool MoveCaretToFinalPositionInStatement(bool speculative, SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint originalCaret, SnapshotPoint caret, bool isInsideDelimiters)
+        private static SemicolonBehavior MoveCaretToFinalPositionInStatement(bool speculative, SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint originalCaret, SnapshotPoint caret, bool isInsideDelimiters)
         {
             if (StatementClosingDelimiterIsMissing(statementNode))
             {
                 // Don't complete statement.  Return without moving the caret.
-                return false;
+                return SemicolonBehavior.None;
             }
 
             if (TryGetCaretPositionToMove(statementNode, caret, isInsideDelimiters, out var targetPosition)
                 && targetPosition != originalCaret)
             {
-                if (speculative)
+                var overtypedExisting = AdjustPositionForExistingSemicolon(statementNode, ref targetPosition);
+
+                // If this operation is speculative, return an indication that moving the caret is required, but don't
+                // actually move it.
+                if (!speculative)
                 {
-                    // Return an indication that moving the caret is required, but don't actually move it
-                    return true;
+                    Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
+                    {
+                        m[nameof(isInsideDelimiters)] = isInsideDelimiters;
+                        m[nameof(statementNode)] = statementNode.Kind();
+                    }));
+
+                    if (!args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition))
+                        return SemicolonBehavior.None;
                 }
 
-                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
-                {
-                    m[nameof(isInsideDelimiters)] = isInsideDelimiters;
-                    m[nameof(statementNode)] = statementNode.Kind();
-                }));
+                return overtypedExisting ? SemicolonBehavior.Overtype : SemicolonBehavior.Insert;
+            }
 
-                return args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition);
+            return SemicolonBehavior.None;
+        }
+
+        private static bool AdjustPositionForExistingSemicolon(SyntaxNode statementNode, ref SnapshotPoint targetPosition)
+        {
+            var existingSemicolon = statementNode.FindTokenOnRightOfPosition(targetPosition, includeSkipped: true);
+            if (existingSemicolon.IsKind(SyntaxKind.SemicolonToken) && !existingSemicolon.IsMissing)
+            {
+                targetPosition = new SnapshotPoint(targetPosition.Snapshot, existingSemicolon.Span.End);
+                return true;
             }
 
             return false;
@@ -354,9 +394,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 forStatementCaret = GetCaretAtPosition(declaration.Span.End);
             }
-            else if (CaretIsInForStatementInitializers(originalCaret, forStatement))
+            else if (CaretIsInForStatementInitializers(originalCaret, forStatement, out var relocatedPosition))
             {
-                forStatementCaret = GetCaretAtPosition(forStatement.Initializers.Span.End);
+                forStatementCaret = GetCaretAtPosition(relocatedPosition);
             }
             else
             {
@@ -390,15 +430,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return caretPosition > declaration.Span.Start && caretPosition <= declaration.Span.End;
         }
 
-        private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
-            => forStatementSyntax.Initializers.Count != 0 &&
-                caretPosition > forStatementSyntax.Initializers.Span.Start &&
-                caretPosition <= forStatementSyntax.Initializers.Span.End;
+        private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax, out int relocatedPosition)
+        {
+            if (forStatementSyntax.Initializers.Count != 0
+                && caretPosition > forStatementSyntax.Initializers.Span.Start
+                && caretPosition <= forStatementSyntax.Initializers.Span.End)
+            {
+                // Move the caret to the first missing separator, or to the end of the initializers list if all
+                // separators are present.
+                for (var separatorIndex = 0; separatorIndex < forStatementSyntax.Initializers.SeparatorCount; separatorIndex++)
+                {
+                    var separator = forStatementSyntax.Initializers.GetSeparator(separatorIndex);
+                    if (separator.IsMissing)
+                    {
+                        // We can't rely on the position of the missing separator, so move to the end of the last
+                        // initializer preceding the missing separator.
+                        relocatedPosition = forStatementSyntax.Initializers[separatorIndex].Span.End;
+                        return true;
+                    }
+                }
+
+                relocatedPosition = forStatementSyntax.Initializers.Span.End;
+                return true;
+            }
+
+            relocatedPosition = default;
+            return false;
+        }
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
+        {
             // Check to see if caret is before or after string
-            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression && caret.Position < currentNode.Span.End
-                && caret.Position > currentNode.SpanStart;
+            if (currentNode.Kind() is not (SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.Utf8StringLiteralExpression or SyntaxKind.CharacterLiteralExpression))
+                return false;
+
+            if (currentNode.IsKind(SyntaxKind.StringLiteralExpression, out LiteralExpressionSyntax? literalExpression)
+                && literalExpression.Token.Text.StartsWith("@"))
+            {
+                // Verbatim strings start with @", so we only consider the caret to be inside the string if it's after the "
+                if (caret.Position <= currentNode.SpanStart + 1)
+                    return false;
+            }
+            else if (caret.Position <= currentNode.SpanStart)
+            {
+                return false;
+            }
+
+            if (currentNode.IsKind(SyntaxKind.StringLiteralExpression, out literalExpression)
+                && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '"'))
+            {
+                // This is an unterminated string literal, so we count the end of the span as included in the string
+                return caret.Position <= currentNode.Span.End;
+            }
+            else if (currentNode.IsKind(SyntaxKind.CharacterLiteralExpression, out literalExpression)
+                && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '\''))
+            {
+                // This is an unterminated character literal, so we count the end of the span as included in the character
+                return caret.Position <= currentNode.Span.End;
+            }
+            else if (currentNode.IsKind(SyntaxKind.Utf8StringLiteralExpression))
+            {
+                // String literals are only considered utf-8 literals if they are terminated with a "u8 sequence. Only
+                // consider the caret inside the string if it precedes the position of the " in this sequence.
+                return caret.Position < currentNode.Span.End - 2;
+            }
+
+            return caret.Position < currentNode.Span.End;
+        }
 
         /// <summary>
         /// Determines if a statement ends with a closing delimiter, and that closing delimiter exists.
@@ -450,9 +548,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing ||
-                currentNode.GetBraces().closeBrace.IsMissing;
+            if (currentNode.GetBrackets().closeBracket.IsMissing
+                || currentNode.GetParentheses().closeParen.IsMissing)
+            {
+                return true;
+            }
+
+            // If the current node has braces, we also need to make sure parent constructs are not missing braces
+            var braces = currentNode.GetBraces();
+            if (braces.openBrace.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                if (braces.closeBrace.IsMissing)
+                {
+                    return true;
+                }
+
+                for (var node = currentNode.Parent; node is not null; node = node.Parent)
+                {
+                    if (node.GetBraces().closeBrace.IsMissing)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool HasDelimitersButCaretIsOutside(SyntaxNode currentNode, int caretPosition)

@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
     {
         internal const char Semicolon = ';';
 
-        internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler GetCommandHandler(EditorTestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         /// <summary>
         /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             Verify(initialMarkup, expectedMarkup, ExecuteTest);
         }
 
-        protected void ExecuteTest(IWpfTextView view, TestWorkspace workspace)
+        protected void ExecuteTest(IWpfTextView view, EditorTestWorkspace workspace)
         {
             var commandHandler = GetCommandHandler(workspace);
 
@@ -74,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         }
 
         protected void Verify(string initialMarkup, string expectedMarkup,
-            Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace>? setOptions = null)
+            Action<IWpfTextView, EditorTestWorkspace> execute,
+            Action<EditorTestWorkspace>? setOptions = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {

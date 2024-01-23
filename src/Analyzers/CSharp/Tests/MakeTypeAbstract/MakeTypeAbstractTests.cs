@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-    public class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public MakeTypeAbstractTests(ITestOutputHelper logger)
           : base(logger)

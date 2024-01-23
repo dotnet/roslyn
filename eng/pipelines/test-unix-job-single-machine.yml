@@ -15,25 +15,12 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: poolName
-  type: string
-  default: ''
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 50
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
