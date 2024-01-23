@@ -179,12 +179,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(
-            threadingContext As IThreadingContext,
-            signatureHelpControllerProvider As SignatureHelpControllerProvider,
-            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsService As EditorOptionsService)
+                threadingContext As IThreadingContext,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                editorOptionsService As EditorOptionsService)
+                MyBase.New(threadingContext)
 
                 _threadingContext = threadingContext
                 _signatureHelpControllerProvider = signatureHelpControllerProvider
@@ -224,12 +225,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(
-            threadingContext As IThreadingContext,
-            signatureHelpControllerProvider As SignatureHelpControllerProvider,
-            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsService As EditorOptionsService)
+                threadingContext As IThreadingContext,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                editorOptionsService As EditorOptionsService)
+                MyBase.New(threadingContext)
 
                 _threadingContext = threadingContext
                 _signatureHelpControllerProvider = signatureHelpControllerProvider

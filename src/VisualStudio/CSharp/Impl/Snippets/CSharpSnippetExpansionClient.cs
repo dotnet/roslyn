@@ -34,9 +34,9 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
+    internal sealed partial class CSharpSnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(
+        public CSharpSnippetExpansionClient(
             IThreadingContext threadingContext,
             Guid languageServiceGuid,
             ITextView textView,

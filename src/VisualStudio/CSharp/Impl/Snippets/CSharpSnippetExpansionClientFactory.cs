@@ -22,36 +22,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets;
 
 [ExportLanguageService(typeof(ISnippetExpansionClientFactory), LanguageNames.CSharp)]
 [Shared]
-internal sealed class CSharpSnippetExpansionClientFactory : AbstractSnippetExpansionClientFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSnippetExpansionClientFactory(
+    IThreadingContext threadingContext,
+    SignatureHelpControllerProvider signatureHelpControllerProvider,
+    IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
+    IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+    [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+    EditorOptionsService editorOptionsService)
+    : AbstractSnippetExpansionClientFactory(threadingContext)
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
-    private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
-    private readonly EditorOptionsService _editorOptionsService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSnippetExpansionClientFactory(
-        IThreadingContext threadingContext,
-        SignatureHelpControllerProvider signatureHelpControllerProvider,
-        IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
-        IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-        [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-        EditorOptionsService editorOptionsService)
-    {
-        _threadingContext = threadingContext;
-        _signatureHelpControllerProvider = signatureHelpControllerProvider;
-        _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
-        _editorAdaptersFactoryService = editorAdaptersFactoryService;
-        _argumentProviders = argumentProviders.ToImmutableArray();
-        _editorOptionsService = editorOptionsService;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider = signatureHelpControllerProvider;
+    private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
+    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = argumentProviders.ToImmutableArray();
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
     protected override AbstractSnippetExpansionClient CreateSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
     {
-        return new SnippetExpansionClient(
+        return new CSharpSnippetExpansionClient(
             _threadingContext,
             Guids.CSharpLanguageServiceId,
             textView,

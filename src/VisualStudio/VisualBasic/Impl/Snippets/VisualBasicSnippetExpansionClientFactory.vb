@@ -39,6 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
             editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext)
 
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
@@ -49,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Sub
 
         Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-            Return New SnippetExpansionClient(
+            Return New VisualBasicSnippetExpansionClient(
                 _threadingContext,
                 Guids.VisualBasicDebuggerLanguageId,
                 textView,

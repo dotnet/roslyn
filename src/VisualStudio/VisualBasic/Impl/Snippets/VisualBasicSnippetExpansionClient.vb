@@ -25,7 +25,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    Friend NotInheritable Class SnippetExpansionClient
+    Friend NotInheritable Class VisualBasicSnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
         Public Sub New(
