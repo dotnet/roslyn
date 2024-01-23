@@ -5195,7 +5195,7 @@ partial struct CustomHandler
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
     public void InterceptorGeneric_01()
     {
         var source = ("""
@@ -5237,7 +5237,7 @@ partial struct CustomHandler
         verifier.VerifyDiagnostics();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
     public void InterceptorGeneric_02()
     {
         var source = ("""
@@ -5279,7 +5279,7 @@ partial struct CustomHandler
         verifier.VerifyDiagnostics();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
     public void InterceptorGeneric_03()
     {
         var source = ("""
@@ -5323,7 +5323,7 @@ partial struct CustomHandler
             Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C<int>.Method1<string>(string)", "D.Generic<int, string>(int, string)").WithLocation(6, 6));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
     public void InterceptorGeneric_04()
     {
         // interceptor type parameter substitution meets constraints
@@ -5365,7 +5365,7 @@ partial struct CustomHandler
         comp.VerifyEmitDiagnostics();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
     public void InterceptorGeneric_05()
     {
         // interceptor type parameter substitution violates constraints
