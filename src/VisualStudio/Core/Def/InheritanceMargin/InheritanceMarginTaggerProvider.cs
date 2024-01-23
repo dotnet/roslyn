@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InheritanceMarginTaggerProvider))]
+    [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTaggerProvider<InheritanceMarginTag>
     {
         [ImportingConstructor]
@@ -51,6 +53,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
+
+        protected override bool CanCreateTagger(ITextView textView, ITextBuffer buffer)
+        {
+            // Match criterion InheritanceMarginViewMarginProvider uses to determine whether
+            //  the margin is created for the view.
+            var document = textView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+            return document != null;
+        }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {

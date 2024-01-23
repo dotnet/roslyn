@@ -8,7 +8,6 @@ using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -20,9 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             InitializeComponent();
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.CSharp);
-            Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp) == true;
+            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, onNullValue: () => false);
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
-            AddSearchHandler(Show_completion_list_after_a_character_is_deleted);
+
+            BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
+            BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
+            BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.CSharp);
+
+            BindToOption(Automatically_complete_statement_on_semicolon, CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
@@ -42,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Show_items_from_unimported_namespaces, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, onNullValue: static () => true);
 
-            Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
-            AddSearchHandler(Tab_twice_to_insert_arguments);
-
+            BindToOption(Tab_twice_to_insert_arguments, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, onNullValue: static () => false);
             BindToOption(Show_new_snippet_experience, CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp,
                 onNullValue: () => this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag));
         }
@@ -56,19 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
             Show_completion_list_after_a_character_is_deleted.IsChecked = false;
-            Show_completion_list_after_a_character_is_deleted_Unchecked(sender, e);
-        }
-
-        private void Show_completion_list_after_a_character_is_deleted_Checked(object sender, RoutedEventArgs e)
-            => this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: true);
-
-        private void Show_completion_list_after_a_character_is_deleted_Unchecked(object sender, RoutedEventArgs e)
-            => this.OptionStore.SetOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, value: false);
-
-        private void Tab_twice_to_insert_arguments_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            Tab_twice_to_insert_arguments.IsThreeState = false;
-            this.OptionStore.SetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, value: Tab_twice_to_insert_arguments.IsChecked);
         }
     }
 }

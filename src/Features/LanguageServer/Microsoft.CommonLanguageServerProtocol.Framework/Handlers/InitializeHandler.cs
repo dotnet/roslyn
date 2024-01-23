@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
-[LanguageServerEndpoint("initialize", LanguageServerConstants.DefaultLanguageName)]
+[LanguageServerEndpoint("initialize")]
 public class InitializeHandler<TRequest, TResponse, TRequestContext>
     : IRequestHandler<TRequest, TResponse, TRequestContext>
 {

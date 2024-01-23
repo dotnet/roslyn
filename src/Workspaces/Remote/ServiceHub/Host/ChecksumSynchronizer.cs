@@ -35,8 +35,10 @@ internal sealed partial class AssetProvider
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
 
                 // first, get solution checksum object for the given solution checksum
-                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    assetHint: AssetHint.None, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
                 {
