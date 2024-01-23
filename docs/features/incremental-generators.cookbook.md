@@ -256,7 +256,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                 var containingClass = context.TargetSymbol.ContainingType;
                 return new Model(
                     // Note: this is a simplified example. You will also need to handle the case where the type is in a global namespace, nested, etc.
-                    Namespace: containingClass.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    Namespace: containingClass.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)),
                     ClassName: containingClass.Name,
                     MethodName: context.TargetSymbol.Name);
             }
