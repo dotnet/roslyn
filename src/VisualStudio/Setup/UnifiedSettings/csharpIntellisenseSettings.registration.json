@@ -127,7 +127,7 @@
       }
     },
     "textEditor.c#.intellisense.completion.dotnetReturnKeyCompletionBehavior": {
-      "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
       "enum": [ "Default", "Never", "AfterFullyTypedWord", "Always" ],
       "default": "Default",
@@ -157,6 +157,21 @@
               "match": 3
             }
           ]
+        }
+      }
+    },
+    "textEditor.c#.intellisense.completion.dotnetShowNameCompletionSuggestions": {
+      "title": "@Show_name_suggestions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": false,
+      "order": 60,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowNameSuggestions"
+          }
         }
       }
     }
