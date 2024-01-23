@@ -51,12 +51,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {
-            var ignoredDiagnostics = templateName switch
-            {
-                _ => Array.Empty<string>(),
-            };
-
-            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic, ignoredDiagnostics);
+            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic);
         }
 
         public static TheoryData<string> GetCSharpProjectTemplateNames()
@@ -112,9 +107,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             return templateNames;
         }
 
-        private async Task AssertTemplateProjectLoadsCleanlyAsync(string templateName, string languageName, string[] ignoredDiagnostics)
+        private async Task AssertTemplateProjectLoadsCleanlyAsync(string templateName, string languageName, string[]? ignoredDiagnostics = null)
         {
-            if (ignoredDiagnostics.Length > 0)
+            if (ignoredDiagnostics?.Length > 0)
             {
                 TestOutputHelper.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
             }
@@ -123,11 +118,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GenerateProjectFromTemplate(projectDirectory.Path, templateName, languageName, TestOutputHelper);
 
-            await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics);
+            await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics ?? []);
 
             return;
 
-            string GenerateProjectFromTemplate(string projectPath, string templateName, string languageName, ITestOutputHelper outputHelper)
+            static string GenerateProjectFromTemplate(string projectPath, string templateName, string languageName, ITestOutputHelper outputHelper)
             {
                 var projectFilePath = GetProjectFilePath(projectPath, languageName);
 
