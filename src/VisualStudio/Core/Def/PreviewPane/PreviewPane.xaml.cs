@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
 
-            _registerPriorityCommandTarget = Package.GetGlobalService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
+            _registerPriorityCommandTarget = Shell.Package.GetGlobalService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
             Debug.Assert(_registerPriorityCommandTarget != null);
 
             if (_registerPriorityCommandTarget != null)

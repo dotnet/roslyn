@@ -12,7 +12,7 @@
     <BeforePack>CollectPackInputs;$(BeforePack)</BeforePack>
   
     <!-- This is not a standard nuget package and only consumed by the extension build. We don't care if the folder structure doesn't match what nuget expects. -->
-    <NoWarn>NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
@@ -27,18 +27,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+    <PackageReference Include="System.Composition" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" />
 
     <!-- 
     Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
     Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.
     -->
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" GeneratePathProperty="True" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" GeneratePathProperty="True" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
