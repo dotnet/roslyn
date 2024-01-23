@@ -20,12 +20,16 @@ namespace Microsoft.CodeAnalysis.Serialization
                 ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
                 DocumentStateChecksums => WellKnownSynchronizationKind.DocumentState,
                 ChecksumCollection => WellKnownSynchronizationKind.ChecksumCollection,
+                SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
+                ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
+                DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,
                 CompilationOptions => WellKnownSynchronizationKind.CompilationOptions,
                 ParseOptions => WellKnownSynchronizationKind.ParseOptions,
                 ProjectReference => WellKnownSynchronizationKind.ProjectReference,
                 MetadataReference => WellKnownSynchronizationKind.MetadataReference,
                 AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
                 SourceText => WellKnownSynchronizationKind.SourceText,
+                SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),
             };
 
