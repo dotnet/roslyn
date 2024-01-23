@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_collection_expression">
         <source>Prefer collection expression</source>
-        <target state="translated">偏好集合運算式</target>
+        <target state="translated">慣用集合運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">

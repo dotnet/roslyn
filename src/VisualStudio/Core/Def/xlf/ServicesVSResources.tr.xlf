@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Tanımlara daraltılırken yerel işlevleri daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_collection_expression">
         <source>Prefer collection expression</source>
-        <target state="translated">Koleksiyon ifadesini tercih eder</target>
+        <target state="translated">Koleksiyon ifadesini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
