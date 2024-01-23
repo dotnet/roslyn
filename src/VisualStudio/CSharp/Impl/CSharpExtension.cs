@@ -18,14 +18,9 @@ internal sealed class CSharpExtension : Extension
         RequiresInProcessHosting = true,
     };
 
-    /// <summary>
-    /// Can't reference non-constant <see cref="Shell.VsMenus.guidSHLMainMenu"/> member from command configuration:
-    /// </summary>    
-    private static readonly Guid s_guidSHLMainMenu = new(0xd309f791, 0x903f, 0x11d0, 0x9e, 0xfc, 0x00, 0xa0, 0xc9, 0x11, 0x00, 0x4f);
-
     [VisualStudioContribution]
     public static CommandGroupConfiguration ProjectCommandGroupWithPlacement
-        => new(GroupPlacement.VsctParent(s_guidSHLMainMenu, VsMenus.IDM_VS_CTXT_PROJNODE, 0x0400))
+        => new(GroupPlacement.VsctParent(new Guid(VSConstants.CMDSETID.ShellMainMenu_string), VsMenus.IDM_VS_CTXT_PROJNODE, 0x0400))
         {
             Children = new[]
             {

@@ -42,11 +42,6 @@ internal class ResetInteractiveWindowFromProjectCommand(
             ActivationConstraint.ActiveProjectBuildProperty("TargetFrameworkMoniker", "[.]NETFramework.*")
     };
 
-    public override async Task InitializeAsync(CancellationToken cancellationToken)
-    {
-        await base.InitializeAsync(cancellationToken).ConfigureAwait(false);
-    }
-
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
         var threadingContext = await mefThreadingContext.GetServiceAsync().ConfigureAwait(false);
