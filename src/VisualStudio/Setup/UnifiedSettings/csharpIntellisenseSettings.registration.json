@@ -98,7 +98,7 @@
       "enumItemLabels": [ "@Default_;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Never_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Always_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Include_snippets_when_Tab_is_typed_after_an_identifier;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
       "default": "Default",
       "requiresRestart": false,
-      "order": 40,
+      "order": 50,
       "migration": {
         "enumIntegerToString": {
           "input": {
@@ -130,9 +130,10 @@
       "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
       "enum": [ "Default", "Never", "AfterFullyTypedWord", "Always" ],
+      "enumItemLabels": [ "@Default_;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Never_add_new_line_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Always_add_new_line_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
       "default": "Default",
       "requiresRestart": false,
-      "order": 50,
+      "order": 60,
       "migration": {
         "enumIntegerToString": {
           "input": {
@@ -165,7 +166,7 @@
       "type": "boolean",
       "default": true,
       "requiresRestart": false,
-      "order": 60,
+      "order": 70,
       "migration": {
         "pass": {
           "input": {
@@ -180,7 +181,7 @@
       "type": "boolean",
       "default": true,
       "requiresRestart": false,
-      "order": 70,
+      "order": 80,
       "migration": {
         "pass": {
           "input": {
@@ -195,7 +196,7 @@
       "type": "boolean",
       "default": false,
       "requiresRestart": false,
-      "order": 80,
+      "order": 90,
       "migration": {
         "pass": {
           "input": {
@@ -214,7 +215,7 @@
         "default": true
       },
       "requiresRestart": false,
-      "order": 90,
+      "order": 100,
       "migration": {
         "pass": {
           "input": {
