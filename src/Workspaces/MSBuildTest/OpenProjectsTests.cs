@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         // The Maui templates require additional dotnet workloads to be installed.
         // Running `dotnet workload restore` will install workloads but may require
-        // admin permissions. In addition a restart may be required after workload 
-        // installation. 
+        // admin permissions. In addition a restart may be required after workload
+        // installation.
         private const bool ExcludeMauiTemplates = true;
 
         protected ITestOutputHelper TestOutputHelper { get; set; }
@@ -218,21 +218,34 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 throw new InvalidOperationException($"The dotnet restore operation failed.");
             }
 
-            static async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
+            async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
             {
                 using var workspace = CreateMSBuildWorkspace();
                 var project = await workspace.OpenProjectAsync(projectFilePath, cancellationToken: CancellationToken.None);
 
-                AssertEx.Empty(workspace.Diagnostics, "(Workspace Diagnostics)");
+                AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the '{templateName}' template.");
 
                 var compilation = await project.GetCompilationAsync();
                 Assert.NotNull(compilation);
 
                 // Unnecessary using directives are reported with a severity of Hidden
-                var diagnostics = compilation!.GetDiagnostics()
-                    .Where(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden && ignoredDiagnostics.Contains(diagnostic.Id) != true);
+                var nonHiddenDiagnostics = compilation!.GetDiagnostics()
+                    .Where(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden)
+                    .ToImmutableArray();
 
-                AssertEx.Empty(diagnostics, "(Compiler Diagnostics)");
+                // For good test hygiene lets ensure that all ignored diagnostics were actually reported.
+                var reportedDiagnosticIds = nonHiddenDiagnostics
+                    .Select(diagnostic => diagnostic.Id)
+                    .ToImmutableHashSet();
+                var unnecessaryIgnoreDiagnostics = ignoredDiagnostics
+                    .Where(id => !reportedDiagnosticIds.Contains(id));
+
+                AssertEx.Empty(unnecessaryIgnoreDiagnostics, $"The following diagnostics are unnecessarily being ignored for the '{templateName}' template.");
+
+                var filteredDiagnostics = nonHiddenDiagnostics
+                    .Where(diagnostic => ignoredDiagnostics.Contains(diagnostic.Id) != true);
+
+                AssertEx.Empty(filteredDiagnostics, $"The following compiler diagnostics are being reported for the '{templateName}' template.");
             }
         }
 
