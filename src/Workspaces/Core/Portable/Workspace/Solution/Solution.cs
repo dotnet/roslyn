@@ -1472,8 +1472,10 @@ namespace Microsoft.CodeAnalysis
             // that case, we only share trees when completely safe and accurate to do so (for example, where no
             // directives are involved).  As that is used for the real solution snapshot, it must be correct.  The
             // frozen-partial snapshot is different as it is a fork that is already allowed to be inaccurate for perf
-            // reasons (for example, missing trees, or missing references).  The 'force' flag here allows us to share 
-            // the doc contents even in the case where correctness might be violated.
+            // reasons (for example, missing trees, or missing references).
+            //
+            // The 'force' flag here allows us to share the doc contents even in the case where correctness might be
+            // violated.
             var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
             foreach (var siblingId in allDocumentIds)
                 currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, force: true);
