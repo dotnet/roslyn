@@ -17,14 +17,18 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
+Imports Microsoft.VisualStudio.LanguageServices.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding
+Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
@@ -49,8 +53,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Me.SnippetCommandHandler = DirectCast(snippetCommandHandler, AbstractSnippetCommandHandler)
 
             Dim editorOptionsService = Workspace.GetService(Of EditorOptionsService)()
-            Dim snippetExpansionClientFactory = Workspace.Services.GetLanguageServices(languageName).GetRequiredService(Of ISnippetExpansionClientFactory)()
-            SnippetExpansionClient = CType(snippetExpansionClientFactory.GetSnippetExpansionClient(TextView, SubjectBuffer), MockSnippetExpansionClient)
+            Dim snippetExpansionClientFactory = Workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+            SnippetExpansionClient = CType(snippetExpansionClientFactory.GetOrCreateSnippetExpansionClient(SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext(), TextView, SubjectBuffer), MockSnippetExpansionClient)
 
             If startActiveSession Then
                 SnippetExpansionClient.TryHandleTabReturnValue = True
@@ -68,9 +72,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     GetType(MockCompletionPresenterProvider),
                     GetType(StubVsEditorAdaptersFactoryService),
                     GetType(CSharp.Snippets.SnippetCommandHandler),
-                    GetType(MockCSharpSnippetExpansionClientFactory),
                     GetType(VisualBasic.Snippets.SnippetCommandHandler),
-                    GetType(MockVisualBasicSnippetExpansionClientFactory),
+                    GetType(MockCSharpSnippetLanguageHelper),
+                    GetType(MockVisualBasicSnippetLanguageHelper),
+                    GetType(MockSnippetExpansionClientFactory),
                     GetType(MockServiceProvider),
                     GetType(StubVsServiceExporter(Of )),
                     GetType(StubVsServiceExporter(Of ,))
@@ -154,11 +159,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Sub
         End Class
 
-        <ExportLanguageService(GetType(ISnippetExpansionClientFactory), LanguageNames.CSharp, ServiceLayer.Test)>
+        <ExportWorkspaceService(GetType(ISnippetExpansionClientFactory), ServiceLayer.Test)>
         <[Shared]>
         <PartNotDiscoverable>
-        Friend Class MockCSharpSnippetExpansionClientFactory
-            Inherits AbstractSnippetExpansionClientFactory
+        Friend Class MockSnippetExpansionClientFactory
+            Inherits SnippetExpansionClientFactory
 
             Private ReadOnly _threadingContext As IThreadingContext
             Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
@@ -176,7 +181,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
                 editorOptionsService As EditorOptionsService)
-                MyBase.New(threadingContext)
+                MyBase.New(
+                    threadingContext,
+                    signatureHelpControllerProvider,
+                    editorCommandHandlerServiceFactory,
+                    editorAdaptersFactoryService,
+                    argumentProviders.ToImmutableArray(),
+                    editorOptionsService)
 
                 _threadingContext = threadingContext
                 _signatureHelpControllerProvider = signatureHelpControllerProvider
@@ -186,10 +197,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 _editorOptionsService = editorOptionsService
             End Sub
 
-            Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
+            Protected Overrides Function CreateSnippetExpansionClient(document As Document, textView As ITextView, subjectBuffer As ITextBuffer) As SnippetExpansionClient
                 Return New MockSnippetExpansionClient(
                     _threadingContext,
-                    Guids.CSharpLanguageServiceId,
+                    document.GetRequiredLanguageService(Of ISnippetExpansionLanguageHelper)(),
                     textView,
                     subjectBuffer,
                     _signatureHelpControllerProvider,
@@ -200,57 +211,61 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Function
         End Class
 
-        <ExportLanguageService(GetType(ISnippetExpansionClientFactory), LanguageNames.VisualBasic, ServiceLayer.Test)>
+        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.CSharp, ServiceLayer.Test)>
         <[Shared]>
         <PartNotDiscoverable>
-        Friend Class MockVisualBasicSnippetExpansionClientFactory
-            Inherits AbstractSnippetExpansionClientFactory
-
-            Private ReadOnly _threadingContext As IThreadingContext
-            Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
-            Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
-            Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
-            Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-            Private ReadOnly _editorOptionsService As EditorOptionsService
+        Friend NotInheritable Class MockCSharpSnippetLanguageHelper
+            Inherits MockSnippetLanguageHelper
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New(
-                threadingContext As IThreadingContext,
-                signatureHelpControllerProvider As SignatureHelpControllerProvider,
-                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-                <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                editorOptionsService As EditorOptionsService)
-                MyBase.New(threadingContext)
+            Public Sub New()
+                MyBase.New(Guids.CSharpLanguageServiceId)
+            End Sub
+        End Class
 
-                _threadingContext = threadingContext
-                _signatureHelpControllerProvider = signatureHelpControllerProvider
-                _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
-                _editorAdaptersFactoryService = editorAdaptersFactoryService
-                _argumentProviders = argumentProviders.ToImmutableArray()
-                _editorOptionsService = editorOptionsService
+        <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic, ServiceLayer.Test)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend NotInheritable Class MockVisualBasicSnippetLanguageHelper
+            Inherits MockSnippetLanguageHelper
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(Guids.VisualBasicDebuggerLanguageId)
+            End Sub
+        End Class
+
+        Friend MustInherit Class MockSnippetLanguageHelper
+            Inherits AbstractSnippetExpansionLanguageHelper
+
+            Protected Sub New(languageServiceGuid As Guid)
+                Me.LanguageServiceGuid = languageServiceGuid
             End Sub
 
-            Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-                Return New MockSnippetExpansionClient(
-                    _threadingContext,
-                    Guids.VisualBasicDebuggerLanguageId,
-                    textView,
-                    subjectBuffer,
-                    _signatureHelpControllerProvider,
-                    _editorCommandHandlerServiceFactory,
-                    _editorAdaptersFactoryService,
-                    _argumentProviders,
-                    _editorOptionsService)
+            Public Overrides ReadOnly Property LanguageServiceGuid As Guid
+
+            Public Overrides ReadOnly Property FallbackDefaultLiteral As String
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
+                Return document
+            End Function
+
+            Public Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan(expansionSession As IVsExpansionSession, textView As ITextView, subjectBuffer As ITextBuffer) As ITrackingSpan
+                Throw New NotImplementedException()
             End Function
         End Class
 
         Friend Class MockSnippetExpansionClient
-            Inherits AbstractSnippetExpansionClient
+            Inherits SnippetExpansionClient
 
             Public Sub New(threadingContext As IThreadingContext,
-                           languageServiceGuid As Guid,
+                           languageHelper As ISnippetExpansionLanguageHelper,
                            textView As ITextView,
                            subjectBuffer As ITextBuffer,
                            signatureHelpControllerProvider As SignatureHelpControllerProvider,
@@ -259,7 +274,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                            argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
                            editorOptionsService As EditorOptionsService)
                 MyBase.New(threadingContext,
-                           languageServiceGuid,
+                           languageHelper,
                            textView,
                            subjectBuffer,
                            signatureHelpControllerProvider,
@@ -310,20 +325,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 TryInsertExpansionCalled = True
                 InsertExpansionSpan = New Span(startPosition, endPosition - startPosition)
                 Return TryInsertExpansionReturnValue
-            End Function
-
-            Protected Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan() As ITrackingSpan
-                Throw New NotImplementedException()
-            End Function
-
-            Protected Overrides ReadOnly Property FallbackDefaultLiteral As String
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Friend Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
-                Return document
             End Function
         End Class
     End Class

@@ -92,8 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             AssertIsForeground();
             if (args.TypedChar == ';'
-                && AreSnippetsEnabled(args)
-                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
+                && AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
                 && snippetExpansionClient.IsFullMethodCallSnippet)
             {
                 // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             expansionManager.InvokeInsertionUI(
                 _editorAdaptersFactoryService.GetViewAdapter(textView),
-                GetSnippetExpansionClientFactory(document).GetSnippetExpansionClient(textView, subjectBuffer),
+                GetSnippetExpansionClientFactory(document).GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer),
                 Guids.CSharpLanguageServiceId,
                 bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
                 iCountTypes: surroundWith ? 1 : 2,

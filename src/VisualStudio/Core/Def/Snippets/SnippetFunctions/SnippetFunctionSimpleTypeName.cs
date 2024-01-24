@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly string _fullyQualifiedName;
 
         public SnippetFunctionSimpleTypeName(
-            AbstractSnippetExpansionClient snippetExpansionClient,
+            SnippetExpansionClient snippetExpansionClient,
             ITextBuffer subjectBuffer,
             string fieldName,
             string fullyQualifiedName,

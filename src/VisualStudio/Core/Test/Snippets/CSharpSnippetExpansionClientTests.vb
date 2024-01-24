@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
@@ -315,8 +316,11 @@ using G=   H.I;
                 editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize)
                 editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, tabSize)
 
-                Dim expansionClientFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ISnippetExpansionClientFactory)()
-                Dim snippetExpansionClient = expansionClientFactory.GetSnippetExpansionClient(document.GetTextView(), textBuffer)
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim snippetExpansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(
+                    textBuffer.AsTextContainer().GetOpenDocumentInCurrentContext(),
+                    document.GetTextView(),
+                    textBuffer)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -331,8 +335,9 @@ using G=   H.I;
                     {subjectBufferDocument},
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
-                Dim expansionClientFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ISnippetExpansionClientFactory)()
-                Dim snippetExpansionClient = expansionClientFactory.GetSnippetExpansionClient(
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim snippetExpansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(
+                    subjectBufferDocument.GetTextBuffer().AsTextContainer().GetOpenDocumentInCurrentContext(),
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.GetTextBuffer())
 
@@ -368,8 +373,9 @@ using G=   H.I;
             Next
 
             Using workspace = EditorTestWorkspace.CreateCSharp(originalCode, composition:=VisualStudioTestCompositions.LanguageServices)
-                Dim expansionClientFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ISnippetExpansionClientFactory)()
-                Dim expansionClient = expansionClientFactory.GetSnippetExpansionClient(
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim expansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(
+                    workspace.Documents.Single().GetTextBuffer().AsTextContainer().GetOpenDocumentInCurrentContext(),
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer())
 
@@ -381,7 +387,7 @@ using G=   H.I;
 
                 Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
-                Dim updatedDocument = expansionClient.AddImports(
+                Dim updatedDocument = expansionClient.GetTestAccessor().LanguageHelper.AddImports(
                     document,
                     addImportOptions,
                     formattingOptions,

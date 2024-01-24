@@ -4,74 +4,55 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
+using Microsoft.VisualStudio.LanguageServices.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.TextManager.Interop;
-using MSXML;
 using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    internal sealed partial class CSharpSnippetExpansionClient : AbstractSnippetExpansionClient
+    [ExportLanguageService(typeof(ISnippetExpansionLanguageHelper), LanguageNames.CSharp)]
+    [Shared]
+    internal class CSharpSnippetExpansionLanguageHelper : AbstractSnippetExpansionLanguageHelper
     {
-        public CSharpSnippetExpansionClient(
-            IThreadingContext threadingContext,
-            Guid languageServiceGuid,
-            ITextView textView,
-            ITextBuffer subjectBuffer,
-            SignatureHelpControllerProvider signatureHelpControllerProvider,
-            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            EditorOptionsService editorOptionsService)
-            : base(
-                threadingContext,
-                languageServiceGuid,
-                textView,
-                subjectBuffer,
-                signatureHelpControllerProvider,
-                editorCommandHandlerServiceFactory,
-                editorAdaptersFactoryService,
-                argumentProviders,
-                editorOptionsService)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpSnippetExpansionLanguageHelper()
         {
         }
 
+        public override Guid LanguageServiceGuid => Guids.CSharpLanguageServiceId;
+        public override string FallbackDefaultLiteral => "default";
+
         /// <returns>The tracking span of the inserted "/**/" if there is an $end$ location, null
         /// otherwise.</returns>
-        protected override ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan()
+        public override ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan(IVsExpansionSession expansionSession, ITextView textView, ITextBuffer subjectBuffer)
         {
-            RoslynDebug.AssertNotNull(ExpansionSession);
+            RoslynDebug.AssertNotNull(expansionSession);
 
             var endSpanInSurfaceBuffer = new VsTextSpan[1];
-            if (ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
+            if (expansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
             {
                 return null;
             }
 
-            if (!TryGetSubjectBufferSpan(endSpanInSurfaceBuffer[0], out var subjectBufferEndSpan))
+            if (!TryGetSubjectBufferSpan(textView, subjectBuffer, endSpanInSurfaceBuffer[0], out var subjectBufferEndSpan))
             {
                 return null;
             }
@@ -79,15 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var endPosition = subjectBufferEndSpan.Start.Position;
 
             var commentString = "/**/";
-            SubjectBuffer.Insert(endPosition, commentString);
+            subjectBuffer.Insert(endPosition, commentString);
 
             var commentSpan = new Span(endPosition, commentString.Length);
-            return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
+            return subjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
         }
 
-        protected override string FallbackDefaultLiteral => "default";
-
-        internal override Document AddImports(
+        public override Document AddImports(
             Document document,
             AddImportPlacementOptions addImportOptions,
             SyntaxFormattingOptions formattingOptions,
@@ -131,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return formattedDocument;
         }
 
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
+        private static List<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
             SyntaxNode contextLocation, XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);

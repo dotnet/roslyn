@@ -99,8 +99,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim expansionClientFactory = document.GetRequiredLanguageService(Of ISnippetExpansionClientFactory)()
-            Dim snippetClient = expansionClientFactory.GetSnippetExpansionClient(textView, subjectBuffer)
+            Dim expansionClientFactory = document.Project.Services.SolutionServices.GetRequiredService(Of ISnippetExpansionClientFactory)()
+            Dim snippetClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

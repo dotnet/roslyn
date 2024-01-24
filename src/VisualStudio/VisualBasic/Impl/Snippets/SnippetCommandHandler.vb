@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             expansionManager.InvokeInsertionUI(
                 _editorAdaptersFactoryService.GetViewAdapter(textView),
-                GetSnippetExpansionClientFactory(document).GetSnippetExpansionClient(textView, subjectBuffer),
+                GetSnippetExpansionClientFactory(document).GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer),
                 Guids.VisualBasicDebuggerLanguageId,
                 bstrTypes:=Nothing,
                 iCountTypes:=0,

@@ -12,26 +12,28 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
+using Microsoft.VisualStudio.LanguageServices.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
-[ExportLanguageService(typeof(ISnippetExpansionClientFactory), LanguageNames.CSharp)]
+[ExportWorkspaceService(typeof(ISnippetExpansionClientFactory))]
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpSnippetExpansionClientFactory(
+internal class SnippetExpansionClientFactory(
     IThreadingContext threadingContext,
     SignatureHelpControllerProvider signatureHelpControllerProvider,
     IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
     IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
     [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
     EditorOptionsService editorOptionsService)
-    : AbstractSnippetExpansionClientFactory(threadingContext)
+    : ISnippetExpansionClientFactory
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider = signatureHelpControllerProvider;
@@ -40,11 +42,32 @@ internal sealed class CSharpSnippetExpansionClientFactory(
     private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = argumentProviders.ToImmutableArray();
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
-    protected override AbstractSnippetExpansionClient CreateSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
+    public SnippetExpansionClient? TryGetSnippetExpansionClient(ITextView textView)
     {
-        return new CSharpSnippetExpansionClient(
+        Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
+        _ = textView.Properties.TryGetProperty(typeof(SnippetExpansionClient), out SnippetExpansionClient? expansionClient);
+        return expansionClient;
+    }
+
+    public SnippetExpansionClient GetOrCreateSnippetExpansionClient(Document document, ITextView textView, ITextBuffer subjectBuffer)
+    {
+        Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
+        if (!textView.Properties.TryGetProperty(typeof(SnippetExpansionClient), out SnippetExpansionClient? expansionClient))
+        {
+            expansionClient = CreateSnippetExpansionClient(document, textView, subjectBuffer);
+            textView.Properties.AddProperty(typeof(SnippetExpansionClient), expansionClient);
+        }
+
+        return expansionClient!;
+    }
+
+    protected virtual SnippetExpansionClient CreateSnippetExpansionClient(Document document, ITextView textView, ITextBuffer subjectBuffer)
+    {
+        return new SnippetExpansionClient(
             _threadingContext,
-            Guids.CSharpLanguageServiceId,
+            document.GetRequiredLanguageService<ISnippetExpansionLanguageHelper>(),
             textView,
             subjectBuffer,
             _signatureHelpControllerProvider,
