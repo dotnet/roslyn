@@ -467,8 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var needsSpanRefParamConstructor = false;
             var needsImplicitConversionFromStringToSpan = false;
 
-            // When we get here we 100% already queried for object.ToString in `ConvertConcatExprToString`.
-            // Thus we can pass `isOptional` flag to avoid duplicate "missing member" diagnostic in case we are actually missing object.ToString
+            // When we get here we either 100% already queried for object.ToString in `ConvertConcatExprToString` (if at least 1 operand is not a string) or don't need it (if all operands are strings).
+            // Thus we can pass `isOptional` flag to avoid duplicate or unintentional "missing member" diagnostic in case we are actually missing `object.ToString()`
             var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString, isOptional: true);
             NamedTypeSymbol? charType = null;
 
@@ -529,7 +529,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var concatMember = GetSpanConcatMemberByArgumentsCount(preparedArgsIfUnwrapUserStringConcat.Count);
 
-            if (concatMember.HasValue &&
+            // If we got here it only makes sense to lower using span-based concat if at least one operand is a char.
+            // Because otherwise we will just unnecessarily wrap every string operand into span conversion and use span-based concat
+            // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
+            if (needsSpanRefParamConstructor &&
+                concatMember.HasValue &&
                 TryGetWellKnownTypeMember(syntax, concatMember.Value, out spanConcat, isOptional: true) &&
                 tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out readOnlySpanCtorRefParamChar, out stringImplicitConversionToReadOnlySpan))
             {
@@ -702,6 +706,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return expr;
                 }
+            }
+
+            // If expression is of form `constantChar.ToString()` then rewrite it here to a string literal so we can choose better options for lowering later (e.g. fold it with another constant instead of performing concatenation)
+            // NOTE: We request `object.ToString()` as an optional member here to avoid reporting "missing member" diagnostic earlier than we should.
+            // Because if in the end it turns out that we have a simple concatenation of n strings there is no need to report missing `object.ToString()` member
+            if (TryGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString, out MethodSymbol? optionalObjectToString, isOptional: true) &&
+                expr is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } charType, ConstantValueOpt: { IsChar: true } charConstant } } call &&
+                call.Method.GetLeastOverriddenMember(charType) == optionalObjectToString)
+            {
+                var oldSyntax = _factory.Syntax;
+                _factory.Syntax = expr.Syntax;
+                expr = _factory.Literal(charConstant.CharValue.ToString());
+                _factory.Syntax = oldSyntax;
             }
 
             // If it's a string already, just return it

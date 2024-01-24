@@ -307,6 +307,108 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    public void ConcatTwo_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    Console.Write(M1(s));
+                    Console.Write(M2(s));
+                }
+
+                static string M1(string s) => s + 'c'.ToString();
+                static string M2(string s) => 'c'.ToString() + s;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of string and char we recognize "constantChar.ToString()" pattern and lower that argument to a constant string
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldstr      "c"
+              IL_0006:  call       "string string.Concat(string, string)"
+              IL_000b:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  call       "string string.Concat(string, string)"
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    public void ConcatTwo_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    Console.Write(M());
+                }
+
+                static string M() => 'a'.ToString() + 'b'.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of 2 chars we recognize "constantChar.ToString()" pattern and lower both arguments to a constant string
+        // which we can then fold into a single constant string and avoid concatenation entirely
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size        6 (0x6)
+              .maxstack  1
+              IL_0000:  ldstr      "ab"
+              IL_0005:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     public void ConcatTwoCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -968,6 +1070,138 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0021:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
               IL_0026:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_002b:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatThree_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+            
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    Console.Write(M1(s));
+                    Console.Write(M2(s));
+                    Console.Write(M3(s));
+                    Console.Write(M4(s));
+                }
+            
+                static string M1(string s) => 'c'.ToString() + s + s;
+                static string M2(string s) => s + 'c'.ToString() + s;
+                static string M3(string s) => s + s + 'c'.ToString();
+                static string M4(string s) => 'c'.ToString() + s + 'c'.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of strings and chars we recognize "constantChar.ToString()" pattern and lower that arguments to constant strings
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  3
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  ldarg.0
+              IL_0007:  call       "string string.Concat(string, string, string)"
+              IL_000c:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  3
+              IL_0000:  ldarg.0
+              IL_0001:  ldstr      "c"
+              IL_0006:  ldarg.0
+              IL_0007:  call       "string string.Concat(string, string, string)"
+              IL_000c:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M3", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  3
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.0
+              IL_0002:  ldstr      "c"
+              IL_0007:  call       "string string.Concat(string, string, string)"
+              IL_000c:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M4", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  3
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  ldstr      "c"
+              IL_000b:  call       "string string.Concat(string, string, string)"
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatThree_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    Console.Write(M());
+                }
+
+                static string M() => 'a'.ToString() + 'b'.ToString() + 'c'.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of 3 chars we recognize "constantChar.ToString()" pattern and lower all arguments to a constant string
+        // which we can then fold into a single constant string and avoid concatenation entirely
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size        6 (0x6)
+              .maxstack  1
+              IL_0000:  ldstr      "abc"
+              IL_0005:  ret
             }
             """);
     }
@@ -2206,6 +2440,186 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_002d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
               IL_0032:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
               IL_0037:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatFour_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+            
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    Console.Write(M1(s));
+                    Console.Write(M2(s));
+                    Console.Write(M3(s));
+                    Console.Write(M4(s));
+                    Console.Write(M5(s));
+                    Console.Write(M6(s));
+                    Console.Write(M7(s));
+                }
+            
+                static string M1(string s) => 'c'.ToString() + s + s + s;
+                static string M2(string s) => s + 'c'.ToString() + s + s;
+                static string M3(string s) => s + s + 'c'.ToString() + s;
+                static string M4(string s) => s + s + s + 'c'.ToString();
+                static string M5(string s) => 'c'.ToString() + s + 'c'.ToString() + s;
+                static string M6(string s) => s + 'c'.ToString() + s + 'c'.ToString();
+                static string M7(string s) => 'c'.ToString() + s + s + 'c'.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of strings and chars we recognize "constantChar.ToString()" pattern and lower that arguments to constant strings
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  4
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  ldarg.0
+              IL_0007:  ldarg.0
+              IL_0008:  call       "string string.Concat(string, string, string, string)"
+              IL_000d:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  4
+              IL_0000:  ldarg.0
+              IL_0001:  ldstr      "c"
+              IL_0006:  ldarg.0
+              IL_0007:  ldarg.0
+              IL_0008:  call       "string string.Concat(string, string, string, string)"
+              IL_000d:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M3", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  4
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.0
+              IL_0002:  ldstr      "c"
+              IL_0007:  ldarg.0
+              IL_0008:  call       "string string.Concat(string, string, string, string)"
+              IL_000d:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M4", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  4
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.0
+              IL_0002:  ldarg.0
+              IL_0003:  ldstr      "c"
+              IL_0008:  call       "string string.Concat(string, string, string, string)"
+              IL_000d:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M5", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  4
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  ldstr      "c"
+              IL_000b:  ldarg.0
+              IL_000c:  call       "string string.Concat(string, string, string, string)"
+              IL_0011:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M6", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  4
+              IL_0000:  ldarg.0
+              IL_0001:  ldstr      "c"
+              IL_0006:  ldarg.0
+              IL_0007:  ldstr      "c"
+              IL_000c:  call       "string string.Concat(string, string, string, string)"
+              IL_0011:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M7", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  4
+              IL_0000:  ldstr      "c"
+              IL_0005:  ldarg.0
+              IL_0006:  ldarg.0
+              IL_0007:  ldstr      "c"
+              IL_000c:  call       "string string.Concat(string, string, string, string)"
+              IL_0011:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    public void ConcatFour_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    Console.Write(M());
+                }
+
+                static string M() => 'a'.ToString() + 'b'.ToString() + 'c'.ToString() + 'd'.ToString();
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        // Instead of emitting this as a span-based concat of 4 chars we recognize "constantChar.ToString()" pattern and lower all arguments to a constant string
+        // which we can then fold into a single constant string and avoid concatenation entirely
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size        6 (0x6)
+              .maxstack  1
+              IL_0000:  ldstr      "abcd"
+              IL_0005:  ret
             }
             """);
     }
