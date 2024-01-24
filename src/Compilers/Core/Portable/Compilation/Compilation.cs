@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -3731,18 +3732,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
-            var builderSize = 0;
-            foreach (var argument in diagnostic.Arguments)
-            {
-                if (argument is AssemblyIdentity id)
-                {
-                    builderSize++;
-                }
-            }
-
-            var builder = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
-
+            using var builder = TemporaryArray<AssemblyIdentity>.Empty;
             foreach (var argument in diagnostic.Arguments)
             {
                 if (argument is AssemblyIdentity id)
@@ -3751,7 +3741,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.MoveToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);

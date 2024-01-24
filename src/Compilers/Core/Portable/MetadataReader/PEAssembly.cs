@@ -61,22 +61,16 @@ namespace Microsoft.CodeAnalysis
 
             _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
-            // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
-            var totalRefCount = 0;
+            // Pre-calculate size to ensure this code only requires a single array allocation.
+            var totalRefCount = modules.Sum(static module => module.ReferencedAssemblies.Length);
             var refCounts = ImmutableArray.CreateBuilder<int>(modules.Length);
-
-            for (int i = 0; i < modules.Length; i++)
-            {
-                ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
-                refCounts.Add(refsForModule.Length);
-                totalRefCount += refsForModule.Length;
-            }
 
             var refs = ImmutableArray.CreateBuilder<AssemblyIdentity>(totalRefCount);
 
             for (int i = 0; i < modules.Length; i++)
             {
                 ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
+                refCounts.Add(refsForModule.Length);
                 refs.AddRange(refsForModule);
             }
 

@@ -35,14 +35,8 @@ namespace Microsoft.CodeAnalysis
 
                 _referencedAssemblyData = referencedAssemblyData;
 
-                // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
-                var builderSize = referencedAssemblyData.Length;
-
-                for (int i = 1; i <= modules.Length; i++)
-                {
-                    builderSize += modules[i - 1].ReferencedAssemblies.Length;
-                }
-
+                // Pre-calculate size to ensure this code only requires a single array allocation.
+                var builderSize = referencedAssemblyData.Length + modules.Sum(static module => module.ReferencedAssemblies.Length);
                 var refs = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
 
                 foreach (AssemblyData data in referencedAssemblyData)
@@ -51,9 +45,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // add assembly names from modules:
-                for (int i = 1; i <= modules.Length; i++)
+                for (int i = 0; i < modules.Length; i++)
                 {
-                    refs.AddRange(modules[i - 1].ReferencedAssemblies);
+                    refs.AddRange(modules[i].ReferencedAssemblies);
                 }
 
                 _referencedAssemblies = refs.MoveToImmutable();

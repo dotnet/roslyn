@@ -1102,20 +1102,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
 
-                    // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
-                    var builderSize = 0;
-                    for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
+                    // Pre-calculate size to ensure this code only requires a single array allocation.
+                    var builderSize = modules.Sum(static (module, index) =>
                     {
-                        if (!sourceReferencedAssemblySymbols[i].IsLinked)
-                        {
-                            builderSize++;
-                        }
-                    }
-
-                    for (int i = 1; i < modules.Length; i++)
-                    {
-                        builderSize += modules[i].GetReferencedAssemblies().Length;
-                    }
+                        if (index == 0)
+                            return module.GetReferencedAssemblySymbols().Count(static identity => !identity.IsLinked);
+                        else
+                            return module.GetReferencedAssemblies().Length;
+                    });
 
                     var result = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
 
