@@ -20,118 +20,117 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
 {
-    internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
+    private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
+
+    protected abstract SyntaxKind ConditionKind { get; }
+
+    protected abstract SyntaxKind IncrementorKind { get; }
+
+    protected abstract ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression);
+
+    protected abstract ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression);
+
+    protected abstract void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition);
+
+    protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
-        private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
+        var semanticModel = syntaxContext.SemanticModel;
+        var compilation = semanticModel.Compilation;
 
-        protected abstract SyntaxKind ConditionKind { get; }
+        var iteratorName = NameGenerator.GenerateUniqueName(s_iteratorBaseNames, n => semanticModel.LookupSymbols(syntaxContext.Position, name: n).IsEmpty);
+        var iteratorVariable = generator.Identifier(iteratorName);
+        var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
+        var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
 
-        protected abstract SyntaxKind IncrementorKind { get; }
+        var variableDeclaration = SyntaxFactory.VariableDeclaration(
+            iteratorTypeSyntax,
+            variables: SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.VariableDeclarator(iteratorVariable,
+                    argumentList: null,
+                    SyntaxFactory.EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
+            .NormalizeWhitespace();
 
-        protected abstract ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression);
+        return SyntaxFactory.ForStatement(
+            variableDeclaration,
+            SyntaxFactory.SeparatedList<ExpressionSyntax>(),
+            SyntaxFactory.BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
+            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)),
+            SyntaxFactory.Block());
 
-        protected abstract ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression);
-
-        protected abstract void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition);
-
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+        static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
         {
-            var semanticModel = syntaxContext.SemanticModel;
-            var compilation = semanticModel.Compilation;
+            var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
-            var iteratorName = NameGenerator.GenerateUniqueName(s_iteratorBaseNames, n => semanticModel.LookupSymbols(syntaxContext.Position, name: n).IsEmpty);
-            var iteratorVariable = generator.Identifier(iteratorName);
-            var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
-            var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
+            if (inlineExpressionInfo is null)
+                return (compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(), inlineExpression);
 
-            var variableDeclaration = SyntaxFactory.VariableDeclaration(
-                iteratorTypeSyntax,
-                variables: SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(iteratorVariable,
-                        argumentList: null,
-                        SyntaxFactory.EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
-                .NormalizeWhitespace();
+            var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
+            Debug.Assert(inlineExpressionType is not null);
 
-            return SyntaxFactory.ForStatement(
-                variableDeclaration,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(),
-                SyntaxFactory.BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
-                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)),
-                SyntaxFactory.Block());
+            if (IsSuitableIntegerType(inlineExpressionType))
+                return (inlineExpressionType.GenerateTypeSyntax(), inlineExpression);
 
-            static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
-            {
-                var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
+            var property = FindLengthProperty(inlineExpressionType, compilation) ?? FindCountProperty(inlineExpressionType, compilation);
+            Contract.ThrowIfNull(property);
+            return (property.Type.GenerateTypeSyntax(), generator.MemberAccessExpression(inlineExpression, property.Name));
+        }
+    }
 
-                if (inlineExpressionInfo is null)
-                    return (compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(), inlineExpression);
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
+        var placeholderBuilder = new MultiDictionary<string, int>();
+        GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _);
 
-                var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
-                Debug.Assert(inlineExpressionType is not null);
+        var variableDeclarator = ((VariableDeclarationSyntax)declaration!).Variables.Single();
+        var declaratorIdentifier = variableDeclarator.Identifier;
+        placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
-                if (IsSuitableIntegerType(inlineExpressionType))
-                    return (inlineExpressionType.GenerateTypeSyntax(), inlineExpression);
+        var conditionExpression = (BinaryExpressionSyntax)condition!;
+        var left = conditionExpression.Left;
+        placeholderBuilder.Add(left.ToString(), left.SpanStart);
 
-                var property = FindLengthProperty(inlineExpressionType, compilation) ?? FindCountProperty(inlineExpressionType, compilation);
-                Contract.ThrowIfNull(property);
-                return (property.Type.GenerateTypeSyntax(), generator.MemberAccessExpression(inlineExpression, property.Name));
-            }
+        AddSpecificPlaceholders(placeholderBuilder, variableDeclarator.Initializer!.Value, conditionExpression.Right);
+
+        var operand = ((PostfixUnaryExpressionSyntax)incrementor!).Operand;
+        placeholderBuilder.Add(operand.ToString(), operand.SpanStart);
+
+        foreach (var (key, value) in placeholderBuilder)
+        {
+            arrayBuilder.Add(new(key, value.ToImmutableArray()));
         }
 
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            var placeholderBuilder = new MultiDictionary<string, int>();
-            GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _);
+        return arrayBuilder.ToImmutableArray();
+    }
 
-            var variableDeclarator = ((VariableDeclarationSyntax)declaration!).Variables.Single();
-            var declaratorIdentifier = variableDeclarator.Identifier;
-            placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    {
+        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
+            caretTarget,
+            static s => (BlockSyntax)s.Statement,
+            sourceText);
+    }
 
-            var conditionExpression = (BinaryExpressionSyntax)condition!;
-            var left = conditionExpression.Left;
-            placeholderBuilder.Add(left.ToString(), left.SpanStart);
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+            document,
+            FindSnippetAnnotation,
+            static s => (BlockSyntax)s.Statement,
+            cancellationToken);
+    }
 
-            AddSpecificPlaceholders(placeholderBuilder, variableDeclarator.Initializer!.Value, conditionExpression.Right);
-
-            var operand = ((PostfixUnaryExpressionSyntax)incrementor!).Operand;
-            placeholderBuilder.Add(operand.ToString(), operand.SpanStart);
-
-            foreach (var (key, value) in placeholderBuilder)
-            {
-                arrayBuilder.Add(new(key, value.ToImmutableArray()));
-            }
-
-            return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
-                caretTarget,
-                static s => (BlockSyntax)s.Statement,
-                sourceText);
-        }
-
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
-                document,
-                FindSnippetAnnotation,
-                static s => (BlockSyntax)s.Statement,
-                cancellationToken);
-        }
-
-        private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition, out SyntaxNode? incrementor, out SyntaxNode? statement)
-        {
-            var forStatement = (ForStatementSyntax)node;
-            declaration = forStatement.Declaration;
-            condition = forStatement.Condition;
-            incrementor = forStatement.Incrementors.Single();
-            statement = forStatement.Statement;
-        }
+    private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition, out SyntaxNode? incrementor, out SyntaxNode? statement)
+    {
+        var forStatement = (ForStatementSyntax)node;
+        declaration = forStatement.Declaration;
+        condition = forStatement.Condition;
+        incrementor = forStatement.Incrementors.Single();
+        statement = forStatement.Statement;
     }
 }
