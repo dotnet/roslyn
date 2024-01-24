@@ -3503,10 +3503,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
             // This method is only involved in method inference with unbound lambdas.
-            // The diagnostics on the collection expression elements are reported when
-            // the unbound lambda (and as a result, the collection expression) are converted.
+            var result = base.VisitUnconvertedCollectionExpression(node);
             SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
-            return null;
+            return result;
         }
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
