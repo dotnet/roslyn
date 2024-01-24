@@ -212,10 +212,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private static ProcessResult RunDotNet(string arguments, string? workingDirectory = null)
         {
-            Assert.NotNull(DotNetSdkLocator.SdkPath);
-
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
-            var fileName = Path.Combine(DotNetSdkLocator.SdkPath!, dotNetExeName);
+
+            // If the Sdk wasn't discovered, then attempt to use the system install of dotnet.
+            var fileName = DotNetSdkLocator.SdkPath is not null
+                ? Path.Combine(DotNetSdkLocator.SdkPath!, dotNetExeName)
+                : dotNetExeName;
 
             return ProcessUtilities.Run(fileName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
         }
