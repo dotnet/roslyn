@@ -31126,14 +31126,22 @@ partial class Program
                     static void Main()
                     {
                         object x = new object();
-                        object[] y = new[] { x };
-                        F(y, () => [x]);
+                        object y = null;
+                        object[] z = new[] { x };
+                        F(z, () => [x]);
+                        F(z, () => [y]);
                     }
                     static void F<T>(T t, Func<T> f) { }
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object y = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 20),
+                // (11,21): warning CS8601: Possible null reference assignment.
+                //         F(z, () => [y]);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(11, 21));
         }
 
         [Fact]
