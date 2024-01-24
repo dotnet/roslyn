@@ -306,9 +306,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatTwo_ConstantCharToString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -364,9 +364,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatTwo_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -408,7 +408,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     public void ConcatTwoCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -548,7 +548,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ReadOnlySpan1(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -658,7 +658,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ReadOnlySpan2(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -818,7 +818,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ReadOnlySpan_SideEffect(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -948,7 +948,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1012,7 +1012,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ReadOnlySpan_MutateLocal(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1076,10 +1076,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatThree_ConstantCharToString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1163,10 +1163,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatThree_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1208,8 +1208,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
     public void ConcatThreeCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1351,7 +1351,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1413,7 +1413,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1647,8 +1647,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ReadOnlySpan1(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1835,8 +1835,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ReadOnlySpan2(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2088,8 +2088,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ReadOnlySpan_SideEffect(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2299,8 +2299,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2373,8 +2373,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ReadOnlySpan_MutateLocal(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2446,11 +2446,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_ConstantCharToString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2580,11 +2580,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2626,9 +2626,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFourCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2827,8 +2827,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -2911,8 +2911,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -3013,7 +3013,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -3166,9 +3166,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -3215,7 +3215,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -3280,7 +3280,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -3888,11 +3888,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFive_Char(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -4077,11 +4077,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatFiveCharToStrings(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -4152,10 +4152,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatTotalOfFive_UserInputOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -4268,10 +4268,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatTotalOfFive_UserInputOfSpanBasedConcatOf3(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -4365,9 +4365,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)]
     public void ConcatTotalOfFive_UserInputOfMixedSpanBasedConcatsOf2And3(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -4444,8 +4444,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatTotalOfMoreThanFive_UserInputOf2SpanBasedConcatsOf2InARow(int? missingUnimportantWellKnownMember)
     {
         var source = """
