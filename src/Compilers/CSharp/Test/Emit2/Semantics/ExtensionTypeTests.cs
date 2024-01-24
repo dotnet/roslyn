@@ -12171,33 +12171,28 @@ implicit extension E for object
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "indexer access" section
-        comp.VerifyDiagnostics(
-            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-            // _ = o[42];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[42]").WithArguments("object").WithLocation(4, 5)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "indexer");
 
-        //        string expectedOperationTree = """
-        //ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = o[42]')
-        //Left:
-        //  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-        //Right:
-        //  IPropertyReferenceOperation: System.Int32 E.this[System.Int32 i] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'o[42]')
-        //    Instance Receiver:
-        //      ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
-        //    Arguments(1):
-        //        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
-        //          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-        //          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        //          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        //""";
-        //        var expectedDiagnostics = DiagnosticDescription.None;
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = o[42]')
+Left:
+  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+Right:
+  IPropertyReferenceOperation: System.Int32 E.this[System.Int32 i] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'o[42]')
+    Instance Receiver:
+      ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-        //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
+            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [Fact]
@@ -12223,33 +12218,28 @@ implicit extension E for object
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of the "indexer access" section
-        comp.VerifyDiagnostics(
-            // (4,1): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-            // o[42] = 0;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[42]").WithArguments("object").WithLocation(4, 1)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "indexer");
 
-        //        string expectedOperationTree = """
-        //ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'o[42] = 0')
-        //Left:
-        //  IPropertyReferenceOperation: System.Int32 E.this[System.Int32 i] { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'o[42]')
-        //    Instance Receiver:
-        //      ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
-        //    Arguments(1):
-        //        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
-        //          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-        //          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        //          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        //Right:
-        //  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        //""";
-        //        var expectedDiagnostics = DiagnosticDescription.None;
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'o[42] = 0')
+Left:
+  IPropertyReferenceOperation: System.Int32 E.this[System.Int32 i] { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'o[42]')
+    Instance Receiver:
+      ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+Right:
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-        //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
+            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -14185,7 +14175,17 @@ var c = new C();
 _ = c[^1];
 /*</bind>*/
 
-class C { }
+class C
+{
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("length ");
+            return 42;
+        }
+    }
+}
 
 implicit extension E for C
 {
@@ -14197,7 +14197,64 @@ implicit extension E for C
             return 0;
         }
     }
+}
+""";
 
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE revisit as part of "implicit indexer access" section
+        comp.VerifyDiagnostics(
+            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(4, 5)
+            );
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "length indexer");
+
+        //        string expectedOperationTree = """
+        //ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = c[^1]')
+        //Left:
+        //  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+        //Right:
+        //  IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'c[^1]')
+        //    Instance:
+        //      ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+        //    Argument:
+        //      IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+        //        Operand:
+        //          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        //    LengthSymbol: System.Int32 E.Length { get; }
+        //    IndexerSymbol: System.Int32 E.this[System.Int32 i] { get; }
+        //""";
+        //        var expectedDiagnostics = DiagnosticDescription.None;
+
+        //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
+        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoLength()
+    {
+        var src = """
+var c = new C();
+
+/*<bind>*/
+_ = c[^1];
+/*</bind>*/
+
+class C
+{
+    public int this[int i]
+    {
+        get
+        {
+            System.Console.Write("indexer ");
+            return 0;
+        }
+    }
+}
+
+implicit extension E for C
+{
     public int Length
     {
         get
@@ -14210,11 +14267,11 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "indexer access" section
+        // PROTOTYPE revisit as part of "implicit indexer access" section
         comp.VerifyDiagnostics(
-            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // (4,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(4, 5)
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 7)
             );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "length indexer");
@@ -14277,7 +14334,7 @@ implicit extension E for C
 }
 """;
 
-        // PROTOTYPE this scenario should work (based on updated "indexer access" rules)
+        // PROTOTYPE revisit as part of "implicit indexer access" section
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (4,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'string'
@@ -14321,7 +14378,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit pattern-based implicit indexing
+        // PROTOTYPE revisit as part of "implicit indexer access" section
         comp.VerifyDiagnostics(
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
@@ -14392,7 +14449,7 @@ implicit extension E for C
 }
 """;
 
-        // PROTOTYPE this scenario should work (based on updated "indexer access" rules)
+        // PROTOTYPE revisit as part of "implicit indexer access" section
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -14434,6 +14491,125 @@ implicit extension E for C
             );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ListPattern_NoInstanceLength()
+    {
+        var src = """
+System.Console.Write(new C() is ["hi"]);
+
+class C
+{
+    public string this[System.Index i]
+    {
+        get
+        {
+            System.Console.Write("indexer ");
+            return "hi";
+        }
+    }
+}
+
+implicit extension E for C
+{
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("length ");
+            return 42;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm that we want extensions to contribute to list-patterns
+        comp.VerifyDiagnostics(
+            // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // System.Console.Write(new C() is ["hi"]);
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, @"[""hi""]").WithArguments("C").WithLocation(1, 33)
+            );
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "length indexer");
+
+        //        string expectedOperationTree = """
+        //ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = c[^1]')
+        //Left:
+        //  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+        //Right:
+        //  IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'c[^1]')
+        //    Instance:
+        //      ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+        //    Argument:
+        //      IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+        //        Operand:
+        //          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        //    LengthSymbol: System.Int32 E.Length { get; }
+        //    IndexerSymbol: System.Int32 E.this[System.Int32 i] { get; }
+        //""";
+        //        var expectedDiagnostics = DiagnosticDescription.None;
+
+        //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
+        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ListPattern_NoInstanceIndexer()
+    {
+        var src = """
+System.Console.Write(/*<bind>*/ new C() is ["hi"] /*</bind>*/) ;
+
+class C
+{
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("length ");
+            return 42;
+        }
+    }
+}
+
+implicit extension E for C
+{
+    public string this[System.Index i]
+    {
+        get
+        {
+            System.Console.Write("indexer ");
+            return "hi";
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm that we want extensions to contribute to list-patterns
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "length indexer");
+
+        string expectedOperationTree = """
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'new C() is ["hi"]')
+Value:
+  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+    Arguments(0)
+    Initializer:
+      null
+Pattern:
+  IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '["hi"]') (InputType: C, NarrowedType: C, DeclaredSymbol: null, LengthSymbol: System.Int32 C.Length { get; }, IndexerSymbol: System.String E.this[System.Index i] { get; })
+    Patterns (1):
+        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '"hi"') (InputType: System.String, NarrowedType: System.String)
+          Value:
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "hi") (Syntax: '"hi"')
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(src,
+            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
@@ -15173,6 +15349,38 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_Simple_ExpressionTree()
+    {
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
+        var source = """
+using System.Linq.Expressions;
+Expression<System.Action> x = () => C.M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionInvocation_InstanceReceiver_Simple()
     {
         // We look at methods in extension types if the method group on type has no applicable candidates
@@ -15202,6 +15410,99 @@ implicit extension E for C
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_Simple_ExpressionTree()
+    {
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
+        var source = """
+using System.Linq.Expressions;
+Expression<System.Action> x = () => new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_Simple_DynamicArgument()
+    {
+        var source = """
+dynamic d = 42;
+new C().M(d);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE need to confirm what we want for invocations with dynamic arguments (should likely be disallowed)
+        comp.VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    public void ExtensionInvocation_InstanceReceiver_ComImportReceiver()
+    {
+        string source = """
+using System;
+using System.Runtime.InteropServices;
+
+I i = new C();
+System.Console.Write(i.M(1));
+
+[ComImport]
+[Guid("1FC6664D-C61E-4131-81CD-A3EE0DD6098F")]
+[CoClass(typeof(C))]
+interface I
+{
+}
+
+class C : I
+{
+}
+
+implicit extension E for I
+{
+    public int M(ref int i) => 42;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<InvocationExpressionSyntax>(tree, "i.M(1)");
+        Assert.Equal("System.Int32 E.M(ref System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -15742,6 +16043,61 @@ public static class E2
 
         Assert.Equal(new[] { "void C.M(System.Int32 a)", "void C.M(System.Int32 c)" },
             model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionInvocation_AmbiguityWithExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(new C().M(42));
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public int M(int i) => throw null;
+}
+
+implicit extension E2 for C
+{
+    public int M(int i) => i;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,30): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(int)' and 'E2.M(int)'
+            // System.Console.Write(new C().M(42));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M(int)", "E2.M(int)").WithLocation(1, 30)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(42)");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+
+        source = """
+System.Console.Write(new C().M(42));
+
+public class Base { }
+
+public class C : Base { }
+
+public static class E1
+{
+    public static int M(this Base b, int i) => throw null;
+}
+
+public static class E2
+{
+    public static int M(this C c, int i) => i;
+}
+""";
+        comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -16545,7 +16901,9 @@ implicit extension E for C
     public void IndexerAccess_Simple()
     {
         var source = """
+/*<bind>*/
 _ = (new C())[42];
+/*</bind>*/
 
 class C
 {
@@ -16568,12 +16926,29 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit when implementing "extension indexer access"
-        comp.VerifyDiagnostics(
-            // 0.cs(1,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-            // _ = (new C())[42];
-            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(1, 15)
-            );
+        comp.VerifyDiagnostics();
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = (new C())[42]')
+Left:
+  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+Right:
+  IPropertyReferenceOperation: System.Int32 E.this[System.Int32 i] { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '(new C())[42]')
+    Instance Receiver:
+      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+        Arguments(0)
+        Initializer:
+          null
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source,
+            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [Fact]
@@ -19446,6 +19821,1047 @@ implicit extension E for C.Nested
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Nested");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void UnderlyingType_SelfReference_Unqualified()
+    {
+        var src = """
+implicit extension E for Nested
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,26): error CS0246: The type or namespace name 'Nested' could not be found (are you missing a using directive or an assembly reference?)
+            // implicit extension E for Nested
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nested").WithArguments("Nested").WithLocation(1, 26)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var underlyingType = GetSyntax<ForTypeSyntax>(tree, "for Nested").UnderlyingType;
+        Assert.Null(model.GetSymbolInfo(underlyingType).Symbol);
+    }
+
+    [Fact]
+    public void Obsolete_TypeReceiver()
+    {
+        var src = """
+int p = object.Property; // 1
+object.Property = 42; // 2
+System.Action p2 = object.Property2; // 3
+
+int f = object.Field; // 4
+
+System.Action m = object.Method; // 5
+
+object.Method(); // 6
+
+implicit extension E for object
+{
+    [System.Obsolete("Property is obsolete", true)]
+    public static int Property { get { throw null; } set { throw null; } }
+
+    [System.Obsolete("Property2 is obsolete", true)]
+    public static System.Action Property2 => throw null;
+
+    [System.Obsolete("Field is obsolete", true)]
+    public static int Field = 42;
+
+    [System.Obsolete("Method is obsolete", true)]
+    public static void Method() => throw null;
+}
+""";
+        // PROTOTYPE missing diagnostics on Field
+        // PROTOTYPE add event
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
+            // int p = object.Property; // 1
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.Property", "Property is obsolete").WithLocation(1, 9),
+            // (2,1): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
+            // object.Property = 42; // 2
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.Property", "Property is obsolete").WithLocation(2, 1),
+            // (3,20): error CS0619: 'E.Property2' is obsolete: 'Property2 is obsolete'
+            // System.Action p2 = object.Property2; // 3
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property2").WithArguments("E.Property2", "Property2 is obsolete").WithLocation(3, 20),
+            // (7,19): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
+            // System.Action m = object.Method; // 5
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Method").WithArguments("E.Method()", "Method is obsolete").WithLocation(7, 19),
+            // (9,1): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
+            // object.Method(); // 6
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Method()").WithArguments("E.Method()", "Method is obsolete").WithLocation(9, 1)
+            );
+    }
+
+    [Fact]
+    public void Obsolete_InstanceReceiver()
+    {
+        var src = """
+int p = new object().Property; // 1
+new object().Property += 42; // 2
+
+System.Action p2 = new object().Property2; // 3
+
+System.Action m = new object().Method; // 4
+
+new object().Method(); // 5
+
+_ = (new object())[42]; // 6
+
+implicit extension E for object
+{
+    [System.Obsolete("Property is obsolete", true)]
+    public int Property { get { throw null; } set { throw null; } }
+
+    [System.Obsolete("Property2 is obsolete", true)]
+    public System.Action Property2 => throw null;
+
+    [System.Obsolete("Method is obsolete", true)]
+    public void Method() => throw null;
+
+    [System.Obsolete("Indexer is obsolete", true)]
+    public int this[int i] { get { throw null; } set { throw null; } }
+}
+""";
+        // PROTOTYPE add event
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
+            // int p = new object().Property; // 1
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.Property", "Property is obsolete").WithLocation(1, 9),
+            // (2,1): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
+            // new object().Property += 42; // 2
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.Property", "Property is obsolete").WithLocation(2, 1),
+            // (4,20): error CS0619: 'E.Property2' is obsolete: 'Property2 is obsolete'
+            // System.Action p2 = new object().Property2; // 3
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property2").WithArguments("E.Property2", "Property2 is obsolete").WithLocation(4, 20),
+            // (6,19): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
+            // System.Action m = new object().Method; // 4
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Method").WithArguments("E.Method()", "Method is obsolete").WithLocation(6, 19),
+            // (8,1): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
+            // new object().Method(); // 5
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Method()").WithArguments("E.Method()", "Method is obsolete").WithLocation(8, 1),
+            // (10,5): error CS0619: 'E.this[int]' is obsolete: 'Indexer is obsolete'
+            // _ = (new object())[42]; // 6
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(new object())[42]").WithArguments("E.this[int]", "Indexer is obsolete").WithLocation(10, 5)
+            );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_Simple_Getter()
+    {
+        var source = """
+System.Console.Write(new C()[42]);
+
+class C
+{
+}
+
+implicit extension E for C
+{
+    public int this[int i] => i;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_Simple_Setter()
+    {
+        var source = """
+new C()[42] = 43;
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { set { System.Console.Write($"[{i}] = {value}"); } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "[42] = 43", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_Simple_Getter_ExpressionTree()
+    {
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
+        var source = """
+using System.Linq.Expressions;
+Expression<System.Action> x = () => new C()[42].ToString();
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] => i;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_Simple_Setter_ExpressionTree()
+    {
+        // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
+        var source = """
+using System.Linq.Expressions;
+Expression<System.Action> x = () => new C()[42] = 43;
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { set { throw null; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,37): error CS0832: An expression tree may not contain an assignment operator
+            // Expression<System.Action> x = () => new C()[42] = 43;
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "new C()[42] = 43").WithLocation(2, 37)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_InapplicableInstanceIndexer()
+    {
+        // We look at indexers in extension types if the property group on type has no applicable candidates
+        var source = """
+System.Console.Write(new C()[42]);
+
+class C
+{
+    public int this[string s] => throw null;
+}
+
+implicit extension E for C
+{
+    public int this[int i] => i;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_BaseReceiver()
+    {
+        var source = """
+class Base { }
+
+class C : Base
+{
+    public void M()
+    {
+        System.Console.Write(base[42]);
+    }
+}
+
+implicit extension E for Base
+{
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm we don't want to add special rules for `base`
+        comp.VerifyEmitDiagnostics(
+            // (7,30): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
+            //         System.Console.Write(base[42]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[42]").WithArguments("Base").WithLocation(7, 30)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "base[42]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_AmbiguityWithExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(new C()[42]);
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public int this[int i] => throw null;
+}
+
+implicit extension E2 for C
+{
+    public int this[int i] => i;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // System.Console.Write(new C()[42]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[42]").WithArguments("C").WithLocation(1, 22)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_ExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(new C()[42]);
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E for Base
+{
+    public int this[int i] => 42;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_ExtensionComesAfterImplicitIndexer()
+    {
+        var source = """
+System.Console.Write(new C()[^1]);
+
+class C
+{
+    public int Length => 42;
+    public string this[int i]
+    {
+        get
+        {
+            return "ran";
+        }
+    }
+}
+
+implicit extension E for C
+{
+    public string this[int i] => throw null;
+}
+""";
+        // PROTOTYPE confirm that we want extensions to come after implicit indexers
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[^1]");
+        Assert.Equal("System.String C.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_InaccessibleIndexer()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 42;
+new C()[3] += 42;
+
+class C { }
+
+implicit extension E for C
+{
+    protected int this[int i] { get { throw null; } set { throw null; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C()[1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[1]").WithArguments("C").WithLocation(1, 5),
+            // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // new C()[2] = 42;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[2]").WithArguments("C").WithLocation(2, 1),
+            // (3,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // new C()[3] += 42;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[3]").WithArguments("C").WithLocation(3, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess0 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        Assert.Null(model.GetSymbolInfo(memberAccess0).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess0));
+
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[2]");
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[3]");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_InaccessibleGetter()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 42;
+new C()[3] += 42;
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { protected get { throw null; } set { throw null; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0271: The property or indexer 'E.this[int]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new C()[1];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new C()[1]").WithArguments("E.this[int]").WithLocation(1, 5),
+            // (3,1): error CS0271: The property or indexer 'E.this[int]' cannot be used in this context because the get accessor is inaccessible
+            // new C()[3] += 42;
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new C()[3]").WithArguments("E.this[int]").WithLocation(3, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess0 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        Assert.Null(model.GetSymbolInfo(memberAccess0).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess0));
+
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[2]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { protected get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess1)); // PROTOTYPE need to fix the semantic model
+
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[3]");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_InaccessibleSetter()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 42;
+new C()[3] += 42;
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { get { throw null; } protected set { throw null; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS0272: The property or indexer 'E.this[int]' cannot be used in this context because the set accessor is inaccessible
+            // new C()[2] = 42;
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "new C()[2]").WithArguments("E.this[int]").WithLocation(2, 1),
+            // (3,1): error CS0272: The property or indexer 'E.this[int]' cannot be used in this context because the set accessor is inaccessible
+            // new C()[3] += 42;
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "new C()[3]").WithArguments("E.this[int]").WithLocation(3, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess0 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; protected set; }", model.GetSymbolInfo(memberAccess0).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess0)); // PROTOTYPE need to fix the semantic model
+
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[2]");
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[3]");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_TypeReceiver()
+    {
+        var source = """
+_ = C[1];
+
+class C { }
+
+implicit extension E for C
+{
+    public string this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0119: 'C' is a type, which is not valid in the given context
+            // _ = C[1];
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(1, 5)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "C[1]");
+        Assert.Equal("System.String E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_ColorColorReceiver()
+    {
+        var source = """
+class C
+{
+    void M(C C)
+    {
+        _ = C[1];
+    }
+}
+
+implicit extension E for C
+{
+    public string this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "C[1]");
+        Assert.Equal("System.String E.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_ParameterNames()
+    {
+        var source = """
+_ = new C()[i: 1, 2];
+
+class C { }
+
+implicit extension E for C
+{
+    public string this[int i, int j] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[i: 1, 2]");
+        Assert.Equal("System.String E.this[System.Int32 i, System.Int32 j] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_ParameterNames_OutOfOrder()
+    {
+        var source = """
+_ = new C()[j: 2, i: 1];
+
+class C { }
+
+implicit extension E for C
+{
+    public string this[int i, int j] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[j: 2, i: 1]");
+        Assert.Equal("System.String E.this[System.Int32 i, System.Int32 j] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_OnTypeParameter()
+    {
+        var source = """
+class C
+{
+    void M<T>(T t) where T : C
+    {
+        _ = t[0];
+    }
+}
+
+implicit extension E for C
+{
+    public string this[int i, int j] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
+            //         _ = t[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "t[0]").WithArguments("T").WithLocation(5, 13)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "t[0]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_OnArrayType()
+    {
+        var source = """
+int[] o = new[] { 42 };
+C.M(o);
+
+class C
+{
+    public static void M(int[] o)
+    {
+        System.Console.Write(o[0]);
+    }
+}
+
+implicit extension E for object[]
+{
+    public string this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_OnDynamicReceiver()
+    {
+        var source = """
+C.M(new C());
+
+class C
+{
+    public static void M(dynamic d)
+    {
+        System.Console.Write(d[0]);
+    }
+
+    public int this[int i] => 42;
+}
+
+implicit extension E for C
+{
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "d[0]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_OnDynamicReceiver_NoInstanceIndexer()
+    {
+        var source = """
+try
+{
+    C.M(new C());
+}
+catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+{
+    System.Console.Write("caught");
+}
+
+class C
+{
+    public static void M(dynamic d)
+    {
+        _ = d[0];
+    }
+}
+
+implicit extension E for C
+{
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "caught").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "d[0]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_WithDynamicArgument()
+    {
+        var source = """
+C.M(1);
+
+class C
+{
+    public static void M(dynamic d)
+    {
+        System.Console.Write((new C())[d]);
+    }
+
+    public int this[int i] => 42;
+}
+
+implicit extension E for C
+{
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "(new C())[d]");
+        Assert.Equal("System.Int32 C.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["System.Int32 C.this[System.Int32 i] { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_WithDynamicArgument_NoInstanceIndexer()
+    {
+        var source = """
+C.M(1);
+
+class C
+{
+    public static void M(dynamic d)
+    {
+        System.Console.Write((new C())[d]);
+    }
+}
+
+implicit extension E for C
+{
+    public int this[int i] => 42;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE need to confirm what we want for element access with dynamic arguments (should likely be disallowed)
+        comp.VerifyEmitDiagnostics(
+            // (7,30): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         System.Console.Write((new C())[d]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "(new C())[d]").WithArguments("C").WithLocation(7, 30)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "(new C())[d]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_GetVsSet()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 2;
+new C()[3] += 3;
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i]
+    {
+        get { System.Console.Write($"get({i}) "); return 42; }
+        set { System.Console.Write($"set({i}) "); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess1)); // PROTOTYPE need to fix the semantic model
+
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[2]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess2)); // PROTOTYPE need to fix the semantic model
+
+        var memberAccess3 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[3]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess3)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_GetVsSet_InstanceGetterExists()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 2;
+new C()[3] += 3;
+
+class C
+{
+    public int this[int i]
+    {
+        get { throw null; }
+    }
+}
+
+implicit extension E for C
+{
+    public int this[int i]
+    {
+        get { throw null; }
+        set { throw null; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS0200: Property or indexer 'C.this[int]' cannot be assigned to -- it is read only
+            // new C()[2] = 2;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "new C()[2]").WithArguments("C.this[int]").WithLocation(2, 1),
+            // (3,1): error CS0200: Property or indexer 'C.this[int]' cannot be assigned to -- it is read only
+            // new C()[3] += 3;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "new C()[3]").WithArguments("C.this[int]").WithLocation(3, 1)
+            );
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_GetVsSet_InstanceSetterExists()
+    {
+        var source = """
+_ = new C()[1];
+new C()[2] = 2;
+new C()[3] += 3;
+
+class C
+{
+    public int this[int i]
+    {
+        set { throw null; }
+    }
+}
+
+implicit extension E for C
+{
+    public int this[int i]
+    {
+        get { throw null; }
+        set { throw null; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks the get accessor
+            // _ = new C()[1];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[1]").WithArguments("C.this[int]").WithLocation(1, 5),
+            // (3,1): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks the get accessor
+            // new C()[3] += 3;
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[3]").WithArguments("C.this[int]").WithLocation(3, 1)
+            );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_Params()
+    {
+        var source = """
+System.Console.Write(new C()[1, 2]);
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[params int[] i] { get { System.Console.Write($"{i[0]} {i[1]} "); return 42; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1, 2]");
+        Assert.Equal("System.Int32 E.this[params System.Int32[] i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionIndexerAccess_OptionalParameter()
+    {
+        var source = """
+System.Console.Write(new C()[1]);
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i, int j = 2] { get { System.Console.Write($"{i} {j} "); return 42; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i, [System.Int32 j = 2]] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    public void ExtensionIndexerAccess_DictionaryInitializer()
+    {
+        var source = """
+System.Console.Write(new C() { [1] = 42, [2] = 43 });
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { set { System.Console.Write($"{i}={value} "); } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+    }
+
+    [Fact]
+    public void ExtensionIndexerAccess_ComImportReceiver()
+    {
+        string source = """
+using System;
+using System.Runtime.InteropServices;
+
+I i = new C();
+System.Console.Write(i[1]);
+
+[ComImport]
+[Guid("1FC6664D-C61E-4131-81CD-A3EE0DD6098F")]
+[CoClass(typeof(C))]
+interface I { }
+
+class C : I { }
+
+implicit extension E for I
+{
+    public int this[ref int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (16,21): error CS0631: ref and out are not valid in this context
+            //     public int this[ref int i] => throw null;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(16, 21)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "i[1]");
+        Assert.Equal("System.Int32 E.this[ref System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
     }
 }
 

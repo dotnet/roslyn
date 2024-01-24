@@ -707,6 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 syntax, expression, methodName, methodGroup,
                                 diagnostics, queryClause, resolution);
                         }
+                        // PROTOTYPE need to confirm what we want for invocations with dynamic arguments
                         else if (resolution.IsExtensionMethodGroup)
                         {
                             // error CS1973: 'T' has no applicable method named 'M' but appears to have an
@@ -1201,6 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // PROTOTYPE review impact of initialBindingReceiverIsSubjectToCloning/ReceiverIsSubjectToCloning
             return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
