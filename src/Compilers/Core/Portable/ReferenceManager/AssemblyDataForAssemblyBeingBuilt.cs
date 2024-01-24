@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
                 _referencedAssemblyData = referencedAssemblyData;
 
-                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(referencedAssemblyData.Length + modules.Length); //approximate size
+                var refs = AssemblyIdentity.ListPool.Allocate();
                 foreach (AssemblyData data in referencedAssemblyData)
                 {
                     refs.Add(data.Identity);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
                     refs.AddRange(modules[i - 1].ReferencedAssemblies);
                 }
 
-                _referencedAssemblies = refs.ToImmutableAndFree();
+                _referencedAssemblies = AssemblyIdentity.ListPool.ToImmutableAndFree(refs);
             }
 
             public override AssemblyIdentity Identity

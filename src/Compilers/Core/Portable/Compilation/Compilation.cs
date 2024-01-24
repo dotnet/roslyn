@@ -9,14 +9,12 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -3733,17 +3731,17 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
+            var list = AssemblyIdentity.ListPool.Allocate();
 
             foreach (var argument in diagnostic.Arguments)
             {
                 if (argument is AssemblyIdentity id)
                 {
-                    builder.Add(id);
+                    list.Add(id);
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return AssemblyIdentity.ListPool.ToImmutableAndFree(list);
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);

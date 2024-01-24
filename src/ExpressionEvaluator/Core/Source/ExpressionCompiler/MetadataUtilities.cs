@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-                var identitiesBuilder = (kind == MakeAssemblyReferencesKind.DirectReferencesOnly) ? ArrayBuilder<AssemblyIdentity>.GetInstance() : null;
+                var identitiesBuilder = (kind == MakeAssemblyReferencesKind.DirectReferencesOnly) ? AssemblyIdentity.ListPool.Allocate() : null;
                 ModuleMetadata? targetModule = null;
                 AssemblyIdentity? intrinsicsAssembly = null;
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // Remove assemblies not directly referenced by the target module.
                     if (targetModule != null)
                     {
-                        var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                        var referencedModules = AssemblyIdentity.ListPool.Allocate();
                         referencedModules.Add(targetModule.MetadataReader.ReadAssemblyIdentityOrThrow());
                         referencedModules.AddRange(targetModule.MetadataReader.GetReferencedAssembliesOrThrow());
                         // Ensure COR library is included, otherwise any compilation will fail.
@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             referencedModules.Add(intrinsicsAssembly);
                         }
                         RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
-                        referencedModules.Free();
+                        AssemblyIdentity.ListPool.Free(referencedModules);
                     }
-                    identitiesBuilder.Free();
+                    AssemblyIdentity.ListPool.Free(identitiesBuilder);
                 }
 
                 // Any runtime winmd modules were separated out initially. Now add
@@ -264,9 +264,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </remarks>
         private static void RemoveUnreferencedModules(
             ArrayBuilder<MetadataReference> modules,
-            ArrayBuilder<AssemblyIdentity> identities,
+            List<AssemblyIdentity> identities,
             AssemblyIdentityComparer identityComparer,
-            ArrayBuilder<AssemblyIdentity> referencedModules)
+            List<AssemblyIdentity> referencedModules)
         {
             Debug.Assert(modules.Count == identities.Count);
 

@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
         {
-            var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
+            var result = AssemblyIdentity.ListPool.Allocate();
             try
             {
                 foreach (var assemblyRef in reader.AssemblyReferences)
@@ -76,11 +75,12 @@ namespace Microsoft.CodeAnalysis
                         isReference: true));
                 }
 
-                return result.ToImmutable();
+                return AssemblyIdentity.ListPool.ToImmutableAndFree(result);
             }
-            finally
+            catch
             {
-                result.Free();
+                AssemblyIdentity.ListPool.Free(result);
+                throw;
             }
         }
 

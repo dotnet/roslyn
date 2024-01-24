@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private static ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(CSharpCompilation compilation)
                 {
                     // Collect information about references
-                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                    var result = AssemblyIdentity.ListPool.Allocate();
 
                     var modules = compilation.Assembly.Modules;
 
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
-                    return result.ToImmutableAndFree();
+                    return AssemblyIdentity.ListPool.ToImmutableAndFree(result);
                 }
 
                 internal override AssemblySymbol CreateAssemblySymbol()
