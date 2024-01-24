@@ -690,8 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(expr.Type is { });
-
             // Is the expression a constant char?  If so, we can
             // simply make it a literal string instead and avoid any 
             // allocations for converting the char to a string at run time.
@@ -720,6 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr = _factory.Literal(charConstant.CharValue.ToString());
                 _factory.Syntax = oldSyntax;
             }
+
+            Debug.Assert(expr.Type is not null);
 
             // If it's a string already, just return it
             if (expr.Type.IsStringType())
