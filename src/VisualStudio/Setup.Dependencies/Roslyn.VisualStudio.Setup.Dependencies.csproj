@@ -28,8 +28,6 @@
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.CodeDom" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
-    <NuGetPackageToIncludeInVsix Include="System.ComponentModel.Composition" PkgDefEntry="BindingRedirect" />
-    <NuGetPackageToIncludeInVsix Include="System.Composition" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Configuration.ConfigurationManager" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Drawing.Common" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
@@ -46,9 +44,6 @@
     <NuGetPackageToIncludeInVsix Include="Nerdbank.Streams" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Threading" PkgDefEntry="BindingRedirect" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" PkgDefEntry="CodeBase" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" PkgDefEntry="CodeBase" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" PkgDefEntry="CodeBase" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -57,5 +52,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
+
+    <!-- Required for NuGetPackageToIncludeInVsix -->
+    <PackageReference Include="Microsoft.DiaSymReader" />
+    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
+    <PackageReference Include="System.CodeDom" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Resources.Extensions" />
+    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 </Project>

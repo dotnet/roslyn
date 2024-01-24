@@ -2860,4 +2860,31 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71788")]
+    public async Task NotOnBannedType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public int[] M(object o)
+                    {
+                        if (o is IIListProvider<int> pa) return pa.ToArray();
+                        return null;
+                    }
+                }
+
+                interface IIListProvider<T> : IEnumerable<T>
+                {
+                    T[] ToArray();
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
