@@ -13,7 +13,7 @@ There exists a desire for incremental source generators be able to write out a s
 - Allow Incremental Generators to emit source or binary files to disk alongside the emitted .NET assembly
 - The user can control where the generated artifacts are emitted with a suitable default
 - Be optimal in terms of file writes / copies and ensure we keep the correct incremental build semantics for MSBuild
-- Do *not* run as part of the IDE experience. Files are only emitted to disk as part of command line compilation
+- Do not have to be run as part of the IDE experience. Files are only emitted to disk as part of command line compilation
 
 ## Implementation
 
@@ -32,7 +32,7 @@ public readonly struct ArtifactProductionContext
 {
     public CancellationToken CancellationToken { get; }
 
-    public void AddFile(string hintName, Action<System.IO.Stream> callback);
+    public void AddFile(string hintName, Action<System.IO.Stream, CancellationToken> callback);
 }
 ```
 
@@ -47,7 +47,7 @@ internal sealed class Generator : IIncrementalGenerator
 
         context.RegisterArtifactOutput(compilationSource, (nspc, item) =>
         {
-            nspc.AddFile("interop.js", (stream) =>
+            nspc.AddFile("interop.js", (stream, cancellationToken) =>
             {
                 using var writer = new StreamWriter(stream);
                 writer.WriteLine("//output");
