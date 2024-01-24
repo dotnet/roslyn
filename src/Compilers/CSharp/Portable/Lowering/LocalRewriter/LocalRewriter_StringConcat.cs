@@ -467,12 +467,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var needsSpanRefParamConstructor = false;
             var needsImplicitConversionFromStringToSpan = false;
 
-            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+            // When we get here we 100% already queried for object.ToString in `ConvertConcatExprToString`.
+            // Thus we can pass `isOptional` flag to avoid duplicate "missing member" diagnostic in case we are actually missing object.ToString
+            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString, isOptional: true);
             NamedTypeSymbol? charType = null;
 
             foreach (var arg in args)
             {
-                Debug.Assert(arg.Type?.IsStringType() == true);
+                Debug.Assert(arg.HasAnyErrors || arg.Type?.IsStringType() == true);
 
                 if (arg is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } receiverCharType } receiver } potentialToStringCall &&
                     (object)potentialToStringCall.Method.GetLeastOverriddenMethod(charType) == objectToStringMethod)
@@ -622,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(arg.Type.SpecialType == SpecialType.System_String);
+                        Debug.Assert(arg.HasAnyErrors || arg.Type.SpecialType == SpecialType.System_String);
                         Debug.Assert(stringImplicitConversionToReadOnlySpan is not null);
                         preparedArgsBuilder.Add(BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg));
                     }
@@ -710,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Evaluate toString at the last possible moment, to avoid spurious diagnostics if it's missing.
             // All code paths below here use it.
-            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+            var objectToStringMethod = UnsafeGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString);
 
             // If it's a struct which has overridden ToString, find that method. Note that we might fail to
             // find it, e.g. if object.ToString is missing

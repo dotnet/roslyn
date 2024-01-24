@@ -409,6 +409,41 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatTwo_MissingObjectToString()
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M1(s, c));
+                    Console.Write(M2(s, c));
+                }
+
+                static string M1(string s, char c) => s + c;
+                static string M2(string s, char c) => c + s;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+        comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
+
+        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
+        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
+        comp.VerifyEmitDiagnostics(
+            // (13,47): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M1(string s, char c) => s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(13, 47),
+            // (14,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M2(string s, char c) => c + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(14, 43));
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
@@ -1326,6 +1361,54 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0018:  ret
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatThree_MissingObjectToString()
+    {
+        var source = """
+            using System;
+            
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M1(s, c));
+                    Console.Write(M2(s, c));
+                    Console.Write(M3(s, c));
+                    Console.Write(M4(s, c));
+                }
+            
+                static string M1(string s, char c) => c + s + s;
+                static string M2(string s, char c) => s + c + s;
+                static string M3(string s, char c) => s + s + c;
+                static string M4(string s, char c) => c + s + c;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+        comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
+
+        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
+        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
+        comp.VerifyEmitDiagnostics(
+            // (15,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M1(string s, char c) => c + s + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(15, 43),
+            // (16,47): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M2(string s, char c) => s + c + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(16, 47),
+            // (17,51): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M3(string s, char c) => s + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(17, 51),
+            // (18,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M4(string s, char c) => c + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 43),
+            // (18,51): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M4(string s, char c) => c + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 51));
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -3318,6 +3401,75 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0019:  ret
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatFour_MissingObjectToString()
+    {
+        var source = """
+            using System;
+            
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M1(s, c));
+                    Console.Write(M2(s, c));
+                    Console.Write(M3(s, c));
+                    Console.Write(M4(s, c));
+                    Console.Write(M5(s, c));
+                    Console.Write(M6(s, c));
+                    Console.Write(M7(s, c));
+                }
+            
+                static string M1(string s, char c) => c + s + s + s;
+                static string M2(string s, char c) => s + c + s + s;
+                static string M3(string s, char c) => s + s + c + s;
+                static string M4(string s, char c) => s + s + s + c;
+                static string M5(string s, char c) => c + s + c + s;
+                static string M6(string s, char c) => s + c + s + c;
+                static string M7(string s, char c) => c + s + s + c;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+        comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
+
+        // Although we don't use object.ToString() or char.ToString() in the final codegen we still need object.ToString() during lowering.
+        // Moreover, we previously reported these errors anyway, so this is not a behavioral change
+        comp.VerifyEmitDiagnostics(
+            // (18,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M1(string s, char c) => c + s + s + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 43),
+            // (19,47): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M2(string s, char c) => s + c + s + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(19, 47),
+            // (20,51): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M3(string s, char c) => s + s + c + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(20, 51),
+            // (21,55): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M4(string s, char c) => s + s + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(21, 55),
+            // (22,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M5(string s, char c) => c + s + c + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(22, 43),
+            // (22,51): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M5(string s, char c) => c + s + c + s;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(22, 51),
+            // (23,47): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M6(string s, char c) => s + c + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(23, 47),
+            // (23,55): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M6(string s, char c) => s + c + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(23, 55),
+            // (24,43): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M7(string s, char c) => c + s + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(24, 43),
+            // (24,55): error CS0656: Missing compiler required member 'System.Object.ToString'
+            //     static string M7(string s, char c) => c + s + s + c;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(24, 55));
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]

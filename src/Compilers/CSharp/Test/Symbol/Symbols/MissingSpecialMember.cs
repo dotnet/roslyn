@@ -2408,7 +2408,7 @@ public class Test
             compilation.VerifyEmitDiagnostics(
                 // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
                 //         Console.WriteLine(c + "3");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"c + ""3""").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27)
                 );
         }
 
