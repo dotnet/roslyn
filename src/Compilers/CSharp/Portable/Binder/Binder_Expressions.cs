@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
                         }
-                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), inConversion: false, diagnostics);
                     }
                     break;
                 default:

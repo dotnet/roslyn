@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
-    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
@@ -19,9 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="ICSharpCode.Decompiler" />
   </ItemGroup>
 
   <ItemGroup>

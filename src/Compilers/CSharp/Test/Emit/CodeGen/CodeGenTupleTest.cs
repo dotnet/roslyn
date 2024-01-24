@@ -27935,7 +27935,7 @@ class C
             Assert.False(field.HasComplete(CompletionPart.All));
             Assert.False(underlyingField.HasComplete(CompletionPart.All));
 
-            field.ForceComplete(null, default);
+            field.ForceComplete(null, filter: null, default);
 
             Assert.True(field.RequiresCompletion);
             Assert.True(underlyingField.RequiresCompletion);

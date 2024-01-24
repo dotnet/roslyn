@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 

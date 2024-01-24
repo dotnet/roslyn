@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-    public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
           : base(logger)

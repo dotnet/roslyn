@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDefaultLiteral)]
-    public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ReplaceDefaultLiteralTests(ITestOutputHelper logger)
             : base(logger)

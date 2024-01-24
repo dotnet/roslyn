@@ -997,7 +997,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
                 """,
 
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
@@ -1099,7 +1099,7 @@ parseOptions: Options.Regular);
                 }
                 """,
 
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]

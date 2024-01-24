@@ -243,11 +243,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                if (matchesInReverse != null)
-                {
-                    AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
-                }
-
+                AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
                 return true;
             }
 
@@ -363,11 +359,14 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     }
 
     private static void AddArgumentsInReverse(
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>> matchesInReverse,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool useSpread)
     {
         Contract.ThrowIfTrue(useSpread && arguments.Count != 1);
+
+        if (matchesInReverse is null)
+            return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
             matchesInReverse.Add(new(arguments[i], useSpread));
@@ -416,8 +415,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // Check for Add/AddRange/Concat
             if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
             {
-                if (matchesInReverse != null)
-                    AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
+                AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
 
                 isAdditionMatch = true;
                 return true;
