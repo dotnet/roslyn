@@ -667,10 +667,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType);
         }
 
+        /// <summary>
+        /// For the purpose of optimization, conversions to ReadOnlySpan and/or Span are known on the following types:
+        /// System.Array, System.Span, System.ReadOnlySpan, System.Collections.Immutable.ImmutableArray, and System.Collections.Generic.List.
+        /// </summary>
+        /// <param name="asSpanMethod">Not-null if non-identity conversion was found.</param>
         /// <returns>
-        /// If <paramref name="writableOnly"/> is <see langword="true"/>, will only return true with a conversion to writable Span.
-        /// Otherwise, will return a conversion directly to ReadOnlySpan if one is known, and may return a conversion to Span if no direct conversion to ReadOnlySpan is known, or if the type is already a Span.
-        /// If non-identity conversion, also returns a non-null <paramref name="asSpanMethod"/>.
+        /// If <paramref name="writableOnly"/> is 'true', will only return 'true' with a conversion to Span.
+        /// If <paramref name="writableOnly"/> is 'false', may return either a conversion to ReadOnlySpan or to Span, depending on the source type.
+        /// For System.Array and 'false' argument for <paramref name="writableOnly"/>, only a conversion to ReadOnlySpan may be returned.
+        /// For System.Array and 'true' argument for <paramref name="writableOnly"/>, only a conversion to Span may be returned.
+        /// For System.Span, only a conversion to System.Span is may be returned.
+        /// For System.ReadOnlySpan, only a conversion to System.ReadOnlySpan may be returned.
+        /// For System.Collections.Immutable.ImmutableArray, only a conversion to System.ReadOnlySpan may be returned.
+        /// For System.Collections.Generic.List, only a conversion to System.Span may be returned.
         /// </returns>
         /// <remarks>We are assuming that the well-known types we are converting to/from do not have constraints on their type parameters.</remarks>
         private bool TryGetSpanConversion(TypeSymbol type, bool writableOnly, out MethodSymbol? asSpanMethod)
