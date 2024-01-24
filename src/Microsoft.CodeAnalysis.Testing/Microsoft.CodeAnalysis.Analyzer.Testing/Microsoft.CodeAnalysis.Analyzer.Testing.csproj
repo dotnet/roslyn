@@ -49,10 +49,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.0.1" />
-    <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.1.8" />
     <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)' == 'netstandard1.6' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46'" />
 
     <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
     <PackageReference Include="NuGet.Common" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
