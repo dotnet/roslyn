@@ -39,22 +39,19 @@ namespace Microsoft.CodeAnalysis
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
         {
+            Span<EventData> data = stackalloc EventData[]
+            {
+                GetEventDataForString(generatorName),
+                GetEventDataForString(assemblyPath),
+                GetEventDataForLong(elapsedTicks),
+                GetEventDataForString(id),
+            };
+
             unsafe
             {
-                fixed (char* generatorNameBytes = generatorName)
-                fixed (char* assemblyPathBytes = assemblyPath)
-                fixed (char* idBytes = id)
+                fixed (EventSource.EventData* dataPtr = data)
                 {
-                    EventSource.EventData* data = stackalloc EventSource.EventData[4];
-                    data[0].DataPointer = (IntPtr)generatorNameBytes;
-                    data[0].Size = ((generatorName.Length + 1) * 2);
-                    data[1].DataPointer = (IntPtr)assemblyPathBytes;
-                    data[1].Size = ((assemblyPath.Length + 1) * 2);
-                    data[2].DataPointer = (IntPtr)(&elapsedTicks);
-                    data[2].Size = 8;
-                    data[3].DataPointer = (IntPtr)idBytes;
-                    data[3].Size = ((id.Length + 1) * 2);
-                    WriteEventCore(4, 4, data);
+                    WriteEventCore(eventId: 4, data.Length, dataPtr);
                 }
             }
         }
@@ -65,35 +62,56 @@ namespace Microsoft.CodeAnalysis
         [Event(6, Message = "Node {0} transformed", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
         internal void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2)
         {
+            Span<EventData> data = stackalloc EventData[]
+            {
+                GetEventDataForInt(nodeHashCode),
+                GetEventDataForString(name),
+                GetEventDataForString(tableType),
+                GetEventDataForInt(previousTable),
+                GetEventDataForString(previousTableContent),
+                GetEventDataForInt(newTable),
+                GetEventDataForString(newTableContent),
+                GetEventDataForInt(input1),
+                GetEventDataForInt(input2),
+            };
+
             unsafe
             {
-                fixed (char* nameBytes = name)
-                fixed (char* tableTypeBytes = tableType)
-                fixed (char* previousTableContentBytes = previousTableContent)
-                fixed (char* newTableContentBytes = newTableContent)
+                fixed (EventSource.EventData* dataPtr = data)
                 {
-                    EventSource.EventData* data = stackalloc EventSource.EventData[9];
-                    data[0].DataPointer = (IntPtr)(&nodeHashCode);
-                    data[0].Size = 4;
-                    data[1].DataPointer = (IntPtr)nameBytes;
-                    data[1].Size = ((name.Length + 1) * 2);
-                    data[2].DataPointer = (IntPtr)tableTypeBytes;
-                    data[2].Size = ((tableType.Length + 1) * 2);
-                    data[3].DataPointer = (IntPtr)(&previousTable);
-                    data[3].Size = 4;
-                    data[4].DataPointer = (IntPtr)previousTableContentBytes;
-                    data[4].Size = ((previousTableContent.Length + 1) * 2);
-                    data[5].DataPointer = (IntPtr)(&newTable);
-                    data[5].Size = 4;
-                    data[6].DataPointer = (IntPtr)newTableContentBytes;
-                    data[6].Size = ((newTableContent.Length + 1) * 2);
-                    data[7].DataPointer = (IntPtr)(&input1);
-                    data[7].Size = 4;
-                    data[8].DataPointer = (IntPtr)(&input2);
-                    data[8].Size = 4;
-                    WriteEventCore(6, 9, data);
+                    WriteEventCore(eventId: 6, data.Length, dataPtr);
                 }
             }
+        }
+
+        private static unsafe EventData GetEventDataForString(string value)
+        {
+            fixed (char* ptr = value)
+            {
+                return new EventData()
+                {
+                    DataPointer = (IntPtr)ptr,
+                    Size = (value.Length + 1) * sizeof(char),
+                };
+            }
+        }
+
+        private static EventData GetEventDataForInt(int value)
+        {
+            return new EventData()
+            {
+                DataPointer = (IntPtr)value,
+                Size = sizeof(int),
+            };
+        }
+
+        private static EventData GetEventDataForLong(long value)
+        {
+            return new EventData()
+            {
+                DataPointer = (IntPtr)value,
+                Size = sizeof(long),
+            };
         }
     }
 }
