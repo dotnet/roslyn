@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var options = await GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    documentSpan.Value, classifiedSpans: null, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
