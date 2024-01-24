@@ -61,19 +61,28 @@ namespace Microsoft.CodeAnalysis
 
             _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
-            var refs = AssemblyIdentity.ListPool.Allocate();
-            int[] refCounts = new int[modules.Length];
+            // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
+            var totalRefCount = 0;
+            var refCounts = ImmutableArray.CreateBuilder<int>(modules.Length);
 
             for (int i = 0; i < modules.Length; i++)
             {
                 ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
-                refCounts[i] = refsForModule.Length;
+                refCounts.Add(refsForModule.Length);
+                totalRefCount += refsForModule.Length;
+            }
+
+            var refs = ImmutableArray.CreateBuilder<AssemblyIdentity>(totalRefCount);
+
+            for (int i = 0; i < modules.Length; i++)
+            {
+                ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
                 refs.AddRange(refsForModule);
             }
 
             _modules = modules;
-            this.AssemblyReferences = AssemblyIdentity.ListPool.ToImmutableAndFree(refs);
-            this.ModuleReferenceCounts = refCounts.AsImmutableOrNull();
+            this.AssemblyReferences = refs.MoveToImmutable();
+            this.ModuleReferenceCounts = refCounts.MoveToImmutable();
             _owner = owner;
         }
 

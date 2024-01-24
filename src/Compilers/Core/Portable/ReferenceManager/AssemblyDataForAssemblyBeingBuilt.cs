@@ -35,7 +35,16 @@ namespace Microsoft.CodeAnalysis
 
                 _referencedAssemblyData = referencedAssemblyData;
 
-                var refs = AssemblyIdentity.ListPool.Allocate();
+                // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
+                var builderSize = referencedAssemblyData.Length;
+
+                for (int i = 1; i <= modules.Length; i++)
+                {
+                    builderSize += modules[i - 1].ReferencedAssemblies.Length;
+                }
+
+                var refs = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
+
                 foreach (AssemblyData data in referencedAssemblyData)
                 {
                     refs.Add(data.Identity);
@@ -47,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                     refs.AddRange(modules[i - 1].ReferencedAssemblies);
                 }
 
-                _referencedAssemblies = AssemblyIdentity.ListPool.ToImmutableAndFree(refs);
+                _referencedAssemblies = refs.MoveToImmutable();
             }
 
             public override AssemblyIdentity Identity

@@ -60,28 +60,21 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
         {
-            var result = AssemblyIdentity.ListPool.Allocate();
-            try
-            {
-                foreach (var assemblyRef in reader.AssemblyReferences)
-                {
-                    AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
-                    result.Add(reader.CreateAssemblyIdentityOrThrow(
-                        reference.Version,
-                        reference.Flags,
-                        reference.PublicKeyOrToken,
-                        reference.Name,
-                        reference.Culture,
-                        isReference: true));
-                }
+            var result = ImmutableArray.CreateBuilder<AssemblyIdentity>(reader.AssemblyReferences.Count);
 
-                return AssemblyIdentity.ListPool.ToImmutableAndFree(result);
-            }
-            catch
+            foreach (var assemblyRef in reader.AssemblyReferences)
             {
-                AssemblyIdentity.ListPool.Free(result);
-                throw;
+                AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
+                result.Add(reader.CreateAssemblyIdentityOrThrow(
+                    reference.Version,
+                    reference.Flags,
+                    reference.PublicKeyOrToken,
+                    reference.Name,
+                    reference.Culture,
+                    isReference: true));
             }
+
+            return result.MoveToImmutable();
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>

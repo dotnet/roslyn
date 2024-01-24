@@ -1094,8 +1094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private static ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(CSharpCompilation compilation)
                 {
                     // Collect information about references
-                    var result = AssemblyIdentity.ListPool.Allocate();
-
                     var modules = compilation.Assembly.Modules;
 
                     // Filter out linked assemblies referenced by the source module.
@@ -1103,6 +1101,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
 
                     Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
+
+                    // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
+                    var builderSize = 0;
+                    for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
+                    {
+                        if (!sourceReferencedAssemblySymbols[i].IsLinked)
+                        {
+                            builderSize++;
+                        }
+                    }
+
+                    for (int i = 1; i < modules.Length; i++)
+                    {
+                        builderSize += modules[i].GetReferencedAssemblies().Length;
+                    }
+
+                    var result = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
 
                     for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
                     {
@@ -1117,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
-                    return AssemblyIdentity.ListPool.ToImmutableAndFree(result);
+                    return result.MoveToImmutable();
                 }
 
                 internal override AssemblySymbol CreateAssemblySymbol()

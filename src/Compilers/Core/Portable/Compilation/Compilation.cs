@@ -3731,17 +3731,27 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            var list = AssemblyIdentity.ListPool.Allocate();
+            // Pre-calculate size to allow this code to only require a single ImmutableArray allocation.
+            var builderSize = 0;
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is AssemblyIdentity id)
+                {
+                    builderSize++;
+                }
+            }
+
+            var builder = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
 
             foreach (var argument in diagnostic.Arguments)
             {
                 if (argument is AssemblyIdentity id)
                 {
-                    list.Add(id);
+                    builder.Add(id);
                 }
             }
 
-            return AssemblyIdentity.ListPool.ToImmutableAndFree(list);
+            return builder.MoveToImmutable();
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);

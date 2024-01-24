@@ -560,31 +560,5 @@ namespace Microsoft.CodeAnalysis
         }
 
         #endregion
-
-        internal static class ListPool
-        {
-            private static readonly ObjectPool<List<AssemblyIdentity>> s_pool = new(static () => new(capacity: 256));
-
-            public static List<AssemblyIdentity> Allocate()
-            {
-                return s_pool.Allocate();
-            }
-
-            public static void Free(List<AssemblyIdentity> list)
-            {
-                list.Clear();
-
-                s_pool.Free(list);
-            }
-
-            public static ImmutableArray<AssemblyIdentity> ToImmutableAndFree(List<AssemblyIdentity> list)
-            {
-                var result = list.ToImmutableArray();
-
-                Free(list);
-
-                return result;
-            }
-        }
     }
 }
