@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     // Razor comment. Handle for error recovery purposes. The parser will come along later to retokenize the inside of the string
                                     // and report a proper error.
-                                    _lexer.ScanMultiLineComment(isTerminated: out _, '@');
+                                    _lexer.ScanMultiLineComment(isTerminated: out _, delimiter: '@');
                                     continue;
                                 }
 

@@ -1931,7 +1931,7 @@ LoopExit:
                                 break;
                             }
 
-                            lexMultiLineComment(ref triviaList, '/');
+                            lexMultiLineComment(ref triviaList, delimiter: '/');
                             onlyWhitespaceOnLine = false;
                             break;
                         }
@@ -1941,7 +1941,7 @@ LoopExit:
                     case '@' when TextWindow.PeekChar(1) == '*':
                         // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
                         this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
-                        lexMultiLineComment(ref triviaList, '@');
+                        lexMultiLineComment(ref triviaList, delimiter: '@');
                         onlyWhitespaceOnLine = false;
                         break;
                     case '\r':
