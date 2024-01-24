@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var iteratorName = NameGenerator.GenerateUniqueName(s_iteratorBaseNames, n => semanticModel.LookupSymbols(syntaxContext.Position, name: n).IsEmpty);
             var iteratorVariable = generator.Identifier(iteratorName);
             var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
-            GetLoopHeaderParts(generator, inlineExpressionInfo, compilation, out var iteratorTypeSyntax, out var inlineExpression);
+            var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
 
             var variableDeclaration = SyntaxFactory.VariableDeclaration(
                 iteratorTypeSyntax,
@@ -62,9 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)),
                 SyntaxFactory.Block());
 
-            static void GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation, out TypeSyntax iteratorTypeSyntax, out SyntaxNode? inlineExpression)
+            static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
             {
-                inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
+                TypeSyntax iteratorTypeSyntax;
+                var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
                 if (inlineExpressionInfo is null)
                 {
@@ -99,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                         }
                     }
                 }
+
+                return (iteratorTypeSyntax, inlineExpression);
             }
         }
 
