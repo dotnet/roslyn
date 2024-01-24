@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             InitializeComponent()
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.VisualBasic)
-            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.VisualBasic, function() True)
+            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.VisualBasic, onNullValue:=function() True)
 
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.VisualBasic)
             BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.VisualBasic)

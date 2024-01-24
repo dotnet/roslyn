@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             InitializeComponent();
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptionsStorage.TriggerOnTypingLetters, LanguageNames.CSharp);
-            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, onNullValue: () => false);
+            BindToOption(Show_completion_list_after_a_character_is_deleted, CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp, onNullValue: static () => false);
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
 
             BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp);
