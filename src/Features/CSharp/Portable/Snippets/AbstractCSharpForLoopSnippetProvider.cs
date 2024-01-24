@@ -64,44 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
             {
-                TypeSyntax iteratorTypeSyntax;
                 var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
                 if (inlineExpressionInfo is null)
-                {
-                    iteratorTypeSyntax = compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax();
-                }
-                else
-                {
-                    var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
-                    Debug.Assert(inlineExpressionType is not null);
+                    return (compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(), inlineExpression);
 
-                    if (IsSuitableIntegerType(inlineExpressionType))
-                    {
-                        iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
-                    }
-                    else
-                    {
-                        var lengthProperty = FindLengthProperty(inlineExpressionType, compilation);
-                        var countProperty = FindCountProperty(inlineExpressionType, compilation);
+                var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
+                Debug.Assert(inlineExpressionType is not null);
 
-                        Debug.Assert(lengthProperty is null ^ countProperty is null);
+                if (IsSuitableIntegerType(inlineExpressionType))
+                    return (inlineExpressionType.GenerateTypeSyntax(), inlineExpression);
 
-                        if (lengthProperty is not null)
-                        {
-                            iteratorTypeSyntax = lengthProperty.Type.GenerateTypeSyntax();
-                            inlineExpression = generator.MemberAccessExpression(inlineExpression, "Length");
-                        }
-                        else
-                        {
-                            Debug.Assert(countProperty is not null);
-                            iteratorTypeSyntax = countProperty.Type.GenerateTypeSyntax();
-                            inlineExpression = generator.MemberAccessExpression(inlineExpression, "Count");
-                        }
-                    }
-                }
-
-                return (iteratorTypeSyntax, inlineExpression);
+                var property = FindLengthProperty(inlineExpressionType, compilation) ?? FindCountProperty(inlineExpressionType, compilation);
+                Contract.ThrowIfNull(property);
+                return (property.Type.GenerateTypeSyntax(), generator.MemberAccessExpression(inlineExpression, property.Name));
             }
         }
 
