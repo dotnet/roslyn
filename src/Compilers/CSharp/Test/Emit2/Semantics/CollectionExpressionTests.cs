@@ -31116,6 +31116,27 @@ partial class Program
         }
 
         [Fact]
+        public void TypeInference_LambdaReturn()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        object x = new object();
+                        object[] y = new[] { x };
+                        F(y, () => [x]);
+                    }
+                    static void F<T>(T t, Func<T> f) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void TargetTypedElement_PublicAPI_List()
         {
             var source = """
