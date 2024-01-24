@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static SyntaxFactory;
+
 internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
 {
     private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
@@ -46,21 +48,21 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
         var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
 
-        var variableDeclaration = SyntaxFactory.VariableDeclaration(
+        var variableDeclaration = VariableDeclaration(
             iteratorTypeSyntax,
-            variables: SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.VariableDeclarator(iteratorVariable,
+            variables: SingletonSeparatedList(
+                VariableDeclarator(iteratorVariable,
                     argumentList: null,
-                    SyntaxFactory.EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
+                    EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
             .NormalizeWhitespace();
 
-        return SyntaxFactory.ForStatement(
+        return ForStatement(
             variableDeclaration,
-            SyntaxFactory.SeparatedList<ExpressionSyntax>(),
-            SyntaxFactory.BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
-            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                SyntaxFactory.PostfixUnaryExpression(IncrementorKind, indexVariable)),
-            SyntaxFactory.Block());
+            SeparatedList<ExpressionSyntax>(),
+            BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
+            SingletonSeparatedList<ExpressionSyntax>(
+                PostfixUnaryExpression(IncrementorKind, indexVariable)),
+            Block());
 
         static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
         {
@@ -83,7 +85,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
 
     protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
+        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
         var placeholderBuilder = new MultiDictionary<string, int>();
         GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _);
 
@@ -101,29 +103,23 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         placeholderBuilder.Add(operand.ToString(), operand.SpanStart);
 
         foreach (var (key, value) in placeholderBuilder)
-        {
-            arrayBuilder.Add(new(key, value.ToImmutableArray()));
-        }
+            result.Add(new(key, [.. value]));
 
-        return arrayBuilder.ToImmutableArray();
+        return result.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
             caretTarget,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
             document,
             FindSnippetAnnotation,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 
     private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition, out SyntaxNode? incrementor, out SyntaxNode? statement)
     {
