@@ -118,7 +118,7 @@ This means that generator authors are free to specify a mapping alongside their 
 
 ## MSBuild semantics
 
-Today, it's not possible to dynamically provide the list of outputs to an `MSBuild` target. This proposal allows the compiler to effectively emit an unbound number of files, none of which are tracked via `MSBuild` meaning that incremental compilation can be broken. (Note this is actually true today thanks to `EmitCompilerGeneratedFiles` but they don't have a bearing on the correctness of build).
+Today, it's not possible to dynamically provide the list of outputs to an `MSBuild` target. This proposal allows the compiler to effectively emit an unbound number of files, none of which are tracked via `MSBuild` meaning that incremental compilation can be broken. (Note this is actually true today thanks to `EmitCompilerGeneratedFiles` but they don't have a bearing on the correctness of build as they are not inputs to any other task or target).
 
 In order to correctly participate in the build process the compiler and targets are updated to emit a new file with the list of all files that it wrote as part of a compilation. A new target is added before `CoreCompile` that runs unconditionally and looks for the existence of the output list file; if the list is present and anything in the list is missing or out of date, the target touches a 'sentinel file'. The 'sentinel' file is passed as an input to `CoreCompile`. This ensures that anytime an output from the compiler is modified outside of the compilation process, `CoreCompile` will be correctly invoked and not skipped as being up to date. The 'sentinel' file effectively stands in for all of the outputs produced by the compiler in the `MSBuild` up to date checks.
 
