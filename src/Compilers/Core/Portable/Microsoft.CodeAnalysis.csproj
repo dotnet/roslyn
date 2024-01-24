@@ -34,7 +34,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
