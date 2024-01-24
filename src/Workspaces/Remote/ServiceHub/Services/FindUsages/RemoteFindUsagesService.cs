@@ -5,8 +5,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -100,6 +102,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(_callbackId, language, cancellationToken), cancellationToken);
+
+            async ValueTask<ClassificationOptions> OptionsProvider<ClassificationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+                => (await GetOptionsAsync(languageServices.Language, cancellationToken).ConfigureAwait(false)).ClassificationOptions;
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);

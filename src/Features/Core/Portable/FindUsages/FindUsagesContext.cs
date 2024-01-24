@@ -4,6 +4,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -34,5 +36,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
 
         protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
+
+        async ValueTask<ClassificationOptions> OptionsProvider<ClassificationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+            => (await GetOptionsAsync(languageServices.Language, cancellationToken).ConfigureAwait(false)).ClassificationOptions;
     }
 }

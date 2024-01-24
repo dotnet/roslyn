@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -148,8 +150,11 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
 
     #region IFindUsagesContext
 
-    ValueTask<FindUsagesOptions> IFindUsagesContext.GetOptionsAsync(string language, CancellationToken cancellationToken)
+    public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
+
+    async ValueTask<ClassificationOptions> OptionsProvider<ClassificationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetOptionsAsync(languageServices.Language, cancellationToken).ConfigureAwait(false)).ClassificationOptions;
 
     async ValueTask IFindUsagesContext.ReportMessageAsync(string message, CancellationToken cancellationToken)
     {

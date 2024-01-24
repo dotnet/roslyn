@@ -5,11 +5,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal interface IFindUsagesContext
+    internal interface IFindUsagesContext : OptionsProvider<ClassificationOptions>
     {
         /// <summary>
         /// Used for clients that are finding usages to push information about how far along they
