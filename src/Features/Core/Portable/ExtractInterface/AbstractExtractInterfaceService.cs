@@ -411,6 +411,15 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
+                        IMethodSymbol getMethod = null;
+                        var hasGetMethod = property.GetMethod != null && property.GetMethod.DeclaredAccessibility == Accessibility.Public;
+                        if (hasGetMethod)
+                        {
+                            // We recreate the get accessor because it is possible it has the readonly modifier due
+                            // to being an auto property on a struct which is invalid for an interface member
+                            getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(property.GetMethod, property.GetMethod.GetAttributes());
+                        }
+
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                             attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
@@ -420,7 +429,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             explicitInterfaceImplementations: default,
                             name: property.Name,
                             parameters: property.Parameters,
-                            getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
+                            getMethod: getMethod,
                             setMethod: property.SetMethod == null ? null : (property.SetMethod.DeclaredAccessibility == Accessibility.Public ? property.SetMethod : null),
                             isIndexer: property.IsIndexer));
                         break;
