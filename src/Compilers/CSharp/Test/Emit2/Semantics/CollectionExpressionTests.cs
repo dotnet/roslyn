@@ -3779,7 +3779,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(6,23): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'List<int>.Add(int)'.
+                // 1.cs(6,23): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'List<int>.Add(int)'.
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("object", "System.Collections.Generic.List<int>.Add(int)").WithLocation(6, 23),
                 // 1.cs(6,23): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -3849,7 +3849,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,23): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'List<int>.Add(int)'.
+                // 1.cs(7,23): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'List<int>.Add(int)'.
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("object", "System.Collections.Generic.List<int>.Add(int)").WithLocation(7, 23),
                 // 1.cs(7,23): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -5329,7 +5329,7 @@ static class Program
                 // (3,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("C", "0").WithLocation(3, 5),
-                // (3,5): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
+                // (3,5): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C.Add(int)'.
                 // c = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "C.Add(int)").WithLocation(3, 5),
                 // (3,5): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -5338,7 +5338,7 @@ static class Program
                 // (4,5): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 // c = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1, 2]").WithArguments("C", "0").WithLocation(4, 5),
-                // (4,5): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
+                // (4,5): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C.Add(int)'.
                 // c = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C.Add(int)").WithLocation(4, 5),
                 // (4,5): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -5404,13 +5404,13 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
+                // (15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "C<int>.Add(int)").WithLocation(15, 13),
                 // (15,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(15, 13),
-                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int)'.
+                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(17, 13),
                 // (17,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -5538,13 +5538,13 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,29): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
+                // (12,29): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
                 //         object o = (S0<int>)[];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "S0<int>.Add(int)").WithLocation(12, 29),
                 // (12,29): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         object o = (S0<int>)[];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(12, 29),
-                // (13,21): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
+                // (13,21): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S0<int>.Add(int)'.
                 //         S0<int> s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "S0<int>.Add(int)").WithLocation(13, 21),
                 // (13,21): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -5773,7 +5773,7 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (15,15): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(IA)'.
+                // (15,15): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C.Add(IA)'.
                 //         C c = [(IA)null, (IB)null, new AB()];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[(IA)null, (IB)null, new AB()]").WithArguments("object", "C.Add(IA)").WithLocation(15, 15),
                 // (15,15): error CS1503: Argument 1: cannot convert from 'object' to 'IA'
@@ -5808,7 +5808,7 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (18,15): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'Extensions.Add(C, IA)'.
+                // (18,15): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'Extensions.Add(C, IA)'.
                 //         C c = [(IA)null, (IB)null, new AB()];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[(IA)null, (IB)null, new AB()]").WithArguments("object", "Extensions.Add(C, IA)").WithLocation(18, 15),
                 // (18,15): error CS1503: Argument 2: cannot convert from 'object' to 'IA'
@@ -5838,10 +5838,10 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<int>.Add(int, int)'.
+                // (12,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S<int>.Add(int, int)'.
                 //         s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "S<int>.Add(int, int)").WithLocation(12, 13),
-                // (13,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<int>.Add(int, int)'.
+                // (13,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S<int>.Add(int, int)'.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("object", "S<int>.Add(int, int)").WithLocation(13, 13));
         }
@@ -5870,10 +5870,10 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'S<int>.Add(int, int)'.
+                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'int'. The best overloaded method is 'S<int>.Add(int, int)'.
                 //         s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("int", "S<int>.Add(int, int)").WithLocation(14, 13),
-                // (15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'S<int>.Add(int, int)'.
+                // (15,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'int'. The best overloaded method is 'S<int>.Add(int, int)'.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("int", "S<int>.Add(int, int)").WithLocation(15, 13));
         }
@@ -5905,10 +5905,10 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'Extensions.Add<T>(S<T>, T, T)'.
+                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'int'. The best overloaded method is 'Extensions.Add<T>(S<T>, T, T)'.
                 //         s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("int", "Extensions.Add<T>(S<T>, T, T)").WithLocation(17, 13),
-                // (18,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'Extensions.Add<T>(S<T>, T, T)'.
+                // (18,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'int'. The best overloaded method is 'Extensions.Add<T>(S<T>, T, T)'.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("int", "Extensions.Add<T>(S<T>, T, T)").WithLocation(18, 13));
         }
@@ -5936,13 +5936,13 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,20): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
+                // (13,20): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "C<int>.Add(int, int)").WithLocation(13, 20),
                 // (13,20): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(13, 20),
-                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
+                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int, int)'.
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int, int)").WithLocation(14, 13),
                 // (14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -6000,13 +6000,13 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,20): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
+                // (13,20): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("object", "C<int>.Add(int, params int[])").WithLocation(13, 20),
                 // (13,20): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         C<int> c = [];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "object", "int").WithLocation(13, 20),
-                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
+                // (14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int, params int[])'.
                 //         c = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int, params int[])").WithLocation(14, 13),
                 // (14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -6128,13 +6128,13 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,40): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
+                // (7,40): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create(T t, U u) => [t, u];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[t, u]").WithArguments("object", "S<T, U>.Add(T)").WithLocation(7, 40),
                 // (7,40): error CS1503: Argument 1: cannot convert from 'object' to 'T'
                 //     static S<T, U> Create(T t, U u) => [t, u];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[t, u]").WithArguments("1", "object", "T").WithLocation(7, 40),
-                // (11,46): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
+                // (11,46): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, y]").WithArguments("object", "S<T, U>.Add(T)").WithLocation(11, 46),
                 // (11,46): error CS1503: Argument 1: cannot convert from 'object' to 'T'
@@ -6195,7 +6195,7 @@ static class Program
                 // (9,41): error CS0029: Cannot implicitly convert type 'T' to 'U'
                 //     static S<T, U> Create(T t, U u) => [t, u];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "U").WithLocation(9, 41),
-                // (13,46): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'U'. The best overloaded method is 'S<T, U>.Add(T)'.
+                // (13,46): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'U'. The best overloaded method is 'S<T, U>.Add(T)'.
                 //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, y]").WithArguments("U", "S<T, U>.Add(T)").WithLocation(13, 46),
                 // (13,46): error CS1503: Argument 1: cannot convert from 'U' to 'T'
@@ -6874,7 +6874,7 @@ static class Program
                 // (20,21): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         y = new() { 3 };
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(20, 21),
-                // (21,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'int'. The best overloaded method is 'Extensions.Add<int>(ref MyCollection<int>, string)'.
+                // (21,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'int'. The best overloaded method is 'Extensions.Add<int>(ref MyCollection<int>, string)'.
                 //         y = [4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[4]").WithArguments("int", "Extensions.Add<int>(ref MyCollection<int>, string)").WithLocation(21, 13),
                 // (21,13): error CS1503: Argument 2: cannot convert from 'int' to 'string'
@@ -8184,10 +8184,10 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
+                // (7,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
                 //         d = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[]").WithArguments("System.Collections.Generic.KeyValuePair<int, int>", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(7, 13),
-                // (8,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
+                // (8,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.KeyValuePair<int, int>", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 13),
                 // (9,15): error CS1003: Syntax error, ',' expected
@@ -9288,13 +9288,13 @@ static class Program
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
-                    // 1.cs(10,26): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
+                    // 1.cs(10,26): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..d1, ..d2, ..e1, ..e2]").WithArguments("object", "MyCollection.Add(int)").WithLocation(10, 26),
                     // 1.cs(10,26): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgType, "[..d1, ..d2, ..e1, ..e2]").WithArguments("1", "object", "int").WithLocation(10, 26),
-                    // 1.cs(14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
+                    // 1.cs(14,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection.Add(int)'.
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..(dynamic)x, ..(IEnumerable)y]").WithArguments("object", "MyCollection.Add(int)").WithLocation(14, 13),
                     // 1.cs(14,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -24691,7 +24691,7 @@ partial class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,52): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'KeyValuePair<string, object>'. The best overloaded method is 'Dictionary<string, object>.Add(string, object)'.
+                // (4,52): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'KeyValuePair<string, object>'. The best overloaded method is 'Dictionary<string, object>.Add(string, object)'.
                 //     Dictionary<string, object> Config => /*<bind>*/[
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[
         .. GetConfig(),
@@ -25567,7 +25567,7 @@ partial class Program
                 // (3,7): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[1]").WithLocation(3, 7),
-                // (3,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
+                // (3,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C.Add(int)'.
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("object", "C.Add(int)").WithLocation(3, 7),
                 // (3,7): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -25616,7 +25616,7 @@ partial class Program
                 // (4,7): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[..values]").WithLocation(4, 7),
-                // (4,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'C.Add(int)'.
+                // (4,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C.Add(int)'.
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..values]").WithArguments("object", "C.Add(int)").WithLocation(4, 7),
                 // (4,7): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -25662,7 +25662,7 @@ partial class Program
                 // (4,7): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[1]").WithLocation(4, 7),
-                // (4,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'string'. The best overloaded method is 'C.Add(int)'.
+                // (4,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'string'. The best overloaded method is 'C.Add(int)'.
                 // C x = [1]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("string", "C.Add(int)").WithLocation(4, 7),
                 // (4,7): error CS1503: Argument 1: cannot convert from 'string' to 'int'
@@ -25707,7 +25707,7 @@ partial class Program
                 // (5,7): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[..values]").WithLocation(5, 7),
-                // (5,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'string'. The best overloaded method is 'C.Add(int)'.
+                // (5,7): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'string'. The best overloaded method is 'C.Add(int)'.
                 // C x = [..values]; // 1
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..values]").WithArguments("string", "C.Add(int)").WithLocation(5, 7),
                 // (5,7): error CS1503: Argument 1: cannot convert from 'string' to 'int'
@@ -26407,13 +26407,13 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,24): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection1<int>.Add(int)'.
+                // 0.cs(4,24): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection1<int>.Add(int)'.
                 // MyCollection1<int> x = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2, 3]").WithArguments("object", "MyCollection1<int>.Add(int)").WithLocation(4, 24),
                 // 0.cs(4,24): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 // MyCollection1<int> x = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "object", "int").WithLocation(4, 24),
-                // 0.cs(6,32): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
+                // 0.cs(6,32): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
                 // MyCollection2<object, int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2, 3]").WithArguments("object", "MyCollection2<object, int>.Add(int)").WithLocation(6, 32),
                 // 0.cs(6,32): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -26441,7 +26441,7 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,32): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
+                // (4,32): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection2<object, int>.Add(int)'.
                 // MyCollection2<object, int> y = [new object()];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new object()]").WithArguments("object", "MyCollection2<object, int>.Add(int)").WithLocation(4, 32),
                 // (4,32): error CS1503: Argument 1: cannot convert from 'object' to 'int'
@@ -26473,7 +26473,7 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,18): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
+                // 0.cs(4,18): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
                 // MyCollection x = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2, 3]").WithArguments("uint", "MyCollection.Add(sbyte)").WithLocation(4, 18),
                 // 0.cs(4,18): error CS1503: Argument 1: cannot convert from 'uint' to 'sbyte'
@@ -26503,7 +26503,7 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,18): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
+                // 0.cs(4,18): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'uint'. The best overloaded method is 'MyCollection.Add(sbyte)'.
                 // MyCollection x = [uint.MaxValue];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[uint.MaxValue]").WithArguments("uint", "MyCollection.Add(sbyte)").WithLocation(4, 18),
                 // 0.cs(4,18): error CS1503: Argument 1: cannot convert from 'uint' to 'sbyte'
@@ -26725,7 +26725,7 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,16): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of type 'object'. The best overloaded method is 'Collection.Add(I1)'.
+                // (4,16): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'Collection.Add(I1)'.
                 // Collection c = [new C()];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new C()]").WithArguments("object", "Collection.Add(I1)").WithLocation(4, 16),
                 // (4,16): error CS1503: Argument 1: cannot convert from 'object' to 'I1'
