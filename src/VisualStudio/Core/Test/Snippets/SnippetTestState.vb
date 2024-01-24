@@ -42,18 +42,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Workspace.GlobalOptions.SetGlobalOption(SnippetsOptionsStorage.Snippets, True)
 
-            Dim snippetCommandHandler As ICommandHandler
-            If languageName = LanguageNames.CSharp Then
-                snippetCommandHandler = Workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().Single(
-                    Function(commandHandler)
-                        Return TryCast(commandHandler, CSharp.Snippets.SnippetCommandHandler) IsNot Nothing
-                    End Function)
-            Else
-                snippetCommandHandler = Workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().Single(
-                    Function(commandHandler)
-                        Return TryCast(commandHandler, VisualBasic.Snippets.SnippetCommandHandler) IsNot Nothing
-                    End Function)
-            End If
+            Dim contentType = If(languageName = LanguageNames.CSharp, ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType)
+            Dim name = If(languageName = LanguageNames.CSharp, "CSharp Snippets", "VB Snippets")
+            Dim snippetCommandHandler = Workspace.GetService(Of ICommandHandler)(contentType, name)
 
             Me.SnippetCommandHandler = DirectCast(snippetCommandHandler, AbstractSnippetCommandHandler)
 
@@ -197,15 +188,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
                 Return New MockSnippetExpansionClient(
-                _threadingContext,
-                Guids.CSharpLanguageServiceId,
-                textView,
-                subjectBuffer,
-                _signatureHelpControllerProvider,
-                _editorCommandHandlerServiceFactory,
-                _editorAdaptersFactoryService,
-                _argumentProviders,
-                _editorOptionsService)
+                    _threadingContext,
+                    Guids.CSharpLanguageServiceId,
+                    textView,
+                    subjectBuffer,
+                    _signatureHelpControllerProvider,
+                    _editorCommandHandlerServiceFactory,
+                    _editorAdaptersFactoryService,
+                    _argumentProviders,
+                    _editorOptionsService)
             End Function
         End Class
 
@@ -243,15 +234,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Protected Overrides Function CreateSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
                 Return New MockSnippetExpansionClient(
-                _threadingContext,
-                Guids.VisualBasicDebuggerLanguageId,
-                textView,
-                subjectBuffer,
-                _signatureHelpControllerProvider,
-                _editorCommandHandlerServiceFactory,
-                _editorAdaptersFactoryService,
-                _argumentProviders,
-                _editorOptionsService)
+                    _threadingContext,
+                    Guids.VisualBasicDebuggerLanguageId,
+                    textView,
+                    subjectBuffer,
+                    _signatureHelpControllerProvider,
+                    _editorCommandHandlerServiceFactory,
+                    _editorAdaptersFactoryService,
+                    _argumentProviders,
+                    _editorOptionsService)
             End Function
         End Class
 
