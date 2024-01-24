@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         private static IPropertySymbol? FindAccessibleIntegerProperty(ITypeSymbol type, Compilation compilation, string propertyName)
         {
             return type
-                .GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(compilation.Assembly)
-                .FirstOrDefault(p => p.Name == propertyName && p is { GetMethod: { } getMethod } && getMethod.IsAccessibleWithin(compilation.Assembly) && IsSuitableIntegerType(p.Type));
+                .GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(propertyName, compilation.Assembly)
+                .FirstOrDefault(p => p is { GetMethod: { } getMethod } && getMethod.IsAccessibleWithin(compilation.Assembly) && IsSuitableIntegerType(p.Type));
         }
     }
 }
