@@ -2,6 +2,8 @@ param (
     [string]$rootDirectory,
     [string[]]$includeDirectories
 )
+Set-StrictMode -version 2.0
+$ErrorActionPreference="Stop"
 
 try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
