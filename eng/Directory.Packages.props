@@ -20,6 +20,7 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.0</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <xunitVersion>2.4.1</xunitVersion>
+    <SqliteVersion>2.1.0</SqliteVersion>
   </PropertyGroup>
 
   <!--
@@ -100,7 +101,9 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.9.80-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.9.80-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.9.80-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.9.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.56" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.17.9" />
 
@@ -214,8 +217,10 @@
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
 
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.0" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.0" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="8.1.1.7464" />
