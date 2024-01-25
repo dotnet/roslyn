@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public SyntaxTriviaList(params SyntaxTrivia[] trivias)
-            : this(default, CreateNode(trivias), 0, 0)
+            : this(default, CreateNodeFromSpan(trivias), 0, 0)
         {
         }
 
@@ -75,13 +75,10 @@ namespace Microsoft.CodeAnalysis
             if (trivias.Length == 1)
                 return new SyntaxTriviaList(trivias[0]);
 
-            return new SyntaxTriviaList(token: default, CreateNode(trivias), position: 0, index: 0);
+            return new SyntaxTriviaList(token: default, CreateNodeFromSpan(trivias), position: 0, index: 0);
         }
 
-        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
-            => CreateNode((ReadOnlySpan<SyntaxTrivia>)trivias);
-
-        private static GreenNode? CreateNode(ReadOnlySpan<SyntaxTrivia> trivias)
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxTrivia> trivias)
         {
             if (trivias == null)
                 return null;
