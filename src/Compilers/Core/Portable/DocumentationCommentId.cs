@@ -322,6 +322,8 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
         /// succeed for other symbols.
+        /// <para/> Once used, an instance of this visitor should be discarded.  Specifically it is stateful, and will
+        /// stay in the failed state once it transitions there.
         /// </remarks>
         private sealed class PrefixAndDeclarationGenerator : SymbolVisitor
         {
