@@ -3011,7 +3011,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("i") }, Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
@@ -4641,6 +4641,48 @@ public class C : IDisposable
                 Generator.Declaration(symbol),
                 """
                 public global::System.Int32 X { get; init; }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66966")]
+        [InlineData("abstract")]
+        [InlineData("virtual")]
+        public void TestGenerateAbstractOrVirtualEvent(string modifier)
+        {
+            var comp = Compile(
+                $$"""public abstract class C { public {{modifier}} event System.EventHandler MyEvent; }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("MyEvent").First();
+
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                $$"""
+                public {{modifier}} event global::System.EventHandler MyEvent;
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66966")]
+        public void TestGenerateSealedOrOverrideEvent()
+        {
+            var comp = Compile(
+                """
+                public abstract class C
+                {
+                    public abstract event System.EventHandler MyEvent;
+                }
+
+                public class C2 : C
+                {
+                    public sealed override event System.EventHandler MyEvent;
+                }
+                """);
+
+            var symbol = comp.GlobalNamespace.GetMembers("C2").First().GetMembers("MyEvent").First();
+
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public sealed override event global::System.EventHandler MyEvent;
                 """);
         }
 
