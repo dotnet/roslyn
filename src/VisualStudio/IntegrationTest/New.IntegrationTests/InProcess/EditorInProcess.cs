@@ -425,11 +425,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
-        {
-            return GetTagsAsync<IErrorTag>(cancellationToken);
-        }
-
         public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);

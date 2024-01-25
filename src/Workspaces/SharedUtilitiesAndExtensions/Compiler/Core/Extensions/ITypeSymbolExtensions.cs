@@ -450,6 +450,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
         }
 
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (containingType == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
+        }
+
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
         {
             if (t1.Count != t2.Count)
