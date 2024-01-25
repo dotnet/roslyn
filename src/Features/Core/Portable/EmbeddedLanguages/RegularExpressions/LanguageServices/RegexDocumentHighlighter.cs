@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
             return tree == null
                 ? default
-                : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
+                : [new DocumentHighlights(document, GetHighlights(tree, position))];
         }
 
         private static ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         private static ImmutableArray<HighlightSpan> CreateHighlights(
             RegexEscapeNode node, TextSpan captureSpan)
         {
-            return ImmutableArray.Create(CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan));
+            return [CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan)];
         }
 
         private static HighlightSpan CreateHighlightSpan(TextSpan textSpan)

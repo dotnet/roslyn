@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Scenario 2.
                             compilationPair = compilationPair.AddSyntaxTree(tree);
-                            inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
+                            inProgressProject = inProgressProject.AddDocuments([docState]);
                         }
                         else
                         {
@@ -241,8 +241,8 @@ namespace Microsoft.CodeAnalysis
                             var oldDocumentId = DocumentState.GetDocumentIdForTree(oldTree);
                             Contract.ThrowIfNull(oldDocumentId, $"{nameof(oldTree)} came from the compilation produced by the workspace, so the document ID should have existed.");
                             inProgressProject = inProgressProject
-                                .RemoveDocuments(ImmutableArray.Create(oldDocumentId))
-                                .AddDocuments(ImmutableArray.Create(docState));
+                                .RemoveDocuments([oldDocumentId])
+                                .AddDocuments([docState]);
                         }
                     }
                 }

@@ -131,7 +131,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         // Have to actually examine what would happen when we do the replacement, as the replaced value may interact
         // with inference based on the values within.
         var replacementCollectionExpression = CollectionExpression(
-            SeparatedList<CollectionElementSyntax>(initializer.Expressions.Select(ExpressionElement)));
+            [.. initializer.Expressions.Select(ExpressionElement)]);
 
         var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(

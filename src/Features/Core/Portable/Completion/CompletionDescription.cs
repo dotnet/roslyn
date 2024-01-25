@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a new instance of <see cref="CompletionDescription"/> from untagged text.
         /// </summary>
         public static CompletionDescription FromText(string text)
-            => new(ImmutableArray.Create(new TaggedText(TextTags.Text, text)));
+            => new([new TaggedText(TextTags.Text, text)]);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionDescription"/> with the <see cref="TaggedParts"/> property changed.

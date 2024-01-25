@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNodeOrToken"/> structures.
     /// </summary>
+    [CollectionBuilder(typeof(SyntaxNodeOrTokenList), "Create")]
     public readonly struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
     {
         /// <summary>
@@ -59,16 +61,33 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public SyntaxNodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
-            : this((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens)
+            : this(CreateNodeFromSpan(nodesAndTokens), 0)
         {
+        }
+
+        public static SyntaxNodeOrTokenList Create(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens.Length == 0)
+                return default;
+
+            return new SyntaxNodeOrTokenList(CreateNodeFromSpan(nodesAndTokens), index: 0);
+        }
+
+        private static SyntaxNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens == null)
+                throw new ArgumentNullException(nameof(nodesAndTokens));
+
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
+            var builder = new SyntaxNodeOrTokenListBuilder(nodesAndTokens.Length);
+            builder.Add(nodesAndTokens);
+            return builder.ToList().Node;
         }
 
         private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
-            {
                 throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
             builder.Add(nodesAndTokens);

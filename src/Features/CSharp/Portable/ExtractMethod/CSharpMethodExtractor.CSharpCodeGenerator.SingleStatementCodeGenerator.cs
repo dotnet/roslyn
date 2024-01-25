@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement());
 
-                    return ImmutableArray.Create(this.SelectionResult.GetFirstStatement());
+                    return [this.SelectionResult.GetFirstStatement()];
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                return ImmutableArray.Create(symbol);
+                return [symbol];
             }
         }
     }

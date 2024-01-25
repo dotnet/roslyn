@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId);
+            => [IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
         }
 
         private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
+            => FixAllAsync(document, [diagnostic], cancellationToken);
 
         public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {

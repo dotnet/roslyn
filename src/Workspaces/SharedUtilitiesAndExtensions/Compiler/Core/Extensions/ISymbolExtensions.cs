@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IEventSymbol @event => ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations),
                 IMethodSymbol method => ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations),
                 IPropertySymbol property => ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations),
-                _ => ImmutableArray.Create<ISymbol>(),
+                _ => [],
             };
 
         public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 IMethodSymbol m => m.TypeArguments,
                 INamedTypeSymbol nt => nt.TypeArguments,
-                _ => ImmutableArray.Create<ITypeSymbol>(),
+                _ => [],
             };
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
             }
 
             private static readonly ImmutableArray<Func<SyntaxToken, IComparable>> s_comparers =
-                ImmutableArray.Create<Func<SyntaxToken, IComparable>>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
+                [t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t)];
 
             private static Ordering GetOrdering(SyntaxToken token)
             {

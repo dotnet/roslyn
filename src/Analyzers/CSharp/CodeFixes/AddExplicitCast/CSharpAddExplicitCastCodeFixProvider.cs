@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             _attributeArgumentFixer = new AttributeArgumentFixer();
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
+        public override ImmutableArray<string> FixableDiagnosticIds => [CS0266, CS1503];
 
         protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
         {

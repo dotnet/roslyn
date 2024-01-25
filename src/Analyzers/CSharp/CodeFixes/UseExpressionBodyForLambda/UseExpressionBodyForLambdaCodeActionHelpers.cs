@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda
             // for them to do so.
             return currentDeclaration.WithBody(SyntaxFactory.Block(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
-                SyntaxFactory.SingletonList(statement),
+                [statement],
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
         }
 

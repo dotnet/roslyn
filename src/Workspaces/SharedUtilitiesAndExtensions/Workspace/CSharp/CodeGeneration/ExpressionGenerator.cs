@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         ? GenerateNullLiteral()
                         : SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(v => GenerateExpression(generator, v)))));
+                                [.. typedConstant.Values.Select(v => GenerateExpression(generator, v))]));
 
                 default:
                     return GenerateNullLiteral();

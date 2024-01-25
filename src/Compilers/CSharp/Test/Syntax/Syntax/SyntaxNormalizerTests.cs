@@ -3641,9 +3641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 SyntaxFactory.TriviaList(
                                     SyntaxFactory.Trivia(
                                         SyntaxFactory.SkippedTokensTrivia()
-                                        .WithTokens(
-                                            SyntaxFactory.TokenList(
-                                                SyntaxFactory.Literal(@"""a\b"""))))),
+                                        .WithTokens([SyntaxFactory.Literal(@"""a\b""")]))),
                                 SyntaxKind.EndOfDirectiveToken,
                                 default(SyntaxTriviaList))))), """
                 #line 1 "\"a\\b\""
