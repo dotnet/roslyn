@@ -179,3 +179,15 @@ Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable.
 |Severity|Warning|
 |CodeFix|False|
 ---
+
+## RS0062: Do not capture primary constructor parameters
+
+Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|False|
+|Severity|Error|
+|CodeFix|False|
+---

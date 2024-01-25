@@ -263,6 +263,20 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0062": {
+          "id": "RS0062",
+          "shortDescription": "Do not capture primary constructor parameters",
+          "fullDescription": "Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": false,
+            "typeName": "DoNotCapturePrimaryConstructorParametersAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
         }
       }
     },

@@ -394,4 +394,13 @@
   <data name="Run iterations" xml:space="preserve">
     <value>Run iterations</value>
   </data>
+  <data name="DoNotCapturePrimaryConstructorParametersTitle" xml:space="preserve">
+    <value>Do not capture primary constructor parameters</value>
+  </data>
+  <data name="DoNotCapturePrimaryConstructorParametersMessage" xml:space="preserve">
+    <value>Primary constructor parameter '{0}' should not be implicitly captured</value>
+  </data>
+  <data name="DoNotCapturePrimaryConstructorParametersDescription" xml:space="preserve">
+    <value>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</value>
+  </data>
 </root>

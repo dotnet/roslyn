@@ -17,3 +17,4 @@ RS0042 |  | Do not copy value |
 RS0043 |  | Do not call 'GetTestAccessor()' |
 RS0046 |  | Avoid the 'Opt' suffix |
 RS0049 |  | Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable |
+RS0062 |  | Do not capture primary constructor parameters |
