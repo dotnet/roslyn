@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis
         internal void StartSingleGeneratorRunTime(string generatorName, string assemblyPath, string id) => WriteEvent(3, generatorName, assemblyPath, id);
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
-        internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
+        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
         {
-            unsafe
+            if (IsEnabled())
             {
                 fixed (char* generatorNameBytes = generatorName)
                 fixed (char* assemblyPathBytes = assemblyPath)
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis
         internal void GeneratorException(string generatorName, string exception) => WriteEvent(5, generatorName, exception);
 
         [Event(6, Message = "Node {0} transformed", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
-        internal void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2)
+        internal unsafe void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2)
         {
-            unsafe
+            if (IsEnabled())
             {
                 fixed (char* nameBytes = name)
                 fixed (char* tableTypeBytes = tableType)
