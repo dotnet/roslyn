@@ -66,7 +66,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// </summary>
     private static readonly ImmutableHashSet<string?> s_bannedTypes = ImmutableHashSet.Create<string?>(
         nameof(ParallelEnumerable),
-        nameof(ParallelQuery));
+        nameof(ParallelQuery),
+        // Special internal runtime interface that is optimized for fast path conversions of collections.
+        "IIListProvider");
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
