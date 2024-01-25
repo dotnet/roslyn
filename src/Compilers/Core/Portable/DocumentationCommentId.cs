@@ -315,10 +315,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The <see langword="bool"/> generic type argument indicates if we succeeded at writing out the declaration ID
-        /// or not.  Callers should only call into <see cref="SymbolVisitor{TResult}.Visit(ISymbol?)"/> and should check
-        /// <see cref="Failed"/> to see if it failed (in the case of an arbitrary symbol) or that it produced an
-        /// expected value (in the case a known symbol type was used).
+        /// Callers should only call into <see cref="SymbolVisitor{TResult}.Visit(ISymbol?)"/> and should check <see
+        /// cref="Failed"/> to see if it failed (in the case of an arbitrary symbol) or that it produced an expected
+        /// value (in the case a known symbol type was used).
         /// </summary>
         /// <remarks>
         /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
