@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
             if (nodes.Length == 1)
                 return new SyntaxList<TNode>(nodes[0]);
 
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxListBuilder<TNode>(nodes.Length);
-
             foreach (var node in nodes)
                 builder.Add(node);
 

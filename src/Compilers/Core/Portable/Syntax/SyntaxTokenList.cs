@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis
             if (tokens == null)
                 return null;
 
-            // TODO: we could remove the unnecessary builder allocations here and go directly
-            // from the array to the List nodes.
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxTokenListBuilder(tokens.Length);
             for (int i = 0; i < tokens.Length; i++)
             {

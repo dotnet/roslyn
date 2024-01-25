@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis
             if (trivias == null)
                 return null;
 
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxTriviaListBuilder(trivias.Length);
             builder.Add(trivias);
             return builder.ToList().Node;
