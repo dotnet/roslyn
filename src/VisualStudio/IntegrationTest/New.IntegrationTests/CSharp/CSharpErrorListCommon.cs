@@ -41,8 +41,8 @@ class C
 ", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = new[] {
-                "(Compiler) Class1.cs(4, 12): error CS0246: The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)",
-                "(Compiler) Class1.cs(6, 24): error CS0117: 'Console' does not contain a definition for 'WriteLin'",
+                "Class1.cs(4, 12): error CS0246: The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)",
+                "Class1.cs(6, 24): error CS0117: 'Console' does not contain a definition for 'WriteLin'",
             };
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
@@ -76,7 +76,7 @@ class C
 ", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = new[] {
-                "(Compiler) Class1.cs(6, 13): warning CS0219: The variable 'unused' is assigned but its value is never used",
+                "Class1.cs(6, 13): warning CS0219: The variable 'unused' is assigned but its value is never used",
             };
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
@@ -113,7 +113,7 @@ class Program2
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents =
                 [
-                    "(Compiler) Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
+                    "Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
                 ];
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
@@ -159,7 +159,7 @@ class Program2
             await TestServices.Input.SendAsync("a", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = [
-                "(Compiler) Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
+                "Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
             ];
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
