@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (argumentType.IsWellKnownTypeLock())
             {
-                if (!MessageID.IDS_NativeLock.CheckFeatureAvailability(_diagnostics, rewrittenArgument.Syntax) ||
-                    LockBinder.TryFindLockTypeInfo(argumentType, _diagnostics, rewrittenArgument.Syntax) is not { } lockTypeInfo)
+                if (LockBinder.TryFindLockTypeInfo(argumentType, _diagnostics, rewrittenArgument.Syntax) is not { } lockTypeInfo)
                 {
+                    Debug.Fail("We should have reported an error during binding if lock type info cannot be found.");
                     return node.Update(rewrittenArgument, rewrittenBody).WithHasErrors();
                 }
 

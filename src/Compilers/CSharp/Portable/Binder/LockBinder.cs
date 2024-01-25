@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
 
-        internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode? syntax)
+        internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
             if (!(enterLockScopeMethod is { ReturnsVoid: false, RefKind: RefKind.None }))
