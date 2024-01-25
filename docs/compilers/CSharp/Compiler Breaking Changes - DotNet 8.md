@@ -5,7 +5,8 @@
 ***Introduced in Visual Studio 2022 version 17.10***
 
 *Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a `CollectionBuilderAttribute`
-requires the target type to have an accessible constructor that can be called with no arguments and an accessible `Add` method
+requires the target type to have an accessible constructor that can be called with no arguments and,
+if the collection expression is not empty, the target type must have an accessible `Add` method
 that can be called with a single argument of [*iteration type*](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/statements.md#1395-the-foreach-statement) of the target type.
 
 Previously, the constructor and `Add` methods were required for *construction* of the collection instance but not for *conversion*.
@@ -18,11 +19,22 @@ static void Print(char[] arg) { }
 static void Print(string arg) { }
 ```
 
-Previously, an `Add` method was not required for an empty collection expression.
-That meant the following assignment was allowed even though `Dictionary<TKey, TValue>` does not have an accessible `Add(KeyValuePair<TKey, TValue>)` method.
-The assignment is now an error.
+Previously, the collection expression in `y = [1, 2, 3]` was allowed since construction only requires an applicable `Add` method for each element expression.
+The collection expression is now an error because of the conversion requirement for an `Add` method than be called with an argument of the iteration type `object`.
 ```csharp
-Dictionary<string, object> d = []; // error: no accessible Add(KeyValuePair<string, object>)
+// ok: Add is not required for empty collection
+MyCollection x = [];
+
+// error CS9215: Collection expression type must have an applicable instance or extension method 'Add'
+//               that can be called with an argument of iteration type 'object'.
+//               The best overloaded method is 'MyCollection.Add(int)'.
+MyCollection y = [1, 2, 3];
+
+class MyCollection : IEnumerable
+{
+    public void Add(int i) { ... }
+    IEnumerator IEnumerable.GetEnumerator() { ... }
+}
 ```
 
 ## `ref` arguments can be passed to `in` parameters
