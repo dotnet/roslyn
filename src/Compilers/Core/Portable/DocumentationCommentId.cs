@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
                 _generator.Visit(symbol);
             }
 
-            private sealed class DeclarationGenerator : SymbolVisitor
+            private sealed class DeclarationGenerator : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
@@ -409,38 +409,56 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// If we hit anything we don't know about, indicate failure.
                 /// </summary>
-                public override void DefaultVisit(ISymbol symbol)
+                public override bool DefaultVisit(ISymbol symbol)
                 {
                     Failed = true;
+                    return true;
                 }
 
-                public override void VisitEvent(IEventSymbol symbol)
+                public override bool VisitEvent(IEventSymbol symbol)
                 {
-                    this.Visit(symbol.ContainingSymbol);
-                    _builder.Append('.');
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
+                    }
+
                     _builder.Append(EncodeName(symbol.Name));
+                    return true;
                 }
 
-                public override void VisitField(IFieldSymbol symbol)
+                public override bool VisitField(IFieldSymbol symbol)
                 {
-                    this.Visit(symbol.ContainingSymbol);
-                    _builder.Append('.');
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
+                    }
+
                     _builder.Append(EncodeName(symbol.Name));
+                    return true;
                 }
 
-                public override void VisitProperty(IPropertySymbol symbol)
+                public override bool VisitProperty(IPropertySymbol symbol)
                 {
-                    this.Visit(symbol.ContainingSymbol);
-                    _builder.Append('.');
-                    _builder.Append(EncodeName(EncodePropertyName(symbol.Name)));
-                    AppendParameterTypes(symbol.Parameters);
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
+                    }
+
+                    var name = EncodePropertyName(symbol.Name);
+                    _builder.Append(EncodeName(name));
+
+                    AppendParameters(symbol.Parameters);
+
+                    return true;
                 }
 
-                public override void VisitMethod(IMethodSymbol symbol)
+                public override bool VisitMethod(IMethodSymbol symbol)
                 {
-                    this.Visit(symbol.ContainingSymbol);
-                    _builder.Append('.');
-                    _builder.Append(EncodeName(symbol.Name));
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
+                        _builder.Append(EncodeName(symbol.Name));
+                    }
 
                     if (symbol.TypeParameters.Length > 0)
                     {
@@ -448,16 +466,18 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
-                    AppendParameterTypes(symbol.Parameters);
+                    AppendParameters(symbol.Parameters);
 
                     if (!symbol.ReturnsVoid)
                     {
                         _builder.Append("~");
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
+
+                    return true;
                 }
 
-                private void AppendParameterTypes(ImmutableArray<IParameterSymbol> parameters)
+                private void AppendParameters(ImmutableArray<IParameterSymbol> parameters)
                 {
                     if (parameters.Length > 0)
                     {
@@ -482,26 +502,27 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public override void VisitNamespace(INamespaceSymbol symbol)
+                public override bool VisitNamespace(INamespaceSymbol symbol)
                 {
                     if (symbol.IsGlobalNamespace)
-                        return;
-
-                    if (symbol.ContainingNamespace is { IsGlobalNamespace: false })
                     {
-                        Visit(symbol.ContainingNamespace);
-                        _builder.Append('.');
+                        return false;
+                    }
+
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
+                    return true;
                 }
 
-                public override void VisitNamedType(INamedTypeSymbol symbol)
+                public override bool VisitNamedType(INamedTypeSymbol symbol)
                 {
-                    if (symbol.ContainingSymbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
+                    if (this.Visit(symbol.ContainingSymbol))
                     {
-                        Visit(symbol.ContainingSymbol);
-                        _builder.Append('.');
+                        _builder.Append(".");
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -511,6 +532,8 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("`");
                         _builder.Append(symbol.TypeParameters.Length);
                     }
+
+                    return true;
                 }
             }
         }
