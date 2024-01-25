@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis
                 case 3: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!, tokens[2].Node!);
                 default:
                     {
-                        var copy = new GreenNode[tokens.Length];
+                        var copy = new ArrayElement<GreenNode>[tokens.Length];
                         for (int i = 0, n = tokens.Length; i < n; i++)
-                            copy[i] = tokens[i].Node!;
+                            copy[i].Value = tokens[i].Node!;
 
-                        return Syntax.InternalSyntax.SyntaxList.List(copy, tokens.Length);
+                        return Syntax.InternalSyntax.SyntaxList.List(copy);
                     }
             }
         }
