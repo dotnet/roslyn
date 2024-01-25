@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return ImmutableArray<CodeAction>.Empty;
+                    return [];
                 }
 
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);

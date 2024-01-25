@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return IsValidContext(context)
                 ? [new RecommendedKeyword("var")]
-                : ImmutableArray<RecommendedKeyword>.Empty;
+                : [];
         }
     }
 }

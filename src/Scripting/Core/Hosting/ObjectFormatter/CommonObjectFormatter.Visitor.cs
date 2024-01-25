@@ -526,8 +526,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private void FormatKeyValuePair(Builder result, object obj)
             {
                 TypeInfo type = obj.GetType().GetTypeInfo();
-                object key = type.GetDeclaredProperty("Key").GetValue(obj, Array.Empty<object>());
-                object value = type.GetDeclaredProperty("Value").GetValue(obj, Array.Empty<object>());
+                object key = type.GetDeclaredProperty("Key").GetValue(obj, []);
+                object value = type.GetDeclaredProperty("Value").GetValue(obj, []);
                 string _;
                 result.AppendGroupOpening();
                 result.AppendCollectionItemSeparator(isFirst: true, inline: true);

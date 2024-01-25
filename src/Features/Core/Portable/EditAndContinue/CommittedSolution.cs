@@ -361,13 +361,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Source files of these may not even be captured in the solution snapshot.
                 if (!project.SupportsEditAndContinue())
                 {
-                    return Array.Empty<DocumentId?>();
+                    return [];
                 }
 
                 using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
                 if (debugInfoReaderProvider == null)
                 {
-                    return Array.Empty<DocumentId?>();
+                    return [];
                 }
 
                 var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();

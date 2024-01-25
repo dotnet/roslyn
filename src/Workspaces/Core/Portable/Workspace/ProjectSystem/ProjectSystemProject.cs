@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : [];
             }
         }
 

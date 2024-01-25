@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // An empty analyzer list means run all analyzers, so empty always wins over any specific
                         if (specificAnalyzers1.IsEmpty || specificAnalyzers2.IsEmpty)
                         {
-                            return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
+                            return [];
                         }
 
                         // Otherwise, if both sets have analyzers we use a union of the two

@@ -125,7 +125,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         /// it doesn't require this.  As such, we can allow it to run in hosts that only allow document edits. Those
         /// hosts will simply ignore the operations they don't understand.
         /// </summary>
-        public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public override ImmutableArray<string> Tags => [];
 
         public FixNameCodeAction(
 #if !CODE_STYLE

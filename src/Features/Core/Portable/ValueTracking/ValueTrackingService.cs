@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ValueTrackedItem>.Empty;
+                    return [];
                 }
 
                 return await result.Value.SelectAsArrayAsync(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ValueTrackedItem>.Empty;
+                    return [];
                 }
 
                 return await result.Value.SelectAsArrayAsync(

@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 if (result == null)
                 {
-                    matchedSpans = ImmutableArray<TextSpan>.Empty;
+                    matchedSpans = [];
                     return null;
                 }
 
                 matchedSpans = includeMatchedSpans && result.Value.MatchedSpansInReverse != null
                     ? new NormalizedTextSpanCollection(result.Value.MatchedSpansInReverse).ToImmutableArray()
-                    : ImmutableArray<TextSpan>.Empty;
+                    : [];
 
                 result?.Free();
                 return GetKind(result.Value, candidateHumps);

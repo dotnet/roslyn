@@ -814,7 +814,7 @@ internal sealed partial class SolutionCompilationState
     {
         return project.SupportsCompilation
             ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
-            : new(ImmutableArray<Diagnostic>.Empty);
+            : new([]);
     }
 
     /// <summary>

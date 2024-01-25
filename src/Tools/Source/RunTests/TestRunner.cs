@@ -143,7 +143,7 @@ namespace RunTests
                 cancellationToken: cancellationToken);
             var result = await process.Result;
 
-            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
+            return new RunAllResult(result.ExitCode == 0, [], ImmutableArray.Create(result));
 
             static string getGlobalJsonPath()
             {

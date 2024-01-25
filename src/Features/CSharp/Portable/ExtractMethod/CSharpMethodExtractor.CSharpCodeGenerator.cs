@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = WrapInCheckStatementIfNeeded(statements);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: ImmutableArray<AttributeData>.Empty,
+                    attributes: [],
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: AnalyzerResult.ReturnType,

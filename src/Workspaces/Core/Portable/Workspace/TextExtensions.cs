@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
                 if (documentId == null)
                 {
-                    return ImmutableArray<Document>.Empty;
+                    return [];
                 }
 
                 var solution = workspace.CurrentSolution;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
-            return ImmutableArray<Document>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            return ImmutableArray<Document>.Empty;
+            return [];
         }
 
         /// <summary>

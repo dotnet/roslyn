@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
-                    return ImmutableArray<CompletionProvider>.Empty;
+                    return [];
                 }
 
                 // On primary completion paths, don't load providers if they are not already cached,
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     return providers;
 
                 _projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
             {
-                roles ??= ImmutableHashSet<string>.Empty;
+                roles ??= [];
 
                 lock (_gate)
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
 
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             public void LoadProviders()

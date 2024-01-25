@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
                 var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
                     analyzer,
-                    ImmutableArray<string>.Empty);
+                    []);
 
                 if (documentAnalysisScope != null)
                 {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    additionalPragmaSuppressionDiagnostics = ImmutableArray<Diagnostic>.Empty;
+                    additionalPragmaSuppressionDiagnostics = [];
                 }
 
                 builder.Add(analyzer, result);
@@ -373,14 +373,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var suppressionAnalyzer = analyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
             if (suppressionAnalyzer == null)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             if (documentAnalysisScope != null)
             {
                 if (documentAnalysisScope.TextDocument is not Document document)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);

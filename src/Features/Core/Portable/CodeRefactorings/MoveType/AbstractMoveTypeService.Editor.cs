@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 if (solution == null)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return [];
                 }
 
                 return [new ApplyChangesOperation(solution)];

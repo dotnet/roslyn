@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
             }
 
-            return ImmutableArray<string>.Empty;
+            return [];
         }
 
         private static ImmutableArray<(IOption2 option, string? langaugeName)> GenerateOptionsNeedsToRefresh()

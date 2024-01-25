@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             if (!info.Context.GenerateMembers)
-                members = ImmutableArray<ISymbol>.Empty;
+                members = [];
 
             // For a record, add record parameters if we have a primary constructor.
             var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));

@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (containingType == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));

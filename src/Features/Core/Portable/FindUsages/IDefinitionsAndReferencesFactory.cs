@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind == SymbolKind.Namespace)
             {
-                return ImmutableArray<DocumentSpan>.Empty;
+                return [];
             }
 
             // If it's a namespace, don't create any normal location.  Namespaces

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbolSpecApplicableKinds == null)
             {
-                return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+                return [];
             }
 
             if (symbolSpecApplicableKinds.Trim() == "*")
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbolSpecApplicableAccessibilities == null)
             {
-                return ImmutableArray<Accessibility>.Empty;
+                return [];
             }
 
             if (symbolSpecApplicableAccessibilities.Trim() == "*")
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbolSpecRequiredModifiers == null)
             {
-                return ImmutableArray<ModifierKind>.Empty;
+                return [];
             }
 
             if (symbolSpecRequiredModifiers.Trim() == "*")

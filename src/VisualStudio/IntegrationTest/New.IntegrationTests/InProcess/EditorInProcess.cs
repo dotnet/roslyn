@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassificationSpan>();
+            return [];
         }
 
         public async Task<string[]> GetCurrentClassificationsAsync(CancellationToken cancellationToken)

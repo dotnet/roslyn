@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             if (!node.HasLeadingTrivia)
             {
-                return ImmutableArray<SyntaxTrivia>.Empty;
+                return [];
             }
 
             var paramNodes = node
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature);
             if (permutedParamNodes.IsEmpty)
             {
-                return ImmutableArray<SyntaxTrivia>.Empty;
+                return [];
             }
 
             var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
@@ -797,13 +797,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (paramNodes.Count() != declaredParameters.Length)
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
             }
 
             // No parameters originally, so no param nodes to permute.
             if (declaredParameters.Length == 0)
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
@@ -813,13 +813,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));
                 if (nameAttribute == null)
                 {
-                    return ImmutableArray<SyntaxNode>.Empty;
+                    return [];
                 }
 
                 var identifier = nameAttribute.DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().FirstOrDefault();
                 if (identifier == null || identifier.ToString() != declaredParameters.ElementAt(i).Name)
                 {
-                    return ImmutableArray<SyntaxNode>.Empty;
+                    return [];
                 }
 
                 dictionary.Add(originalParameters[i].Name.ToString(), paramNode);

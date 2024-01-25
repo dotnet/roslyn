@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
         {
             if (document == null)
-                return ImmutableArray<ProjectId>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 

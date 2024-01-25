@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         internal static ScriptOptions RemoveImportsAndReferences(this ScriptOptions options)
         {
-            return options.WithReferences(Array.Empty<MetadataReference>()).WithImports(Array.Empty<string>());
+            return options.WithReferences(Array.Empty<MetadataReference>()).WithImports([]);
         }
     }
 }

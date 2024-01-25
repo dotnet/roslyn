@@ -88,8 +88,8 @@ namespace Roslyn.Utilities
 #pragma warning restore IDE0051 // Remove unused private members
 #pragma warning restore IDE0060 // Remove unused parameter
                 {
-                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
-                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
+                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, []);
+                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, []);
 
                     return _handler(name, requestingAssembly);
                 }

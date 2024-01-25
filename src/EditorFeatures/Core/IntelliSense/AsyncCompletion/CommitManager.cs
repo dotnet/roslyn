@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 else
                 {
                     // If we were not initialized with a CompletionService or are called for a wrong textView, we should not make a commit.
-                    return ImmutableArray<char>.Empty;
+                    return [];
                 }
             }
         }

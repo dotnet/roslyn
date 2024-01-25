@@ -172,13 +172,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
             if (actions.IsEmpty)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);

@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
         {
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var literalParameters = displayAllOverride || options.ForLiteralParameters;
             var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
             var otherParameters = displayAllOverride || options.ForOtherParameters;
             if (!literalParameters && !objectCreationParameters && !otherParameters)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var indexerParameters = displayAllOverride || options.ForIndexerParameters;
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;

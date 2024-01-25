@@ -1230,10 +1230,10 @@ class TestClass
                 testWorkspace,
                 file1AfterRefactor,
                 action,
-                conflictSpans: ImmutableArray<TextSpan>.Empty,
-                renameSpans: ImmutableArray<TextSpan>.Empty,
-                warningSpans: ImmutableArray<TextSpan>.Empty,
-                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                conflictSpans: [],
+                renameSpans: [],
+                warningSpans: [],
+                navigationSpans: [],
                 parameters: null);
         }
 
@@ -1277,10 +1277,10 @@ class TestClass
                 testWorkspace,
                 file2AfterRefactor,
                 action,
-                conflictSpans: ImmutableArray<TextSpan>.Empty,
-                renameSpans: ImmutableArray<TextSpan>.Empty,
-                warningSpans: ImmutableArray<TextSpan>.Empty,
-                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                conflictSpans: [],
+                renameSpans: [],
+                warningSpans: [],
+                navigationSpans: [],
                 parameters: null);
         }
 

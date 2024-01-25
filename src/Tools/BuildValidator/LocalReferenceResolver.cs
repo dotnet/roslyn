@@ -136,7 +136,7 @@ namespace BuildValidator
                 filePath: filePath,
                 properties: new MetadataReferenceProperties(
                     kind: MetadataImageKind.Assembly,
-                    aliases: metadataReferenceInfo.ExternAlias is null ? ImmutableArray<string>.Empty : ImmutableArray.Create(metadataReferenceInfo.ExternAlias),
+                    aliases: metadataReferenceInfo.ExternAlias is null ? [] : ImmutableArray.Create(metadataReferenceInfo.ExternAlias),
                     embedInteropTypes: metadataReferenceInfo.EmbedInteropTypes));
             return true;
         }

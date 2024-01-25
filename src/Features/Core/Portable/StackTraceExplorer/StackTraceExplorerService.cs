@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             lineNumber = 0;
             if (root.FileInformationExpression is null)
             {
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
             var fileName = root.FileInformationExpression.Path.ToString();

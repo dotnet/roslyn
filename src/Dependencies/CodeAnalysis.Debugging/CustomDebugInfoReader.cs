@@ -492,7 +492,7 @@ RETRY:
 
             if (importStrings.IsEmpty)
             {
-                return ImmutableArray<string>.Empty;
+                return [];
             }
 
             // Follow at most one forward link.

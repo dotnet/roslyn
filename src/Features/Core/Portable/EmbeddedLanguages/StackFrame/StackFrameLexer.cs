@@ -403,16 +403,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => ch.Value is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
         public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => CreateToken(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars);
+            => CreateToken(kind, [], virtualChars);
 
         public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars)
-            => new(kind, leadingTrivia, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+            => new(kind, leadingTrivia, virtualChars, [], [], value: null!);
 
         public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars, ImmutableArray<StackFrameTrivia> trailingTrivia)
-            => new(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+            => new(kind, leadingTrivia, virtualChars, trailingTrivia, [], value: null!);
 
         private static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
+            => CreateTrivia(kind, virtualChars, []);
 
         private static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {

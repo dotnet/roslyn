@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     public sealed class ScriptMetadataResolver : MetadataReferenceResolver, IEquatable<ScriptMetadataResolver>
     {
         public static ScriptMetadataResolver Default { get; } = new ScriptMetadataResolver(
-            RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(ImmutableArray<string>.Empty, baseDirectory: null));
+            RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver([], baseDirectory: null));
 
         private readonly RuntimeMetadataReferenceResolver _resolver;
 

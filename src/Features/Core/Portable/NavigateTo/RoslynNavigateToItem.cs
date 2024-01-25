@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             bool INavigableItem.IsStale => _item.IsStale;
 
-            ImmutableArray<INavigableItem> INavigableItem.ChildItems => ImmutableArray<INavigableItem>.Empty;
+            ImmutableArray<INavigableItem> INavigableItem.ChildItems => [];
 
             #endregion
         }

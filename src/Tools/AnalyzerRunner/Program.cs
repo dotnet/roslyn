@@ -139,7 +139,7 @@ namespace AnalyzerRunner
 
             foreach (var projectId in projectIds)
             {
-                solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
+                solution = solution.WithProjectAnalyzerReferences(projectId, []);
             }
 
             var projects = solution.Projects.Where(project => project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic).ToList();

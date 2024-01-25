@@ -88,7 +88,7 @@ namespace RunTests
             WorkItemInfo = workItemInfo;
             TestResultInfo = testResultInfo;
             CommandLine = commandLine;
-            ProcessResults = processResults.IsDefault ? ImmutableArray<ProcessResult>.Empty : processResults;
+            ProcessResults = processResults.IsDefault ? [] : processResults;
             Diagnostics = diagnostics;
         }
     }

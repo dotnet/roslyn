@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     Descriptor,
                     nameColon.GetLocation(),
                     preference.Notification,
-                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalLocations: [],
                     additionalUnnecessaryLocations: [syntaxTree.GetLocation(fadeSpan)]));
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     Descriptor,
                     nameEquals.GetLocation(),
                     preference.Notification,
-                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalLocations: [],
                     additionalUnnecessaryLocations: [context.Node.SyntaxTree.GetLocation(fadeSpan)]));
         }
     }

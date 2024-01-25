@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-            return ImmutableArray<PortableExecutableReference>.Empty;
+            return [];
         }
 
         private PortableExecutableReference? ResolveTrustedPlatformAssembly(string name, MetadataReferenceProperties properties)

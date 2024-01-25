@@ -296,8 +296,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
-                classifiedSpans: ImmutableArray<ClassifiedSpansAndHighlightSpan?>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return new DefaultDefinitionItem(
                 tags: tags,
                 displayParts: displayParts,
-                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                nameDisplayParts: [],
                 originationParts: originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
-                classifiedSpans: ImmutableArray<ClassifiedSpansAndHighlightSpan?>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 }
             }
 
-            return ImmutableArray<TaggedText>.Empty;
+            return [];
         }
 
         public DetachedDefinitionItem Detach()

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     return (method.ReturnType == typeof(void))
                         ? VoidValue
-                        : method.Invoke(obj, Array.Empty<object>());
+                        : method.Invoke(obj, []);
                 }
 
                 var property = (PropertyInfo)member;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return null;
                 }
 
-                return property.GetValue(obj, Array.Empty<object>());
+                return property.GetValue(obj, []);
             }
             catch (TargetInvocationException e)
             {

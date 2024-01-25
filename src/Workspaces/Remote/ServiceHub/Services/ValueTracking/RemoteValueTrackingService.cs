@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var previousItem = await previousTrackedItem.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (previousItem is null)
                 {
-                    return ImmutableArray<SerializableValueTrackedItem>.Empty;
+                    return [];
                 }
 
                 var progress = new ValueTrackingProgressCollector();

@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         var oldDocument = await oldProject.GetDocumentAsync(analysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                        var oldActiveStatements = (oldDocument == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
+                        var oldActiveStatements = (oldDocument == null) ? [] :
                             await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
                         activeStatementsInChangedDocuments.Add(new(oldActiveStatements, analysis.ActiveStatements, analysis.ExceptionRegions));

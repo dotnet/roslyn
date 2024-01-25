@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            return ImmutableArray<Location>.Empty;
+            return [];
         }
 
         public override ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            return ImmutableArray<Location>.Empty;
+            return [];
         }
 
         #endregion

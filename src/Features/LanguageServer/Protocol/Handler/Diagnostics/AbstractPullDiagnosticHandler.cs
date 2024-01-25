@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousPullResult>.Empty;
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
             {
-                return ImmutableArray<LSP.Diagnostic>.Empty;
+                return [];
             }
 
             var project = diagnosticSource.GetProject();

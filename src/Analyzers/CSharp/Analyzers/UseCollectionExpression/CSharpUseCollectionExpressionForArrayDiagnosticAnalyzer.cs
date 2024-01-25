@@ -103,7 +103,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             return default;
         }
 
-        return ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty;
+        return [];
     }
 
     private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)

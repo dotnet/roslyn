@@ -107,7 +107,7 @@ namespace System.Linq
 
             if (immutableList.IsEmpty)
             {
-                return Enumerable.Empty<TResult>();
+                return [];
             }
             else
             {
