@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 internal class DotNetSdkLocator
 {
+    public static string? SdkVersion { get; private set; } = null;
     public static string? SdkPath { get; private set; } = null;
 
     static DotNetSdkLocator()
@@ -19,6 +20,7 @@ internal class DotNetSdkLocator
             && TryGetSDKVersion(globalJsonPath, out var version)
             && TryGetSdkPath(globalJsonPath, version, out var sdkPath))
         {
+            SdkVersion = version;
             SdkPath = sdkPath;
         }
 

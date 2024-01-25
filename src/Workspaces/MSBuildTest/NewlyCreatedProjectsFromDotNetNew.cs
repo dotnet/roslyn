@@ -9,14 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
-    public class OpenProjectsTests : MSBuildWorkspaceTestBase
+    public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
         // The Maui templates require additional dotnet workloads to be installed.
         // Running `dotnet workload restore` will install workloads but may require
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         protected ITestOutputHelper TestOutputHelper { get; set; }
 
-        public OpenProjectsTests(ITestOutputHelper output)
+        public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper output)
         {
             TestOutputHelper = output;
         }
@@ -72,12 +71,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // Console App                    console              C#,F#,VB  Common/Console
             // ...
 
-            var result = RunDotNet($"new list --type project --language {language}");
-            Assert.Equal(0, result.ExitCode);
+            var result = RunDotNet($"new list --type project --language {language}", output: null);
 
-            var lines = result.Output
-                .Replace("\r\n", "\n")
-                .Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = result.Output.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             TheoryData<string> templateNames = [];
             var foundDivider = false;
@@ -104,6 +100,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 templateNames.Add(templateShortName);
             }
 
+            Assert.True(foundDivider);
+
             return templateNames;
         }
 
@@ -114,69 +112,71 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 TestOutputHelper.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
             }
 
-            using var projectDirectory = (DisposableDirectory)SolutionDirectory;
+            var projectPath = SolutionDirectory.Path;
+            var projectFilePath = GetProjectFilePath(projectPath, languageName);
 
-            var projectFilePath = GenerateProjectFromTemplate(projectDirectory.Path, templateName, languageName, TestOutputHelper);
+            CreateNewProject(templateName, projectPath, languageName, TestOutputHelper);
 
             await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics ?? []);
 
             return;
 
-            static string GenerateProjectFromTemplate(string projectPath, string templateName, string languageName, ITestOutputHelper outputHelper)
-            {
-                var projectFilePath = GetProjectFilePath(projectPath, languageName);
-
-                CreateNewProject(templateName, projectPath, languageName, outputHelper);
-
-                return projectFilePath;
-            }
-
             static string GetProjectFilePath(string projectPath, string languageName)
             {
-                var projectName = Path.GetFileName(projectPath);
+                var projectName = new DirectoryInfo(projectPath).Name;
                 var projectExtension = languageName switch
                 {
                     LanguageNames.CSharp => "csproj",
                     LanguageNames.VisualBasic => "vbproj",
-                    _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.Net project are supported.")
+                    _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.NET projects are supported.")
                 };
                 return Path.Combine(projectPath, $"{projectName}.{projectExtension}");
             }
 
-            static int CreateNewProject(string templateName, string outputPath, string languageName, ITestOutputHelper output)
+            static void CreateNewProject(string templateName, string outputPath, string languageName, ITestOutputHelper output)
             {
                 var language = languageName switch
                 {
                     LanguageNames.CSharp => "C#",
                     LanguageNames.VisualBasic => "VB",
-                    _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C#, F# and VB.NET project are supported.")
+                    _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.NET projects are supported.")
                 };
 
-                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputPath}\" --language \"{language}\"");
-                Assert.Equal(0, newResult.ExitCode);
+                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputPath}\" --language \"{language}\"", output);
 
-                output.WriteLine(string.Join(Environment.NewLine, newResult.Output));
+                if (DotNetSdkLocator.SdkVersion is not null)
+                {
+                    // When SdkVersion is populated we know that we located our dotnet CLI via a global.json.
+                    // We need to write a global.json to the ouput directory to ensure that the project will
+                    // be loaded with the same SDK.
+                    var globalJsonPath = Path.Combine(outputPath, "global.json");
+                    File.WriteAllText(globalJsonPath, $$"""
+                        {
+                            "sdk": {
+                                "version": "{{DotNetSdkLocator.SdkVersion}}"
+                            }
+                        }
+                        """);
+                    output.WriteLine($"Wrote global.json to pin the project to the {DotNetSdkLocator.SdkVersion} SDK.");
+                }
 
                 // Most templates invoke restore as a post-creation action. However, some, like the
                 // Maui templates, do not run restore since they require additional workloads to be
                 // installed.
                 if (newResult.Output.Contains("Restoring"))
                 {
-                    return newResult.ExitCode;
+                    return;
                 }
 
-                // Attempt a restore and see if we are instructed to install additional workloads.
-                var restoreResult = RunDotNet($"restore", workingDirectory: outputPath);
-
-                output.WriteLine(string.Join(Environment.NewLine, restoreResult.Output));
-
-                if (restoreResult.ExitCode == 0)
-                    return restoreResult.ExitCode;
-
-                if (restoreResult.Output.Contains("command: dotnet workload restore"))
-                    throw new InvalidOperationException($"Since the '{templateName}' template requires additional dotnet workloads to be installed, it should likely be excluded during template discovery.");
-
-                throw new InvalidOperationException($"The dotnet restore operation failed.");
+                try
+                {
+                    // Attempt a restore and see if we are instructed to install additional workloads.
+                    var restoreResult = RunDotNet($"restore", output, workingDirectory: outputPath);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("command: dotnet workload restore"))
+                {
+                    throw new InvalidOperationException($"The '{templateName}' template requires additional dotnet workloads to be installed. It should be excluded during template discovery. " + ex.Message);
+                }
             }
 
             static async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
@@ -204,13 +204,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 AssertEx.Empty(unnecessaryIgnoreDiagnostics, $"The following diagnostics are unnecessarily being ignored for the template.");
 
                 var filteredDiagnostics = nonHiddenDiagnostics
-                    .Where(diagnostic => ignoredDiagnostics.Contains(diagnostic.Id) != true);
+                    .Where(diagnostic => !ignoredDiagnostics.Contains(diagnostic.Id));
 
                 AssertEx.Empty(filteredDiagnostics, $"The following compiler diagnostics are being reported for the template.");
             }
         }
 
-        private static ProcessResult RunDotNet(string arguments, string? workingDirectory = null)
+        private static ProcessResult RunDotNet(string arguments, ITestOutputHelper? output, string? workingDirectory = null)
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
@@ -219,7 +219,23 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 ? Path.Combine(DotNetSdkLocator.SdkPath!, dotNetExeName)
                 : dotNetExeName;
 
-            return ProcessUtilities.Run(fileName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
+            var result = ProcessUtilities.Run(fileName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
+
+            if (result.ExitCode != 0)
+            {
+                throw new InvalidOperationException(string.Join(Environment.NewLine,
+                    [
+                        $"`dotnet {arguments}` returned a non-zero exit code.",
+                        "Output:",
+                        result.Output,
+                        "Error:",
+                        result.Errors
+                    ]));
+            }
+
+            output?.WriteLine(result.Output);
+
+            return result;
         }
     }
 }
