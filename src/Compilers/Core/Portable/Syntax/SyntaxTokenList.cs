@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tokens">An array of tokens.</param>
         public SyntaxTokenList(params SyntaxToken[] tokens)
-            : this(null, CreateNode(tokens), 0, 0)
+            : this(null, CreateNodeFromSpan(tokens), 0, 0)
         {
         }
 
@@ -69,18 +69,13 @@ namespace Microsoft.CodeAnalysis
             if (tokens.Length == 1)
                 return new SyntaxTokenList(tokens[0]);
 
-            return new SyntaxTokenList(parent: null, CreateNode(tokens), position: 0, index: 0);
+            return new SyntaxTokenList(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
         }
 
-        private static GreenNode? CreateNode(SyntaxToken[] tokens)
-            => CreateNode(tokens.AsSpan());
-
-        private static GreenNode? CreateNode(ReadOnlySpan<SyntaxToken> tokens)
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
         {
             if (tokens == null)
-            {
                 return null;
-            }
 
             // TODO: we could remove the unnecessary builder allocations here and go directly
             // from the array to the List nodes.
@@ -88,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < tokens.Length; i++)
             {
                 var node = tokens[i].Node;
-                Debug.Assert(node is object);
+                Debug.Assert(node is not null);
                 builder.Add(node);
             }
 
