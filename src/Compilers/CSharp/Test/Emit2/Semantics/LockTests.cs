@@ -117,9 +117,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -138,9 +138,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -164,9 +164,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -187,9 +187,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
     }
 
     [Fact]
@@ -213,9 +213,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
     }
 
     [Fact]
@@ -239,9 +239,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (2,1): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "lock (l) { }").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
     }
 
     [Fact]
@@ -898,9 +898,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
-            // (5,9): error CS9041: 'Lock.EnterLockScope()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
+            // (5,15): error CS9041: 'Lock.EnterLockScope()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "lock (l) { }").WithArguments("System.Threading.Lock.EnterLockScope()", "Test").WithLocation(5, 9));
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.EnterLockScope()", "Test").WithLocation(5, 15));
     }
 
     [Fact]
@@ -984,12 +984,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
-            // (5,9): error CS9041: 'Lock.Scope' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
+            // (5,15): error CS9041: 'Lock.Scope' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "lock (l) { }").WithArguments("System.Threading.Lock.Scope", "Test").WithLocation(5, 9),
-            // (5,9): error CS9041: 'Lock.Scope' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
-            //         lock (l) { }
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "lock (l) { }").WithArguments("System.Threading.Lock.Scope", "Test").WithLocation(5, 9));
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.Scope", "Test").WithLocation(5, 15));
     }
 
     [Fact]
@@ -1072,8 +1069,8 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
-            // (5,9): error CS9041: 'Lock.Scope.Dispose()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
+            // (5,15): error CS9041: 'Lock.Scope.Dispose()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "lock (l) { }").WithArguments("System.Threading.Lock.Scope.Dispose()", "Test").WithLocation(5, 9));
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.Scope.Dispose()", "Test").WithLocation(5, 15));
     }
 }

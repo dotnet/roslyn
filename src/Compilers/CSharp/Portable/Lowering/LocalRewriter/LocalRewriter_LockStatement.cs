@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (argumentType.IsWellKnownTypeLock() &&
-                TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Lock__EnterLockScope, out MethodSymbol enterLockScope) &&
-                TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Lock__Scope__Dispose, out MethodSymbol lockScopeDispose))
+                LockBinder.TryFindLockTypeInfo(argumentType, BindingDiagnosticBag.Discarded, syntax: null) is { } lockTypeInfo)
             {
                 // lock (x) { body } -> using (x.EnterLockScope()) { body }
 
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                    enterLockScope);
+                    lockTypeInfo.EnterLockScopeMethod);
 
                 BoundLocal boundTemp = _factory.StoreToTemp(enterLockScopeCall,
                     out BoundAssignmentOperator tempAssignment,
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundTemp,
                     awaitKeywordOpt: default,
                     awaitOpt: null,
-                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockScopeDispose));
+                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockTypeInfo.ScopeDisposeMethod));
 
                 return new BoundBlock(
                     lockSyntax,

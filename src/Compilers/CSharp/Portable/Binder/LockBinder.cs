@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,6 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LockBinder : LockOrUsingBinder
     {
+        private const string LockTypeFullName = "System.Threading.Lock";
+        private const string EnterLockScopeMethodName = "EnterLockScope";
+        private const string LockScopeTypeName = "Scope";
+
         private readonly LockStatementSyntax _syntax;
 
         public LockBinder(Binder enclosing, LockStatementSyntax syntax)
@@ -37,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a reference type.
             ExpressionSyntax exprSyntax = TargetExpressionSyntax;
             BoundExpression expr = BindTargetExpression(diagnostics, originalBinder);
-            TypeSymbol exprType = expr.Type;
+            TypeSymbol? exprType = expr.Type;
 
             bool hasErrors = false;
 
-            if ((object)exprType == null)
+            if (exprType is null)
             {
                 if (expr.ConstantValueOpt != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
@@ -54,12 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, exprType);
                 hasErrors = true;
             }
-            else if (exprType.IsWellKnownTypeLock() &&
-                Compilation.GetWellKnownType(WellKnownType.System_Threading_Lock__Scope) is { } scopeType)
+
+            if (exprType?.IsWellKnownTypeLock() == true &&
+                TryFindLockTypeInfo(exprType, diagnostics, exprSyntax) is { } lockTypeInfo)
             {
+                // Report use-site errors for members we will use in lowering.
+                _ = diagnostics.ReportUseSite(lockTypeInfo.EnterLockScopeMethod, exprSyntax) ||
+                    diagnostics.ReportUseSite(lockTypeInfo.ScopeType, exprSyntax) ||
+                    diagnostics.ReportUseSite(lockTypeInfo.ScopeDisposeMethod, exprSyntax);
+
                 CheckRestrictedTypeInAsyncMethod(
                     originalBinder.ContainingMemberOrLambda,
-                    scopeType,
+                    lockTypeInfo.ScopeType,
                     diagnostics,
                     exprSyntax,
                     errorCode: ErrorCode.ERR_BadSpecialByRefLock);
@@ -69,5 +77,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
             return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
+
+        internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode? syntax)
+        {
+            var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
+            if (!(enterLockScopeMethod is { ReturnsVoid: false, RefKind: RefKind.None }))
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, EnterLockScopeMethodName);
+                return null;
+            }
+
+            var scopeType = enterLockScopeMethod.ReturnType;
+            if (!(scopeType is { Name: LockScopeTypeName, IsValueType: true, DeclaredAccessibility: Accessibility.Public } &&
+                TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.ConsiderEverything)))
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, EnterLockScopeMethodName);
+                return null;
+            }
+
+            var disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
+            if (!(disposeMethod is { ReturnsVoid: true }))
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, $"{LockTypeFullName}+{LockScopeTypeName}", WellKnownMemberNames.DisposeMethodName);
+                return null;
+            }
+
+            return new LockTypeInfo
+            {
+                EnterLockScopeMethod = enterLockScopeMethod,
+                ScopeType = scopeType,
+                ScopeDisposeMethod = disposeMethod,
+            };
+        }
+
+        private static MethodSymbol? TryFindPublicVoidParameterlessMethod(TypeSymbol type, string name)
+        {
+            var members = type.GetMembers(name);
+            MethodSymbol? result = null;
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol
+                    {
+                        ParameterCount: 0,
+                        Arity: 0,
+                        IsStatic: false,
+                        DeclaredAccessibility: Accessibility.Public,
+                    } method)
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous method found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
+        }
+    }
+
+    internal sealed class LockTypeInfo
+    {
+        public required MethodSymbol EnterLockScopeMethod { get; init; }
+        public required TypeSymbol ScopeType { get; init; }
+        public required MethodSymbol ScopeDisposeMethod { get; init; }
     }
 }
