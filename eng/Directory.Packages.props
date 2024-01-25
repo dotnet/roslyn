@@ -287,7 +287,6 @@
     -->
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <!--
-
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
