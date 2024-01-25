@@ -498,14 +498,9 @@ namespace Microsoft.CodeAnalysis
 
                 public override void VisitNamedType(INamedTypeSymbol symbol)
                 {
-                    if (symbol.ContainingSymbol is INamedTypeSymbol parentType)
+                    if (symbol.ContainingSymbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
                     {
-                        Visit(parentType);
-                        _builder.Append('.');
-                    }
-                    else if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } parentNamespace)
-                    {
-                        Visit(parentNamespace);
+                        Visit(symbol.ContainingSymbol);
                         _builder.Append('.');
                     }
 
