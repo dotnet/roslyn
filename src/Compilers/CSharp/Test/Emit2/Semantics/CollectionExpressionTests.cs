@@ -31409,7 +31409,7 @@ partial class Program
         }
 
         [Fact]
-        public void SynthesizedReadOnlyList_Singleton()
+        public void SynthesizedReadOnlyList_SingleElement()
         {
             // Compare members of synthesized types to a similar type from source.
 
@@ -31584,7 +31584,7 @@ partial class Program
         [InlineData((int)WellKnownMember.System_Array__SetValue)]
         [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default)]
         [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals)]
-        public void SynthesizedReadOnlyList_Singleton_MissingMembers(int missingMember)
+        public void SynthesizedReadOnlyList_SingleElement_MissingMembers(int missingMember)
         {
             string source = """
                             using System.Collections.Generic;
@@ -31600,7 +31600,7 @@ partial class Program
         [Theory]
         [InlineData((int)WellKnownType.System_IndexOutOfRangeException)]
         [InlineData((int)WellKnownType.System_Collections_Generic_EqualityComparer_T)]
-        public void SynthesizedReadOnlyList_Singleton_MissingTypes(int missingType)
+        public void SynthesizedReadOnlyList_SingleElement_MissingTypes(int missingType)
         {
             string source = """
                             using System.Collections.Generic;
@@ -31618,7 +31618,7 @@ partial class Program
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__Current)]
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__MoveNext)]
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__Reset)]
-        public void SynthesizedReadOnlyList_Singleton_MissingSpecialMembers(int missingMember)
+        public void SynthesizedReadOnlyList_SingleElement_MissingSpecialMembers(int missingMember)
         {
             string source = """
                             using System.Collections.Generic;
@@ -31632,7 +31632,7 @@ partial class Program
         }
 
         [Fact]
-        public void SynthesizedReadOnlyList_Singleton_MissingSpecialMembers_IDisposable_Dispose()
+        public void SynthesizedReadOnlyList_SingleElement_MissingSpecialMembers_IDisposable_Dispose()
         {
             string source = """
                             using System.Collections.Generic;
@@ -31652,7 +31652,7 @@ partial class Program
         [InlineData((int)SpecialType.System_IDisposable)]
         [InlineData((int)SpecialType.System_Collections_IEnumerator)]
         [InlineData((int)SpecialType.System_Collections_Generic_IEnumerator_T)]
-        public void SynthesizedReadOnlyList_Singleton_MissingSpecialTypes(int missingType)
+        public void SynthesizedReadOnlyList_SingleElement_MissingSpecialTypes(int missingType)
         {
             string source = """
                             using System.Collections.Generic;
@@ -31667,7 +31667,7 @@ partial class Program
 
         [CombinatorialData]
         [Theory]
-        public void SynthesizedReadOnlyList_Singleton_Execution([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
+        public void SynthesizedReadOnlyList_SingleElement_Execution([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
         {
             string source = $$"""
                 using System;
