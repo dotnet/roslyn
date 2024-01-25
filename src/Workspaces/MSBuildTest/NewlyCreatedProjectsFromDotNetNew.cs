@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -50,7 +51,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {
-            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic);
+            var ignoredDiagnostics = !ExecutionConditionUtil.IsWindows
+                ? ["BC30002"] // Type 'Global.Microsoft.VisualBasic.ApplicationServices.ApplicationBase' is not defined.
+                : Array.Empty<string>();
+
+            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic, ignoredDiagnostics);
         }
 
         public static TheoryData<string> GetCSharpProjectTemplateNames()
