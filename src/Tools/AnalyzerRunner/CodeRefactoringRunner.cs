@@ -247,7 +247,7 @@ namespace AnalyzerRunner
                 {
                     IEnumerable<string> values => values,
                     string value => new[] { value },
-                    _ => [],
+                    _ => Array.Empty<string>(),
                 };
             }
         }

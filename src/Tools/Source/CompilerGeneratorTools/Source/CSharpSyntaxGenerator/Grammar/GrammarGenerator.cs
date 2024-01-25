@@ -180,7 +180,7 @@ namespace CSharpSyntaxGenerator.Grammar
         public Production(string text, IEnumerable<string> referencedRules = null)
         {
             Text = text;
-            ReferencedRules = referencedRules?.ToImmutableArray() ?? [];
+            ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
         }
 
         public override string ToString() => Text;

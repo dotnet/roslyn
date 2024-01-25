@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
     public sealed class ScriptSourceResolver : SourceFileResolver, IEquatable<ScriptSourceResolver>
     {
-        public static new ScriptSourceResolver Default { get; } = new ScriptSourceResolver([], null);
+        public static new ScriptSourceResolver Default { get; } = new ScriptSourceResolver(ImmutableArray<string>.Empty, null);
 
         private ScriptSourceResolver(ImmutableArray<string> sourcePaths, string baseDirectory)
             : base(sourcePaths, baseDirectory)

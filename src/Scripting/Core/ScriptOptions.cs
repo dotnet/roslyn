@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public static ScriptOptions Default { get; } = new ScriptOptions(
             filePath: string.Empty,
             references: GetDefaultMetadataReferences(),
-            namespaces: [],
+            namespaces: ImmutableArray<string>.Empty,
             metadataResolver: ScriptMetadataResolver.Default,
             sourceResolver: SourceFileResolver.Default,
             emitDebugInformation: false,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (GacFileResolver.IsAvailable)
             {
-                return [];
+                return ImmutableArray<MetadataReference>.Empty;
             }
 
             // These references are resolved lazily. Keep in sync with list in core csi.rsp.

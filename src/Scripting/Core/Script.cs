@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             Script script = Previous;
             if (script == lastExecutedScriptInChainOpt)
             {
-                return [];
+                return ImmutableArray<Func<object[], Task>>.Empty;
             }
 
             var scriptsReversed = ArrayBuilder<Script>.GetInstance();

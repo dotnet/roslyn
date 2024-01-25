@@ -102,9 +102,9 @@ namespace BuildValidator
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
-            referencesPath ??= [];
+            referencesPath ??= Array.Empty<string>();
 
-            var excludes = new List<string>(exclude ?? []);
+            var excludes = new List<string>(exclude ?? Array.Empty<string>());
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
@@ -367,7 +367,7 @@ namespace BuildValidator
             if (sourceLinkUtf8 is null)
             {
                 logger.LogInformation("No source link cdi found in pdb");
-                return [];
+                return ImmutableArray<SourceLinkEntry>.Empty;
             }
 
             var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
@@ -378,7 +378,7 @@ namespace BuildValidator
             if (sourceLinks.IsDefault)
             {
                 logger.LogInformation("Empty source link cdi found in pdb");
-                sourceLinks = [];
+                sourceLinks = ImmutableArray<SourceLinkEntry>.Empty;
             }
             else
             {

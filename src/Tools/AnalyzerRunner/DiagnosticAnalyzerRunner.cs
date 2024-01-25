@@ -179,7 +179,7 @@ namespace AnalyzerRunner
         {
             if (!analyzers.TryGetValue(project.Language, out var languageAnalyzers))
             {
-                languageAnalyzers = [];
+                languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

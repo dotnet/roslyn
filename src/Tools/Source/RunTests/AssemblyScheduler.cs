@@ -108,7 +108,7 @@ namespace RunTests
                 var partitionIndex = 0;
                 foreach (var assembly in assemblies)
                 {
-                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, []);
+                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
                     workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
                 }
 

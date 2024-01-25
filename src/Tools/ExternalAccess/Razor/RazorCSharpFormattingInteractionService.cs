@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
-                return [];
+                return ImmutableArray<TextChange>.Empty;
             }
 
             var formattingOptions = GetFormattingOptions(indentationOptions);

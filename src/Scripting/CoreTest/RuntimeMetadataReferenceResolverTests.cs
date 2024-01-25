@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 {
                     return paths;
                 }
-                return [];
+                return ImmutableArray<string>.Empty;
             }
         }
     }

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             else
             {
-                _noShadowCopyDirectories = [];
+                _noShadowCopyDirectories = ImmutableArray<string>.Empty;
             }
 
             _documentationCommentsCulture = documentationCommentsCulture;
