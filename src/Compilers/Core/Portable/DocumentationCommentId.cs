@@ -373,49 +373,13 @@ namespace Microsoft.CodeAnalysis
             public override void VisitNamespace(INamespaceSymbol symbol)
             {
                 _builder.Append("N:");
-                AppendNamespace(symbol, _builder);
+                _generator.Visit(symbol);
             }
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
                 _builder.Append("T:");
-                AppendNamedType(symbol, _builder);
-            }
-
-            private static void AppendNamespace(INamespaceSymbol symbol, StringBuilder builder)
-            {
-                if (symbol.IsGlobalNamespace)
-                    return;
-
-                if (symbol.ContainingNamespace is { IsGlobalNamespace: false })
-                {
-                    AppendNamespace(symbol.ContainingNamespace, builder);
-                    builder.Append('.');
-                }
-
-                builder.Append(EncodeName(symbol.Name));
-            }
-
-            private static void AppendNamedType(INamedTypeSymbol symbol, StringBuilder builder)
-            {
-                if (symbol.ContainingSymbol is INamedTypeSymbol parentType)
-                {
-                    AppendNamedType(parentType, builder);
-                    builder.Append('.');
-                }
-                else if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } parentNamespace)
-                {
-                    AppendNamespace(parentNamespace, builder);
-                    builder.Append('.');
-                }
-
-                builder.Append(EncodeName(symbol.Name));
-
-                if (symbol.TypeParameters.Length > 0)
-                {
-                    builder.Append('`');
-                    builder.Append(symbol.TypeParameters.Length);
-                }
+                _generator.Visit(symbol);
             }
 
             private sealed class DeclarationGenerator : SymbolVisitor
@@ -517,10 +481,40 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public override void VisitNamespace(INamespaceSymbol symbol)
-                    => AppendNamespace(symbol, _builder);
+                {
+                    if (symbol.IsGlobalNamespace)
+                        return;
+
+                    if (symbol.ContainingNamespace is { IsGlobalNamespace: false })
+                    {
+                        Visit(symbol.ContainingNamespace);
+                        _builder.Append('.');
+                    }
+
+                    _builder.Append(EncodeName(symbol.Name));
+                }
 
                 public override void VisitNamedType(INamedTypeSymbol symbol)
-                    => AppendNamedType(symbol, _builder);
+                {
+                    if (symbol.ContainingSymbol is INamedTypeSymbol parentType)
+                    {
+                        Visit(parentType);
+                        _builder.Append('.');
+                    }
+                    else if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } parentNamespace)
+                    {
+                        Visit(parentNamespace);
+                        _builder.Append('.');
+                    }
+
+                    _builder.Append(EncodeName(symbol.Name));
+
+                    if (symbol.TypeParameters.Length > 0)
+                    {
+                        _builder.Append('`');
+                        _builder.Append(symbol.TypeParameters.Length);
+                    }
+                }
             }
         }
 
