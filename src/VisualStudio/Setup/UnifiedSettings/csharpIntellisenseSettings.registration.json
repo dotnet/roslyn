@@ -98,9 +98,9 @@
     "textEditor.csharp.intellisense.completion.dotnetSnippetsBehavior": {
       "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
-      "enum": [ "Default", "NeverInclude", "AlwaysInclude", "IncludeAfterTypingIdentifierQuestionTab" ],
+      "enum": [ "default", "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
       "enumItemLabels": [ "@Default;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Never_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
-      "default": "Default",
+      "default": "default",
       "requiresRestart": false,
       "order": 50,
       "migration": {
@@ -111,19 +111,19 @@
           },
           "map": [
             {
-              "result": "Default",
+              "result": "default",
               "match": 0
             },
             {
-              "result": "NeverInclude",
+              "result": "neverInclude",
               "match": 1
             },
             {
-              "result": "AlwaysInclude",
+              "result": "alwaysInclude",
               "match": 2
             },
             {
-              "result": "IncludeAfterTypingIdentifierQuestionTab",
+              "result": "includeAfterTypingIdentifierQuestionTab",
               "match": 3
             }
           ]
@@ -133,7 +133,7 @@
     "textEditor.csharp.intellisense.completion.dotnetReturnKeyCompletionBehavior": {
       "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
-      "enum": [ "Default", "Never", "AfterFullyTypedWord", "Always" ],
+      "enum": [ "default", "never", "afterFullyTypedWord", "always" ],
       "enumItemLabels": [ "@Default;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Never_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
       "default": "Default",
       "requiresRestart": false,
@@ -146,19 +146,19 @@
           },
           "map": [
             {
-              "result": "Default",
+              "result": "default",
               "match": 0
             },
             {
-              "result": "Never",
+              "result": "never",
               "match": 1
             },
             {
-              "result": "Always",
+              "result": "always",
               "match": 2
             },
             {
-              "result": "AfterFullyTypedWord",
+              "result": "afterFullyTypedWord",
               "match": 3
             }
           ]
