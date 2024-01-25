@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis
                         reference.Culture,
                         isReference: true));
                 }
+
                 return result.ToImmutable();
             }
             finally
