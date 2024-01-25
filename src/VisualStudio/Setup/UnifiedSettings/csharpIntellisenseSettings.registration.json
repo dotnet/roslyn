@@ -23,7 +23,8 @@
       "order": 1,
       "enableWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
       "messages": [{
-        "text": "@Only_take_effect_when_show_completion_list_after_a_character_is_typed_is_enabled;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+        "text": "@Only_take_effect_when_show_completion_list_after_a_character_is_typed_is_enabled;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "visibleWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='false'"
       }],
       "migration": {
         "pass": {
