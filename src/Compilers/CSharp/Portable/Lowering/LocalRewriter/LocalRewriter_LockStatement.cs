@@ -40,9 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
             }
 
-            if (argumentType.IsWellKnownTypeLock() &&
-                LockBinder.TryFindLockTypeInfo(argumentType, BindingDiagnosticBag.Discarded, syntax: null) is { } lockTypeInfo)
+            if (argumentType.IsWellKnownTypeLock())
             {
+                if (!MessageID.IDS_NativeLock.CheckFeatureAvailability(_diagnostics, rewrittenArgument.Syntax) ||
+                    LockBinder.TryFindLockTypeInfo(argumentType, _diagnostics, rewrittenArgument.Syntax) is not { } lockTypeInfo)
+                {
+                    return node.Update(rewrittenArgument, rewrittenBody).WithHasErrors();
+                }
+
                 // lock (x) { body } -> using (x.EnterLockScope()) { body }
 
                 var tryBlock = rewrittenBody is BoundBlock block ? block : BoundBlock.SynthesizedNoLocals(lockSyntax, rewrittenBody);

@@ -7848,4 +7848,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadSpecialByRefLock" xml:space="preserve">
     <value>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</value>
   </data>
+  <data name="IDS_NativeLock" xml:space="preserve">
+    <value>native lock</value>
+  </data>
 </root>

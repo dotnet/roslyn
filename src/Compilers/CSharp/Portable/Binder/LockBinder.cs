@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (exprType?.IsWellKnownTypeLock() == true &&
+                CheckFeatureAvailability(exprSyntax, MessageID.IDS_NativeLock, diagnostics) &&
                 TryFindLockTypeInfo(exprType, diagnostics, exprSyntax) is { } lockTypeInfo)
             {
                 // Report use-site errors for members we will use in lowering.

@@ -2332,6 +2332,11 @@
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_NativeLock">
+        <source>native lock</source>
+        <target state="new">native lock</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">acceso al elemento de puntero</target>

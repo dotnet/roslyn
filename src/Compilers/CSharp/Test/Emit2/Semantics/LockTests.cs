@@ -253,12 +253,38 @@ public class LockTests : CSharpTestBase
         var source = """
             using System;
             using System.Threading;
-            
+
             Lock l = new Lock();
             lock (l) { Console.Write("L"); }
             """;
         var verifier = CompileAndVerify(source, [lib], expectedOutput: "ELD");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LangVersion()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            Lock l = new Lock();
+            lock (l) { Console.Write("L"); }
+            """;
+
+        CSharpTestSource sources = [source, LockTypeDefinition];
+
+        CreateCompilation(sources, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,7): error CS8652: The feature 'native lock' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // lock (l) { Console.Write("L"); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "l").WithArguments("native lock").WithLocation(5, 7));
+
+        var expectedOutput = "ELD";
+
+        CompileAndVerify(sources, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput,
+            verify: Verification.FailsILVerify).VerifyDiagnostics();
+        CompileAndVerify(sources, expectedOutput: expectedOutput,
+            verify: Verification.FailsILVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -284,7 +310,7 @@ public class LockTests : CSharpTestBase
         var source = """
             using System;
             using System.Threading;
-            
+
             lock (new Lock()) Console.Write("L");
             """;
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
@@ -297,7 +323,7 @@ public class LockTests : CSharpTestBase
     {
         var source = """
             using System.Threading;
-            
+
             lock (new Lock()) ;
             """;
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
@@ -573,11 +599,11 @@ public class LockTests : CSharpTestBase
 
             {{type}} o = l;
             lock (o) { Console.Write("1"); }
-            
+
             lock (({{type}})l) { Console.Write("2"); }
 
             lock (l as {{type}}) { Console.Write("3"); }
-            
+
             o = l as {{type}};
             lock (o) { Console.Write("4"); }
 
