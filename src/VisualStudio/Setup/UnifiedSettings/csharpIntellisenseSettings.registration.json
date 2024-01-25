@@ -4,7 +4,6 @@
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 0,
       "migration": {
         "pass": {
@@ -19,7 +18,6 @@
       "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
-      "requiresRestart": false,
       "order": 1,
       "enableWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
       "migration": {
@@ -35,7 +33,6 @@
       "title": "@Automatically_show_completion_list_in_argument_lists;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 10,
       "migration": {
         "pass": {
@@ -50,7 +47,6 @@
       "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 20,
       "migration": {
         "pass": {
@@ -65,7 +61,6 @@
       "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 30,
       "migration": {
         "pass": {
@@ -80,7 +75,6 @@
       "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 40,
       "migration": {
         "pass": {
@@ -97,7 +91,6 @@
       "enum": [ "default", "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
       "enumItemLabels": [ "@Default;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Never_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
       "default": "default",
-      "requiresRestart": false,
       "order": 50,
       "migration": {
         "enumIntegerToString": {
@@ -132,7 +125,6 @@
       "enum": [ "default", "never", "afterFullyTypedWord", "always" ],
       "enumItemLabels": [ "@Default;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Never_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
       "default": "Default",
-      "requiresRestart": false,
       "order": 60,
       "migration": {
         "enumIntegerToString": {
@@ -165,7 +157,6 @@
       "title": "@Show_name_suggestions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 70,
       "migration": {
         "pass": {
@@ -180,7 +171,6 @@
       "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "requiresRestart": false,
       "order": 80,
       "migration": {
         "pass": {
@@ -195,7 +185,6 @@
       "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
-      "requiresRestart": false,
       "order": 90,
       "migration": {
         "pass": {
@@ -214,7 +203,6 @@
         "flagName": "Roslyn.SnippetCompletion",
         "default": true
       },
-      "requiresRestart": false,
       "order": 100,
       "migration": {
         "pass": {
