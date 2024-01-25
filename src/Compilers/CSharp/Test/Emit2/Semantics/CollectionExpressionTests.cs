@@ -31413,7 +31413,7 @@ partial class Program
         {
             // Compare members of synthesized types to a similar type from source.
 
-            var singleton =
+            var singleElement =
                 """
                 using System;
                 using System.Collections;
@@ -31517,7 +31517,7 @@ partial class Program
                 y.Report(includeType: true);
                 """;
 
-            var compilation = CreateCompilation([s_collectionExtensions, singleton, source]);
+            var compilation = CreateCompilation([s_collectionExtensions, singleElement, source]);
             compilation.VerifyEmitDiagnostics();
             string expectedOutput = "(<>z__ReadOnlySingleElementList<System.Int32>) [1], (ReadOnlySingleElementList<System.Int32>) [1], ";
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
