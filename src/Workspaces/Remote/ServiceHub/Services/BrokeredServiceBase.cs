@@ -173,22 +173,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-#if TODO // https://github.com/microsoft/vs-streamjsonrpc/issues/789
-        internal static async ValueTask<TOptions> GetClientOptionsAsync<TOptions, TCallbackInterface>(
-            RemoteCallback<TCallbackInterface> callback,
-            RemoteServiceCallbackId callbackId,
-            HostLanguageServices languageServices,
-            CancellationToken cancellationToken)
-            where TCallbackInterface : class, IRemoteOptionsCallback<TOptions>
+        private sealed class ClientOptionsProvider<TOptions>(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> callback, RemoteServiceCallbackId callbackId) : OptionsProvider<TOptions>
         {
-            var cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
-            var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
-            return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            private readonly RemoteOptionsProviderCache<TOptions> _cache = new(callback, callbackId);
 
-            Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)
-                => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
+            public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+                => _cache.GetOptionsAsync(languageServices, cancellationToken);
         }
-#endif
+
+        /// <summary>
+        /// Use for on-demand retrieval of language-specific options from the client.
+        /// 
+        /// If the service doesn't know up-front for which languages it will need to retrieve specific options,
+        /// its ICallback interface should implement <see cref="IRemoteOptionsCallback{TOptions}"/> and use this
+        /// method to create the options provider to be passed to the feature implementation.
+        /// </summary>
+        protected static OptionsProvider<TOptions> GetClientOptionsProvider<TOptions, TCallback>(RemoteCallback<TCallback> callback, RemoteServiceCallbackId callbackId)
+            where TCallback : class, IRemoteOptionsCallback<TOptions>
+           => new ClientOptionsProvider<TOptions>((callbackId, language, cancellationToken) => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         private static void SetNativeDllSearchDirectories()
         {

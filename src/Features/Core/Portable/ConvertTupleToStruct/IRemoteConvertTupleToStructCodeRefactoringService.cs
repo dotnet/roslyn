@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 {
     internal interface IRemoteConvertTupleToStructCodeRefactoringService
     {
-        // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
-        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
+        internal interface ICallback : IRemoteOptionsCallback<CleanCodeGenerationOptions>
         {
-            ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
         }
 
         ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(

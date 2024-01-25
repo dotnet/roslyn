@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -23,17 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override IRemoteFindUsagesService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
                 => new RemoteFindUsagesService(arguments, callback);
         }
-
-        internal sealed class ClientClassificationOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<ClassificationOptions>> callback, RemoteServiceCallbackId callbackId) : OptionsProvider<ClassificationOptions>
-        {
-            private readonly RemoteOptionsProviderCache<ClassificationOptions> _cache = new(callback, callbackId);
-
-            public ValueTask<ClassificationOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-                => _cache.GetOptionsAsync(languageServices, cancellationToken);
-        }
-
-        private ClientClassificationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-           => new((callbackId, language, cancellationToken) => callback.InvokeAsync((callback, cancellationToken) => callback.GetClassificationOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask FindReferencesAsync(
             Checksum solutionChecksum,
@@ -53,8 +40,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
 
                 var context = new RemoteFindUsageContext(callback, callbackId);
+                var classificationOptions = GetClientOptionsProvider<ClassificationOptions, IRemoteFindUsagesService.ICallback>(callback, callbackId);
+
                 await AbstractFindUsagesService.FindReferencesAsync(
-                    context, symbol, project, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, options, classificationOptions, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -74,8 +63,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
 
                 var context = new RemoteFindUsageContext(callback, callbackId);
+                var classificationOptions = GetClientOptionsProvider<ClassificationOptions, IRemoteFindUsagesService.ICallback>(callback, callbackId);
+
                 await AbstractFindUsagesService.FindImplementationsAsync(
-                    context, symbol, project, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

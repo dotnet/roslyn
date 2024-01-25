@@ -21,9 +21,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IRemoteFindUsagesService
     {
-        internal interface ICallback
+        internal interface ICallback : IRemoteOptionsCallback<ClassificationOptions>
         {
-            ValueTask<ClassificationOptions> GetClassificationOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
 
-        public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+        public ValueTask<ClassificationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
             => GetCallback(callbackId).GetClassificationOptionsAsync(language, cancellationToken);
 
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
