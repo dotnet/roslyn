@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
                 // Pre-calculate size to ensure this code only requires a single array allocation.
                 var builderSize = referencedAssemblyData.Length + modules.Sum(static module => module.ReferencedAssemblies.Length);
-                var refs = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
+                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
 
                 foreach (AssemblyData data in referencedAssemblyData)
                 {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                     refs.AddRange(modules[i].ReferencedAssemblies);
                 }
 
-                _referencedAssemblies = refs.MoveToImmutable();
+                _referencedAssemblies = refs.ToImmutableAndFree();
             }
 
             public override AssemblyIdentity Identity

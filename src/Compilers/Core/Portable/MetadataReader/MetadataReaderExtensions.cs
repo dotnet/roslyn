@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -60,21 +61,26 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
         {
-            var result = ImmutableArray.CreateBuilder<AssemblyIdentity>(reader.AssemblyReferences.Count);
-
-            foreach (var assemblyRef in reader.AssemblyReferences)
+            var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
+            try
             {
-                AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
-                result.Add(reader.CreateAssemblyIdentityOrThrow(
-                    reference.Version,
-                    reference.Flags,
-                    reference.PublicKeyOrToken,
-                    reference.Name,
-                    reference.Culture,
-                    isReference: true));
+                foreach (var assemblyRef in reader.AssemblyReferences)
+                {
+                    AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
+                    result.Add(reader.CreateAssemblyIdentityOrThrow(
+                        reference.Version,
+                        reference.Flags,
+                        reference.PublicKeyOrToken,
+                        reference.Name,
+                        reference.Culture,
+                        isReference: true));
+                }
+                return result.ToImmutable();
             }
-
-            return result.MoveToImmutable();
+            finally
+            {
+                result.Free();
+            }
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>

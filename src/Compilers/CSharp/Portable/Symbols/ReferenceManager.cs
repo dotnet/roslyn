@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return module.GetReferencedAssemblies().Length;
                     });
 
-                    var result = ImmutableArray.CreateBuilder<AssemblyIdentity>(builderSize);
+                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
 
                     for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
                     {
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
-                    return result.MoveToImmutable();
+                    return result.ToImmutableAndFree();
                 }
 
                 internal override AssemblySymbol CreateAssemblySymbol()
