@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['\"'];
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     glyph: project.GetGlyph(),
-                    properties: ImmutableArray.Create(new KeyValuePair<string, string>(ProjectGuidKey, projectGuid)));
+                    properties: [new KeyValuePair<string, string>(ProjectGuidKey, projectGuid)]);
                 context.AddItem(completionItem);
             }
 

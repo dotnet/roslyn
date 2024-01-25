@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var condition = GetCondition(node);
             var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
 
-            return ImmutableArray.Create(placeholder);
+            return [placeholder];
         }
     }
 }

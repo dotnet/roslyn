@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
                 if (typeAnalysisResult.CanPerform)
                 {
-                    return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult, cleanupOptions));
+                    return [AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult, cleanupOptions)];
                 }
             }
 

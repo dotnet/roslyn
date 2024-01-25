@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
+        = [IDEDiagnosticIds.NamingRuleId];
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -159,7 +159,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             var codeAction = new ApplyChangesOperation(newSolution);
 
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-            return ImmutableArray.Create<CodeActionOperation>(codeAction);
+            return [codeAction];
 #else
 
             using var operations = TemporaryArray<CodeActionOperation>.Empty;

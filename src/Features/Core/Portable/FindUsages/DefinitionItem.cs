@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             return Create(
                 tags, displayParts,
-                ImmutableArray.Create(sourceSpan),
-                ImmutableArray.Create(classifiedSpans),
+                [sourceSpan],
+                [classifiedSpans],
                 nameDisplayParts, displayIfNoReferences);
         }
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 if (!string.IsNullOrWhiteSpace(assemblyName))
                 {
-                    return ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+                    return [new TaggedText(TextTags.Assembly, assemblyName)];
                 }
             }
 

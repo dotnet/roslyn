@@ -27,7 +27,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,

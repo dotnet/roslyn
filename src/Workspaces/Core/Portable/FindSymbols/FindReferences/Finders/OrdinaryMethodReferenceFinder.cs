@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
             if (symbol.PartialDefinitionPart != null)
-                return ImmutableArray.Create<ISymbol>(symbol.PartialDefinitionPart);
+                return [symbol.PartialDefinitionPart];
 
             if (symbol.PartialImplementationPart != null)
-                return ImmutableArray.Create<ISymbol>(symbol.PartialImplementationPart);
+                return [symbol.PartialImplementationPart];
 
             return ImmutableArray<ISymbol>.Empty;
         }

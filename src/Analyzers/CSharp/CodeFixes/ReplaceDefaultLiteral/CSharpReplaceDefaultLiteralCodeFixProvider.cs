@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8313, CS8505);
+            [CS8313, CS8505];
 
         public override FixAllProvider? GetFixAllProvider()
         {

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1998);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();

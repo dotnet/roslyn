@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
             {
                 var nextConstructor = await FindNextConstructorInChainAsync(solution, constructor, cancellationToken).ConfigureAwait(false);
                 if (nextConstructor != null)
-                    bases = ImmutableArray.Create<ISymbol>(nextConstructor);
+                    bases = [nextConstructor];
             }
 
             await context.SetSearchTitleAsync(

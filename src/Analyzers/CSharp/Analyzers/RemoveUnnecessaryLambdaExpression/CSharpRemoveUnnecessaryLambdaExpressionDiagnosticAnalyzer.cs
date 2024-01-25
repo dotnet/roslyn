@@ -232,10 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
                 preference.Notification,
-                additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
-                additionalUnnecessaryLocations: ImmutableArray.Create(
-                    syntaxTree.GetLocation(startReportSpan),
-                    syntaxTree.GetLocation(endReportSpan))));
+                additionalLocations: [anonymousFunction.GetLocation()],
+                additionalUnnecessaryLocations: [syntaxTree.GetLocation(startReportSpan), syntaxTree.GetLocation(endReportSpan)]));
         }
 
         private static bool OverloadsChanged(

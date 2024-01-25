@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // there are trivia attached to block
                     return (block.OpenBraceToken.GetAllTrivia().IsEmpty() && block.CloseBraceToken.GetAllTrivia().IsEmpty())
                         ? ImmutableArray<StatementSyntax>.Empty
-                        : ImmutableArray.Create<StatementSyntax>(block);
+                        : [block];
                 }
 
                 // okay transfer asset attached to block to statements
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
                 }
 
-                return ImmutableArray.Create<StatementSyntax>(SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value));
+                return [SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
             }
 
             public static ImmutableArray<StatementSyntax> RemoveDeclarationAssignmentPattern(ImmutableArray<StatementSyntax> statements)

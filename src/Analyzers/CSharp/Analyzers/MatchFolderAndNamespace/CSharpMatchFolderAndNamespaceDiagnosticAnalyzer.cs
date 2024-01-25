@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxKindsToAnalyze()
-            => ImmutableArray.Create(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
+            => [SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration];
     }
 }

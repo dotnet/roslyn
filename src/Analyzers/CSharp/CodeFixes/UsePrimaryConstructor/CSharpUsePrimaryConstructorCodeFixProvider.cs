@@ -36,7 +36,7 @@ using static SyntaxFactory;
 internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId);
+        => [IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId];
 
     public override FixAllProvider? GetFixAllProvider()
 #if CODE_STYLE

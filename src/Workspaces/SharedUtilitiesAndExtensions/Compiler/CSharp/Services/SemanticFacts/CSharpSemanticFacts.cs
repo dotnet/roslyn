@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var original = model.GetOriginalSemanticModel();
             if (!original.SyntaxTree.HasCompilationUnitRoot)
             {
-                return ImmutableHashSet.Create<string>();
+                return [];
             }
 
             var root = original.SyntaxTree.GetCompilationUnitRoot(cancellationToken);

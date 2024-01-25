@@ -193,14 +193,14 @@ internal class DefinitionContextTracker(
 
         if (result != null)
         {
-            return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.linePosition));
+            return [new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.linePosition)];
         }
         else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
         {
             var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
             var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
             var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-            return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
+            return [new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start)];
         }
 
         return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
