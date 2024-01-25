@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(elementType is { });
+            var elements = node.Elements;
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
@@ -189,13 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (!_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, BindingDiagnosticBag.Discarded))
+                if (!_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, elements, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
             }
 
-            var elements = node.Elements;
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {

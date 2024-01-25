@@ -785,8 +785,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !collectionCreation.HasErrors;
         }
 
-        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, ImmutableArray<BoundNode> elements, BindingDiagnosticBag diagnostics)
         {
+            if (elements.Length == 0)
+            {
+                // Add method is not required for empty collection expression.
+                return true;
+            }
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var elementPlaceholder = new BoundValuePlaceholder(syntax, elementType) { WasCompilerGenerated = true };
             var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
@@ -899,6 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind != CollectionExpressionTypeKind.None)
             {
+                var elements = node.Elements;
                 var elementType = elementTypeWithAnnotations.Type;
                 Debug.Assert(elementType is { });
 
@@ -909,13 +915,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportedErrors = true;
                     }
 
-                    if (!HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, diagnostics))
+                    if (!HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, elements, diagnostics))
                     {
                         reportedErrors = true;
                     }
                 }
 
-                var elements = node.Elements;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {
