@@ -283,7 +283,7 @@
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
-    When it updates its refereceing System.Data.SqlClient version this should be removed
+    When it updates its referenced System.Data.SqlClient version this should be removed
     -->
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <!--
