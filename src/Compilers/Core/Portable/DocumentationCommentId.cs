@@ -652,8 +652,13 @@ namespace Microsoft.CodeAnalysis
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
+
+                    // Containing symbol may be null in error cases.
+                    Debug.Assert(symbol.ContainingSymbol is null or INamedTypeSymbol or IMethodSymbol);
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
+                    Debug.Assert(!declarer.Failed);
+
                     _builder.Append(":");
                 }
 
