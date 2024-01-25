@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private sealed class ReferenceGenerator : SymbolVisitor
+        private class ReferenceGenerator : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder;
             private readonly ISymbol? _typeParameterContext;
@@ -556,29 +556,31 @@ namespace Microsoft.CodeAnalysis
 
             private void BuildDottedName(ISymbol symbol)
             {
-                if (symbol.ContainingSymbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
+                if (this.Visit(symbol.ContainingSymbol))
                 {
-                    this.Visit(symbol.ContainingSymbol);
-                    _builder.Append('.');
+                    _builder.Append(".");
                 }
 
                 _builder.Append(EncodeName(symbol.Name));
             }
 
-            public override void VisitAlias(IAliasSymbol symbol)
-                => symbol.Target.Accept(this);
+            public override bool VisitAlias(IAliasSymbol symbol)
+            {
+                return symbol.Target.Accept(this);
+            }
 
-            public override void VisitNamespace(INamespaceSymbol symbol)
+            public override bool VisitNamespace(INamespaceSymbol symbol)
             {
                 if (symbol.IsGlobalNamespace)
                 {
-                    return;
+                    return false;
                 }
 
                 this.BuildDottedName(symbol);
+                return true;
             }
 
-            public override void VisitNamedType(INamedTypeSymbol symbol)
+            public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
                 this.BuildDottedName(symbol);
 
@@ -606,14 +608,18 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("}");
                     }
                 }
+
+                return true;
             }
 
-            public override void VisitDynamicType(IDynamicTypeSymbol symbol)
+            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
             {
                 _builder.Append("System.Object");
+
+                return true;
             }
 
-            public override void VisitArrayType(IArrayTypeSymbol symbol)
+            public override bool VisitArrayType(IArrayTypeSymbol symbol)
             {
                 this.Visit(symbol.ElementType);
 
@@ -630,25 +636,24 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _builder.Append("]");
+
+                return true;
             }
 
-            public override void VisitPointerType(IPointerTypeSymbol symbol)
+            public override bool VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
                 _builder.Append("*");
+                return true;
             }
 
-            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+            public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
-
-                    // Containing symbol can be null for type parameters created in error scenarios.
-                    Debug.Assert(symbol.ContainingSymbol is null or INamedTypeSymbol or IMethodSymbol);
                     declarer.Visit(symbol.ContainingSymbol);
-                    Debug.Assert(!declarer.Failed, "Should always be able to write out a type parameter's containing type or method");
                     _builder.Append(":");
                 }
 
@@ -665,6 +670,8 @@ namespace Microsoft.CodeAnalysis
                     _builder.Append("`");
                     _builder.Append(b + symbol.Ordinal);
                 }
+
+                return true;
             }
 
             private bool IsInScope(ITypeParameterSymbol typeParameterSymbol)
