@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                return ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state, fallbackOptions));
+                return [new GenerateEnumMemberCodeAction(document, state, fallbackOptions)];
             }
         }
     }

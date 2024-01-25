@@ -97,7 +97,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
             {
-                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+                parameterTypeSymbols = [explicitLambdaParameterType];
             }
             else
             {

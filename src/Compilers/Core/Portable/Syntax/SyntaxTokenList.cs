@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxToken"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTokenList), methodName: "Create")]
     public readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
         private readonly SyntaxNode? _parent;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tokens">An array of tokens.</param>
         public SyntaxTokenList(params SyntaxToken[] tokens)
-            : this(null, CreateNode(tokens), 0, 0)
+            : this(null, CreateNodeFromSpan(tokens), 0, 0)
         {
         }
 
@@ -59,20 +61,28 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static GreenNode? CreateNode(SyntaxToken[] tokens)
+        public static SyntaxTokenList Create(ReadOnlySpan<SyntaxToken> tokens)
+        {
+            if (tokens.Length == 0)
+                return default;
+
+            if (tokens.Length == 1)
+                return new SyntaxTokenList(tokens[0]);
+
+            return new SyntaxTokenList(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
+        }
+
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
         {
             if (tokens == null)
-            {
                 return null;
-            }
 
-            // TODO: we could remove the unnecessary builder allocations here and go directly
-            // from the array to the List nodes.
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxTokenListBuilder(tokens.Length);
             for (int i = 0; i < tokens.Length; i++)
             {
                 var node = tokens[i].Node;
-                Debug.Assert(node is object);
+                Debug.Assert(node is not null);
                 builder.Add(node);
             }
 

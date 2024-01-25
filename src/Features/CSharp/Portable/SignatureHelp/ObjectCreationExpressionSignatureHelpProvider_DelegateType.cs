@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateTypePostambleParts(),
                 parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
 
-            return ImmutableArray.Create<SignatureHelpItem>(item);
+            return [item];
         }
 
         private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

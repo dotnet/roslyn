@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                     defaultExpression.GetLocation(),
                     preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(defaultExpression.SyntaxTree.GetLocation(fadeSpan))));
+                    additionalUnnecessaryLocations: [defaultExpression.SyntaxTree.GetLocation(fadeSpan)]));
         }
     }
 }

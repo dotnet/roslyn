@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // there are trivia attached to block
                     return (block.OpenBraceToken.GetAllTrivia().IsEmpty() && block.CloseBraceToken.GetAllTrivia().IsEmpty())
                         ? ImmutableArray<StatementSyntax>.Empty
-                        : ImmutableArray.Create<StatementSyntax>(block);
+                        : [block];
                 }
 
                 // okay transfer asset attached to block to statements
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // use type name from the first decl statement
                     yield return
                         SyntaxFactory.LocalDeclarationStatement(
-                            SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, SyntaxFactory.SeparatedList(variables)));
+                            SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
                 }
 
                 map.Clear();
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
                 }
 
-                return ImmutableArray.Create<StatementSyntax>(SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value));
+                return [SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
             }
 
             public static ImmutableArray<StatementSyntax> RemoveDeclarationAssignmentPattern(ImmutableArray<StatementSyntax> statements)
@@ -295,8 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
                 result.Add(declaration.WithDeclaration(
-                    declaration.Declaration.WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(variable))));
+                    declaration.Declaration.WithVariables([variable])));
                 result.AddRange(statements.Skip(2));
 
                 return result.ToImmutable();

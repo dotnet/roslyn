@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
+            : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }

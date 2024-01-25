@@ -59,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         private static readonly Guid s_resharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
         private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
 
-        private static readonly ImmutableArray<OptionKey2> s_statusOptions = ImmutableArray.Create<OptionKey2>(
-            new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus),
-            new OptionKey2(KeybindingResetOptionsStorage.NeedsReset));
+        private static readonly ImmutableArray<OptionKey2> s_statusOptions = [new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), new OptionKey2(KeybindingResetOptionsStorage.NeedsReset)];
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
@@ -217,9 +215,11 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                     break;
             }
 
-            _globalOptions.SetGlobalOptions(ImmutableArray.Create(
+            _globalOptions.SetGlobalOptions(
+            [
                 KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
-                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset)));
+                KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
+            ]);
 
             if (needsReset)
             {

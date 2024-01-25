@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Host
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
 
-            return ImmutableArray.Create(_metadataService.GetReference(path, properties));
+            return [_metadataService.GetReference(path, properties)];
         }
 
         public bool Equals(WorkspaceMetadataFileReferenceResolver other)

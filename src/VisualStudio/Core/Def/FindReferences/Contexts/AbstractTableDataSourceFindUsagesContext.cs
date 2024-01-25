@@ -489,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
                 => DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(TextTags.Text, message)));
+                    [new TaggedText(TextTags.Text, message)]);
 
             #endregion
 

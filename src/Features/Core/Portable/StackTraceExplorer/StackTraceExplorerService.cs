@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 {
                     if (document.FilePath == fileName)
                     {
-                        return ImmutableArray.Create(document);
+                        return [document];
                     }
 
                     else if (document.Name == documentName)

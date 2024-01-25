@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
         protected readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
                 leading: default,
                 SyntaxKind.PlusToken,
-                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(
-                    indentationOptions.FormattingOptions.NewLine)));
+                [SyntaxFactory.EndOfLine(
+                    indentationOptions.FormattingOptions.NewLine)]);
 
         protected int TabSize => IndentationOptions.FormattingOptions.TabSize;
         protected bool UseTabs => IndentationOptions.FormattingOptions.UseTabs;

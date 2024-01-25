@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
-                return ImmutableArray.Create(operation);
+                return [operation];
             }
 
             private async Task<CodeActionOperation?> GetChangeSolutionOperationAsync(bool isPreview, CancellationToken cancellationToken)

@@ -50,18 +50,16 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
 
         var variableDeclaration = VariableDeclaration(
             iteratorTypeSyntax,
-            variables: SingletonSeparatedList(
-                VariableDeclarator(iteratorVariable,
-                    argumentList: null,
-                    EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))))
+            variables: [VariableDeclarator(iteratorVariable,
+                argumentList: null,
+                EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))])
             .NormalizeWhitespace();
 
         return ForStatement(
             variableDeclaration,
-            SeparatedList<ExpressionSyntax>(),
+            initializers: [],
             BinaryExpression(ConditionKind, indexVariable, GenerateRightSideOfCondition(generator, inlineExpression)),
-            SingletonSeparatedList<ExpressionSyntax>(
-                PostfixUnaryExpression(IncrementorKind, indexVariable)),
+            [PostfixUnaryExpression(IncrementorKind, indexVariable)],
             Block());
 
         static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)

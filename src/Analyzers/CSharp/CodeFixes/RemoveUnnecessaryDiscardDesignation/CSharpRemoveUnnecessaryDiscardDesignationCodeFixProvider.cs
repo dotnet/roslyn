@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId);
+            => [IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

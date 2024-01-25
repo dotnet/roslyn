@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             var tempAnnotation = new SyntaxAnnotation();
             var escapedName = originalFieldName.EscapeIdentifier();
             var newIdentifier = SyntaxFactory.Identifier(
-                    leading: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker),
+                    leading: [SyntaxFactory.ElasticMarker],
                     contextualKind: SyntaxKind.IdentifierName,
                     text: escapedName,
                     valueText: originalFieldName,
-                    trailing: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
+                    trailing: [SyntaxFactory.ElasticMarker])
                 .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
                 .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
 
@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                     var modifiers = SpecializedCollections.SingletonEnumerable(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                                                             .Concat(fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind())));
 
-                    root = root.ReplaceNode(fieldSyntax, fieldSyntax.WithModifiers(
-                        SyntaxFactory.TokenList(modifiers))
-                            .WithAdditionalAnnotations(Formatter.Annotation)
-                            .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
-                            .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));
+                    root = root.ReplaceNode(fieldSyntax, fieldSyntax
+                        .WithModifiers([.. modifiers])
+                        .WithAdditionalAnnotations(Formatter.Annotation)
+                        .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
+                        .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));
                 }
             }
             else if (declaration.Variables.Count > 1 && makePrivate)

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private static Task<Document> FixWithSyntaxEditorAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
             => FixAllWithEditorAsync(
-                document, editor => FixAllAsync(document, ImmutableArray.Create(diagnostic), editor, cancellationToken), cancellationToken);
+                document, editor => FixAllAsync(document, [diagnostic], editor, cancellationToken), cancellationToken);
 
         private static void AddEdits(
             SyntaxEditor editor, SemanticModel semanticModel,

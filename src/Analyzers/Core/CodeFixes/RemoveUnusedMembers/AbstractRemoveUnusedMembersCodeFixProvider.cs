@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TFieldDeclarationSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId);
+            => [IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId];
 
         /// <summary>
         /// This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
