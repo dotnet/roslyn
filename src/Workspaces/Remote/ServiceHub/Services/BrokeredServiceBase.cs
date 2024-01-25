@@ -173,14 +173,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private sealed class ClientOptionsProvider<TOptions>(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> callback, RemoteServiceCallbackId callbackId) : OptionsProvider<TOptions>
-        {
-            private readonly RemoteOptionsProviderCache<TOptions> _cache = new(callback, callbackId);
-
-            public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-                => _cache.GetOptionsAsync(languageServices, cancellationToken);
-        }
-
         /// <summary>
         /// Use for on-demand retrieval of language-specific options from the client.
         /// 
@@ -190,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         protected static OptionsProvider<TOptions> GetClientOptionsProvider<TOptions, TCallback>(RemoteCallback<TCallback> callback, RemoteServiceCallbackId callbackId)
             where TCallback : class, IRemoteOptionsCallback<TOptions>
-           => new ClientOptionsProvider<TOptions>((callbackId, language, cancellationToken) => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
+           => new ClientOptionsProvider<TOptions, TCallback>(callback, callbackId);
 
         private static void SetNativeDllSearchDirectories()
         {
