@@ -450,11 +450,6 @@ Mostrar itens de namespaces não importados (experimental);</target>
         <target state="new">Only add new line on enter after end of fully typed word</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_take_effect_when_show_completion_list_after_a_character_is_typed_is_enabled">
-        <source>Only take effect when 'Show completion list after a character is typed' is enabled</source>
-        <target state="new">Only take effect when 'Show completion list after a character is typed' is enabled</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
         <target state="translated">Script do Visual C#</target>

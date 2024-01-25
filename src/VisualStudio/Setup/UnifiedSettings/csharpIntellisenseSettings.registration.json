@@ -1,6 +1,6 @@
 {
   "properties": {
-    "textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters": {
+    "textEditor.csharp.intellisense.dotnetTriggerCompletionOnTypingLetters": {
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -15,17 +15,13 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnDeletion": {
+    "textEditor.csharp.intellisense.dotnetTriggerCompletionOnDeletion": {
       "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
       "requiresRestart": false,
       "order": 1,
       "enableWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
-      "messages": [{
-        "text": "@Only_take_effect_when_show_completion_list_after_a_character_is_typed_is_enabled;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
-        "visibleWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='false'"
-      }],
       "migration": {
         "pass": {
           "input": {
@@ -35,7 +31,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetTriggerCompletionInArgumentLists": {
+    "textEditor.csharp.intellisense.dotnetTriggerCompletionInArgumentLists": {
       "title": "@Automatically_show_completion_list_in_argument_lists;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -50,7 +46,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetHighlightMatchingPortionsOfCompletionListItems": {
+    "textEditor.csharp.intellisense.dotnetHighlightMatchingPortionsOfCompletionListItems": {
       "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -65,7 +61,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetShowCompletionItemFilters": {
+    "textEditor.csharp.intellisense.dotnetShowCompletionItemFilters": {
       "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -80,7 +76,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.csharpCompleteStatementOnSemicolon": {
+    "textEditor.csharp.intellisense.csharpCompleteStatementOnSemicolon": {
       "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -95,7 +91,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetSnippetsBehavior": {
+    "textEditor.csharp.intellisense.dotnetSnippetsBehavior": {
       "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
       "enum": [ "default", "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
@@ -130,7 +126,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetReturnKeyCompletionBehavior": {
+    "textEditor.csharp.intellisense.dotnetReturnKeyCompletionBehavior": {
       "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
       "enum": [ "default", "never", "afterFullyTypedWord", "always" ],
@@ -165,7 +161,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetShowNameCompletionSuggestions": {
+    "textEditor.csharp.intellisense.dotnetShowNameCompletionSuggestions": {
       "title": "@Show_name_suggestions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -180,7 +176,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetShowCompletionItemsFromUnimportedNamespaces": {
+    "textEditor.csharp.intellisense.dotnetShowCompletionItemsFromUnimportedNamespaces": {
       "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
@@ -195,7 +191,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetEnableArgumentCompletionSnippets": {
+    "textEditor.csharp.intellisense.dotnetEnableArgumentCompletionSnippets": {
       "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -210,7 +206,7 @@
         }
       }
     },
-    "textEditor.csharp.intellisense.completion.dotnetShowNewSnippetExperience": {
+    "textEditor.csharp.intellisense.dotnetShowNewSnippetExperience": {
       "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
