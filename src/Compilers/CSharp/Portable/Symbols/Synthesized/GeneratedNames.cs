@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
                 SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
-                SynthesizedReadOnlyListKind.Singleton => "<>z__ReadOnlySingletonList",
+                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 

@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type is generated with a `T` field; used when collection expression has a single element.
         /// <code>
-        /// sealed class &lt;&gt;z__ReadOnlySingletonList&lt;T&gt; { private readonly T _item; }
+        /// sealed class &lt;&gt;z__ReadOnlySingleElementList&lt;T&gt; { private readonly T _item; }
         /// </code>
         /// </summary>
-        Singleton,
+        SingleElement,
         /// <summary>
         /// The type is generated with an array field; used when collection expression has a known length.
         /// <code>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// an array field or a T field when the collection contains only one element: [e0];
     /// otherwise the type is generated with a List&lt;T&gt; field.
     /// <code>
-    /// sealed class &lt;&gt;z__ReadOnlySingletonList&lt;T&gt; { private readonly T _item; }
+    /// sealed class &lt;&gt;z__ReadOnlySingleElementList&lt;T&gt; { private readonly T _item; }
     /// sealed class &lt;&gt;z__ReadOnlyArray&lt;T&gt; { private readonly T[] _items; }
     /// sealed class &lt;&gt;z__ReadOnlyList&lt;T&gt; { private readonly List&lt;T&gt; _items; }
     /// </code>
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly FieldSymbol _field;
         private readonly NamedTypeSymbol? _enumeratorType;
 
-        private bool IsSingleton => _field.Type.IsTypeParameter();
+        private bool IsSingleElement => _field.Type.IsTypeParameter();
         private bool IsArray => _field.Type.IsArray();
 
         private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, SynthesizedReadOnlyListKind kind, bool hasReadOnlyInterfaces)
@@ -273,14 +273,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbol fieldType = kind switch
             {
-                SynthesizedReadOnlyListKind.Singleton => typeParameter,
+                SynthesizedReadOnlyListKind.SingleElement => typeParameter,
                 SynthesizedReadOnlyListKind.Array => compilation.CreateArrayTypeSymbol(elementType: typeParameter),
                 SynthesizedReadOnlyListKind.List => compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArgs),
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 
-            _enumeratorType = kind == SynthesizedReadOnlyListKind.Singleton ? new SynthesizedReadOnlyListEnumeratorTypeSymbol(this, typeParameter) : null;
-            _field = new SynthesizedFieldSymbol(this, fieldType, kind == SynthesizedReadOnlyListKind.Singleton ? "_item" : "_items", isReadOnly: true);
+            _enumeratorType = kind == SynthesizedReadOnlyListKind.SingleElement ? new SynthesizedReadOnlyListEnumeratorTypeSymbol(this, typeParameter) : null;
+            _field = new SynthesizedFieldSymbol(this, fieldType, kind == SynthesizedReadOnlyListKind.SingleElement ? "_item" : "_items", isReadOnly: true);
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             var iCollection = compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             membersBuilder.Add(_field);
             membersBuilder.AddIfNotNull(_enumeratorType);
             membersBuilder.Add(
-                new SynthesizedReadOnlyListConstructor(this, fieldType, kind == SynthesizedReadOnlyListKind.Singleton ? "item" : "items"));
+                new SynthesizedReadOnlyListConstructor(this, fieldType, kind == SynthesizedReadOnlyListKind.SingleElement ? "item" : "items"));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     var enumeratorType = containingType._enumeratorType;
                     Debug.Assert(enumeratorType is not null);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static BoundStatement generateCount(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     // return 1;
                     return f.Return(
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     // return EqualityComparer<T>.Default.Equals(_item, param0);
                     return f.Return(
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameterReference0 = f.Parameter(method.Parameters[0]);
                 var parameterReference1 = f.Parameter(method.Parameters[1]);
                 BoundStatement statement;
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     if (!interfaceMethod.ContainingType.IsGenericType)
                     {
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     // if (param0 != 0)
                     //      throw new IndexOutOfRangeException();
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
-                if (containingType.IsSingleton)
+                if (containingType.IsSingleElement)
                 {
                     // return EqualityComparer<T>.Default.Equals(_item, param0) ? 0 : -1;
                     return f.Return(
@@ -774,9 +774,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.SymbolAsMember((NamedTypeSymbol)_field.Type);
         }
 
-        public static bool CanCreateSingleton(CSharpCompilation compilation)
+        public static bool CanCreateSingleElement(CSharpCompilation compilation)
         {
-            // only checking for additional well-known types and members used in the singleton implementation
+            // only checking for additional well-known types and members used in the single-element implementation
             return compilation.GetWellKnownType(WellKnownType.System_IndexOutOfRangeException) is not MissingMetadataTypeSymbol
                 && compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_EqualityComparer_T) is not MissingMetadataTypeSymbol
                 && compilation.GetWellKnownTypeMember(WellKnownMember.System_IndexOutOfRangeException__ctor) is not null

@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 [source, s_collectionExtensions],
-                expectedOutput: "(<>z__ReadOnlySingletonList<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlySingletonList<System.Int32>) [4], (<>z__ReadOnlySingletonList<System.Int32>) [5], ");
+                expectedOutput: "(<>z__ReadOnlySingleElementList<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlySingleElementList<System.Int32>) [4], (<>z__ReadOnlySingleElementList<System.Int32>) [5], ");
         }
 
         [Fact]
@@ -9920,7 +9920,7 @@ static class Program
                 {
                     verifyInterfaces(module, "<>z__ReadOnlyArray");
                     verifyInterfaces(module, "<>z__ReadOnlyList");
-                    verifyInterfaces(module, "<>z__ReadOnlySingletonList");
+                    verifyInterfaces(module, "<>z__ReadOnlySingleElementList");
                 });
             verifier.VerifyDiagnostics();
 
@@ -28082,7 +28082,7 @@ partial class Program
                 using System.Collections;
                 using System.Collections.Generic;
 
-                internal sealed class ReadOnlySingletonList<T> :
+                internal sealed class ReadOnlySingleElementList<T> :
                     IEnumerable,
                     ICollection,
                     IList,
@@ -28148,7 +28148,7 @@ partial class Program
                         }
                         set => throw new NotSupportedException();
                     }
-                    public ReadOnlySingletonList(T item) => _item = item;
+                    public ReadOnlySingleElementList(T item) => _item = item;
                     IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_item);
                     void ICollection.CopyTo(Array array, int index) => array.SetValue(_item, index);
                     int IList.Add(object value) => throw new NotSupportedException();
@@ -28175,14 +28175,14 @@ partial class Program
                 using System.Collections.Generic;
 
                 IEnumerable<int> x = [1];
-                ReadOnlySingletonList<int> y = new(1);
+                ReadOnlySingleElementList<int> y = new(1);
                 x.Report(includeType: true);
                 y.Report(includeType: true);
                 """;
 
             var compilation = CreateCompilation([s_collectionExtensions, singleton, source]);
             compilation.VerifyEmitDiagnostics();
-            string expectedOutput = "(<>z__ReadOnlySingletonList<System.Int32>) [1], (ReadOnlySingletonList<System.Int32>) [1], ";
+            string expectedOutput = "(<>z__ReadOnlySingleElementList<System.Int32>) [1], (ReadOnlySingleElementList<System.Int32>) [1], ";
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             verify(".ctor(T)");
@@ -28236,9 +28236,9 @@ partial class Program
 
             void verify(string memberName, string sourceName = null)
             {
-                string expectedIl = verifier.VisualizeIL($"ReadOnlySingletonList<T>.{sourceName ?? memberName}")
-                    .Replace("ReadOnlySingletonList<T>", "<>z__ReadOnlySingletonList<T>");
-                verifier.VerifyIL($"<>z__ReadOnlySingletonList<T>.{memberName}", expectedIl);
+                string expectedIl = verifier.VisualizeIL($"ReadOnlySingleElementList<T>.{sourceName ?? memberName}")
+                    .Replace("ReadOnlySingleElementList<T>", "<>z__ReadOnlySingleElementList<T>");
+                verifier.VerifyIL($"<>z__ReadOnlySingleElementList<T>.{memberName}", expectedIl);
             }
         }
 
@@ -28415,12 +28415,12 @@ partial class Program
                 [source, s_collectionExtensions],
                 symbolValidator: module =>
                 {
-                    var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlySingletonList");
-                    Assert.Equal("<>z__ReadOnlySingletonList<T>", synthesizedType.ToTestDisplayString());
-                    Assert.Equal("<>z__ReadOnlySingletonList`1", synthesizedType.MetadataName);
+                    var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlySingleElementList");
+                    Assert.Equal("<>z__ReadOnlySingleElementList<T>", synthesizedType.ToTestDisplayString());
+                    Assert.Equal("<>z__ReadOnlySingleElementList`1", synthesizedType.MetadataName);
                 },
                 expectedOutput: """
-                    IEnumerable.GetEnumerator(): (<>z__ReadOnlySingletonList<System.Int32>) [2], 
+                    IEnumerable.GetEnumerator(): (<>z__ReadOnlySingleElementList<System.Int32>) [2], 
                     ICollection.Count: 1
                     ICollection.IsSynchronized: False
                     ICollection.SyncRoot == (object)x: True
@@ -28438,7 +28438,7 @@ partial class Program
                     IList.Insert(0, value): System.NotSupportedException
                     IList.Remove(value): System.NotSupportedException
                     IList.RemoveAt(0): System.NotSupportedException
-                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlySingletonList<System.Int32>) [2], 
+                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlySingleElementList<System.Int32>) [2], 
                     IReadOnlyCollection<T>.Count: 1
                     IReadOnlyList<T>.this[0]: 2
                     IReadOnlyList<T>.this[1]: System.IndexOutOfRangeException
@@ -28456,7 +28456,7 @@ partial class Program
                     IList<T>.IndexOf(value): -1
                     IList<T>.Insert(0, value): System.NotSupportedException
                     IList<T>.RemoveAt(0): System.NotSupportedException
-                    IEnumerable.GetEnumerator(): (<>z__ReadOnlySingletonList<System.Int32>) [2], 
+                    IEnumerable.GetEnumerator(): (<>z__ReadOnlySingleElementList<System.Int32>) [2], 
                     ICollection.Count: 1
                     ICollection.IsSynchronized: False
                     ICollection.SyncRoot == (object)x: True
@@ -28474,7 +28474,7 @@ partial class Program
                     IList.Insert(0, value): System.NotSupportedException
                     IList.Remove(value): System.NotSupportedException
                     IList.RemoveAt(0): System.NotSupportedException
-                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlySingletonList<System.Int32>) [2], 
+                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlySingleElementList<System.Int32>) [2], 
                     IReadOnlyCollection<T>.Count: 1
                     IReadOnlyList<T>.this[0]: 2
                     IReadOnlyList<T>.this[1]: System.IndexOutOfRangeException

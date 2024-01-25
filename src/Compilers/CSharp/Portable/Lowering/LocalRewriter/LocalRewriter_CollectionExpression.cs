@@ -318,8 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeArgs = ImmutableArray.Create(elementType);
                     var kind = useKnownLength
-                        ? numberIncludingLastSpread == 0 && elements.Length == 1 && SynthesizedReadOnlyListTypeSymbol.CanCreateSingleton(_compilation)
-                            ? SynthesizedReadOnlyListKind.Singleton
+                        ? numberIncludingLastSpread == 0 && elements.Length == 1 && SynthesizedReadOnlyListTypeSymbol.CanCreateSingleElement(_compilation)
+                            ? SynthesizedReadOnlyListKind.SingleElement
                             : SynthesizedReadOnlyListKind.Array
                         : SynthesizedReadOnlyListKind.List;
                     var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, kind: kind, _diagnostics.DiagnosticBag).Construct(typeArgs);
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression fieldValue = kind switch
                     {
                         // fieldValue = e1;
-                        SynthesizedReadOnlyListKind.Singleton => this.VisitExpression((BoundExpression)elements.Single()),
+                        SynthesizedReadOnlyListKind.SingleElement => this.VisitExpression((BoundExpression)elements.Single()),
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         SynthesizedReadOnlyListKind.Array => CreateAndPopulateArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
