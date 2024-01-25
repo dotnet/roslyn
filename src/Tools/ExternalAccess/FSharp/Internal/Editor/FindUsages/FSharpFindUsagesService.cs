@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class FSharpFindUsagesService(IFSharpFindUsagesService service) : IFindUsagesService
     {
-        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
             => service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
 
-        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
             => service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
     }
 }

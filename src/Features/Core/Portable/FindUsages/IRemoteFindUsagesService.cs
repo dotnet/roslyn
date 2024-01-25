@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
     }
 
-    internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesContext context, OptionsProvider<ClassificationOptions> classificationOptions)
+    internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesContext context, IOptionsProvider<ClassificationOptions> classificationOptions)
     {
         private readonly Solution _solution = solution;
         private readonly IFindUsagesContext _context = context;
         private readonly Dictionary<int, DefinitionItem> _idToDefinition = [];
-        private readonly OptionsProvider<ClassificationOptions> _classificationOptions = classificationOptions;
+        private readonly IOptionsProvider<ClassificationOptions> _classificationOptions = classificationOptions;
 
         internal ValueTask<ClassificationOptions> GetClassificationOptionsAsync(string language, CancellationToken cancellationToken)
             => _classificationOptions.GetOptionsAsync(_solution.Services.GetLanguageServices(language), cancellationToken);

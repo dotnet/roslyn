@@ -24,7 +24,7 @@ internal sealed record class LineFormattingOptions
 
 internal interface LineFormattingOptionsProvider
 #if !CODE_STYLE
-    : OptionsProvider<LineFormattingOptions>
+    : IOptionsProvider<LineFormattingOptions>
 #endif
 {
 }

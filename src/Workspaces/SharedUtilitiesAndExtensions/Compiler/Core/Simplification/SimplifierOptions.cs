@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
     internal interface SimplifierOptionsProvider
 #if !CODE_STYLE
-        : OptionsProvider<SimplifierOptions>
+        : IOptionsProvider<SimplifierOptions>
 #endif
     {
     }

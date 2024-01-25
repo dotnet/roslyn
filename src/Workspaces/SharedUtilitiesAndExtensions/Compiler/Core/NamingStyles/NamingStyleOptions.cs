@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal interface NamingStylePreferencesProvider
 #if !CODE_STYLE
-        : OptionsProvider<NamingStylePreferences>
+        : IOptionsProvider<NamingStylePreferences>
 #endif
     {
     }

@@ -41,7 +41,7 @@ internal sealed record class AddImportPlacementOptions
 
 internal interface AddImportPlacementOptionsProvider
 #if !CODE_STYLE
-    : OptionsProvider<AddImportPlacementOptions>
+    : IOptionsProvider<AddImportPlacementOptions>
 #endif
 {
 }

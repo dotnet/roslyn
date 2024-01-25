@@ -24,7 +24,7 @@ internal sealed record class DocumentFormattingOptions
 
 internal interface DocumentFormattingOptionsProvider
 #if !CODE_STYLE
-    : OptionsProvider<DocumentFormattingOptions>
+    : IOptionsProvider<DocumentFormattingOptions>
 #endif
 {
 }

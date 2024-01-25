@@ -67,16 +67,16 @@ internal readonly record struct CodeAndImportGenerationOptions
 
     private sealed class Provider(CodeAndImportGenerationOptions options) : CodeAndImportGenerationOptionsProvider
     {
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeAndImportGenerationOptions> IOptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options);
 
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeGenerationOptions> IOptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GenerationOptions);
 
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<NamingStylePreferences> IOptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GenerationOptions.NamingStyle);
 
-        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<AddImportPlacementOptions> IOptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.AddImportOptions);
     }
 #endif
@@ -84,7 +84,7 @@ internal readonly record struct CodeAndImportGenerationOptions
 
 internal interface CodeGenerationOptionsProvider :
 #if !CODE_STYLE
-    OptionsProvider<CodeGenerationOptions>,
+    IOptionsProvider<CodeGenerationOptions>,
 #endif
     NamingStylePreferencesProvider
 {
@@ -92,7 +92,7 @@ internal interface CodeGenerationOptionsProvider :
 
 internal interface CodeAndImportGenerationOptionsProvider :
 #if !CODE_STYLE
-    OptionsProvider<CodeAndImportGenerationOptions>,
+    IOptionsProvider<CodeAndImportGenerationOptions>,
 #endif
     CodeGenerationOptionsProvider,
     AddImportPlacementOptionsProvider
@@ -126,7 +126,7 @@ internal static class CodeGenerationOptionsProviders
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetCodeGenerationOptionsAsync(document, await ((IOptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
     {

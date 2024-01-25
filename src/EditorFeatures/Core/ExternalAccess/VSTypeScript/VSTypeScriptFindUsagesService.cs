@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     {
         private readonly IVSTypeScriptFindUsagesService _underlyingService = underlyingService;
 
-        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
             => _underlyingService.FindReferencesAsync(document, position, new Context(context), cancellationToken);
 
-        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
             => _underlyingService.FindImplementationsAsync(document, position, new Context(context), cancellationToken);
 
         private sealed class Context(IFindUsagesContext context) : IVSTypeScriptFindUsagesContext

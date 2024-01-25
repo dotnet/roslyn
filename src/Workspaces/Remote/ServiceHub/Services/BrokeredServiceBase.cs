@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// its ICallback interface should implement <see cref="IRemoteOptionsCallback{TOptions}"/> and use this
         /// method to create the options provider to be passed to the feature implementation.
         /// </summary>
-        protected static OptionsProvider<TOptions> GetClientOptionsProvider<TOptions, TCallback>(RemoteCallback<TCallback> callback, RemoteServiceCallbackId callbackId)
+        protected static IOptionsProvider<TOptions> GetClientOptionsProvider<TOptions, TCallback>(RemoteCallback<TCallback> callback, RemoteServiceCallbackId callbackId)
             where TCallback : class, IRemoteOptionsCallback<TOptions>
            => new ClientOptionsProvider<TOptions, TCallback>(callback, callbackId);
 

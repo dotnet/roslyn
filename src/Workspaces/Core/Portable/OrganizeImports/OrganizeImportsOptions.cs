@@ -27,7 +27,7 @@ internal readonly record struct OrganizeImportsOptions
     public static readonly OrganizeImportsOptions Default = new();
 }
 
-internal interface OrganizeImportsOptionsProvider : OptionsProvider<OrganizeImportsOptions>
+internal interface OrganizeImportsOptionsProvider : IOptionsProvider<OrganizeImportsOptions>
 {
 }
 

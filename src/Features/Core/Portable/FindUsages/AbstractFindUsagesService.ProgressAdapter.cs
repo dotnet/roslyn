@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <see cref="IFindUsagesContext"/> instance.
         /// </summary>
         private sealed class FindLiteralsProgressAdapter(
-            IFindUsagesContext context, OptionsProvider<ClassificationOptions> classificationOptions, DefinitionItem definition) : IStreamingFindLiteralReferencesProgress
+            IFindUsagesContext context, IOptionsProvider<ClassificationOptions> classificationOptions, DefinitionItem definition) : IStreamingFindLiteralReferencesProgress
         {
             private readonly IFindUsagesContext _context = context;
             private readonly DefinitionItem _definition = definition;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
         private sealed class FindReferencesProgressAdapter(
-            Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions) : IStreamingFindReferencesProgress
+            Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, IOptionsProvider<ClassificationOptions> classificationOptions) : IStreamingFindReferencesProgress
         {
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll

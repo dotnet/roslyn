@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                     baseConstructor.Parameters.All(p => p.IsOptional || p.IsParams));
         }
 
-        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);

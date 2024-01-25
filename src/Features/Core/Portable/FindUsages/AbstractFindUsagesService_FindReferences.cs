@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         async Task IFindUsagesService.FindReferencesAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         Task IFindUsagesLSPService.FindReferencesAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             // We don't need to get third party definitions when finding references in LSP.
             // Currently, 3rd party definitions = XAML definitions, and XAML will provide
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static async Task FindLiteralOrSymbolReferencesAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
             // the same value.
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static async Task FindSymbolReferencesAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
                 string.Format(FeaturesResources._0_references,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ISymbol symbol,
             Project project,
             FindReferencesSearchOptions searchOptions,
-            OptionsProvider<ClassificationOptions> classificationOptions,
+            IOptionsProvider<ClassificationOptions> classificationOptions,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ISymbol symbol,
             Project project,
             FindReferencesSearchOptions searchOptions,
-            OptionsProvider<ClassificationOptions> classificationOptions,
+            IOptionsProvider<ClassificationOptions> classificationOptions,
             CancellationToken cancellationToken)
         {
             var progress = new FindReferencesProgressAdapter(project.Solution, context, searchOptions, classificationOptions);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static async Task<bool> TryFindLiteralReferencesAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

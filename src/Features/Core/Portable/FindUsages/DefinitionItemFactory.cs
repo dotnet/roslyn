@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            OptionsProvider<ClassificationOptions> classificationOptions,
+            IOptionsProvider<ClassificationOptions> classificationOptions,
             Solution solution,
             FindReferencesSearchOptions options,
             bool isPrimary,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this SymbolGroup group,
-            OptionsProvider<ClassificationOptions> classificationOptions,
+            IOptionsProvider<ClassificationOptions> classificationOptions,
             Solution solution,
             FindReferencesSearchOptions options,
             bool isPrimary,
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return source.ToImmutableAndClear();
         }
 
-        private static ValueTask<ImmutableArray<ClassifiedSpansAndHighlightSpan?>> ClassifyDocumentSpansAsync(OptionsProvider<ClassificationOptions> optionsProvider, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
+        private static ValueTask<ImmutableArray<ClassifiedSpansAndHighlightSpan?>> ClassifyDocumentSpansAsync(IOptionsProvider<ClassificationOptions> optionsProvider, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
             => unclassifiedSpans.SelectAsArrayAsync(static async (documentSpan, optionsProvider, cancellationToken) =>
             {
                 var options = await optionsProvider.GetOptionsAsync(documentSpan.Document.Project.Services, cancellationToken).ConfigureAwait(false);
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
-            OptionsProvider<ClassificationOptions> optionsProvider,
+            IOptionsProvider<ClassificationOptions> optionsProvider,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,
             CancellationToken cancellationToken)

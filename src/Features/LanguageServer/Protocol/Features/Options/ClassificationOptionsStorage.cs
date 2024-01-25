@@ -17,7 +17,7 @@ internal static class ClassificationOptionsStorage
             // ForceFrozenPartialSemanticsForCrossProcessOperations not stored in global options
         };
 
-    public static OptionsProvider<ClassificationOptions> GetClassificationOptionsProvider(this IOptionsReader globalOptions)
+    public static IOptionsProvider<ClassificationOptions> GetClassificationOptionsProvider(this IOptionsReader globalOptions)
         => globalOptions.GetProvider(GetClassificationOptions);
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
