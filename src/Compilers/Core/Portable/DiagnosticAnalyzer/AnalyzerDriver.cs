@@ -1151,24 +1151,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
             {
-                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ArrayBuilder<Suppression>>.GetInstance();
+
                 foreach (var programmaticSuppression in programmaticSuppressions)
                 {
-                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
+                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var array))
                     {
-                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
-                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
+                        array = ArrayBuilder<Suppression>.GetInstance();
+                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, array);
                     }
 
-                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                    if (!array.Contains(programmaticSuppression))
+                        array.Add(programmaticSuppression);
                 }
 
                 var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
                 foreach (var (diagnostic, set) in programmaticSuppressionsBuilder)
                 {
-                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutable()));
+                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutableAndFree()));
                 }
 
+                programmaticSuppressionsBuilder.Free();
                 return mapBuilder.ToImmutable();
             }
         }

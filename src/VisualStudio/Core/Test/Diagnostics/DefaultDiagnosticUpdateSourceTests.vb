@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -38,6 +39,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
@@ -84,6 +87,9 @@ class A
                        </code>
 
             Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -162,6 +168,9 @@ class A
                        </code>
 
             Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
@@ -234,7 +243,11 @@ class A
             Dim code = <code>
 class 123 { }
                        </code>
+
             Using workspace = EditorTestWorkspace.CreateCSharp(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -263,7 +276,11 @@ class 123 { }
 Class 123
 End Class
                        </code>
+
             Using workspace = EditorTestWorkspace.CreateVisualBasic(code.Value, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments:=True)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -306,6 +323,9 @@ End Class
                 GetType(NoCompilationContentTypeDefinitions))
 
             Using workspace = EditorTestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=composition)
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 

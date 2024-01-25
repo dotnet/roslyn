@@ -445,11 +445,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
 
             var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-            var tags = aggregator
-                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Cast<IMappingTagSpan<ITag>>();
+            var tags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
 
-            return tags.SelectAsArray(tag => (new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (TTag)tag.Tag)));
+            return tags.SelectAsArray(tag => new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), tag.Tag));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
