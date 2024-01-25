@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
 
         private static SyntaxNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
         {
-            if (nodesAndTokens == null)
+            if (nodesAndTokens == default)
                 throw new ArgumentNullException(nameof(nodesAndTokens));
 
             switch (nodesAndTokens.Length)
