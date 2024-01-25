@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 #if COMPILERCORE
 using Roslyn.Utilities;
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private readonly ImmutableArray<T>.Builder _builder;
 
         private readonly ObjectPool<ArrayBuilder<T>>? _pool;
+        private static ArrayBuilder<T>? s_emptyBuilder = null;
 
         public ArrayBuilder(int size)
         {
@@ -404,13 +406,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
                 if (_builder.Capacity < PooledArrayLengthLimitExclusive)
                 {
-                    if (this.Count != 0)
+                    if (_builder.Capacity == 0 && s_emptyBuilder == null)
                     {
-                        this.Clear();
+                        s_emptyBuilder = this;
                     }
+                    else
+                    {
+                        if (this.Count != 0)
+                        {
+                            this.Clear();
+                        }
 
-                    pool.Free(this);
-                    return;
+                        pool.Free(this);
+                    }
                 }
                 else
                 {
@@ -431,15 +439,20 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static ArrayBuilder<T> GetInstance(int capacity)
         {
-            var builder = GetInstance();
+            var builder = s_emptyBuilder;
+            if (builder == null ||
+                builder != Interlocked.CompareExchange(ref s_emptyBuilder, null, builder))
+            {
+                builder = GetInstance();
+            }
+
             builder.EnsureCapacity(capacity);
             return builder;
         }
 
         public static ArrayBuilder<T> GetInstance(int capacity, T fillWithValue)
         {
-            var builder = GetInstance();
-            builder.EnsureCapacity(capacity);
+            var builder = GetInstance(capacity);
 
             for (var i = 0; i < capacity; i++)
             {
