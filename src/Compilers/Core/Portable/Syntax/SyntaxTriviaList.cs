@@ -77,11 +77,9 @@ namespace Microsoft.CodeAnalysis
 
         private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxTrivia> trivias)
         {
-            if (trivias == null)
-                return null;
-
             switch (trivias.Length)
             {
+                // Also handles case where trivias is `null`.
                 case 0: return null;
                 case 1: return trivias[0].UnderlyingNode!;
                 case 2: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!);

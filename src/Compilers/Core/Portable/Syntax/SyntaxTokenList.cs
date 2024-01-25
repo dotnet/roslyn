@@ -71,11 +71,9 @@ namespace Microsoft.CodeAnalysis
 
         private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
         {
-            if (tokens == null)
-                return null;
-
             switch (tokens.Length)
             {
+                // Also handles case where tokens is `null`.
                 case 0: return null;
                 case 1: return tokens[0].Node;
                 case 2: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!);
