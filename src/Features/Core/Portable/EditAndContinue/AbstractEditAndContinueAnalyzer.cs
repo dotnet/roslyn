@@ -5344,7 +5344,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var member in type.GetMembers())
             {
                 if (member.IsStatic == isStatic &&
-                    (member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property) &&
+                    member.Kind is SymbolKind.Field or SymbolKind.Property &&
                     member.DeclaringSyntaxReferences.Length > 0) // skip generated fields (e.g. VB auto-property backing fields)
                 {
                     var syntax = GetSymbolDeclarationSyntax(member, cancellationToken);

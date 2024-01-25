@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.GenericName) && TrySimplify(node))
+            if (TrySimplify(node))
             {
                 // found a match. report it and stop processing.
                 return;

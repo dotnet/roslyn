@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
-            var generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+            var generatorDriver = project.Solution.CompilationState.GetTestAccessor().GetGeneratorDriver(project)!;
 
             var runResult = generatorDriver!.GetRunResult().Results[0];
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             project = project.AdditionalDocuments.First().WithAdditionalDocumentText(SourceText.From("Changed text!")).Project;
 
             compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
-            generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+            generatorDriver = project.Solution.CompilationState.GetTestAccessor().GetGeneratorDriver(project)!;
             runResult = generatorDriver.GetRunResult().Results[0];
 
             Assert.Equal(2, compilation.SyntaxTrees.Count());
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             project = project.AddDocument("Source.cs", SourceText.From("")).Project;
 
             compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
-            generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+            generatorDriver = project.Solution.CompilationState.GetTestAccessor().GetGeneratorDriver(project)!;
             runResult = generatorDriver.GetRunResult().Results[0];
 
             // We have one extra syntax tree now, but it did not require any invocations of the incremental generator.

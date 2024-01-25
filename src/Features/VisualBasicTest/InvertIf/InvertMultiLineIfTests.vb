@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
     <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertMultiLineIfTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInvertMultiLineIfCodeRefactoringProvider()
         End Function
 
@@ -549,7 +550,7 @@ End Module")
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529748")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
-        <WpfFact(Skip:="Bug 530593")>
+        <Fact(Skip:="Bug 530593")>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -607,7 +608,7 @@ End Module")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
-        <WpfFact(Skip:="531474")>
+        <Fact(Skip:="531474")>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
 <File>

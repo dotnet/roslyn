@@ -157,6 +157,11 @@
         <target state="translated">Использовать удаленный локальный оператор</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="translated">{0} (может изменить семантику)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

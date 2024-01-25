@@ -22,8 +22,9 @@
     <!--
       ⚠ ONLY ASP.NET CORE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Analyzers" Key="$(AspNetCoreKey)" />
+    <!-- TODO: Remove Microsoft.AspNetCore.App.Analyzers once types referencing this assembly complete their move to the CodeFixes assembly -->
     <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.CodeFixes" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers.Test" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.UnitTests" />
   </ItemGroup>
