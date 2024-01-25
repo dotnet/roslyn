@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             ImmutableArray<T> result;
             if (Count == 0)
             {
-                result = [];
+                result = ImmutableArray<T>.Empty;
             }
             else if (_builder.Capacity == Count)
             {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             if (Count == 0)
             {
-                return [];
+                return ImmutableArray<U>.Empty;
             }
 
             var tmp = ArrayBuilder<U>.GetInstance(Count);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             ImmutableArray<T> result;
             if (Count == 0)
             {
-                result = [];
+                result = ImmutableArray<T>.Empty;
             }
             else if (_builder.Capacity == Count)
             {

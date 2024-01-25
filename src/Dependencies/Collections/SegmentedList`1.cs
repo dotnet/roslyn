@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if (_size == 0)
             {
-                return [];
+                return Array.Empty<T>();
             }
 
             var array = new T[_size];
