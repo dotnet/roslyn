@@ -72,9 +72,6 @@ namespace Microsoft.CodeAnalysis
             if (trivias.Length == 0)
                 return default;
 
-            if (trivias.Length == 1)
-                return new SyntaxTriviaList(trivias[0]);
-
             return new SyntaxTriviaList(token: default, CreateNodeFromSpan(trivias), position: 0, index: 0);
         }
 
@@ -83,10 +80,21 @@ namespace Microsoft.CodeAnalysis
             if (trivias == null)
                 return null;
 
-            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
-            var builder = new SyntaxTriviaListBuilder(trivias.Length);
-            builder.Add(trivias);
-            return builder.ToList().Node;
+            switch (trivias.Length)
+            {
+                case 0: return null;
+                case 1: return trivias[0].UnderlyingNode!;
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!);
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!, trivias[2].UnderlyingNode!);
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[trivias.Length];
+                        for (int i = 0, n = trivias.Length; i < n; i++)
+                            copy[i].Value = trivias[i].UnderlyingNode!;
+
+                        return Syntax.InternalSyntax.SyntaxList.List(copy);
+                    }
+            }
         }
 
         internal SyntaxToken Token { get; }
