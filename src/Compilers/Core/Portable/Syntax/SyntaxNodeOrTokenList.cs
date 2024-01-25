@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public SyntaxNodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
-            : this(CreateNode(nodesAndTokens), 0)
+            : this(CreateNodeFromIEnumerable(nodesAndTokens), 0)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public SyntaxNodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
-            : this((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens)
+            : this(CreateNodeFromSpan(nodesAndTokens), 0)
         {
         }
 
@@ -70,27 +70,23 @@ namespace Microsoft.CodeAnalysis
             if (nodesAndTokens.Length == 0)
                 return default;
 
-            return new SyntaxNodeOrTokenList(CreateNode(nodesAndTokens), index: 0);
+            return new SyntaxNodeOrTokenList(CreateNodeFromSpan(nodesAndTokens), index: 0);
         }
 
-        private static SyntaxNode? CreateNode(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        private static SyntaxNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
-            {
                 throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
 
             var builder = new SyntaxNodeOrTokenListBuilder(nodesAndTokens.Length);
             builder.Add(nodesAndTokens);
             return builder.ToList().Node;
         }
 
-        private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
+        private static SyntaxNode? CreateNodeFromIEnumerable(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
-            {
                 throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
             builder.Add(nodesAndTokens);
