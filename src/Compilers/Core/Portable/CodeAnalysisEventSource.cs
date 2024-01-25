@@ -39,19 +39,24 @@ namespace Microsoft.CodeAnalysis
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
         {
-            Span<EventData> data = stackalloc EventData[]
-            {
-                GetEventDataForString(generatorName),
-                GetEventDataForString(assemblyPath),
-                GetEventDataForLong(elapsedTicks),
-                GetEventDataForString(id),
-            };
-
             unsafe
             {
-                fixed (EventSource.EventData* dataPtr = data)
+                fixed (char* generatorNameBytes = generatorName)
+                fixed (char* assemblyPathBytes = assemblyPath)
+                fixed (char* idBytes = id)
                 {
-                    WriteEventCore(eventId: 4, data.Length, dataPtr);
+                    Span<EventData> data = stackalloc EventData[]
+                    {
+                        GetEventDataForString(generatorName, generatorNameBytes),
+                        GetEventDataForString(assemblyPath, assemblyPathBytes),
+                        GetEventDataForLong(&elapsedTicks),
+                        GetEventDataForString(id, idBytes),
+                    };
+
+                    fixed (EventSource.EventData* dataPtr = data)
+                    {
+                        WriteEventCore(eventId: 4, data.Length, dataPtr);
+                    }
                 }
             }
         }
@@ -62,54 +67,63 @@ namespace Microsoft.CodeAnalysis
         [Event(6, Message = "Node {0} transformed", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
         internal void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2)
         {
-            Span<EventData> data = stackalloc EventData[]
-            {
-                GetEventDataForInt(nodeHashCode),
-                GetEventDataForString(name),
-                GetEventDataForString(tableType),
-                GetEventDataForInt(previousTable),
-                GetEventDataForString(previousTableContent),
-                GetEventDataForInt(newTable),
-                GetEventDataForString(newTableContent),
-                GetEventDataForInt(input1),
-                GetEventDataForInt(input2),
-            };
-
             unsafe
             {
-                fixed (EventSource.EventData* dataPtr = data)
+                fixed (char* nameBytes = name)
+                fixed (char* tableTypeBytes = tableType)
+                fixed (char* previousTableContentBytes = previousTableContent)
+                fixed (char* newTableContentBytes = newTableContent)
                 {
-                    WriteEventCore(eventId: 6, data.Length, dataPtr);
+                    Span<EventData> data = stackalloc EventData[]
+                    {
+                        GetEventDataForInt(&nodeHashCode),
+                        GetEventDataForString(name, nameBytes),
+                        GetEventDataForString(tableType, tableTypeBytes),
+                        GetEventDataForInt(&previousTable),
+                        GetEventDataForString(previousTableContent, previousTableContentBytes),
+                        GetEventDataForInt(&newTable),
+                        GetEventDataForString(newTableContent, newTableContentBytes),
+                        GetEventDataForInt(&input1),
+                        GetEventDataForInt(&input2),
+                    };
+
+                    fixed (EventSource.EventData* dataPtr = data)
+                    {
+                        WriteEventCore(eventId: 6, data.Length, dataPtr);
+                    }
                 }
             }
         }
 
-        private static unsafe EventData GetEventDataForString(string value)
+        private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
-            fixed (char* ptr = value)
+            fixed (char* ptr2 = value)
             {
-                return new EventData()
-                {
-                    DataPointer = (IntPtr)ptr,
-                    Size = (value.Length + 1) * sizeof(char),
-                };
+                if (ptr2 != ptr)
+                    throw new ArgumentException("Pinned value must match string.");
             }
+
+            return new EventData()
+            {
+                DataPointer = (IntPtr)ptr,
+                Size = (value.Length + 1) * sizeof(char),
+            };
         }
 
-        private static EventData GetEventDataForInt(int value)
+        private static unsafe EventData GetEventDataForInt(int* ptr)
         {
             return new EventData()
             {
-                DataPointer = (IntPtr)value,
+                DataPointer = (IntPtr)ptr,
                 Size = sizeof(int),
             };
         }
 
-        private static EventData GetEventDataForLong(long value)
+        private static unsafe EventData GetEventDataForLong(long* ptr)
         {
             return new EventData()
             {
-                DataPointer = (IntPtr)value,
+                DataPointer = (IntPtr)ptr,
                 Size = sizeof(long),
             };
         }
