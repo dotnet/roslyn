@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public SyntaxNodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
-            : this(CreateNodeFromIEnumerable(nodesAndTokens), 0)
+            : this(CreateNode(nodesAndTokens), 0)
         {
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToList().Node;
         }
 
-        private static SyntaxNode? CreateNodeFromIEnumerable(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
+        private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
                 throw new ArgumentNullException(nameof(nodesAndTokens));
