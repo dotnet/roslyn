@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (symbol.TypeParameters.Length > 0)
                     {
-                        _builder.Append('`');
+                        _builder.Append("`");
                         _builder.Append(symbol.TypeParameters.Length);
                     }
                 }
