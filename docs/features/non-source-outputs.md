@@ -2,11 +2,11 @@
 
 ## Summary
 
-This proposal adds a mechanism that allows [incremental generators](incremental-generators.md) to output non-source artifacts, that is, text or binary files that are emitted to disk alongside the compiled assembly.
+This proposal adds a mechanism that allows [incremental generators](incremental-generators.md) to output non-source artifacts. This would allow for text or binary files to be emitted to disk alongside the compiled assembly.
 
 ### Rationale
 
-There exists a desire for incremental source generators be able to write out a set of accompanying files, alongside the generated sources that they add to the compilation. An example of this is JavaScript interop with .NET code. When exposing a .NET method to JavaScript today it is possible to generate the C# interop source code that enables the call to be made from JavaScript, but the user must still hand author the corresponding JavaScript code. Instead, with this feature the incremental generator could emit both the required C# code alongside a JavaScript file that provides the equivalent JavaScript interop code.
+There exists a desire for incremental source generators be able to write out a set of accompanying files, alongside the generated sources that they add to the compilation. An example of this is JavaScript interop with .NET code. When exposing a .NET method to JavaScript today it is possible to generate the C# interop source code that enables the call to be made from JavaScript, but the user must still hand author the corresponding JavaScript code. Instead, the incremental generator could emit the required C# code alongside a JavaScript file that provides the equivalent JavaScript interop code.
 
 ### High Level Design Goals
 
