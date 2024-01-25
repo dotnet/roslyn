@@ -7,7 +7,8 @@
 
 [CmdletBinding()]
 param (
-    [string]$ArtifactNameSuffix
+    [string]$ArtifactNameSuffix,
+    [switch]$AvoidSymbolicLinks
 )
 
 $ArtifactStagingFolder = & "$PSScriptRoot/../Get-ArtifactsStagingDirectory.ps1" -CleanIfLocal
@@ -48,7 +49,12 @@ $Artifacts |% {
 
     if (-not (Test-Path $DestinationFolder)) { New-Item -ItemType Directory -Path $DestinationFolder | Out-Null }
     if (Test-Path -PathType Leaf $_.Source) { # skip folders
-        Create-SymbolicLink -Link (Join-Path $DestinationFolder $Name) -Target $_.Source
+        $TargetPath = Join-Path $DestinationFolder $Name
+        if ($AvoidSymbolicLinks) {
+            Copy-Item -Path $_.Source -Destination $TargetPath
+        } else {
+            Create-SymbolicLink -Link $TargetPath -Target $_.Source
+        }
     }
 }
 
