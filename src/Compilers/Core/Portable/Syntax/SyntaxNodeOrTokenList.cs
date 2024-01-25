@@ -78,10 +78,24 @@ namespace Microsoft.CodeAnalysis
             if (nodesAndTokens == null)
                 throw new ArgumentNullException(nameof(nodesAndTokens));
 
-            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
-            var builder = new SyntaxNodeOrTokenListBuilder(nodesAndTokens.Length);
-            builder.Add(nodesAndTokens);
-            return builder.ToList().Node;
+            switch (nodesAndTokens.Length)
+            {
+                case 0: return null;
+                case 1:
+                    return nodesAndTokens[0].IsToken
+                        ? Syntax.InternalSyntax.SyntaxList.List([nodesAndTokens[0].UnderlyingNode]).CreateRed()
+                        : nodesAndTokens[0].AsNode();
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!).CreateRed();
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!).CreateRed();
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[nodesAndTokens.Length];
+                        for (int i = 0, n = nodesAndTokens.Length; i < n; i++)
+                            copy[i].Value = nodesAndTokens[i].UnderlyingNode!;
+
+                        return Syntax.InternalSyntax.SyntaxList.List(copy).CreateRed();
+                    }
+            }
         }
 
         private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
