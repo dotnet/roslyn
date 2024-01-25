@@ -79,14 +79,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
-            => CreateNode(trivias.AsSpan());
+            => CreateNode((ReadOnlySpan<SyntaxTrivia>)trivias);
 
         private static GreenNode? CreateNode(ReadOnlySpan<SyntaxTrivia> trivias)
         {
             if (trivias == null)
-            {
                 return null;
-            }
 
             var builder = new SyntaxTriviaListBuilder(trivias.Length);
             builder.Add(trivias);
