@@ -268,8 +268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
-        <source>A lock statement scope type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement scope type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -2568,13 +2568,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
-        <source>A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
-        <source>A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to another type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

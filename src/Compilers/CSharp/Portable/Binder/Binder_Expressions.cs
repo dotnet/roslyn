@@ -3189,7 +3189,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, errorCode, syntax, type);
+                if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
+                {
+                    Error(diagnostics, errorCode, syntax);
+                }
+                else
+                {
+                    Error(diagnostics, errorCode, syntax, type);
+                }
             }
         }
 
