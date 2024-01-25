@@ -2,7 +2,7 @@
 
 ## Summary
 
-This proposal adds a mechanism that allows [incremental generators](incremental-generators.md) to output non-source artifacts, that is, text or binary files that are emitted to disk alongside the compiled assembly.
+This proposal adds a mechanism that allows [incremental generators](incremental-generators.md) to output non-source artifacts. This would allow for text or binary files to be emitted to disk alongside the compiled assembly.
 
 ### Rationale
 
