@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// sealed class &lt;&gt;z__ReadOnlyList&lt;T&gt; { private readonly List&lt;T&gt; _items; }
     /// </code>
     /// </summary>
-    internal sealed partial class SynthesizedReadOnlyListTypeSymbol : NamedTypeSymbol
+    internal sealed class SynthesizedReadOnlyListTypeSymbol : NamedTypeSymbol
     {
         private static readonly SpecialType[] s_requiredSpecialTypes = new[]
         {
