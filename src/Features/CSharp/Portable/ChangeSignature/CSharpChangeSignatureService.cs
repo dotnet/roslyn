@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = UpdateDeclaration(SeparatedList(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    var updatedParameters = UpdateDeclaration([lambda.Parameter], signaturePermutation, CreateNewParameterSyntax);
                     return ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
                         ParameterList(updatedParameters),
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     permutedParams.Add(XmlElement(
                         XmlElementStartTag(
                             XmlName("param"),
-                            List<XmlAttributeSyntax>(new[] { XmlNameAttribute(parameter.Name) })),
+                            [XmlNameAttribute(parameter.Name)]),
                         XmlElementEndTag(XmlName("param"))));
                 }
             }

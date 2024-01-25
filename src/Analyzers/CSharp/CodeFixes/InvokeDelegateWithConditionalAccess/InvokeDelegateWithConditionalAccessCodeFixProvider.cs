@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
                 ifStatement.Statement is BlockSyntax block)
             {
-                newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
+                newStatement = block.WithStatements([newStatement]);
             }
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);

@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                             var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
                                 simpleLambda.AsyncKeyword,
-                                SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
+                                SyntaxFactory.ParameterList([newSimpleLambdaParameter])
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,
@@ -748,8 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,
                                             SyntaxFactory.TypeArgumentList(
-                                                SyntaxFactory.SeparatedList(
-                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics))))))
+                                                [.. typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
                                             .WithLeadingTrivia(newNode.GetLeadingTrivia())
                                             .WithTrailingTrivia(newNode.GetTrailingTrivia())
                                             .WithAdditionalAnnotations(Simplifier.Annotation);

@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
             => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
-                    SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
-                        e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name.EscapeIdentifier()))))));
+                    [.. tupleType.TupleElements.Select(
+                        e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name.EscapeIdentifier())))]));
 
         private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
             => SyntaxFactory.TupleExpression(

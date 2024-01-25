@@ -161,12 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             SyntaxList<MemberDeclarationSyntax> members,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var builder);
-
-            foreach (var member in members)
-                builder.Add(AddNullableRegions(member, cancellationToken));
-
-            return SyntaxFactory.List(builder);
+            return [.. members.Select(m => AddNullableRegions(m, cancellationToken))];
         }
 
         private TypeDeclarationSyntax AddNullableRegionsAroundTypeMembers(
@@ -209,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 }
             }
 
-            var result = type.WithMembers(SyntaxFactory.List(builder));
+            var result = type.WithMembers([.. builder]);
             if (!currentlyEnabled)
             {
                 // switch us back to enabled as we leave the type.

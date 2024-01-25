@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             => expression switch
             {
                 AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters ?? default,
-                SimpleLambdaExpressionSyntax simpleLambda => SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter),
+                SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
                 ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind()),
             };

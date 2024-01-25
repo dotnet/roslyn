@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 .Select(d => d.WithAdditionalAnnotations(Formatter.Annotation, s_warningAnnotation));
 
             // Remove usings and fix leading trivia for compilation unit.
-            var compilationUnitWithoutUsings = compilationUnit.WithUsings(SyntaxFactory.List(compilationUnit.Usings.Where(u => u.GlobalKeyword != default)));
+            var compilationUnitWithoutUsings = compilationUnit.WithUsings([.. compilationUnit.Usings.Where(u => u.GlobalKeyword != default)]);
             var compilationUnitWithoutBlankLine = compilationUnitWithoutUsings.Usings.Count == 0
                 ? RemoveLeadingBlankLinesFromFirstMember(compilationUnitWithoutUsings)
                 : compilationUnitWithoutUsings;

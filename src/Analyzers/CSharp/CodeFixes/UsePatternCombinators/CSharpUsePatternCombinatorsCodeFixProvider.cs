@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     p.IsDisjunctive ? SyntaxKind.OrPattern : SyntaxKind.AndPattern,
                     AsPatternSyntax(p.Left).Parenthesize(),
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
-                        TriviaList(p.Token.GetAllTrailingTrivia())),
+                        [.. p.Token.GetAllTrailingTrivia()]),
                     AsPatternSyntax(p.Right).Parenthesize()),
                 Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
                 Source p => p.PatternSyntax,

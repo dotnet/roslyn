@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
                 return propertyDeclaration.WithAccessorList(
-                    propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
+                    propertyDeclaration.AccessorList.WithAccessors([.. accessors]));
             }
 
             return propertyDeclaration;

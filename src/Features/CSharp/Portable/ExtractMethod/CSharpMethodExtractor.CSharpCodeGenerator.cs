@@ -187,13 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
 
                 // propagate any type variable used in extracted code
-                var typeVariables = new List<TypeSyntax>();
-                foreach (var methodTypeParameter in AnalyzerResult.MethodTypeParametersInDeclaration)
-                {
-                    typeVariables.Add(SyntaxFactory.ParseTypeName(methodTypeParameter.Name));
-                }
-
-                return SyntaxFactory.SeparatedList(typeVariables);
+                return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
             }
 
             protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
@@ -393,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         // trivia to the statement
 
                         // TODO : think about a way to trivia attached to next token
-                        result.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxFactory.TriviaList(triviaList), SyntaxKind.SemicolonToken, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))));
+                        result.Add(EmptyStatement(Token([.. triviaList], SyntaxKind.SemicolonToken, [ElasticMarker])));
                         triviaList.Clear();
                     }
 
@@ -404,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             declarationStatement.Modifiers,
                             SyntaxFactory.VariableDeclaration(
                                 declarationStatement.Declaration.Type,
-                                SyntaxFactory.SeparatedList(list)),
+                                [.. list]),
                             declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
                         triviaList.Clear();
                     }
@@ -587,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList(SeparatedList(arguments)));
+                var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList([.. arguments]));
                 if (this.SelectionResult.ShouldPutAsyncModifier())
                 {
                     if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
@@ -603,8 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     invocation,
                                     IdentifierName(nameof(Task.ConfigureAwait))),
-                                ArgumentList(SingletonSeparatedList(
-                                    Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                                ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
                         }
                     }
 

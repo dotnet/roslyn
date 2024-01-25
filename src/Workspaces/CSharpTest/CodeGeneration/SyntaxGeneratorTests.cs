@@ -1190,7 +1190,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                    SyntaxFactory.MethodDeclaration(
                        SyntaxFactory.PredefinedType(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.ObjectKeyword,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))),
@@ -1202,7 +1202,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                        SyntaxFactory.ParameterList()
                         .WithCloseParenToken(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.CloseParenToken,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))))
@@ -1211,7 +1211,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                            SyntaxFactory.ImplicitObjectCreationExpression())
                        .WithArrowToken(
                            SyntaxFactory.Token(
-                               SyntaxFactory.TriviaList(),
+                               [],
                                SyntaxKind.EqualsGreaterThanToken,
                                SyntaxFactory.TriviaList(
                                    SyntaxFactory.Space))))
@@ -1226,19 +1226,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.PredefinedType(
                         SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                     SyntaxFactory.Token(SyntaxKind.PlusToken))
-                .WithModifiers(
-                    SyntaxFactory.TokenList(
-                        [
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)]))
+                .WithModifiers([
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword)])
                 .WithExplicitInterfaceSpecifier(
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.GenericName(
                             SyntaxFactory.Identifier("IGeneral"))
                         .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("C"))))))
+                            SyntaxFactory.TypeArgumentList([SyntaxFactory.IdentifierName("C")]))))
                 .WithParameterList(
                     SyntaxFactory.ParameterList(
                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -1267,48 +1263,44 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 SyntaxFactory.ConversionOperatorDeclaration(
                     SyntaxFactory.Token(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         SyntaxKind.ImplicitKeyword,
                         SyntaxFactory.TriviaList(
                             SyntaxFactory.Space)),
                     SyntaxFactory.PredefinedType(
                         SyntaxFactory.Token(SyntaxKind.StringKeyword)))
                 .WithModifiers(
-                    SyntaxFactory.TokenList(
-                        SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
-                            SyntaxKind.StaticKeyword,
-                            SyntaxFactory.TriviaList(
-                                SyntaxFactory.Space))))
+                    [SyntaxFactory.Token(
+                        [],
+                        SyntaxKind.StaticKeyword,
+                        SyntaxFactory.TriviaList(
+                            SyntaxFactory.Space))])
                 .WithExplicitInterfaceSpecifier(
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.GenericName(
                             SyntaxFactory.Identifier("IGeneral"))
                         .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("C"))))))
+                            SyntaxFactory.TypeArgumentList([SyntaxFactory.IdentifierName("C")]))))
                 .WithOperatorKeyword(
                     SyntaxFactory.Token(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         SyntaxKind.OperatorKeyword,
                         SyntaxFactory.TriviaList(
                             SyntaxFactory.Space)))
                 .WithParameterList(
                     SyntaxFactory.ParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("x"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("x"))
                             .WithType(
                                 SyntaxFactory.IdentifierName(
                                     SyntaxFactory.Identifier(
-                                        SyntaxFactory.TriviaList(),
+                                        [],
                                         "C",
                                         SyntaxFactory.TriviaList(
-                                            SyntaxFactory.Space))))))
+                                            SyntaxFactory.Space))))])
                     .WithCloseParenToken(
                         SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
+                            [],
                             SyntaxKind.CloseParenToken,
                             SyntaxFactory.TriviaList(
                                 SyntaxFactory.Space))))
@@ -1318,7 +1310,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxKind.NullLiteralExpression))
                     .WithArrowToken(
                         SyntaxFactory.Token(
-                            SyntaxFactory.TriviaList(),
+                            [],
                             SyntaxKind.EqualsGreaterThanToken,
                             SyntaxFactory.TriviaList(
                                 SyntaxFactory.Space))))
@@ -1358,8 +1350,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithAccessorList(
-                    SyntaxFactory.AccessorList(
-                        SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
+                    SyntaxFactory.AccessorList([
                             SyntaxFactory.AccessorDeclaration(
                                 SyntaxKind.GetAccessorDeclaration)
                             .WithExpressionBody(
@@ -1368,7 +1359,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                         SyntaxKind.NumericLiteralExpression,
                                         SyntaxFactory.Literal(0))))
                             .WithSemicolonToken(
-                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken))]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int Num { get => 0; }");
@@ -1383,12 +1374,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithParameterList(
                     SyntaxFactory.BracketedParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("index"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("index"))
                             .WithType(
                                 SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword)))]))
                 .WithExpressionBody(
                     SyntaxFactory.ArrowExpressionClause(
                         SyntaxFactory.LiteralExpression(
@@ -1410,12 +1400,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithParameterList(
                     SyntaxFactory.BracketedParameterList(
-                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("index"))
+                        [SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("index"))
                             .WithType(
                                 SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword)))]))
                 .WithAccessorList(
                     SyntaxFactory.AccessorList(
                         SyntaxFactory.SingletonList<AccessorDeclarationSyntax>(
@@ -1441,25 +1430,23 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.IdentifierName("IGeneral")))
                 .WithAccessorList(
-                    SyntaxFactory.AccessorList(
-                        SyntaxFactory.List<AccessorDeclarationSyntax>(
-                            new AccessorDeclarationSyntax[] {
-                                SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.AddAccessorDeclaration)
-                                .WithExpressionBody(
-                                    SyntaxFactory.ArrowExpressionClause(
-                                        SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.NullLiteralExpression)))
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                                SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.RemoveAccessorDeclaration)
-                                .WithExpressionBody(
-                                    SyntaxFactory.ArrowExpressionClause(
-                                        SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.NullLiteralExpression)))
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))})))
+                    SyntaxFactory.AccessorList([
+                        SyntaxFactory.AccessorDeclaration(
+                            SyntaxKind.AddAccessorDeclaration)
+                        .WithExpressionBody(
+                            SyntaxFactory.ArrowExpressionClause(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NullLiteralExpression)))
+                        .WithSemicolonToken(
+                            SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                        SyntaxFactory.AccessorDeclaration(
+                            SyntaxKind.RemoveAccessorDeclaration)
+                        .WithExpressionBody(
+                            SyntaxFactory.ArrowExpressionClause(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NullLiteralExpression)))
+                        .WithSemicolonToken(
+                            SyntaxFactory.Token(SyntaxKind.SemicolonToken))]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public event EventHandler Event { add => null; remove => null; }");
