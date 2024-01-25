@@ -45,9 +45,9 @@ internal sealed class Generator : IIncrementalGenerator
     {
         var compilationSource = context.CompilationProvider;
 
-        context.RegisterArtifactOutput(compilationSource, (nspc, item) =>
+        context.RegisterArtifactOutput(compilationSource, (artifactOutputContext, item) =>
         {
-            nspc.AddFile("interop.js", (stream, cancellationToken) =>
+            artifactOutputContext.AddFile("interop.js", (stream, cancellationToken) =>
             {
                 using var writer = new StreamWriter(stream);
                 writer.WriteLine("//output");
