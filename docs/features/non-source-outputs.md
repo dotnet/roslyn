@@ -10,7 +10,7 @@ There exists a desire for incremental source generators be able to write out a s
 
 ### High Level Design Goals
 
-- Allow Incremental Generators to emit source or binary files to disk alongside the emitted .NET assembly
+- Allow Incremental Generators to emit text or binary files to disk alongside the emitted .NET assembly
 - The user can control where the generated artifacts are emitted with a suitable default
 - Be optimal in terms of file writes / copies and ensure we keep the correct incremental build semantics for MSBuild
 - Do not have to be run as part of the IDE experience. Files are only emitted to disk as part of command line compilation
