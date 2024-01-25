@@ -30304,9 +30304,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       44 (0x2c)
@@ -30333,9 +30333,9 @@ partial class Program
             // No ReadOnlySpan(T[]) constructor. Spread optimizations can't be performed.
             comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
-            comp.VerifyEmitDiagnostics();
 
             verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                 // Code size       72 (0x48)
@@ -30395,9 +30395,9 @@ partial class Program
             // No ReadOnlySpan.ToArray method. ToArray optimization for single spreads cannot be performed, but CopyTo optimization still can.
             comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ToArray);
-            comp.VerifyEmitDiagnostics();
 
             verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       92 (0x5c)
@@ -30466,9 +30466,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2], [1, 2, 1, 2],"));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size      143 (0x8f)
@@ -30560,9 +30560,9 @@ partial class Program
             {
                 var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
                 comp.MakeMemberMissing(wellKnownMember);
-                comp.VerifyEmitDiagnostics();
 
                 var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2], [1, 2, 1, 2],"));
+                verifier.VerifyDiagnostics();
                 verifier.VerifyIL("C.Main", """
                     {
                       // Code size      123 (0x7b)
