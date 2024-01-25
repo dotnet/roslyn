@@ -1126,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
+                    Debug.Assert(result.Count == builderSize);
                     return result.ToImmutableAndFree();
                 }
 
