@@ -81,9 +81,10 @@ namespace Microsoft.CodeAnalysis
             switch (nodesAndTokens.Length)
             {
                 case 0: return null;
-                case 1: return nodesAndTokens[0].IsToken
-                    ? Syntax.InternalSyntax.SyntaxList.List([nodesAndTokens[0].UnderlyingNode]).CreateRed()
-                    : nodesAndTokens[0].AsNode();
+                case 1:
+                    return nodesAndTokens[0].IsToken
+                        ? Syntax.InternalSyntax.SyntaxList.List([nodesAndTokens[0].UnderlyingNode]).CreateRed()
+                        : nodesAndTokens[0].AsNode();
                 case 2: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!).CreateRed();
                 case 3: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!).CreateRed();
                 default:
