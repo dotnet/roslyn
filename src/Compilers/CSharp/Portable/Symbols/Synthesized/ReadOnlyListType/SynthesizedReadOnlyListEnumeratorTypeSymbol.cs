@@ -11,11 +11,9 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed partial class SynthesizedReadOnlyListTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private sealed class EnumeratorTypeSymbol : NamedTypeSymbol
+    internal sealed class SynthesizedReadOnlyListEnumeratorTypeSymbol : NamedTypeSymbol
     {
         private readonly SynthesizedReadOnlyListTypeSymbol _containingType;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
@@ -23,7 +21,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
         private readonly FieldSymbol _itemField;
         private readonly FieldSymbol _moveNextCalledField;
 
-        public EnumeratorTypeSymbol(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
+        public SynthesizedReadOnlyListEnumeratorTypeSymbol(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
         {
             _containingType = containingType;
 
@@ -46,14 +44,14 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
             membersBuilder.Add(_itemField);
             membersBuilder.Add(_moveNextCalledField);
             membersBuilder.Add(
-                new EnumeratorConstructor(this, typeParameter));
+                new SynthesizedReadOnlyListEnumeratorConstructor(this, typeParameter));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
                     (PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
                         // return (object)_item;
@@ -65,7 +63,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
                     ((PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__Current)).AsMember(iEnumeratorT),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
                         // return _item;
@@ -77,7 +75,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
                         // return _moveNextCalled ? false : (_moveNextCalled = true);
@@ -96,7 +94,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Reset)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
                         // _moveNextCalled = false;

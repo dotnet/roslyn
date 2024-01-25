@@ -5,13 +5,11 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed partial class SynthesizedReadOnlyListTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private sealed class EnumeratorConstructor : SynthesizedInstanceConstructor
+    internal sealed class SynthesizedReadOnlyListEnumeratorConstructor : SynthesizedInstanceConstructor
     {
-        internal EnumeratorConstructor(EnumeratorTypeSymbol containingType, TypeSymbol parameterType) : base(containingType)
+        internal SynthesizedReadOnlyListEnumeratorConstructor(SynthesizedReadOnlyListEnumeratorTypeSymbol containingType, TypeSymbol parameterType) : base(containingType)
         {
             Parameters = ImmutableArray.Create(
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(parameterType), ordinal: 0, RefKind.None, "item"));
