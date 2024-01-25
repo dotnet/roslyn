@@ -10,18 +10,13 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal interface IFindUsagesContext : OptionsProvider<ClassificationOptions>
+    internal interface IFindUsagesContext
     {
         /// <summary>
         /// Used for clients that are finding usages to push information about how far along they
         /// are in their search.
         /// </summary>
         IStreamingProgressTracker ProgressTracker { get; }
-
-        /// <summary>
-        /// Get <see cref="FindUsagesOptions"/> for specified language.
-        /// </summary>
-        ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken);
 
         /// <summary>
         /// Report a failure message to be displayed to the user.  This will be reported if the find operation returns

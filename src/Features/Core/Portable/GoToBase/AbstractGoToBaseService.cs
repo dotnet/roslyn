@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                     baseConstructor.Parameters.All(p => p.IsOptional || p.IsParams));
         }
 
-        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
+        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                 if (sourceDefinition != null)
                 {
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
-                        context, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        classificationOptions, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// user immediately if the find command completes quickly, or which will be pushed into the streaming presenter 
 /// if the search is taking too long.
 /// </summary>
-internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptions) : IFindUsagesContext, IStreamingProgressTracker
+internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
 {
     private class State
     {
@@ -30,8 +30,6 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
         public string? SearchTitle;
         public ImmutableArray<DefinitionItem>.Builder Definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
     }
-
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
     /// Lock which controls access to all members below.
@@ -149,12 +147,6 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
     #endregion
 
     #region IFindUsagesContext
-
-    public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
-
-    async ValueTask<ClassificationOptions> OptionsProvider<ClassificationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices.Language, cancellationToken).ConfigureAwait(false)).ClassificationOptions;
 
     async ValueTask IFindUsagesContext.ReportMessageAsync(string message, CancellationToken cancellationToken)
     {

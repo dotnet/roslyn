@@ -6,31 +6,18 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
 // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
 
-internal sealed class RemoteOptionsProviderCache<TOptions>
+internal sealed class RemoteOptionsProviderCache<TOptions>(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> callback, RemoteServiceCallbackId callbackId)
 {
-    private readonly Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> _callback;
-    private readonly RemoteServiceCallbackId _callbackId;
-
     private ImmutableDictionary<string, AsyncLazy<TOptions>> _cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
-
-    public RemoteOptionsProviderCache(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> callback, RemoteServiceCallbackId callbackId)
-    {
-        _callback = callback;
-        _callbackId = callbackId;
-    }
 
     public async ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
     {
@@ -38,27 +25,21 @@ internal sealed class RemoteOptionsProviderCache<TOptions>
         return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         Task<TOptions> GetRemoteOptionsAsync(CancellationToken cancellationToken)
-            => _callback(_callbackId, languageServices.Language, cancellationToken).AsTask();
+            => callback(callbackId, languageServices.Language, cancellationToken).AsTask();
     }
 }
 
-internal sealed class ClientCleanCodeGenerationOptionsProvider : AbstractCleanCodeGenerationOptionsProvider
+internal sealed class ClientCleanCodeGenerationOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CleanCodeGenerationOptions>> callback, RemoteServiceCallbackId callbackId) : AbstractCleanCodeGenerationOptionsProvider
 {
-    private readonly RemoteOptionsProviderCache<CleanCodeGenerationOptions> _cache;
-
-    public ClientCleanCodeGenerationOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CleanCodeGenerationOptions>> callback, RemoteServiceCallbackId callbackId)
-        => _cache = new RemoteOptionsProviderCache<CleanCodeGenerationOptions>(callback, callbackId);
+    private readonly RemoteOptionsProviderCache<CleanCodeGenerationOptions> _cache = new(callback, callbackId);
 
     public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => _cache.GetOptionsAsync(languageServices, cancellationToken);
 }
 
-internal sealed class ClientCodeCleanupOptionsProvider : AbstractCodeCleanupOptionsProvider
+internal sealed class ClientCodeCleanupOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CodeCleanupOptions>> callback, RemoteServiceCallbackId callbackId) : AbstractCodeCleanupOptionsProvider
 {
-    private readonly RemoteOptionsProviderCache<CodeCleanupOptions> _cache;
-
-    public ClientCodeCleanupOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CodeCleanupOptions>> callback, RemoteServiceCallbackId callbackId)
-        => _cache = new RemoteOptionsProviderCache<CodeCleanupOptions>(callback, callbackId);
+    private readonly RemoteOptionsProviderCache<CodeCleanupOptions> _cache = new(callback, callbackId);
 
     public override ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => _cache.GetOptionsAsync(languageServices, cancellationToken);

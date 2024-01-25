@@ -29,12 +29,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private readonly object _gate = new();
             private readonly List<DefinitionItem> _definitions = new();
 
-            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
-
-            public ValueTask<ClassificationOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-                => _underlyingContext.GetOptionsAsync(languageServices, cancellationToken);
-
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
 

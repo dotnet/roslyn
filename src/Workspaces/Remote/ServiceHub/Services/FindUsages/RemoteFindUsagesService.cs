@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteFindUsagesService : BrokeredServiceBase, IRemoteFindUsagesService
+    internal sealed class RemoteFindUsagesService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteFindUsagesService
     {
         internal sealed class Factory : FactoryBase<IRemoteFindUsagesService, IRemoteFindUsagesService.ICallback>
         {
@@ -22,13 +24,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteFindUsagesService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
-
-        public RemoteFindUsagesService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
-            : base(arguments)
+        internal sealed class ClientClassificationOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<ClassificationOptions>> callback, RemoteServiceCallbackId callbackId) : OptionsProvider<ClassificationOptions>
         {
-            _callback = callback;
+            private readonly RemoteOptionsProviderCache<ClassificationOptions> _cache = new(callback, callbackId);
+
+            public ValueTask<ClassificationOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+                => _cache.GetOptionsAsync(languageServices, cancellationToken);
         }
+
+        private ClientClassificationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
+           => new((callbackId, language, cancellationToken) => callback.InvokeAsync((callback, cancellationToken) => callback.GetClassificationOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask FindReferencesAsync(
             Checksum solutionChecksum,
@@ -47,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return;
 
-                var context = new RemoteFindUsageContext(_callback, callbackId);
+                var context = new RemoteFindUsageContext(callback, callbackId);
                 await AbstractFindUsagesService.FindReferencesAsync(
-                    context, symbol, project, options, cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -68,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return;
 
-                var context = new RemoteFindUsageContext(_callback, callbackId);
+                var context = new RemoteFindUsageContext(callback, callbackId);
                 await AbstractFindUsagesService.FindImplementationsAsync(
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -99,12 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
             #region IFindUsagesContext
 
             public IStreamingProgressTracker ProgressTracker => this;
-
-            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(_callbackId, language, cancellationToken), cancellationToken);
-
-            async ValueTask<ClassificationOptions> OptionsProvider<ClassificationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-                => (await GetOptionsAsync(languageServices.Language, cancellationToken).ConfigureAwait(false)).ClassificationOptions;
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
