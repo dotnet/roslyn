@@ -90,8 +90,8 @@ While it may be acceptable for the majority of cases to simply place the artifac
 
 The generator driver will recognize the following `.globalconfig` options:
 
-- `compiler_artifact.<generatorname>.outputdir = <dir>`
-- `compiler_artifact.<artifactname>.outputdir = <dir>`
+- `compiler_artifact.<generatorname>.output_dir = <dir>`
+- `compiler_artifact.<artifactname>.output_dir = <dir>`
 
 When the second part of the key matches the name of a loaded generator, any artifacts produced by that generator will be placed in the specified `<dir>` instead of the default directory. If the key fails to match a generator, individual artifacts are checked: if the hint name of an artifact matches it will be placed in the specified `<dir>`.
 
@@ -110,8 +110,8 @@ While these properties can be set manually in a `.globalconfig` it's expected th
 Would produce the following in the generated editor config:
 
 ```ini
-compiler_artifact.Microsoft.CodeAnalysis.Razor.SourceGenerators.SourceGenerator.outputdir = bin\net8.0\Razor
-compiler_artifact.ArtifactName.outputdir = c:\dir
+compiler_artifact.Microsoft.CodeAnalysis.Razor.SourceGenerators.SourceGenerator.output_dir = bin\net8.0\Razor
+compiler_artifact.ArtifactName.output_dir = c:\dir
 ```
 
 This means that generator authors are free to specify a mapping alongside their generator via the standard `NuGet` props and targets mechanism, and consumers of the generators are able to override the location in a consistent way.
