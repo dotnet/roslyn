@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis
             if (nodesAndTokens == null)
                 throw new ArgumentNullException(nameof(nodesAndTokens));
 
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxNodeOrTokenListBuilder(nodesAndTokens.Length);
             builder.Add(nodesAndTokens);
             return builder.ToList().Node;
