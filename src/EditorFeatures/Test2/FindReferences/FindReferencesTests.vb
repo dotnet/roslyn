@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -74,9 +75,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                       Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
+                    Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider()
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
+                    Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, classificationOptions, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -229,10 +231,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Public Sub New()
             End Sub
-
-            Public Overrides Function GetOptionsAsync(language As String, cancellationToken As CancellationToken) As ValueTask(Of FindUsagesOptions)
-                Return ValueTaskFactory.FromResult(FindUsagesOptions.Default)
-            End Function
 
             Public Function ShouldShow(definition As DefinitionItem) As Boolean
                 If References.Any(Function(r) r.Definition Is definition) Then

@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
+                var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
 
                 // Let the presented know we're starting a search.  It will give us back the context object that the FAR
                 // service will push results into. This operation is not externally cancellable.  Instead, the find refs
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 {
                     try
                     {
-                        await findUsagesService.FindReferencesAsync(context, document, caretPosition, cancellationToken).ConfigureAwait(false);
+                        await findUsagesService.FindReferencesAsync(context, document, caretPosition, classificationOptions, cancellationToken).ConfigureAwait(false);
                     }
                     finally
                     {
