@@ -28294,6 +28294,23 @@ partial class Program
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
 
+        [Fact]
+        public void SynthesizedReadOnlyList_Singleton_MissingSpecialMembers_IDisposable_Dispose()
+        {
+            string source = """
+                            using System.Collections.Generic;
+                            using static System.Console;
+                            
+                            IEnumerable<int> x = [0];
+                            Write($"({x.GetType().Name}) ");
+                            var e = x.GetEnumerator();
+                            while (e.MoveNext()) Write($"[{e.Current}], ");
+                            """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
+            CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray`1) [0], ");
+        }
+
         [Theory]
         [InlineData((int)SpecialType.System_IDisposable)]
         [InlineData((int)SpecialType.System_Collections_IEnumerator)]
