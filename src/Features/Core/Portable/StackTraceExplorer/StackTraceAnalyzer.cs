@@ -23,11 +23,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// take the result from the first parser that returns 
         /// success.
         /// </summary>
-        private static readonly ImmutableArray<IStackFrameParser> s_parsers = ImmutableArray.Create<IStackFrameParser>(
-            new DotnetStackFrameParser(),
-            new VSDebugCallstackParser(),
-            new DefaultStackParser()
-        );
+        private static readonly ImmutableArray<IStackFrameParser> s_parsers = [new DotnetStackFrameParser(), new VSDebugCallstackParser(), new DefaultStackParser()];
 
         public static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {

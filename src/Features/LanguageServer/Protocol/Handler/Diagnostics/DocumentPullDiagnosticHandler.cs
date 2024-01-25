@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return GetNonLocalDiagnosticSources();
 
             return taskList
-                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
-                : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
+                ? [new TaskListDiagnosticSource(document, globalOptions)]
+                : [new DocumentDiagnosticSource(diagnosticKind, document)];
 
             ImmutableArray<IDiagnosticSource> GetNonLocalDiagnosticSources()
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.FullSolution)
                     return ImmutableArray<IDiagnosticSource>.Empty;
 
-                return ImmutableArray.Create<IDiagnosticSource>(new NonLocalDocumentDiagnosticSource(document, ShouldIncludeAnalyzer));
+                return [new NonLocalDocumentDiagnosticSource(document, ShouldIncludeAnalyzer)];
 
                 // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
                 bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();

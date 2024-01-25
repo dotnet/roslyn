@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId);
+            [IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

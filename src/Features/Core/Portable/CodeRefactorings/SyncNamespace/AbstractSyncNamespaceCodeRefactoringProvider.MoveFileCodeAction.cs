@@ -45,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
-                return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(solution),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+                return [new ApplyChangesOperation(solution), new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true)];
             }
 
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 if (parts.IsEmpty)
                 {
-                    return ImmutableArray.Create(currentFolder);
+                    return [currentFolder];
                 }
 
                 // Try to figure out all possible folder names that can match the target namespace.

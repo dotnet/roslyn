@@ -132,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         finalList[0] = finalList[0].WithPrependedLeadingTrivia(leadingTrivia);
 
                         // Now split out the externs and usings back into two separate lists.
-                        organizedExternAliasList = finalList.Where(t => t is ExternAliasDirectiveSyntax)
-                                                            .Cast<ExternAliasDirectiveSyntax>()
-                                                            .ToSyntaxList();
-                        organizedUsingList = finalList.Where(t => t is UsingDirectiveSyntax)
-                                                      .Cast<UsingDirectiveSyntax>()
-                                                      .ToSyntaxList();
+                        organizedExternAliasList = [.. finalList
+                            .Where(t => t is ExternAliasDirectiveSyntax)
+                            .Cast<ExternAliasDirectiveSyntax>()];
+                        organizedUsingList = [.. finalList
+                            .Where(t => t is UsingDirectiveSyntax)
+                            .Cast<UsingDirectiveSyntax>()];
                         return;
                     }
                 }

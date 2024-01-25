@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(WorkspaceDiagnosticDescriptors.ErrorReadingFileContent);
+            => [WorkspaceDiagnosticDescriptors.ErrorReadingFileContent];
 
 #pragma warning disable RS1026 // Enable concurrent execution
 #pragma warning disable RS1025 // Configure generated code analysis

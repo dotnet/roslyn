@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </para>
         /// </summary>
         internal const string RequiresNonDocumentChange = nameof(RequiresNonDocumentChange);
-        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = ImmutableArray.Create(RequiresNonDocumentChange);
+        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = [RequiresNonDocumentChange];
 
         /// <summary>
         /// A short title describing the action that may appear in a menu.
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 var changedSolution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
                 return changedSolution == null
                     ? ImmutableArray<CodeActionOperation>.Empty
-                    : ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
+                    : [new ApplyChangesOperation(changedSolution)];
             }
         }
 

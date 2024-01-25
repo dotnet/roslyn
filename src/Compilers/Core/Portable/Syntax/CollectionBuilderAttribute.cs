@@ -7,7 +7,7 @@
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
-    public sealed class CollectionBuilderAttribute : Attribute
+    internal sealed class CollectionBuilderAttribute : Attribute
     {
         public CollectionBuilderAttribute(Type builderType, string methodName)
         {

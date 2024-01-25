@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     var varDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
                     return varDeclarator == null
                         ? ImmutableArray<SyntaxNode>.Empty
-                        : ImmutableArray.Create<SyntaxNode>(varDeclarator);
+                        : [varDeclarator];
                 }
                 else
                 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                         FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
-                        _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
+                        _ => [memberDeclaration],
                     };
                 }
             }

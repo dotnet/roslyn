@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     _diagnosticReporter.Report(diagnosticItems);
 
-                    return ImmutableArray.Create(
-                        ProjectFileInfo.CreateEmpty(languageName, projectPath));
+                    return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
                 }
 
                 var projectFileInfos = await DoOperationAndReportProgressAsync(

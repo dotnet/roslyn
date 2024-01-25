@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct TypeHint(ITypeSymbol type, TextSpan span, TextChange? textChange, bool leadingSpace = false, bool trailingSpace = false)
     {
-        private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "));
+        private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = [new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " ")];
 
         public ITypeSymbol Type { get; } = type;
         public TextSpan Span { get; } = span;

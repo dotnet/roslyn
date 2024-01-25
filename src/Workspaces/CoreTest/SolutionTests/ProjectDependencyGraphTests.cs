@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 }
                 else
                 {
-                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, ImmutableArray.Create($"alias{references.Count}")));
+                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, [$"alias{references.Count}"]));
                 }
             }
 

@@ -334,13 +334,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Check if we need to handle the unnecessary tag (fading).
             if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             // DiagnosticId supports fading, check if the corresponding VS option is turned on.
             if (!SupportsFadingOption(diagnosticData))
             {
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             // Check to see if there are specific locations marked to fade.
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // We should always have at least one tag (build or intellisense error).
                 Contract.ThrowIfNull(diagnostic.Tags, $"diagnostic {diagnostic.Identifier} was missing tags");
                 diagnostic.Tags = diagnostic.Tags.Append(DiagnosticTag.Unnecessary);
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             if (capabilities.HasVisualStudioLspCapability())
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Message = diagnostic.Message
                 }).ToArray();
                 diagnostic.RelatedInformation = diagnosticRelatedInformation;
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             LSP.VSDiagnostic CreateLspDiagnostic(

@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (loadDiagnostic != null)
                 {
                     lazyLoadDiagnostics ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    lazyLoadDiagnostics.Add(document.Id, ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document)));
+                    lazyLoadDiagnostics.Add(document.Id, [DiagnosticData.Create(loadDiagnostic, document)]);
 
                     failedDocuments ??= ImmutableHashSet.CreateBuilder<Document>();
                     failedDocuments.Add(document);

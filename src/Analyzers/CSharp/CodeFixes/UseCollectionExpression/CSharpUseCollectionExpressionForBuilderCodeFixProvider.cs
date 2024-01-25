@@ -33,7 +33,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,

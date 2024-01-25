@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTriviaList), methodName: "Create")]
     public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public SyntaxTriviaList(params SyntaxTrivia[] trivias)
-            : this(default, CreateNode(trivias), 0, 0)
+            : this(default, CreateNodeFromSpan(trivias), 0, 0)
         {
         }
 
@@ -65,13 +67,23 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
+        public static SyntaxTriviaList Create(ReadOnlySpan<SyntaxTrivia> trivias)
+        {
+            if (trivias.Length == 0)
+                return default;
+
+            if (trivias.Length == 1)
+                return new SyntaxTriviaList(trivias[0]);
+
+            return new SyntaxTriviaList(token: default, CreateNodeFromSpan(trivias), position: 0, index: 0);
+        }
+
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxTrivia> trivias)
         {
             if (trivias == null)
-            {
                 return null;
-            }
 
+            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
             var builder = new SyntaxTriviaListBuilder(trivias.Length);
             builder.Add(trivias);
             return builder.ToList().Node;

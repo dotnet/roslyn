@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
 
         protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
-            = ImmutableArray.Create(FixAllScope.Project, FixAllScope.Solution);
+            = [FixAllScope.Project, FixAllScope.Solution];
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

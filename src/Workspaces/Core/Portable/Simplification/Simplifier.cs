@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
-                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), options,
+                .ReduceAsync(document, [root.FullSpan], options,
                              reducers, cancellationToken).ConfigureAwait(false);
         }
 

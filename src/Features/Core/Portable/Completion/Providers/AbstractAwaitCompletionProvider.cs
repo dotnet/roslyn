@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 ImmutableArray<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
             {
                 var description = appendConfigureAwait
-                    ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
+                    ? [new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip)]
                     : RecommendedKeyword.CreateDisplayParts(displayText, tooltip);
 
                 return CommonCompletionItem.Create(

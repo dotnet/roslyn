@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
     {
         private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
-            ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution,
-                FixAllScope.ContainingMember, FixAllScope.ContainingType);
+            [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
         private readonly bool _supportsFixAll;
 

@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<Location>();
+                return [];
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<SyntaxNode>();
+                return [];
             }
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>();
+                return [];
             }
         }
 
