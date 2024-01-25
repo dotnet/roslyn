@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         GetEventDataForString(generatorName, generatorNameBytes),
                         GetEventDataForString(assemblyPath, assemblyPathBytes),
-                        GetEventDataForLong(&elapsedTicks),
+                        GetEventDataForInt64(&elapsedTicks),
                         GetEventDataForString(id, idBytes),
                     };
 
@@ -76,15 +76,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     Span<EventData> data = stackalloc EventData[]
                     {
-                        GetEventDataForInt(&nodeHashCode),
+                        GetEventDataForInt32(&nodeHashCode),
                         GetEventDataForString(name, nameBytes),
                         GetEventDataForString(tableType, tableTypeBytes),
-                        GetEventDataForInt(&previousTable),
+                        GetEventDataForInt32(&previousTable),
                         GetEventDataForString(previousTableContent, previousTableContentBytes),
-                        GetEventDataForInt(&newTable),
+                        GetEventDataForInt32(&newTable),
                         GetEventDataForString(newTableContent, newTableContentBytes),
-                        GetEventDataForInt(&input1),
-                        GetEventDataForInt(&input2),
+                        GetEventDataForInt32(&input1),
+                        GetEventDataForInt32(&input2),
                     };
 
                     fixed (EventSource.EventData* dataPtr = data)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             };
         }
 
-        private static unsafe EventData GetEventDataForInt(int* ptr)
+        private static unsafe EventData GetEventDataForInt32(int* ptr)
         {
             return new EventData()
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             };
         }
 
-        private static unsafe EventData GetEventDataForLong(long* ptr)
+        private static unsafe EventData GetEventDataForInt64(long* ptr)
         {
             return new EventData()
             {
