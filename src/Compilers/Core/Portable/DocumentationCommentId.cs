@@ -631,6 +631,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
+
+                    // Containing symbol can be null for type parameters created in error scenarios.
                     Debug.Assert(symbol.ContainingSymbol is null or INamedTypeSymbol or IMethodSymbol);
                     declarer.Visit(symbol.ContainingSymbol);
                     Debug.Assert(!declarer.Failed, "Should always be able to write out a type parameter's containing type or method");
