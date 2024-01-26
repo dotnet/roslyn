@@ -5151,6 +5151,138 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
+    [Fact]
+    public async Task TestInDictionary_Empty()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    Dictionary<string, object> d = [|new|] Dictionary<string, object>() { };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    Dictionary<string, object> d = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInDictionary_NotEmpty()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    Dictionary<string, object> d = new Dictionary<string, object>() { { string.Empty, null } };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInIEnumerableAndIncompatibleAdd_Empty()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection c = [|new|] MyCollection() { };
+                }
+            }
+            class MyCollection : IEnumerable
+            {
+                public void Add(string s) { }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+            """,
+            """
+            using System.Collections;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection c = [];
+                }
+            }
+            class MyCollection : IEnumerable
+            {
+                public void Add(string s) { }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInIEnumerableAndIncompatibleAdd_NotEmpty()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = [|new|] MyCollection() { "a", "b" };
+                    }
+                }
+                class MyCollection : IEnumerable
+                {
+                    public void Add(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                """,
+            FixedCode = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = ["a", "b"];
+                    }
+                }
+                class MyCollection : IEnumerable
+                {
+                    public void Add(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.DynamicallyLinkedLibrary,
+            },
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(6,26): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                    DiagnosticResult.CompilerError("CS1503").WithSpan(6, 26, 6, 36).WithArguments("1", "object", "string"),
+                    // /0/Test0.cs(6,26): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'MyCollection.Add(string)'.
+                    DiagnosticResult.CompilerError("CS9215").WithSpan(6, 26, 6, 36).WithArguments("object", "MyCollection.Add(string)"),
+                }
+            }
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
     public async Task TestAddRangeOfCollectionExpression1()
     {
