@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId);
+            [IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId];
 
         // See comments in the analyzer for what these maps are for.
 

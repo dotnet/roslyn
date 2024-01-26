@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, _property.TypeWithAnnotations, parameters.Count));
+                parameters.Add(new SynthesizedPropertyAccessorValueParameterSymbol(this, parameters.Count));
             }
 
             return parameters.ToImmutableAndFree();

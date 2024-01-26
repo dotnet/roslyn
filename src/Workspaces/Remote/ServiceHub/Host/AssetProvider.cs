@@ -141,7 +141,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Length == 0)
-            return ImmutableArray<object>.Empty;
+            return [];
 
         return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
     }

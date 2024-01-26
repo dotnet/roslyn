@@ -3664,7 +3664,6 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3705,12 +3704,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3748,7 +3746,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
         <Fact>

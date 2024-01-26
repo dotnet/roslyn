@@ -150,14 +150,14 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Not The Original text", trackedText.Text.ToString());
     }
 
-    private TestWorkspace CreateWorkspace(string workspaceXml)
+    private EditorTestWorkspace CreateWorkspace(string workspaceXml)
     {
         var testWorkspace = CreateWorkspace(options: null, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
         return testWorkspace;
     }
 
-    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(TestWorkspace testWorkspace)
+    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(EditorTestWorkspace testWorkspace)
     {
         var languageClient = testWorkspace.ExportProvider.GetExportedValues<ILanguageClient>().OfType<RazorCohostLanguageClient>().Single();
         await languageClient.ActivateAsync(CancellationToken.None);

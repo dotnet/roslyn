@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
+            => [IDEDiagnosticIds.AddBracesDiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -82,7 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -117,7 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             var language = workspace.Projects.Single().Language;
 
             workspace.GlobalOptions.SetGlobalOption(
@@ -215,7 +221,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task SemanticErrorReported()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -240,7 +249,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -268,7 +281,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -314,7 +331,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var document = workspace.Documents.First();
 
@@ -326,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(2, spans.Count);
             var first = spans.First();
             var second = spans.Last();
 
@@ -350,7 +370,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var document = workspace.Documents.First();
 
@@ -362,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(2, spans.Count);
             var first = spans.First();
             var second = spans.Last();
 
@@ -379,20 +402,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+            using var workspace = EditorTestWorkspace.CreateCSharp(
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
         {
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }

@@ -4069,7 +4069,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return true;
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                     // Error cases. Restrict the collection to local scope.
                     return true;
                 default:

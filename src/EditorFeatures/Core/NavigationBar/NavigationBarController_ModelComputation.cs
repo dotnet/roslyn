@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
-                model?.Types ?? ImmutableArray<NavigationBarItem>.Empty,
+                model?.Types ?? [],
                 currentSelectedItem.TypeItem,
                 currentSelectedItem.MemberItem);
 

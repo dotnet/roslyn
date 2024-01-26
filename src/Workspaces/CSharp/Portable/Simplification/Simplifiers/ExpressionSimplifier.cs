@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             speculativeSymbols = containsOtherSymbol
                 ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
-                : ImmutableArray<ISymbol>.Empty;
+                : [];
             speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
                 ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
-                : ImmutableArray<ISymbol>.Empty;
+                : [];
         }
 
         /// <summary>

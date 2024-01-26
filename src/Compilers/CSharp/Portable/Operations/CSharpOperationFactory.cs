@@ -1246,7 +1246,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.Span:
                         return null;
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;

@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
             }
 
-            return ImmutableArray<ITypeParameterSymbol>.Empty;
+            return [];
         }
 
         protected override bool TryGetArgumentList(ObjectCreationExpressionSyntax objectCreationExpression, out IList<ArgumentSyntax> argumentList)
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                attributes: ImmutableArray<AttributeData>.Empty,
+                attributes: [],
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceImplementations: default,

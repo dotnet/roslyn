@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(ReferenceHighlightingOptionsStorage.ReferenceHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = [ReferenceHighlightingOptionsStorage.ReferenceHighlighting];
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             var onExistingTags = context.HasExistingContainingTags(caretPosition);
             if (onExistingTags)
             {
-                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
+                context.SetSpansTagged([]);
                 return Task.CompletedTask;
             }
 

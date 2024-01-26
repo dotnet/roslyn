@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static TaskListTableItem Create(Workspace workspace, TaskListItem data)
         {
             GetProjectNameAndGuid(workspace, data.DocumentId.ProjectId, out var projectName, out var projectGuid);
-            return new TaskListTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
+            return new TaskListTableItem(workspace, data, projectName, projectGuid, projectNames: [], projectGuids: []);
         }
 
         public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)

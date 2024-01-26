@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 return GetUpdatedDocumentAsync(
                     document, unimplementedMembers, classOrStructType, classOrStructDecl,
-                    ImmutableArray<ISymbol>.Empty, cancellationToken);
+                    [], cancellationToken);
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     @event,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(@event) : default,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [@event] : default,
                     name: memberName,
                     addMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.AddEventHandler),
                     removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                            attributes: default,
                            accessibility: Accessibility.NotApplicable,
-                           statements: ImmutableArray.Create(statement));
+                           statements: [statement]);
                 }
 
                 return generateInvisibly ? accessor : null;

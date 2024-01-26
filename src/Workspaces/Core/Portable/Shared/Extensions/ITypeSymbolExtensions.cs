@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
             if (typeSymbol == null || interfaceMember == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             if (interfaceMember.Kind is not SymbolKind.Event and
                 not SymbolKind.Method and
                 not SymbolKind.Property)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
 
             // WorkItem(4843)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // that.  in this case, that means only classes C or B.
             var interfaceType = interfaceMember.ContainingType;
             if (!typeSymbol.ImplementsIgnoringConstruction(interfaceType))
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // We've ascertained that the type T implements some constructed type of the form I<X>.
             // However, we're not precisely sure which constructions of I<X> are being used.  For

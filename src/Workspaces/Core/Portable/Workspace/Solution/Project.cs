@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
-        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableHashMap<DocumentId, SourceGeneratedDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
+        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = [];
+        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = [];
+        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = [];
+        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = [];
 
         internal Project(Solution solution, ProjectState projectState)
         {

@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
-                : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
+                ? [new ExtractInterfaceCodeAction(this, typeAnalysisResult)]
+                : [];
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Event:
                         var @event = member as IEventSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
                             returnType: method.ReturnType,
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.RequiresUnsafeModifier()),
                             type: property.Type,

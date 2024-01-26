@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SyntaxFactory.DeclarationExpression(
                     type: SyntaxFactory.IdentifierName("var"),
                     designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(
-                        SyntaxFactory.TriviaList(),
+                        [],
                         contextualKind: SyntaxKind.None,
                         text: name,
                         valueText: context.Parameter.Name,
-                        SyntaxFactory.TriviaList()))));
+                        []))));
 
             context.DefaultValue = syntax.NormalizeWhitespace().ToFullString();
             return Task.CompletedTask;

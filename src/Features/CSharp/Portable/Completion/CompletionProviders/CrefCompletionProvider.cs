@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (IsCrefQualifiedNameContext(token))
                 return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent!, token, semanticModel, cancellationToken);
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         private static ImmutableArray<ISymbol> GetUnqualifiedSymbols(

@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _outputHelper = outputHelper
         End Sub
 
-        Private Function CreateWorkspace(definition As XElement) As TestWorkspace
-            Dim workspace = TestWorkspace.Create(definition, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(WorkspaceTestLogger)))
+        Private Function CreateWorkspace(definition As XElement) As EditorTestWorkspace
+            Dim workspace = EditorTestWorkspace.Create(definition, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(WorkspaceTestLogger)))
             workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
             Return workspace
         End Function

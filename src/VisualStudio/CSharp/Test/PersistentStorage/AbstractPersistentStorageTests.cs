@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _ = iteration;
             var solution = CreateOrOpenSolution();
             var id = DocumentId.CreateNewId(solution.Projects.Single().Id);
-            solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: @"c:\temp\file.cs");
+            solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: Path.Combine(_persistentFolder.Path, "file.cs"));
 
             var document = solution.GetRequiredDocument(id);
 
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _ = iteration;
             var solution = CreateOrOpenSolution();
             var id = DocumentId.CreateNewId(solution.Projects.Single().Id);
-            solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: @"c:\temp\file.cs");
+            solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: Path.Combine(_persistentFolder.Path, "file.cs"));
 
             var document = solution.GetRequiredDocument(id);
 
