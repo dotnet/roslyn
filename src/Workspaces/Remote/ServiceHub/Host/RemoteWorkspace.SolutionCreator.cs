@@ -208,7 +208,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     // solution.SolutionState that would have been in that cone.
 
                     using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+
+                    // First, add any projects the old side definitely thinks is in that cone.
                     solution.SolutionState.AddProjectCone(projectConeId, projectCone.Object);
+
+                    // Second, add any potential projects that the new side thinks is in the cone by the old side
+                    // doesn't.  This could happen, for example, if the new side added a project reference to an
+                    // existing project.  We want to then pull in that existing project if present.
+                    projectCone.Object.AddRange(newSolutionChecksums.Projects.Ids);
 
                     foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
                     {
