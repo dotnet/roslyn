@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Second, add any projects on the 'new' side that aren't currently in this solution.
                 foreach (var (newProjectChecksum, newProjectId) in newSolutionChecksums.Projects)
                 {
-                    if (oldProjectIds.Object.Contains(newProjectId))
+                    if (!oldProjectIds.Object.Contains(newProjectId))
                     {
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
                         Contract.ThrowIfNull(projectInfo);
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     foreach (var oldProjectId in solution.ProjectIds)
                     {
-                        if (newProjectIds.Object.Contains(oldProjectId))
+                        if (!newProjectIds.Object.Contains(oldProjectId))
                             solution = solution.RemoveProject(oldProjectId);
                     }
                 }
