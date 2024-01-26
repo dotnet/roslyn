@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                     m["language"] = languageName;
                 }));
 
-                return ImmutableArray<IntentSource>.Empty;
+                return [];
             }
 
             var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
 
             if (results.IsDefaultOrEmpty)
             {
-                return ImmutableArray<IntentSource>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<IntentSource>.GetInstance(out var convertedResults);

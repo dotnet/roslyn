@@ -131,10 +131,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ when type == typeof(bool?) => value is null ? true : null,
                 _ when type == typeof(int?) => value is null ? 1 : null,
                 _ when type == typeof(long?) => value is null ? 1L : null,
-                ImmutableArray<bool> array => array.IsEmpty ? ImmutableArray.Create(true) : ImmutableArray<bool>.Empty,
+                ImmutableArray<bool> array => array.IsEmpty ? ImmutableArray.Create(true) : [],
                 ImmutableArray<string> array => array is ["X"] ? ImmutableArray.Create("X", "Y") : ImmutableArray.Create("X"),
-                ImmutableArray<int> array => array.IsEmpty ? ImmutableArray.Create(1) : ImmutableArray<int>.Empty,
-                ImmutableArray<long> array => array.IsEmpty ? ImmutableArray.Create(1L) : ImmutableArray<long>.Empty,
+                ImmutableArray<int> array => array.IsEmpty ? ImmutableArray.Create(1) : [],
+                ImmutableArray<long> array => array.IsEmpty ? ImmutableArray.Create(1L) : [],
 
                 // Hit when a new option is introduced that uses type not handled above:
                 _ => throw ExceptionUtilities.UnexpectedValue(type)

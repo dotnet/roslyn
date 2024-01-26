@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
     {
         public static readonly RQType ObjectType = new RQConstructedType(
             new RQUnconstructedType(new[] { "System" }, new[] { new RQUnconstructedTypeInfo("Object", 0) }),
-            Array.Empty<RQType>());
+            []);
 
         public abstract SimpleTreeNode ToSimpleTree();
     }

@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             {
                 var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 if (changedSolution is null)
-                    return Array.Empty<CodeActionOperation>();
+                    return [];
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
             }

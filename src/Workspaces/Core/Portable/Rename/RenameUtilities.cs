@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
             var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, services, cancellationToken);
             var symbols = semanticInfo.DeclaredSymbol != null
-                ? ImmutableArray.Create<ISymbol>(semanticInfo.DeclaredSymbol)
+                ? [semanticInfo.DeclaredSymbol]
                 : semanticInfo.GetSymbols(includeType: false);
 
             // if there are more than one symbol, then remove the alias symbols.

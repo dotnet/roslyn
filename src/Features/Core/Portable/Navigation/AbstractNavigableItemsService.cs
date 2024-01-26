@@ -27,6 +27,6 @@ internal class AbstractNavigableItemsService : INavigableItemsService
         // Try to compute source definitions from symbol.
         return symbol != null
             ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, symbol, displayTaggedParts: FindUsagesHelpers.GetDisplayParts(symbol), cancellationToken: cancellationToken)
-            : ImmutableArray<INavigableItem>.Empty;
+            : [];
     }
 }

@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 
         private static async Task TestAsync(string input, string expected)
         {
-            using var workspace = TestWorkspace.CreateCSharp(input);
+            using var workspace = EditorTestWorkspace.CreateCSharp(input);
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
             var formatted = await CSharpDecompiledSourceService.FormatDocumentAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);

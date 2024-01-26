@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // The following settings will apply when the REPL starts without .rsp file.
             // They are discarded once the REPL is reset.
-            _referenceSearchPaths = ImmutableArray<string>.Empty;
-            _sourceSearchPaths = ImmutableArray<string>.Empty;
+            _referenceSearchPaths = [];
+            _sourceSearchPaths = [];
             _workingDirectory = initialWorkingDirectory;
 
             _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                     // imports and references will be inherited:
                     initializationScriptImports = imports;
                     initializationScriptReferences = references;
-                    imports = ImmutableArray<string>.Empty;
-                    references = ImmutableArray<MetadataReference>.Empty;
+                    imports = [];
+                    references = [];
                 }
             }
 

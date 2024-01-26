@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId);
+           => [IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -231,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             method.TryGetThisParameter(out var methodThisParameter);
-            symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
+            var interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
+                interceptor.TryGetThisParameter(out var interceptorThisParameter) ? interceptorThisParameter : null;
             switch (methodThisParameter, interceptorThisParameterForCompare)
             {
                 case (not null, null):
@@ -272,7 +273,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needToReduce)
             {
                 Debug.Assert(methodThisParameter is not null);
-                arguments = arguments.Insert(0, receiverOpt!);
+                Debug.Assert(receiverOpt?.Type is not null);
+
+                // Usually we expect the receiver to already be converted to the this parameter type.
+                // However, in the case of a non-reference type receiver, where the this parameter is some base reference type,
+                // for example a struct type and System.ValueType respectively, we need to convert the receiver to parameter type,
+                // because we can't use the same `.constrained` calling pattern here which we would have used for an instance method receiver.
+                Debug.Assert(receiverOpt.Type.Equals(interceptor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions)
+                    || (!receiverOpt.Type.IsReferenceType && interceptor.Parameters[0].Type.IsReferenceType));
+                receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
+
+                arguments = arguments.Insert(0, receiverOpt);
                 receiverOpt = null;
 
                 // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.

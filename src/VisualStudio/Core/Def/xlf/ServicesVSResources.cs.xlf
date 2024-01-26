@@ -422,9 +422,9 @@
         <target state="translated">Povolit navigaci ke zdrojovým odkazům a vloženým zdrojům</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Povolit diagnostiku pull (experimentální, vyžaduje restart)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -1684,12 +1684,12 @@
       </trans-unit>
       <trans-unit id="When_types_exactly_match">
         <source>When types exactly match</source>
-        <target state="new">When types exactly match</target>
+        <target state="translated">Když se typy přesně shodují</target>
         <note />
       </trans-unit>
       <trans-unit id="When_types_loosely_match">
         <source>When types loosely match</source>
-        <target state="new">When types loosely match</target>
+        <target state="translated">Když se typy volně shodují</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

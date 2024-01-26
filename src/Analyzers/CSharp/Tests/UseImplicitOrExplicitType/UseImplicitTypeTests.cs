@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-    public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseImplicitTypeTests(ITestOutputHelper? logger = null)
           : base(logger)

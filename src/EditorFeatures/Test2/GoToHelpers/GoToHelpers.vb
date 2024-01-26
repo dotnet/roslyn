@@ -17,14 +17,14 @@ Friend Class GoToHelpers
             Optional shouldSucceed As Boolean = True,
             Optional metadataDefinitions As String() = Nothing) As Task
 
-        Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
+        Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 
             Dim solution = workspace.CurrentSolution
             Dim document = Await solution.GetRequiredDocumentAsync(documentWithCursor.Id, includeSourceGenerated:=True)
 
-            Dim context = New SimpleFindUsagesContext(workspace.GlobalOptions)
+            Dim context = New SimpleFindUsagesContext()
             Await testingMethod(document, position, context)
 
             If Not shouldSucceed Then

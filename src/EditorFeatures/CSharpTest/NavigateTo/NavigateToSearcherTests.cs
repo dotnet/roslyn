@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Fact]
         public async Task NotFullyLoadedOnlyMakesOneSearchProjectCallIfValueReturned()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
 
             var pattern = "irrelevant";
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Theory, CombinatorialData]
         public async Task NotFullyLoadedMakesTwoSearchProjectCallIfValueNotReturned(bool projectSystemFullyLoaded)
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
 
             var pattern = "irrelevant";
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Theory, CombinatorialData]
         public async Task NotFullyLoadedStillReportsAsNotCompleteIfRemoteHostIsStillHydrating(bool projectIsFullyLoaded)
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
 
             var pattern = "irrelevant";
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Fact]
         public async Task FullyLoadedMakesSingleSearchProjectCallIfValueNotReturned()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
 
             var pattern = "irrelevant";
 
@@ -269,10 +269,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1933220")]
         public async Task DoNotCrashWithoutSearchService()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
 
             var pattern = "irrelevant";
-
             var result = new TestNavigateToSearchResult(workspace, new TextSpan(0, 0));
 
             var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
-        private class TestNavigateToSearchResult(TestWorkspace workspace, TextSpan sourceSpan)
+        private class TestNavigateToSearchResult(EditorTestWorkspace workspace, TextSpan sourceSpan)
             : INavigateToSearchResult, INavigableItem
         {
             public INavigableItem.NavigableDocument Document => INavigableItem.NavigableDocument.FromDocument(workspace.CurrentSolution.Projects.Single().Documents.Single());

@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             where TCodefix : CodeFixProvider, new()
         {
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
 
             var options = CodeActionOptions.DefaultProvider;
 
@@ -860,16 +860,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
             return supportedDiagnostics;
 
-            TestWorkspace GetTestWorkspaceForLanguage(string language)
+            EditorTestWorkspace GetTestWorkspaceForLanguage(string language)
             {
                 if (language == LanguageNames.CSharp)
                 {
-                    return TestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                    return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
                 }
 
                 if (language == LanguageNames.VisualBasic)
                 {
-                    return TestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                    return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
                 }
 
                 return null;
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
         private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
             // must set global options since incremental analyzer infra reads from global options
             var globalOptions = workspace.GlobalOptions;

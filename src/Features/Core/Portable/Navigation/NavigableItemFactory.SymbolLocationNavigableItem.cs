@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             public bool IsStale => false;
 
-            public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
+            public ImmutableArray<INavigableItem> ChildItems => [];
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
+            [IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

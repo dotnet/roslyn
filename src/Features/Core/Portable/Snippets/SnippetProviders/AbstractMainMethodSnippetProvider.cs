@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         }
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-            => ImmutableArray<SnippetPlaceholder>.Empty;
+            => [];
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsMethodDeclaration;

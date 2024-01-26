@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                    workspace,
                    listenerProvider,
                    SymbolSearchGlobalOptionsStorage.Enabled,
-                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
+                   [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages])
         {
             _serviceProvider = serviceProvider;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();

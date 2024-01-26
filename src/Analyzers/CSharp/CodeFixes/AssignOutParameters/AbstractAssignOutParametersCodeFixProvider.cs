@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         private const string CS0177 = nameof(CS0177); // The out parameter 'x' must be assigned to before control leaves the current method
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS0177);
+            [CS0177];
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -2,17 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -31,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             _logger = logger;
         }
 
-        public static bool TryLoadExtension(string assemblyFilePath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
+        public static bool TryLoadExtension(string assemblyFilePath, ILogger logger, [NotNullWhen(true)] out Assembly? assembly)
         {
             var dir = Path.GetDirectoryName(assemblyFilePath);
             var fileName = Path.GetFileName(assemblyFilePath);
@@ -52,15 +45,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             return false;
         }
 
-        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, ILogger? logger)
+        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, ILogger logger)
         {
             try
             {
-                var loadContext = CreateLoadContext(name);
+                logger.LogTrace("[{name}] Loading assemblies in {assembliesDirectoryPath}", name, assembliesDirectoryPath);
+
+                var loadContext = new AssemblyLoadContext(name);
                 var directory = new DirectoryInfo(assembliesDirectoryPath);
                 var builder = new Dictionary<string, Assembly>();
                 foreach (var file in directory.GetFiles("*.dll"))
                 {
+                    logger.LogTrace("[{name}] Loading {assemblyName}", loadContext.Name, file.Name);
                     builder.Add(file.Name, loadContext.LoadFromAssemblyPath(file.FullName));
                 }
 
@@ -71,12 +67,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
                 logger?.LogError(ex, "Failed to initialize AssemblyLoadContext {name}", name);
                 return null;
             }
-        }
-
-        private static AssemblyLoadContext CreateLoadContext(string name)
-        {
-            var loadContext = new AssemblyLoadContext(name);
-            return loadContext;
         }
 
         public Assembly GetAssembly(string name) => _loadedAssemblies[name];

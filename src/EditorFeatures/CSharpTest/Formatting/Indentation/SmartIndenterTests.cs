@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -1737,7 +1738,7 @@ class Program
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4,
-                options: Options.Script);
+                options: TestOptions.Script);
         }
 
         [WpfFact]
@@ -1754,7 +1755,7 @@ class Program
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4,
-                options: Options.Script);
+                options: TestOptions.Script);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540634")]
@@ -3474,11 +3475,11 @@ namespace NS
         {
             var optionsSet = options != null
                     ? new[] { options }
-                    : new[] { Options.Regular, Options.Script };
+                    : new[] { TestOptions.Regular, TestOptions.Script };
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
+                using var workspace = EditorTestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 var subjectDocument = workspace.Documents.Single();
 
@@ -3530,11 +3531,11 @@ namespace NS
         {
             var optionsSet = options != null
                 ? new[] { options }
-                : new[] { Options.Regular, Options.Script };
+                : new[] { TestOptions.Regular, TestOptions.Script };
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+                using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs);
             }
@@ -3559,11 +3560,11 @@ namespace NS
         {
             var optionsSet = options != null
                 ? new[] { options }
-                : new[] { Options.Regular, Options.Script };
+                : new[] { TestOptions.Regular, TestOptions.Script };
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+                using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 var wpfTextView = workspace.Documents.First().GetTextView();
                 var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;

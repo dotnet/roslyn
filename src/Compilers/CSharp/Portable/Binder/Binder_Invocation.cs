@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // PROTOTYPE(ParamsCollections): Add test if this code path is reachable
                         GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
-                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, diagnostics);
+                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
                     }
                     else
                     {

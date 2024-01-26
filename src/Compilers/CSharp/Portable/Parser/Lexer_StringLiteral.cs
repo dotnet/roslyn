@@ -1077,6 +1077,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 if (_lexer.TryScanAtStringToken(ref discarded))
                                     continue;
 
+                                if (_lexer.TextWindow.PeekChar(1) == '*')
+                                {
+                                    // Razor comment. Handle for error recovery purposes. The parser will come along later to retokenize the inside of the string
+                                    // and report a proper error.
+                                    _lexer.ScanMultiLineComment(isTerminated: out _, delimiter: '@');
+                                    continue;
+                                }
+
                                 // Wasn't an @"" or @$"" string.  Just consume this as normal code.
                                 goto default;
                             }
@@ -1087,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     _lexer.ScanToEndOfLine();
                                     continue;
                                 case '*':
-                                    _lexer.ScanMultiLineComment(out _);
+                                    _lexer.ScanMultiLineComment(isTerminated: out _, '/');
                                     continue;
                                 default:
                                     _lexer.TextWindow.AdvanceChar();

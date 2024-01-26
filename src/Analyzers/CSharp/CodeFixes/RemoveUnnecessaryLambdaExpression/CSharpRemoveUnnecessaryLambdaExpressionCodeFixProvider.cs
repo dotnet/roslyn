@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId);
+            => [IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

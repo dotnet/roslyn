@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct TypeHint(ITypeSymbol type, TextSpan span, TextChange? textChange, bool leadingSpace = false, bool trailingSpace = false)
     {
-        private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "));
+        private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = [new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " ")];
 
         public ITypeSymbol Type { get; } = type;
         public TextSpan Span { get; } = span;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public ImmutableArray<SymbolDisplayPart> Suffix { get; } = CreateSpaceSymbolPartArray(trailingSpace);
 
         private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
-            => hasSpace ? s_spaceArray : ImmutableArray<SymbolDisplayPart>.Empty;
+            => hasSpace ? s_spaceArray : [];
 
         public void Deconstruct(out ITypeSymbol type, out TextSpan span, out TextChange? textChange, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {

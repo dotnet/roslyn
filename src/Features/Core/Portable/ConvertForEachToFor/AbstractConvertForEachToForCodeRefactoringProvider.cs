@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         private const string Count = nameof(IList.Count);
 
         private static readonly ImmutableArray<string> s_KnownInterfaceNames =
-            ImmutableArray.Create(typeof(IList<>).FullName!, typeof(IReadOnlyList<>).FullName!, typeof(IList).FullName!);
+            [typeof(IList<>).FullName!, typeof(IReadOnlyList<>).FullName!, typeof(IList).FullName!];
 
         protected bool IsForEachVariableWrittenInside { get; private set; }
         protected abstract string Title { get; }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         /// this work, that happens after the move has happened.  As such, this does not require non document changes
         /// and can run in all our hosts.
         /// </summary>
-        public sealed override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public sealed override ImmutableArray<string> Tags => [];
 
         public sealed override object GetOptions(CancellationToken cancellationToken)
         {

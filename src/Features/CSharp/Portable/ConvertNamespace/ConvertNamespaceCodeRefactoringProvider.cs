@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
-            => ImmutableArray.Create(FixAllScope.Project, FixAllScope.Solution);
+            => [FixAllScope.Project, FixAllScope.Solution];
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -7,7 +7,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddMissingImports
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.PasteTracking
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddMissingImports), [Shared]>
@@ -18,7 +17,6 @@ Friend Class VisualBasicAddMissingImportsRefactoringProvider
 
     <ImportingConstructor>
     <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-    Public Sub New(<Import(AllowDefault:=True)> pasteTrackingService As IPasteTrackingService)
-        MyBase.New(pasteTrackingService)
+    Public Sub New()
     End Sub
 End Class

@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (workspace.Services.HostServices is not IMefHostExportProvider mefServices)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             // avoid creating and synchronizing compile-time solution if the Hot Reload/EnC session is not active
             if (mefServices.GetExports<EditAndContinueLanguageService>().SingleOrDefault()?.Value.IsSessionActive != true)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var designTimeSolution = designTimeDocument.Project.Solution;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, cancellationToken).ConfigureAwait(false);
             if (compileTimeDocument == null)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             // EnC services should never be called on a design-time solution.

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixData fixData)
                 : base(originalDocument,
                        fixData,
-                       additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? RequiresNonDocumentChangeTags : ImmutableArray<string>.Empty)
+                       additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? RequiresNonDocumentChangeTags : [])
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
             }
