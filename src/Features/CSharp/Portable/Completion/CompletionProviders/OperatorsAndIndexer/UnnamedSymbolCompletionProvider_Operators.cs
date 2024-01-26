@@ -104,12 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var displayText = GetOperatorText(opName);
-
-            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(OperatorProperties.Length + 1, out var builder);
-
-            builder.AddRange(OperatorProperties);
-            builder.Add(new KeyValuePair<string, string>(OperatorName, opName));
-
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: null,
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: builder.ToImmutable(),
+                properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
                 isComplexTextEdit: true));
         }
 
