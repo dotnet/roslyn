@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             DocumentRenameOptions options,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders,
             CancellationToken cancellationToken)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             SymbolRenameOptions options,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             SymbolRenameOptions options,
-            CodeCleanupOptionsProvider cleanupOptions,
+            ICodeCleanupOptionsProvider cleanupOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {

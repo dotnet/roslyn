@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
 
-        public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
             Document documentWithTypeToExtractFrom,
             int position,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             Document document,
             int position,
             TypeDiscoveryRule typeDiscoveryRule,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var typeNode = await GetTypeDeclarationAsync(document, position, typeDiscoveryRule, cancellationToken).ConfigureAwait(false);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
         }
 
-        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             INamedTypeSymbol type,
             IEnumerable<ISymbol> extractableMembers,
             string containingNamespace,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Since code action performs formatting and simplification on a single document, 
             // this ensures that anything marked with formatter or simplifier annotations gets 

@@ -38,7 +38,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     protected abstract Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         TDiagnosticNode diagnosticNode,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
@@ -58,7 +58,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var originalRoot = editor.OriginalRoot;

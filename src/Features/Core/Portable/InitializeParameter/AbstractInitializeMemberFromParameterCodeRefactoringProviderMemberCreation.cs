@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
-            CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxNode constructorDeclaration,
             IMethodSymbol method,
             IBlockOperation? blockStatement,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IMethodSymbol method,
             IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // Didn't find a field/prop that this parameter could be assigned to.
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
-            CodeGenerationOptionsProvider fallbackOptions)
+            ICodeGenerationOptionsProvider fallbackOptions)
         {
             if (blockStatement == null)
                 return default;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
-            CodeGenerationOptionsProvider fallbackOptions)
+            ICodeGenerationOptionsProvider fallbackOptions)
         {
             var field = CreateField(parameter, accessibilityModifiersRequired, rules);
             var property = CreateProperty(parameter, accessibilityModifiersRequired, rules);
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatement,
             ISymbol fieldOrProperty,
             bool isThrowNotImplementedProperty,
-            CodeGenerationOptionsProvider fallbackOptions)
+            ICodeGenerationOptionsProvider fallbackOptions)
         {
             // Found a field/property that this parameter should be assigned to.
             // Just offer the simple assignment to it.
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatement,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<ISymbol> fieldsOrProperties,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Debug.Assert(parameters.Length >= 2);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
             bool isThrowNotImplementedProperty,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var services = document.Project.Solution.Services;

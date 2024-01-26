@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal OptionsCollection Options => _sharedState.Options;
 
 #if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
+            internal ICodeActionOptionsProvider CodeActionOptions
             {
                 get => _sharedState.CodeActionOptions;
                 set => _sharedState.CodeActionOptions = value;

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private async Task HandleNonSelectionAsync(
             CodeRefactoringContext context,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
+            ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             var (document, textSpan, cancellationToken) = context;
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         public async Task<ImmutableArray<CodeAction>> GenerateEqualsAndGetHashCodeFromMembersAsync(
             Document document,
             TextSpan textSpan,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode, cancellationToken))
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> selectedMembers,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             bool hasEquals, bool hasGetHashCode, bool withDialog, ILegacyGlobalOptionsWorkspaceService? globalOptions, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task<CodeAction>>.GetInstance(out var tasks);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private Task<CodeAction> CreateCodeActionAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-            CleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService? globalOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService? globalOptions,
             bool generateEquals, bool generateGetHashCode, bool withDialog, CancellationToken cancellationToken)
         {
             if (withDialog)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private async Task<CodeAction> CreateCodeActionWithDialogAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-            CleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService globalOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService globalOptions,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
             var implementIEquatable = false;

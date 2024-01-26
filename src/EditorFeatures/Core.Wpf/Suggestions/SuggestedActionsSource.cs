@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 TextDocument document,
                 SnapshotSpan range,
-                CodeActionOptionsProvider fallbackOptions,
+                ICodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
                 TextDocument document,
                 TextSpan? selection,
-                CodeActionOptionsProvider fallbackOptions,
+                ICodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 using var state = _state.TryAddReference();

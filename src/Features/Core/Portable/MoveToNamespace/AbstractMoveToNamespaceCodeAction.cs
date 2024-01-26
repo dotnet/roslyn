@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     internal abstract partial class AbstractMoveToNamespaceCodeAction(
         IMoveToNamespaceService moveToNamespaceService,
         MoveToNamespaceAnalysisResult analysisResult,
-        CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
+        ICodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
     {
         private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
+        private readonly ICodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
 
         /// <summary>
         /// This code action does notify clients about the rename it performs.  However, this is an optional part of
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return operations.ToImmutable();
         }
 
-        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, ICodeCleanupOptionsProvider cleanupOptions)
             => analysisResult.Container switch
             {
                 MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),

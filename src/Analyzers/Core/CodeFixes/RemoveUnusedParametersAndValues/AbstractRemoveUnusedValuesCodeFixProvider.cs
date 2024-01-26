@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return document.WithSyntaxRoot(root);
         }
 
-        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());

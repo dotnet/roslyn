@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 SyntaxNode tupleExprOrTypeNode,
                 ImmutableArray<IFieldSymbol> fields,
                 ImmutableArray<ITypeParameterSymbol> capturedTypeParameters,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
+                ICleanCodeGenerationOptionsProvider fallbackOptions,
                 bool isRecord)
             {
                 using var scopes = TemporaryArray<CodeAction>.Empty;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return tupleExprOrTypeNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts);
         }
 
-        private CodeAction CreateAction(Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord)
+        private CodeAction CreateAction(Document document, TextSpan span, Scope scope, ICleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord)
             => CodeAction.Create(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, c), scope.ToString());
 
         private static string GetTitle(Scope scope)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         public async Task<Solution> ConvertToStructAsync(
-            Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, ICleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private async Task<Solution> ConvertToStructInCurrentProcessAsync(
-            Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, ICleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
                 document, span, cancellationToken).ConfigureAwait(false);
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private static async Task GenerateStructIntoContainingNamespaceAsync(
             Document document, SyntaxNode tupleExprOrTypeNode, INamedTypeSymbol namedTypeSymbol,
             Dictionary<Document, SyntaxEditor> documentToEditorMap,
-            CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static async Task<Solution> ApplyChangesAsync(
-            Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var currentSolution = startingDocument.Project.Solution;
 

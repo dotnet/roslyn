@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class InlineRenameLocationSet : IInlineRenameLocationSet
         {
             private readonly LightweightRenameLocations _renameLocationSet;
-            private readonly CodeCleanupOptionsProvider _fallbackOptions;
+            private readonly ICodeCleanupOptionsProvider _fallbackOptions;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
             public IList<InlineRenameLocation> Locations { get; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public InlineRenameLocationSet(
                 SymbolInlineRenameInfo renameInfo,
                 LightweightRenameLocations renameLocationSet,
-                CodeCleanupOptionsProvider fallbackOptions)
+                ICodeCleanupOptionsProvider fallbackOptions)
             {
                 _renameInfo = renameInfo;
                 _renameLocationSet = renameLocationSet;

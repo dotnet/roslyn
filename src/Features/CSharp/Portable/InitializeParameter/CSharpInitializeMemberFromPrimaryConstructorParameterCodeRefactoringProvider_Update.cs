@@ -29,7 +29,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         TypeDeclarationSyntax typeDeclaration,
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<ISymbol> fieldsOrProperties,
-        CodeGenerationOptionsProvider fallbackOptions,
+        ICodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(parameters.Length >= 1);
@@ -80,7 +80,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var project = document.Project;

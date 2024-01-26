@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         protected Task<Document> FixAsync(
             Document document,
             TextSpan fixAllSpan,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             string? equivalenceKey,
             CancellationToken cancellationToken)
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         protected Task<Document> FixAllAsync(
             Document document,
             Optional<ImmutableArray<TextSpan>> fixAllSpans,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             string? equivalenceKey,
             CancellationToken cancellationToken)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             ImmutableArray<TextSpan> fixAllSpans,
             SyntaxEditor editor,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             string? equivalenceKey,
             CancellationToken cancellationToken);
     }

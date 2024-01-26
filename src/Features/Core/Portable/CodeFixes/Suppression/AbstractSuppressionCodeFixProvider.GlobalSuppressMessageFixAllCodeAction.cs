@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             private readonly INamedTypeSymbol _suppressMessageAttribute;
             private readonly IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> _diagnosticsBySymbol;
-            private readonly CodeActionOptionsProvider _fallbackOptions;
+            private readonly ICodeActionOptionsProvider _fallbackOptions;
 
             private GlobalSuppressMessageFixAllCodeAction(
                 AbstractSuppressionCodeFixProvider fixer,
                 INamedTypeSymbol suppressMessageAttribute,
                 IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol,
                 Project project,
-                CodeActionOptionsProvider fallbackOptions)
+                ICodeActionOptionsProvider fallbackOptions)
                 : base(fixer, project)
             {
                 _suppressMessageAttribute = suppressMessageAttribute;
@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _fallbackOptions = fallbackOptions;
             }
 
-            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, CodeActionOptionsProvider fallbackOptions)
+            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, ICodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
                     (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, fallbackOptions, ct),
                     equivalenceKey: title);
             }
 
-            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CodeActionOptionsProvider fallbackOptions)
+            internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, ICodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
                     (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, fallbackOptions, ct),
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 AbstractSuppressionCodeFixProvider fixer,
                 Document triggerDocument,
                 ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument,
-                CodeActionOptionsProvider fallbackOptions,
+                ICodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var currentSolution = triggerDocument.Project.Solution;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 AbstractSuppressionCodeFixProvider fixer,
                 Project triggerProject,
                 ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
-                CodeActionOptionsProvider fallbackOptions,
+                ICodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var currentSolution = triggerProject.Solution;

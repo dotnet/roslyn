@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         internal abstract bool IsSimpleName(TExpressionSyntax expression);
 
         internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(
-            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, IAddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);

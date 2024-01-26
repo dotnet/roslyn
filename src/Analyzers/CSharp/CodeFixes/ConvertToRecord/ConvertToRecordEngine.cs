@@ -28,7 +28,7 @@ internal static class ConvertToRecordEngine
         SyntaxRemoveOptions.AddElasticMarker;
 
     public static async Task<CodeAction?> GetCodeActionAsync(
-        Document document, TypeDeclarationSyntax typeDeclaration, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TypeDeclarationSyntax typeDeclaration, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         // any type declared partial requires complex movement, don't offer refactoring
         if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
@@ -79,7 +79,7 @@ internal static class ConvertToRecordEngine
         INamedTypeSymbol type,
         ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
         TypeDeclarationSyntax typeDeclaration,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

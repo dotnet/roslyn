@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CollectionExpressionWrappingLength = globalOptions.GetOption(CollectionExpressionWrappingLength, languageServices.Language),
             };
 
-        internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
+        internal static ICodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
             return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions));

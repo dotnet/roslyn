@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         public async Task<ImmutableArray<CodeAction>> GenerateConversionAsync(
             Document document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Features.Intents
 {
     internal sealed class IntentDataProvider(
         string? serializedIntentData,
-        CleanCodeGenerationOptionsProvider fallbackOptions)
+        ICleanCodeGenerationOptionsProvider fallbackOptions)
     {
         private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Features.Intents
             return serializerOptions;
         });
 
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions = fallbackOptions;
+        public readonly ICleanCodeGenerationOptionsProvider FallbackOptions = fallbackOptions;
 
         private readonly string? _serializedIntentData = serializedIntentData;
 

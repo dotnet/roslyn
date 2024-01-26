@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Rename
         internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
-            private readonly CodeCleanupOptionsProvider _fallbackOptions;
+            private readonly ICodeCleanupOptionsProvider _fallbackOptions;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis, CodeCleanupOptionsProvider fallbackOptions)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, ICodeCleanupOptionsProvider fallbackOptions)
                 : base([])
             {
                 _analysis = analysis;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution ?? document.Project.Solution;
             }
 
-            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CodeCleanupOptionsProvider fallbackOptions)
+            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, ICodeCleanupOptionsProvider fallbackOptions)
             {
                 var analysisResult = Analyze(document, newFolders);
 

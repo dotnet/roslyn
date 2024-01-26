@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);

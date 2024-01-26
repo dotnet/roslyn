@@ -54,12 +54,12 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, CodeActionOptionsProvider fallbackOptions, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        Document document, ICodeActionOptionsProvider fallbackOptions, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         TObjectCreationExpressionSyntax objectCreation,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

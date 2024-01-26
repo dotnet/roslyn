@@ -626,7 +626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 document As Document,
                 simpleName As SimpleNameSyntax,
                 includeUsingsOrImports As String,
-                fallbackOptions As AddImportPlacementOptionsProvider,
+                fallbackOptions As IAddImportPlacementOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Solution)
 
             ' Nothing to include

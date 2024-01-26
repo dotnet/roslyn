@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();

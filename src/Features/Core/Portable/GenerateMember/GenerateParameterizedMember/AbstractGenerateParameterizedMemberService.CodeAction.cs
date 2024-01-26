@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private readonly bool _isAbstract;
             private readonly bool _generateProperty;
             private readonly string _equivalenceKey;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateParameterizedMemberCodeAction(
                 TService service,
                 Document document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                ICodeAndImportGenerationOptionsProvider fallbackOptions,
                 bool isAbstract,
                 bool generateProperty)
             {

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // a method can have multiple `return null;` statements, but we should only fix its return type once

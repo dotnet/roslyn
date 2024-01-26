@@ -28,21 +28,21 @@ internal static class CodeActionOptionsStorage
 
     // TODO: we can implement providers directly on IGlobalOptionService once it moves to LSP layer
     public sealed class Provider :
-        SyntaxFormattingOptionsProvider,
-        SimplifierOptionsProvider,
-        AddImportPlacementOptionsProvider,
-        CodeCleanupOptionsProvider,
-        CodeGenerationOptionsProvider,
-        CleanCodeGenerationOptionsProvider,
-        CodeAndImportGenerationOptionsProvider,
-        CodeActionOptionsProvider
+        ISyntaxFormattingOptionsProvider,
+        ISimplifierOptionsProvider,
+        IAddImportPlacementOptionsProvider,
+        ICodeCleanupOptionsProvider,
+        ICodeGenerationOptionsProvider,
+        ICleanCodeGenerationOptionsProvider,
+        ICodeAndImportGenerationOptionsProvider,
+        ICodeActionOptionsProvider
     {
         private readonly IGlobalOptionService _globalOptions;
 
         public Provider(IGlobalOptionService globalOptions)
             => _globalOptions = globalOptions;
 
-        CodeActionOptions CodeActionOptionsProvider.GetOptions(LanguageServices languageServices)
+        CodeActionOptions ICodeActionOptionsProvider.GetOptions(LanguageServices languageServices)
             => _globalOptions.GetCodeActionOptions(languageServices);
 
         ValueTask<LineFormattingOptions> IOptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)

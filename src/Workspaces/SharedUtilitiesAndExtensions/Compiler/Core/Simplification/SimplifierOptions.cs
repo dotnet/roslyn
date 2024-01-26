@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #endif
     }
 
-    internal interface SimplifierOptionsProvider
+    internal interface ISimplifierOptionsProvider
 #if !CODE_STYLE
         : IOptionsProvider<SimplifierOptions>
 #endif
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return configOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions);
         }
 
-        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
             => await document.GetSimplifierOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
     }

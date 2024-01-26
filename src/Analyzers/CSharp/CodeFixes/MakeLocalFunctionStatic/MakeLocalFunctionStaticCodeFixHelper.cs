@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             SyntaxEditor syntaxEditor,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

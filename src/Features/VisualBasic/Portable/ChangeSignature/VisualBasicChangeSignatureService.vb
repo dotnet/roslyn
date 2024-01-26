@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             potentiallyUpdatedNode As SyntaxNode,
             originalNode As SyntaxNode,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
+            fallbackOptions As ILineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
@@ -607,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             node As VisualBasicSyntaxNode,
             declarationSymbol As ISymbol,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
+            fallbackOptions As ILineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxTrivia))
 
             If Not node.HasLeadingTrivia Then

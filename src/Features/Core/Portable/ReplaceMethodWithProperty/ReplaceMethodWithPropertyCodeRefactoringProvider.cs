@@ -317,7 +317,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         IEnumerable<ReferencedSymbol> getMethodReferences,
         IEnumerable<ReferencedSymbol> setMethodReferences,
         bool updateSetMethod,
-        CodeGenerationOptionsProvider fallbackOptions,
+        ICodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var getDefinitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, getMethodReferences, cancellationToken).ConfigureAwait(false);

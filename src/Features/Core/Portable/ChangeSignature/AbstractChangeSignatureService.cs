@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
-            LineFormattingOptionsProvider fallbackOptions,
+            ILineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract SyntaxGenerator Generator { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
-            Document document, int position, bool restrictToDeclarations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, int position, bool restrictToDeclarations, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);

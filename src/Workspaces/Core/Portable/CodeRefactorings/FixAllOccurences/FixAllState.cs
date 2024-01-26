@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
             : this(fixAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Project project,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
             : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Project project,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             string codeActionTitle,
             string? codeActionEquivalenceKey)

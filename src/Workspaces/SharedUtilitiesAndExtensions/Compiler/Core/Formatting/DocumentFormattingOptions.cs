@@ -22,7 +22,7 @@ internal sealed record class DocumentFormattingOptions
     [DataMember] public bool InsertFinalNewLine { get; init; } = false;
 }
 
-internal interface DocumentFormattingOptionsProvider
+internal interface IDocumentFormattingOptionsProvider
 #if !CODE_STYLE
     : IOptionsProvider<DocumentFormattingOptions>
 #endif
@@ -49,7 +49,7 @@ internal static class DocumentFormattingOptionsProviders
         return configOptions.GetDocumentFormattingOptions(fallbackOptions);
     }
 
-    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, DocumentFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, IDocumentFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await document.GetDocumentFormattingOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<bool> HasRefactoringsAsync(
             TextDocument document,
             TextSpan state,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextDocument document,
             TextSpan state,
             CodeActionRequestPriority? priority,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeRefactoringProvider provider,
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             return extensionManager.PerformFunctionAsync(

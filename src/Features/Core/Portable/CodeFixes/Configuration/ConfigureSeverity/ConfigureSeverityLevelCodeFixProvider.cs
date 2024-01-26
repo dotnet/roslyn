@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
         public FixAllProvider? GetFixAllProvider()
             => null;
 
-        public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
 
-        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

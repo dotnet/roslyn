@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Options;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LegacyGlobalCleanCodeGenerationOptionsWorkspaceService(IGlobalOptionService globalOptions) : ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService
 {
-    public CleanCodeGenerationOptionsProvider Provider { get; } = new ProviderImpl(globalOptions);
+    public ICleanCodeGenerationOptionsProvider Provider { get; } = new ProviderImpl(globalOptions);
 
-    private sealed class ProviderImpl(IOptionsReader options) : CleanCodeGenerationOptionsProvider
+    private sealed class ProviderImpl(IOptionsReader options) : ICleanCodeGenerationOptionsProvider
     {
         ValueTask<LineFormattingOptions> IOptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GetLineFormattingOptions(languageServices.Language, fallbackOptions: null));

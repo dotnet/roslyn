@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
     internal static partial class ConvertProgramTransform
     {
         public static async Task<Document> ConvertToTopLevelStatementsAsync(
-            Document document, MethodDeclarationSyntax methodDeclaration, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, MethodDeclarationSyntax methodDeclaration, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var typeDeclaration = (TypeDeclarationSyntax?)methodDeclaration.Parent;
             Contract.ThrowIfNull(typeDeclaration); // checked by analyzer

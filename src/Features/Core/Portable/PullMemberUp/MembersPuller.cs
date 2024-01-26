@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             Document document,
             ImmutableArray<ISymbol> selectedMembers,
             INamedTypeSymbol destination,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
+            ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination,
                 selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         public static Task<Solution> PullMembersUpAsync(
             Document document,
             PullMembersUpOptions pullMembersUpOptions,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             return pullMembersUpOptions.Destination.TypeKind switch
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static async Task<Solution> PullMembersIntoInterfaceAsync(
             Document document,
             PullMembersUpOptions pullMemberUpOptions,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;

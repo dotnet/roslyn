@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             Document document,
             State state,
             IList<IMethodSymbol> constructors,
-            CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
+            ICodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
         {
         }
     }

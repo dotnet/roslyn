@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             Document document,
             SyntaxNode typeDeclaration,
             INamedTypeSymbol comparableType,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

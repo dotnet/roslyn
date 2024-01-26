@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.CancellationToken);
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => WrapFixAsync(
                 document,
                 diagnostics,

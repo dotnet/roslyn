@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract TLocalDeclarationStatementSyntax FixupLocalDeclaration(TExpressionStatementSyntax expressionStatement, TLocalDeclarationStatementSyntax localDeclaration);
         protected abstract TExpressionStatementSyntax FixupDeconstruction(TExpressionStatementSyntax expressionStatement, TExpressionStatementSyntax localDeclaration);
         protected abstract Task<TExpressionStatementSyntax> CreateTupleDeconstructionAsync(
-            Document document, CodeActionOptionsProvider optionsProvider, INamedTypeSymbol tupleType, TExpressionSyntax expression, CancellationToken cancellationToken);
+            Document document, ICodeActionOptionsProvider optionsProvider, INamedTypeSymbol tupleType, TExpressionSyntax expression, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private async Task<Document> IntroduceLocalAsync(
             Document document,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             TExpressionStatementSyntax expressionStatement,
             ITypeSymbol type,
             bool deconstruct,

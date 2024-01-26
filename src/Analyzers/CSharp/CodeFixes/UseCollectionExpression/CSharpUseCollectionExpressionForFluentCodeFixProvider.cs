@@ -42,7 +42,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -138,7 +138,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {

@@ -35,9 +35,9 @@ internal readonly struct CodeFixOptionsProvider
     /// <summary>
     /// Fallback options provider - default options provider in Code Style layer.
     /// </summary>
-    private readonly CodeActionOptionsProvider _fallbackOptions;
+    private readonly ICodeActionOptionsProvider _fallbackOptions;
 
-    public CodeFixOptionsProvider(IOptionsReader options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
+    public CodeFixOptionsProvider(IOptionsReader options, ICodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
@@ -85,7 +85,7 @@ internal readonly struct CodeFixOptionsProvider
 
 internal static class CodeFixOptionsProviders
 {
-    public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsAsync(this Document document, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CodeFixOptionsProvider(configOptions.GetOptionsReader(), fallbackOptions, document.Project.GetExtendedLanguageServices());

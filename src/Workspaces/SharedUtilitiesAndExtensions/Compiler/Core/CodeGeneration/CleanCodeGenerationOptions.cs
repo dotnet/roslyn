@@ -40,18 +40,18 @@ internal readonly record struct CleanCodeGenerationOptions
 #endif
 }
 
-internal interface CleanCodeGenerationOptionsProvider :
+internal interface ICleanCodeGenerationOptionsProvider :
 #if !CODE_STYLE
     IOptionsProvider<CleanCodeGenerationOptions>,
 #endif
-    CodeGenerationOptionsProvider,
-    CodeCleanupOptionsProvider,
-    CodeAndImportGenerationOptionsProvider
+    ICodeGenerationOptionsProvider,
+    ICodeCleanupOptionsProvider,
+    ICodeAndImportGenerationOptionsProvider
 {
 }
 
 #if !CODE_STYLE
-internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCodeCleanupOptionsProvider, CleanCodeGenerationOptionsProvider
+internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCodeCleanupOptionsProvider, ICleanCodeGenerationOptionsProvider
 {
     public abstract ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken);
 
@@ -80,7 +80,7 @@ internal static class CleanCodeGenerationOptionsProviders
             CleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.CleanupOptions, cancellationToken).ConfigureAwait(false)
         };
 
-    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, ICleanCodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await document.GetCleanCodeGenerationOptionsAsync(await ((IOptionsProvider<CleanCodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     private sealed class Provider(IOptionsProvider<CleanCodeGenerationOptions> provider) : AbstractCleanCodeGenerationOptionsProvider
@@ -89,7 +89,7 @@ internal static class CleanCodeGenerationOptionsProviders
             => provider.GetOptionsAsync(languageServices, cancellationToken);
     }
 
-    public static CleanCodeGenerationOptionsProvider ToCleanCodeGenerationOptionsProvider(this IOptionsProvider<CleanCodeGenerationOptions> provider)
+    public static ICleanCodeGenerationOptionsProvider ToCleanCodeGenerationOptionsProvider(this IOptionsProvider<CleanCodeGenerationOptions> provider)
         => new Provider(provider);
 }
 #endif

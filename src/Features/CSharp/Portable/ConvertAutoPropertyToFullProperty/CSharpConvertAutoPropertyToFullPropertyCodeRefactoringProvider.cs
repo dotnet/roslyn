@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),

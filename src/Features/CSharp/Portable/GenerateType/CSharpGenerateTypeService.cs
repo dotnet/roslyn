@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             => expression is SimpleNameSyntax;
 
         internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(
-            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, IAddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Nothing to include
             if (string.IsNullOrWhiteSpace(includeUsingsOrImports))

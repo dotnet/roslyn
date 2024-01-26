@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             Document document,
             State state,
             IMethodSymbol constructor,
-            CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
+            ICodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
         {
             private static string GetDisplayText(State state, IMethodSymbol constructor)
             {

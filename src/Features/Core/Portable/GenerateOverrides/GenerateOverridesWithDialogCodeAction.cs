@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             TextSpan textSpan,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> viableMembers,
-            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+            ICodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
             private readonly GenerateOverridesCodeRefactoringProvider _service = service;
             private readonly Document _document = document;
             private readonly INamedTypeSymbol _containingType = containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
             private readonly TextSpan _textSpan = textSpan;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Generate_overrides;
 

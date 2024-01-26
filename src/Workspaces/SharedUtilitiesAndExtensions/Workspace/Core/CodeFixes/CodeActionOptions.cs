@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     internal sealed record class CodeActionOptions
     {
 #if CODE_STYLE
-        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
+        public static readonly ICodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
 #else
-        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls));
+        public static readonly ICodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls));
 #endif
 
         /// <summary>
@@ -75,26 +75,26 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static CodeActionOptions GetDefault(LanguageServices languageServices)
             => new();
 #endif
-        public CodeActionOptionsProvider CreateProvider()
+        public ICodeActionOptionsProvider CreateProvider()
             => new DelegatingCodeActionOptionsProvider(_ => this);
     }
 
-    internal interface CodeActionOptionsProvider :
+    internal interface ICodeActionOptionsProvider :
 #if !CODE_STYLE
-        CodeCleanupOptionsProvider,
-        CodeGenerationOptionsProvider,
-        CleanCodeGenerationOptionsProvider,
-        CodeAndImportGenerationOptionsProvider,
-        OrganizeImportsOptionsProvider,
+        ICodeCleanupOptionsProvider,
+        ICodeGenerationOptionsProvider,
+        ICleanCodeGenerationOptionsProvider,
+        ICodeAndImportGenerationOptionsProvider,
+        IOrganizeImportsOptionsProvider,
 #endif
-        SyntaxFormattingOptionsProvider,
-        SimplifierOptionsProvider,
-        AddImportPlacementOptionsProvider
+        ISyntaxFormattingOptionsProvider,
+        ISimplifierOptionsProvider,
+        IAddImportPlacementOptionsProvider
     {
         CodeActionOptions GetOptions(LanguageServices languageService);
     }
 
-    internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsProvider
+    internal abstract class AbstractCodeActionOptionsProvider : ICodeActionOptionsProvider
     {
         public abstract CodeActionOptions GetOptions(LanguageServices languageServices);
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
     internal static class CodeActionOptionsProviders
     {
-        internal static CodeActionOptionsProvider GetOptionsProvider(this CodeFixContext context)
+        internal static ICodeActionOptionsProvider GetOptionsProvider(this CodeFixContext context)
 #if CODE_STYLE
             => CodeActionOptions.DefaultProvider;
 #else
@@ -164,18 +164,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #endif
 
 #if CODE_STYLE
-        internal static CodeActionOptionsProvider GetOptionsProvider(this FixAllContext _)
+        internal static ICodeActionOptionsProvider GetOptionsProvider(this FixAllContext _)
             => CodeActionOptions.DefaultProvider;
 #else
-        internal static CodeActionOptionsProvider GetOptionsProvider(this IFixAllContext context)
+        internal static ICodeActionOptionsProvider GetOptionsProvider(this IFixAllContext context)
             => context.State.CodeActionOptionsProvider;
 #endif
 
 #if !CODE_STYLE
-        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this ICodeActionOptionsProvider provider, LanguageServices languageServices)
             => new(provider.GetOptions(languageServices).ImplementTypeOptions, provider);
 
-        public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
+        public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this ICodeActionOptionsProvider provider, LanguageServices languageServices)
         {
             var codeActionOptions = provider.GetOptions(languageServices);
             return new()

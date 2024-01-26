@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

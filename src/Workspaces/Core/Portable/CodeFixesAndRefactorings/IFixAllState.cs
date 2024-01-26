@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// </summary>
         object Provider { get; }
 
-        CodeActionOptionsProvider CodeActionOptionsProvider { get; }
+        ICodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
         IFixAllState With(
             Optional<(Document? document, Project project)> documentAndProject = default,

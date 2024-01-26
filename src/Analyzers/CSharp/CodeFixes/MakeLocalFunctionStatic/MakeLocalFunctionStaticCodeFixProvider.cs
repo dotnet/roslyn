@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
             foreach (var localFunction in localFunctions)

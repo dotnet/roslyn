@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             public Session(
                 SymbolicRenameLocations renameLocationSet,
-                CodeCleanupOptionsProvider fallbackOptions,
+                ICodeCleanupOptionsProvider fallbackOptions,
                 Location renameSymbolDeclarationLocation,
                 string replacementText,
                 ImmutableArray<SymbolKey> nonConflictSymbolKeys,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
-            private CodeCleanupOptionsProvider FallbackOptions { get; }
+            private ICodeCleanupOptionsProvider FallbackOptions { get; }
 
             private readonly struct ConflictLocationInfo
             {

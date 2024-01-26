@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
             TextSpan textSpan,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             bool forRefactoring,
             CancellationToken cancellationToken)
         {

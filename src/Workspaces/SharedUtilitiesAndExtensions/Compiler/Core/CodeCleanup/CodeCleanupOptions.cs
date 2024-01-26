@@ -44,19 +44,19 @@ internal sealed record class CodeCleanupOptions
 #endif
 }
 
-internal interface CodeCleanupOptionsProvider :
+internal interface ICodeCleanupOptionsProvider :
 #if !CODE_STYLE
     IOptionsProvider<CodeCleanupOptions>,
 #endif
-    SyntaxFormattingOptionsProvider,
-    SimplifierOptionsProvider,
-    AddImportPlacementOptionsProvider,
-    DocumentFormattingOptionsProvider
+    ISyntaxFormattingOptionsProvider,
+    ISimplifierOptionsProvider,
+    IAddImportPlacementOptionsProvider,
+    IDocumentFormattingOptionsProvider
 {
 }
 
 #if !CODE_STYLE
-internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsProvider
+internal abstract class AbstractCodeCleanupOptionsProvider : ICodeCleanupOptionsProvider
 {
     public abstract ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken);
 
@@ -99,7 +99,7 @@ internal static class CodeCleanupOptionsProviders
         return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
     }
 
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, ICodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await document.GetCodeCleanupOptionsAsync(await ((IOptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     private sealed class Provider(IOptionsProvider<CodeCleanupOptions> provider) : AbstractCodeCleanupOptionsProvider
@@ -108,7 +108,7 @@ internal static class CodeCleanupOptionsProviders
             => provider.GetOptionsAsync(languageServices, cancellationToken);
     }
 
-    public static CodeCleanupOptionsProvider ToCodeCleanupOptionsProvider(this IOptionsProvider<CodeCleanupOptions> provider)
+    public static ICodeCleanupOptionsProvider ToCodeCleanupOptionsProvider(this IOptionsProvider<CodeCleanupOptions> provider)
         => new Provider(provider);
 #endif
 }

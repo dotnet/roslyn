@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
             Project project, Diagnostic diagnostic,
             AbstractSuppressionCodeFixProvider fixer,
-            CodeActionOptionsProvider fallbackOptions) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
+            ICodeActionOptionsProvider fallbackOptions) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
         {
             private readonly ISymbol _targetSymbol = targetSymbol;
             private readonly INamedTypeSymbol _suppressMessageAttribute = suppressMessageAttribute;
             private readonly Diagnostic _diagnostic = diagnostic;
-            private readonly CodeActionOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeActionOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
             IProgress<CodeAnalysisProgress> progressTracker,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // add one item for the code fixers we get from nuget, we'll do last
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private static async Task<Document> RemoveSortUsingsAsync(
-            Document document, OrganizeUsingsSet organizeUsingsSet, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, OrganizeUsingsSet organizeUsingsSet, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled &&
                 document.GetLanguageService<IRemoveUnnecessaryImportsService>() is { } removeUsingsService)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Add a progressTracker item for each enabled option we're going to fixup.
             foreach (var diagnosticSet in enabledDiagnosticSets)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, bool isAnyDiagnosticIdExplicitlyEnabled, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, bool isAnyDiagnosticIdExplicitlyEnabled, IProgress<CodeAnalysisProgress> progressTracker, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Enable fixes for all diagnostic severities if any of the diagnostic IDs has been explicitly enabled in Code Cleanup.
             // Otherwise, only enable fixes for Warning and Error severity diagnostics.
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
-            Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             Document document,
             ImmutableArray<(string diagnosticId, string? title)> diagnosticIds,
             IProgress<CodeAnalysisProgress> progressTracker,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             foreach (var (diagnosticId, title) in diagnosticIds)

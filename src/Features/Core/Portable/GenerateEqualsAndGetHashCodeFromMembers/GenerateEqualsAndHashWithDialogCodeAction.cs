@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> viableMembers,
             ImmutableArray<PickMembersOption> pickMembersOptions,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             ILegacyGlobalOptionsWorkspaceService globalOptions,
             bool generateEquals = false,
             bool generateGetHashCode = false) : CodeActionWithOptions
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly INamedTypeSymbol _containingType = containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions = pickMembersOptions;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
             private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions = globalOptions;
 
             public override string EquivalenceKey => Title;

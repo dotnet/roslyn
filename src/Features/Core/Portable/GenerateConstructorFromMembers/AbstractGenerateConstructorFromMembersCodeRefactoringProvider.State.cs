@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 INamedTypeSymbol containingType,
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
-                NamingStylePreferencesProvider fallbackOptions,
+                INamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 INamedTypeSymbol containingType,
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
-                NamingStylePreferencesProvider fallbackOptions,
+                INamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var mappedMembers = selectedMembers.Select(m => TryMapToWritableInstanceFieldOrProperty(service, m, cancellationToken)).Distinct().ToImmutableArray();

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             Private ReadOnly _node As SyntaxNode
             Private ReadOnly _title As String
             Private ReadOnly _modifier As SyntaxKind
-            Private ReadOnly _fallbackOptions As SyntaxFormattingOptionsProvider
+            Private ReadOnly _fallbackOptions As ISyntaxFormattingOptionsProvider
 
             Public Overrides ReadOnly Property Title As String
                 Get
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 End Get
             End Property
 
-            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind, fallbackOptions As SyntaxFormattingOptionsProvider)
+            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind, fallbackOptions As ISyntaxFormattingOptionsProvider)
                 _document = document
                 _node = node
                 _title = title

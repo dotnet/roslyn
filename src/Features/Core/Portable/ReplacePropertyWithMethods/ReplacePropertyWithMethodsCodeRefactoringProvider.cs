@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
-           CodeGenerationOptionsProvider fallbackOptions,
+           ICodeGenerationOptionsProvider fallbackOptions,
            CancellationToken cancellationToken)
         {
             var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IEnumerable<ReferencedSymbol> references,
             ImmutableDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
             IDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedDocument = updatedSolution.GetRequiredDocument(documentId);

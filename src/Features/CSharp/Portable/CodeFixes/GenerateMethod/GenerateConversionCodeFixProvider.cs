@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateConversionService>();
             return service.GenerateConversionAsync(document, node, fallbackOptions, cancellationToken);

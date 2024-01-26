@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
     {
         public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
-        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
-        public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         public override async Task<Solution?> TryChangeTopLevelNamespacesAsync(
             Document document,
             string targetNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Document document,
             SyntaxNode container,
             string targetNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // Make sure given namespace name is valid, "" means global namespace.
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             DocumentId id,
             string oldNamespace,
             string newNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var document = solution.GetRequiredDocument(id);
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             IReadOnlyList<LocationForAffectedSymbol> refLocations,
             string oldNamespace,
             string newNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Debug.Assert(newNamespace != null);
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Document document,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             IAddImportsService addImportService,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             ImmutableArray<string> newNamespaceParts,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Solution solution,
             ImmutableArray<DocumentId> ids,
             ImmutableArray<string> names,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);

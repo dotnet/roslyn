@@ -122,7 +122,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ExpressionSyntax expression,
         ConvertToRawKind kind,
-        CodeActionOptionsProvider optionsProvider,
+        ICodeActionOptionsProvider optionsProvider,
         IConvertStringProvider provider,
         CancellationToken cancellationToken)
     {
@@ -138,7 +138,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
+        ICodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

@@ -14,5 +14,5 @@ namespace Microsoft.CodeAnalysis.Options;
 /// </summary>
 internal interface ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService : IWorkspaceService
 {
-    public CleanCodeGenerationOptionsProvider Provider { get; }
+    public ICleanCodeGenerationOptionsProvider Provider { get; }
 }

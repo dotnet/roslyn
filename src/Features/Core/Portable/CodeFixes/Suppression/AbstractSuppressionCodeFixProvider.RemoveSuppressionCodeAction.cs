@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Project project,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
-                CodeActionOptionsProvider options,
+                ICodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal interface IGenerateVariableService : ILanguageService
     {
-        Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     }
 }

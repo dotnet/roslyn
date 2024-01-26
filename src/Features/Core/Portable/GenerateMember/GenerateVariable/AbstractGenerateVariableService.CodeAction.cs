@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly RefKind _refKind;
             private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateVariableCodeAction(
                 SemanticDocument document,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool isReadonly,
                 bool isConstant,
                 RefKind refKind,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                ICodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _semanticDocument = document;
                 _state = state;

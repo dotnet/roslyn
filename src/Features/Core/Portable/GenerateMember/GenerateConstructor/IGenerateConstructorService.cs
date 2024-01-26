@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal interface IGenerateConstructorService : ILanguageService
     {
-        Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     }
 }

@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             Accessibility? desiredAccessibility,
             ImmutableArray<ISymbol> viableMembers,
             ImmutableArray<PickMembersOption> pickMembersOptions,
-            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+            ICleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
             private readonly Document _document = document;
             private readonly INamedTypeSymbol _containingType = containingType;
             private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
             private readonly TextSpan _textSpan = textSpan;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
             internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;

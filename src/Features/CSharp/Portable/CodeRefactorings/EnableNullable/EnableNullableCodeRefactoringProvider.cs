@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             };
 
         private static async Task<Solution> EnableNullableReferenceTypesAsync(
-            Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
+            Project project, CodeActionPurpose purpose, ICodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             foreach (var document in project.Documents)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             return solution;
         }
 
-        private static async Task<SyntaxNode> EnableNullableReferenceTypesAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> EnableNullableReferenceTypesAsync(Document document, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var firstToken = GetFirstTokenOfInterest(root);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             return (updatedRoot, GetFirstTokenOfInterest(updatedRoot));
         }
 
-        private static async Task<SyntaxNode> DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(Document document, SyntaxNode root, SyntaxToken firstToken, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(Document document, SyntaxNode root, SyntaxToken firstToken, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var newLine = SyntaxFactory.EndOfLine(options.NewLine);

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
         /// is a constructor.
         /// </summary>
         private async Task<(ImmutableArray<CodeAction> actions, ImmutableArray<CodeAction> actionsAllOccurrences)?> GetActionsAsync(Document document,
-            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod, CodeGenerationOptionsProvider fallbackOptions,
+            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod, ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var (shouldDisplay, containsClassExpression) = await ShouldExpressionDisplayCodeActionAsync(
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
         /// </summary>
         private async Task<Solution> IntroduceParameterAsync(Document originalDocument, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction,
-            CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ICodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var methodCallSites = await FindCallSitesAsync(originalDocument, methodSymbol, cancellationToken).ConfigureAwait(false);
 

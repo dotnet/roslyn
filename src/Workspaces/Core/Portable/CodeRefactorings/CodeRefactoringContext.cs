@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal readonly CodeActionOptionsProvider Options;
+        internal readonly ICodeActionOptionsProvider Options;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextDocument document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`

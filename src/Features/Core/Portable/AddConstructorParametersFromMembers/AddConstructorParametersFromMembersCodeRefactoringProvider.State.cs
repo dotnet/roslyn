@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public static async Task<State?> GenerateAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
-                NamingStylePreferencesProvider fallbackOptions,
+                INamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private async Task<bool> TryInitializeAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
-                NamingStylePreferencesProvider fallbackOptions,
+                INamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 ContainingType = selectedMembers[0].ContainingType;

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
                 IProgress<CodeAnalysisProgress> progressTracker,
-                CodeActionOptionsProvider options,
+                ICodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 // Use documentId instead of tree here because the

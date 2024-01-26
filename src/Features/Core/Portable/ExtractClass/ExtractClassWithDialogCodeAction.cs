@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         IExtractClassOptionsService service,
         INamedTypeSymbol selectedType,
         SyntaxNode selectedTypeDeclarationNode,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ICleanCodeGenerationOptionsProvider fallbackOptions,
         ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
         private readonly Document _document = document;
         private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
         private readonly INamedTypeSymbol _selectedType = selectedType;
         private readonly SyntaxNode _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+        private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
         private readonly IExtractClassOptionsService _service = service;
 
         // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base

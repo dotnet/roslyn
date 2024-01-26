@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         /// </summary>
         private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches,
             CancellationToken cancellationToken)

@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly bool _fromDialog;
             private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
             private readonly CancellationToken _cancellationToken;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public Editor(
                 TService service,
                 SemanticDocument document,
                 State state,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
+                ICleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile,
                 CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 TService service,
                 SemanticDocument document,
                 State state,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
+                ICleanCodeGenerationOptionsProvider fallbackOptions,
                 bool fromDialog,
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)

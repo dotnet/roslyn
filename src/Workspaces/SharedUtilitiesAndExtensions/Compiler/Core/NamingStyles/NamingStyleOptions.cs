@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             isEditorConfigOption: true);
     }
 
-    internal interface NamingStylePreferencesProvider
+    internal interface INamingStylePreferencesProvider
 #if !CODE_STYLE
         : IOptionsProvider<NamingStylePreferences>
 #endif
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return configOptions.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions ?? NamingStylePreferences.Default);
         }
 
-        public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, NamingStylePreferencesProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+        public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, INamingStylePreferencesProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         {
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             if (configOptions.TryGetEditorConfigOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var value))

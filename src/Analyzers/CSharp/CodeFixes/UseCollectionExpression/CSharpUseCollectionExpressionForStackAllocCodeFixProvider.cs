@@ -32,7 +32,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax stackAllocExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

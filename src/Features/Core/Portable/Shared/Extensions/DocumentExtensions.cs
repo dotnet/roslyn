@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// will only be used if the user hasn't specified a preference.
         /// </summary>
         public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            this Document document, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+            this Document document, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetNamingStylePreferencesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
         }
 
-        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKind symbolKind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+            this Document document, SymbolKind symbolKind, Accessibility accessibility, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return true;
         }
 
-        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
             {

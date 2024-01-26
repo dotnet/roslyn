@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return Task.CompletedTask;
         }
 
-        private async Task<Document> GetTransformedDocumentAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private async Task<Document> GetTransformedDocumentAsync(Document document, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false));
 
-        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
