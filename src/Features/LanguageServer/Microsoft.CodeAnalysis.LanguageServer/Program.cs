@@ -76,7 +76,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -179,9 +179,15 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension", "--extensions") // TODO: remove plural form
+    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension")
     {
         Description = "Full paths of extension assemblies to load (optional).",
+        Required = false
+    };
+
+    var devKitDependencyPathOption = new CliOption<string?>("--devKitDependencyPath")
+    {
+        Description = "Full path to the Roslyn dependency used with DevKit (optional).",
         Required = false
     };
 
@@ -194,6 +200,7 @@ static CliRootCommand CreateCommandLineParser()
         telemetryLevelOption,
         sessionIdOption,
         extensionAssemblyPathsOption,
+        devKitDependencyPathOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -204,6 +211,7 @@ static CliRootCommand CreateCommandLineParser()
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
+        var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -213,6 +221,7 @@ static CliRootCommand CreateCommandLineParser()
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
+            DevKitDependencyPath: devKitDependencyPath,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
