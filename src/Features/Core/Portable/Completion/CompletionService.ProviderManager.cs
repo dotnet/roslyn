@@ -134,8 +134,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 ImmutableArray<CompletionProvider> GetImportedAndBuiltInProvidersWorker(ImmutableHashSet<string> roles)
                 {
-#pragma warning restore 0618
-
                     return
                     [
                         .. GetLazyImportedProviders()
@@ -143,7 +141,9 @@ namespace Microsoft.CodeAnalysis.Completion
                             .Select(lz => lz.Value),
                         // We need to keep supporting built-in providers for a while longer since this is a public API.
                         // https://github.com/dotnet/roslyn/issues/42367
+#pragma warning disable 0618
                         .. _service.GetBuiltInProviders(),
+#pragma warning restore 0618
                     ];
                 }
             }
