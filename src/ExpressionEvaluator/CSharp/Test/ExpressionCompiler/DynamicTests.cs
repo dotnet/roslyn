@@ -1492,6 +1492,7 @@ class C
             else
             {
                 Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
+                // Include leading count byte.
                 expectedBytes = [(byte)expectedBytes.Length, .. expectedBytes];
                 Assert.Equal(expectedBytes, customTypeInfo);
             }
