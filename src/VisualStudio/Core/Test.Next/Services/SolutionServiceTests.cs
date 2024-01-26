@@ -530,21 +530,28 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             solution = project2.Solution;
 
-            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            var map = new Dictionary<Checksum, object>();
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+
+            // Do the initial full sync
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-            var syncedFullSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
+            var syncedFullSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, workspaceVersion: solution.WorkspaceVersion, CancellationToken.None);
 
             Assert.Equal(solutionChecksum, await syncedFullSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
             Assert.Equal(2, syncedFullSolution.Projects.Count());
 
             // Syncing project1 should do nothing as syncing the solution already synced it over.
             var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+            await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
             var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(2, project1SyncedSolution.Projects.Count());
 
             // Syncing project2 should do nothing as syncing the solution already synced it over.
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
+            await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(2, project2SyncedSolution.Projects.Count());
         }
