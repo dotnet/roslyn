@@ -3713,6 +3713,89 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFrozenPartialSemanticsOfLinkedDocuments()
+        {
+            const int ClassDeclaration = 8855;
+            const int StructDeclaration = 8856;
+
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+
+            var contents = """
+                #if X
+
+                class C
+                {
+                }
+
+                #else
+
+                struct D
+                {
+                }
+
+                #endif
+                """;
+
+            // Create a normal solution with a linked doc, where each project should see a different tree for the above contents.
+
+            var currentSolution = workspace.CurrentSolution;
+            var document1 = currentSolution.AddProject("TestProject1", "TestProject1", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", contents, filePath: "RegularDocument.cs");
+            currentSolution = document1.Project.Solution;
+
+            var document2 = currentSolution.AddProject("TestProject2", "TestProject2", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", contents, filePath: "RegularDocument.cs");
+            currentSolution = document2.Project.Solution;
+
+            var options = (CSharpParseOptions)document1.Project.ParseOptions;
+            currentSolution = currentSolution.WithProjectParseOptions(document1.Project.Id, options.WithPreprocessorSymbols("X"));
+
+            var relatedIds1 = currentSolution.GetRelatedDocumentIds(document1.Id);
+            var relatedIds2 = currentSolution.GetRelatedDocumentIds(document2.Id);
+            AssertEx.SetEqual(relatedIds1, ImmutableArray.Create(document1.Id, document2.Id));
+            AssertEx.SetEqual(relatedIds2, ImmutableArray.Create(document1.Id, document2.Id));
+
+            document1 = currentSolution.GetRequiredDocument(document1.Id);
+            document2 = currentSolution.GetRequiredDocument(document2.Id);
+
+            var doc1Root = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var doc2Root = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotSame(doc1Root, doc2Root);
+            Assert.False(doc1Root.IsEquivalentTo(doc2Root));
+
+            {
+                // Now get the frozen version of each document.  Freezing will update the siblings to have the same tree contents.
+                var frozenDoc1 = document1.WithFrozenPartialSemantics(CancellationToken.None);
+                var frozenDoc2 = frozenDoc1.Project.Solution.GetRequiredDocument(document2.Id);
+
+                var frozenDoc1Root = await frozenDoc1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+                var frozenDoc2Root = await frozenDoc2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+                Assert.NotSame(frozenDoc1Root, frozenDoc2Root);
+                Assert.True(frozenDoc1Root.IsEquivalentTo(frozenDoc2Root));
+
+                // We're seeing project1's view of the file.  so we should only see a class decl and no struct decl.
+                Assert.True(frozenDoc1Root.DescendantNodes().Any(n => n.RawKind == ClassDeclaration));
+                Assert.False(frozenDoc1Root.DescendantNodes().Any(n => n.RawKind == StructDeclaration));
+            }
+
+            {
+                // Now get the frozen version of each document.  Freezing will update the siblings to have the same tree contents.
+                var frozenDoc2 = document2.WithFrozenPartialSemantics(CancellationToken.None);
+                var frozenDoc1 = frozenDoc2.Project.Solution.GetRequiredDocument(document1.Id);
+
+                var frozenDoc1Root = await frozenDoc1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+                var frozenDoc2Root = await frozenDoc2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+                Assert.NotSame(frozenDoc1Root, frozenDoc2Root);
+                Assert.True(frozenDoc1Root.IsEquivalentTo(frozenDoc2Root));
+
+                // We're seeing project2's view of the file.  so we should only see a struct decl and no class decl.
+                Assert.False(frozenDoc1Root.DescendantNodes().Any(n => n.RawKind == ClassDeclaration));
+                Assert.True(frozenDoc1Root.DescendantNodes().Any(n => n.RawKind == StructDeclaration));
+            }
+        }
+
+        [Fact]
         public void TestProjectCompletenessWithMultipleProjects()
         {
             GetMultipleProjects(out var csBrokenProject, out var vbNormalProject, out var dependsOnBrokenProject, out var dependsOnVbNormalProject, out var transitivelyDependsOnBrokenProjects, out var transitivelyDependsOnNormalProjects);
