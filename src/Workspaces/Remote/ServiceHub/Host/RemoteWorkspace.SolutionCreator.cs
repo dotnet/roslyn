@@ -206,13 +206,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // If we were only syncing over a project cone, then we only want to consider the projects in
                     // solution.SolutionState that would have been in that cone.
-                    var projectCone = projectConeId == null
-                        ? new HashSet<ProjectId>(solution.ProjectIds)
-                        : solution.SolutionState.GetProjectCone(projectConeId);
+
+                    using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    solution.SolutionState.AddProjectCone(projectConeId, projectCone.Object);
 
                     foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
                     {
-                        if (!projectCone.Contains(projectId))
+                        if (!projectCone.Object.Contains(projectId))
                             continue;
 
                         var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);

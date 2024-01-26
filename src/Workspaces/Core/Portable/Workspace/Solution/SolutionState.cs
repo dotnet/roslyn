@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectConeId: null, c));
 
             CheckInvariants();
 
