@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
@@ -76,7 +77,17 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, loggerFactory);
+    var extensionAssemblyPaths = serverConfiguration.ExtensionAssemblyPaths.ToImmutableArray();
+    if (serverConfiguration.StarredCompletionsPath != null)
+    {
+        // TODO - the starred completion component should be passed as a regular extension.
+        // Currently we get passed the path to the directory, but ideally we should get passed the path to the dll as part of the --extension argument.
+        extensionAssemblyPaths = extensionAssemblyPaths.Add(StarredCompletionAssemblyHelper.GetStarredCompletionAssemblyPath(serverConfiguration.StarredCompletionsPath));
+    }
+
+    var extensionManager = ExtensionAssemblyManager.Create(extensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, loggerFactory);
+
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, extensionManager, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -96,10 +107,13 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    // Include analyzers from extension assemblies.
+    analyzerPaths = analyzerPaths.AddRange(serverConfiguration.ExtensionAssemblyPaths);
+
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 

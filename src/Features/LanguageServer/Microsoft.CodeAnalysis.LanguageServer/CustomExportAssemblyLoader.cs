@@ -2,98 +2,48 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class CustomExportAssemblyLoader : IAssemblyLoader
+/// <summary>
+/// Defines a MEF assembly loader that knows how to load assemblies from both the default assembly load context
+/// and from the assembly load contexts for any of our extensions.
+/// </summary>
+internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager) : IAssemblyLoader
 {
     /// <summary>
-    /// Cache assemblies that are already loaded by AssemblyName comparison
+    /// Loads assemblies from either the host or from our extensions.
+    /// If an assembly exists in both the host and an extension, we will use the host assembly for the MEF catalog.
+    /// If an assembly exists in two extensions, we use the first one we find for the MEF catalog.
     /// </summary>
-    private readonly Dictionary<AssemblyName, Assembly> _loadedAssemblies = new Dictionary<AssemblyName, Assembly>(AssemblyNameComparer.Instance);
-
-    /// <summary>
-    /// Base directory to search for <see cref="Assembly.LoadFrom(string)"/> if initial load fails
-    /// </summary>
-    private readonly string _baseDirectory;
-
-    public CustomExportAssemblyLoader(string baseDirectory)
-    {
-        _baseDirectory = baseDirectory;
-    }
-
     public Assembly LoadAssembly(AssemblyName assemblyName)
     {
-        Assembly? value;
-        lock (_loadedAssemblies)
+        // First attempt to load the assembly from the default context.
+        try
         {
-            _loadedAssemblies.TryGetValue(assemblyName, out value);
+            return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+        }
+        catch (FileNotFoundException) when (assemblyName.Name is not null)
+        {
+            // continue checking the extension contexts.
         }
 
-        if (value == null)
+        var extensionAssembly = extensionAssemblyManager.TryLoadAssemblyInExtensionContext(assemblyName);
+        if (extensionAssembly != null)
         {
-            // Attempt to load the assembly normally, but fall back to Assembly.LoadFrom in the base
-            // directory if the assembly load fails
-            try
-            {
-                value = Assembly.Load(assemblyName);
-            }
-            catch (FileNotFoundException) when (assemblyName.Name is not null)
-            {
-                var filePath = Path.Combine(_baseDirectory, assemblyName.Name)
-                    + (assemblyName.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                        ? ""
-                        : ".dll");
-
-                value = Assembly.LoadFrom(filePath);
-
-                if (value is null)
-                {
-                    throw;
-                }
-            }
-
-            lock (_loadedAssemblies)
-            {
-                _loadedAssemblies[assemblyName] = value;
-                return value;
-            }
+            return extensionAssembly;
         }
 
-        return value;
+        throw new FileNotFoundException($"Could not find assembly {assemblyName.Name} in any host or extension context.");
     }
 
     public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
     {
         var assemblyName = new AssemblyName(assemblyFullName);
         return LoadAssembly(assemblyName);
-    }
-
-    private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
-    {
-        public static AssemblyNameComparer Instance = new AssemblyNameComparer();
-
-        public bool Equals(AssemblyName? x, AssemblyName? y)
-        {
-            if (x == null && y == null)
-            {
-                return true;
-            }
-
-            if (x == null || y == null)
-            {
-                return false;
-            }
-
-            return x.Name == y.Name;
-        }
-
-        public int GetHashCode([DisallowNull] AssemblyName obj)
-        {
-            return obj.Name?.GetHashCode(StringComparison.Ordinal) ?? 0;
-        }
     }
 }

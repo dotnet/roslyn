@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
@@ -26,13 +27,16 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     private const string CollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
     private static int _dumpsSubmitted = 0;
 
+    private readonly ILogger _logger;
+
     private static readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeTelemetryLogger(IAsynchronousOperationListenerProvider asyncListenerProvider)
+    public VSCodeTelemetryLogger(IAsynchronousOperationListenerProvider asyncListenerProvider, ILoggerFactory loggerFactory)
     {
         _asyncListenerProvider = asyncListenerProvider;
+        _logger = loggerFactory.CreateLogger<VSCodeTelemetryLogger>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
@@ -49,6 +53,8 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
         session.Start();
         session.RegisterForReliabilityEvent();
+
+        _logger.LogInformation("Telemetry session started with sessionID: {sessionId}", sessionId);
 
         _telemetrySession = session;
 

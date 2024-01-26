@@ -17,13 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-
         var baseDirectory = AppContext.BaseDirectory;
-
-        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
 
         // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
@@ -39,34 +36,26 @@ internal sealed class ExportProviderBuilder
             Assembly.LoadFrom(path);
         }
 
+        // Add the DevKit assembly to the MEF catalog
+        if (devKitDependencyPath != null)
+        {
+            logger.LogTrace("loading roslyn devkit deps for MEF");
+            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
+        }
+
+        // Add the extension assemblies to the MEF catalog
+        assemblyPaths = assemblyPaths.Concat(extensionAssemblyPaths);
+
+        // Create a MEF resolver that can resolve assemblies in the extension contexts.
+        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager));
+
         var discovery = PartDiscovery.Combine(
             resolver,
             new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(resolver));
 
-        var assemblies = new List<Assembly>()
-        {
-            typeof(ExportProviderBuilder).Assembly
-        };
-
-        if (devKitDependencyPath != null)
-        {
-            // Load devkit dependencies before other extensions to ensure dependencies
-            // like VS Telemetry are available from the host.
-            assemblies.AddRange(LoadDevKitAssemblies(devKitDependencyPath, logger));
-        }
-
-        foreach (var extensionAssemblyPath in extensionAssemblyPaths)
-        {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
-            {
-                assemblies.Add(extensionAssembly);
-            }
-        }
-
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(resolver)
-            .AddParts(await discovery.CreatePartsAsync(assemblies))
             .AddParts(await discovery.CreatePartsAsync(assemblyPaths))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
@@ -87,25 +76,6 @@ internal sealed class ExportProviderBuilder
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
         return exportProvider;
-    }
-
-    private static ImmutableArray<Assembly> LoadDevKitAssemblies(string devKitDependencyPath, ILogger logger)
-    {
-        var directoryName = Path.GetDirectoryName(devKitDependencyPath);
-        Contract.ThrowIfNull(directoryName);
-        logger.LogTrace("Loading DevKit assemblies from {directory}", directoryName);
-
-        var directory = new DirectoryInfo(directoryName);
-        using var _ = ArrayBuilder<Assembly>.GetInstance(out var builder);
-        foreach (var file in directory.GetFiles("*.dll"))
-        {
-            logger.LogTrace("Loading {assemblyName}", file.Name);
-            // DevKit assemblies are loaded into the default load context. This allows extensions
-            // to share the host's instance of these assemblies as long as they do not ship their own copy.
-            builder.Add(AssemblyLoadContext.Default.LoadFromAssemblyPath(file.FullName));
-        }
-
-        return builder.ToImmutable();
     }
 
     private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ILogger logger)
