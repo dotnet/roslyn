@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -836,6 +837,52 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var vbProject = project2SyncedSolution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
                 Assert.True(csharpProject.DocumentIds.Count == 1);
                 Assert.True(vbProject.DocumentIds.Count == 1);
+            }
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_AddP2PRef()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+
+            solution = project2.Solution;
+
+            var map = new Dictionary<Checksum, object>();
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+
+            // Do the initial full sync
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
+            var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+            var fullSyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, workspaceVersion: solution.WorkspaceVersion, CancellationToken.None);
+            Assert.Equal(2, fullSyncedSolution.Projects.Count());
+
+            // Mutate both projects to have a document in it, and add a p2p ref from project1 to project2
+            solution = solution.GetProject(project1.Id).AddDocument("X.cs", SourceText.From("// X")).Project.Solution;
+            solution = solution.GetProject(project2.Id).AddDocument("Y.cs", SourceText.From("// Y")).Project.Solution;
+            solution = solution.GetProject(project1.Id).AddProjectReference(new ProjectReference(project2.Id)).Solution;
+
+            // Now just sync project1's cone over.  This will validate that the p2p ref doesn't try to add a new
+            // project, but instead sees the existing one.
+            {
+                await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
+                var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+                var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
+                Assert.Equal(2, project1SyncedSolution.Projects.Count());
+                var project1Synced = project1SyncedSolution.GetRequiredProject(project1.Id);
+                var project2Synced = project1SyncedSolution.GetRequiredProject(project2.Id);
+
+                Assert.True(project1Synced.DocumentIds.Count == 2);
+                Assert.True(project2Synced.DocumentIds.Count == 1);
+                Assert.True(project1Synced.ProjectReferences.Count() == 1);
             }
         }
 
