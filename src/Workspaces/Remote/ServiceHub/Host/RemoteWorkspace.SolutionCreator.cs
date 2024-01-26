@@ -59,12 +59,21 @@ namespace Microsoft.CodeAnalysis.Remote
                     // if needed again later.
                     solution = solution.WithoutFrozenSourceGeneratedDocuments();
 
-                    var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                    var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+                    var projectConeId = newSolutionChecksums.ProjectId;
+
+                    var oldSolutionCompilationChecksums = projectConeId == null
+                        ? await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)
+                        : await solution.CompilationState.GetStateChecksumsAsync(projectConeId, cancellationToken).ConfigureAwait(false);
+
+                    var oldSolutionChecksums = projectConeId == null
+                        ? await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)
+                        : await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectConeId, cancellationToken).ConfigureAwait(false);
 
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                     {
@@ -101,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
 #if DEBUG
                     // make sure created solution has same checksum as given one
-                    await ValidateChecksumAsync(newSolutionChecksum, solution, cancellationToken).ConfigureAwait(false);
+                    await ValidateChecksumAsync(newSolutionChecksum, solution, projectConeId, cancellationToken).ConfigureAwait(false);
 #endif
 
                     return solution;
@@ -544,14 +553,21 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
 #if DEBUG
-            private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt, CancellationToken cancellationToken)
+            private async Task ValidateChecksumAsync(
+                Checksum checksumFromRequest,
+                Solution incrementalSolutionBuilt,
+                ProjectId? projectConeId,
+                CancellationToken cancellationToken)
             {
-                var currentSolutionChecksum = await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
-                if (checksumFromRequest == currentSolutionChecksum)
-                {
-                    return;
-                }
+                var currentSolutionChecksum = projectConeId == null
+                    ? await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false)
+                    : await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
 
+                // If they're the same, everything was good.
+                if (checksumFromRequest == currentSolutionChecksum)
+                    return;
+
+                // Otherwise, we got a sync mismatch.  Go figure out what happened.
                 var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, cancellationToken).ConfigureAwait(false);
                 var workspace = new AdhocWorkspace(_hostServices);
                 workspace.AddSolution(solutionInfo);

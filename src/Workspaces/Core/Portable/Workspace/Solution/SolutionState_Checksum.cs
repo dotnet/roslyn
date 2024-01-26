@@ -92,7 +92,7 @@ internal partial class SolutionState
             var projectsToInclude = new HashSet<ProjectId>();
             AddReferencedProjects(projectsToInclude, projectId);
 
-            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude, c));
+            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectId, projectsToInclude, c));
         }
 
         void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
@@ -128,6 +128,7 @@ internal partial class SolutionState
     /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
     /// to get a checksum for the entire solution</param>
     private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
+        ProjectId? projectId,
         HashSet<ProjectId>? projectsToInclude,
         CancellationToken cancellationToken)
     {
@@ -178,6 +179,7 @@ internal partial class SolutionState
                 }
 
                 return new SolutionStateChecksums(
+                    projectId,
                     attributesChecksum,
                     new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
                     analyzerReferenceChecksums);

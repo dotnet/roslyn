@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis
     [DataContract]
     public sealed class ProjectId : IEquatable<ProjectId>
     {
+        private SingleInitNullable<Checksum> _lazyChecksum;
+
         /// <summary>
         /// The system generated unique id.
         /// </summary>
@@ -96,5 +98,8 @@ namespace Microsoft.CodeAnalysis
 
             return CreateFromSerialized(guid, debugName);
         }
+
+        internal Checksum Checksum
+            => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
     }
 }
