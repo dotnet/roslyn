@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis
     [DataContract]
     public sealed class ProjectId : IEquatable<ProjectId>
     {
+        /// <summary>
+        /// Checksum of this ProjectId, built from our <see cref="Id"/> and <see cref="DebugName"/>.
+        /// </summary>
         private SingleInitNullable<Checksum> _lazyChecksum;
 
         /// <summary>
