@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 var compilerAnalyzerType = assembly.GetType(compilerAnalyzerTypeName)!;
                 var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
-                var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, Array.Empty<object>()) as IEnumerable<int>;
-                return supportedCodes?.ToImmutableHashSet() ?? ImmutableHashSet<int>.Empty;
+                var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, []) as IEnumerable<int>;
+                return supportedCodes?.ToImmutableHashSet() ?? [];
             }
             catch (Exception ex)
             {
                 Debug.Fail(ex.Message);
-                return ImmutableHashSet<int>.Empty;
+                return [];
             }
         }
 
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                         }
                         else
                         {
-                            additionalLocations = ImmutableArray<Location>.Empty;
+                            additionalLocations = [];
                         }
 
                         var diagnostic = Diagnostic.Create(s_removeUnnecessarySuppressionDescriptor, pragma.GetLocation(), severity, additionalLocations, properties: null);

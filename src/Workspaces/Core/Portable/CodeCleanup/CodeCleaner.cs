@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
             else
             {
-                return ImmutableArray<ICodeCleanupProvider>.Empty;
+                return [];
             }
         }
 

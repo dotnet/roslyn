@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Min 2 parameters to offer the refactoring
             if (listOfParametersOrdinals.Count < 2)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return [CodeAction.Create(
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Only should provide null-checks for reference types and nullable types.
             if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 

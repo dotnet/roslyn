@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             {
                 // Didn't start with a comment character, don't bother looking at 
                 // this file.
-                return ImmutableArray<SyntaxTrivia>.Empty;
+                return [];
             }
 
             var token = syntaxFacts.ParseToken(text.ToString());

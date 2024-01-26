@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// if the <paramref name="trivia"/> has no value
         /// </summary>
         public static ImmutableArray<StackFrameTrivia> ToImmutableArray(this StackFrameTrivia? trivia)
-            => trivia.HasValue ? [trivia.Value] : ImmutableArray<StackFrameTrivia>.Empty;
+            => trivia.HasValue ? [trivia.Value] : [];
 
         /// <summary>
         /// Creates an <see cref="ImmutableArray{StackFrameTrivia}"/> with a single trivia item in it

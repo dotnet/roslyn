@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 solution,
                 new DebuggerService(capabilities),
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);

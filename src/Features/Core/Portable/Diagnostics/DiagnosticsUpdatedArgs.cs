@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ProjectId? projectId,
             DocumentId? documentId)
         {
-            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
+            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
         }
     }
 }

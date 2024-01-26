@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool SupportGetDiagnostics => false;
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => new(ImmutableArray<DiagnosticData>.Empty);
+            => new([]);
 
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (!_abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
                 {
-                    diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                    diagnostics = [];
                 }
 
                 return diagnostics;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
             var matchesBoolean = MatchesBoolean(name);
             return matchesBoolean
                 ? [semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)]
-                : ImmutableArray<ITypeSymbol>.Empty;
+                : [];
         }
 
         private static bool MatchesBoolean(string name)

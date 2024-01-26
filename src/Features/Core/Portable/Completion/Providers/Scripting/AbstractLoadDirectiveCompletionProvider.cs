@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract class AbstractLoadDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
     {
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
-             filterCharacterRules: ImmutableArray<CharacterSetModificationRule>.Empty,
+             filterCharacterRules: [],
              commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, GetCommitCharacters())],
              enterKeyRule: EnterKeyRule.Never,
              selectionBehavior: CompletionItemSelectionBehavior.HardSelection);

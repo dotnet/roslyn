@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return ImmutableArray<SnippetPlaceholder>.Empty;
+            return [];
         }
 
         private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)

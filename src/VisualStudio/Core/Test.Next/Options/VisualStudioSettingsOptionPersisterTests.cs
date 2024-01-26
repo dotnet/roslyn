@@ -112,7 +112,7 @@ public class VisualStudioSettingsOptionPersisterTests
            optionType;
 
     private static bool IsDefaultImmutableArray(object array)
-        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, Array.Empty<object>())!;
+        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, [])!;
 
     [Fact]
     public void SettingsChangeEvent()

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
-                        : ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>.Empty;
+                        : [];
 
                     if (translate is not null)
                     {
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!this.ProjectState.SourceGenerators.Any())
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis
                 var driverRunResult = compilationInfo.GeneratorInfo.Driver?.GetRunResult();
                 if (driverRunResult is null)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 using var _ = ArrayBuilder<Diagnostic>.GetInstance(capacity: driverRunResult.Diagnostics.Length, out var builder);

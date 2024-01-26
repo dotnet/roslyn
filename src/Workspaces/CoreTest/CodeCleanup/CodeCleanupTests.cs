@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleanersCSharp_NoSpans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty, CodeCleanupOptions.GetDefault(document.Project.Services));
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, [], CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -93,7 +93,7 @@ End Class", LanguageNames.VisualBasic);
         {
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty, CodeCleanupOptions.GetDefault(document.Project.Services));
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, [], CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -380,7 +380,7 @@ End Module";
 
             var expectedResult = namedSpans.TryGetValue("r", out var spans) ? spans : SpecializedCollections.EmptyEnumerable<TextSpan>();
 
-            VerifyRange(codeWithoutMarker, ImmutableArray<ICodeCleanupProvider>.Empty, namedSpans["b"], ref expectedResult, language);
+            VerifyRange(codeWithoutMarker, [], namedSpans["b"], ref expectedResult, language);
         }
 
         private static void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)

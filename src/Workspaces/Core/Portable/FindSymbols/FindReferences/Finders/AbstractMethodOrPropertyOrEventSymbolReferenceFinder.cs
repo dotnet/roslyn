@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // the only accessor method referenced in a foreach-statement is the .Current's
                 // get-accessor
                 return symbols.CurrentProperty.GetMethod == null
-                    ? ImmutableArray<IMethodSymbol>.Empty
+                    ? []
                     : [symbols.CurrentProperty.GetMethod];
             }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var inStructuredTrivia = node.IsPartOfStructuredTrivia();
 
                 return inNameOf || inStructuredTrivia || property.GetMethod == null
-                    ? ImmutableArray<IMethodSymbol>.Empty
+                    ? []
                     : [property.GetMethod];
             }
         }

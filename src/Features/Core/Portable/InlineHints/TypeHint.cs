@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public ImmutableArray<SymbolDisplayPart> Suffix { get; } = CreateSpaceSymbolPartArray(trailingSpace);
 
         private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
-            => hasSpace ? s_spaceArray : ImmutableArray<SymbolDisplayPart>.Empty;
+            => hasSpace ? s_spaceArray : [];
 
         public void Deconstruct(out ITypeSymbol type, out TextSpan span, out TextChange? textChange, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {

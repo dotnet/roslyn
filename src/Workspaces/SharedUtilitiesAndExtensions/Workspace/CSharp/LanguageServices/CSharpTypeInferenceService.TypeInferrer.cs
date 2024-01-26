@@ -2285,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return ImmutableArray<TypeInferenceInfo>.Empty;
+                return [];
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)

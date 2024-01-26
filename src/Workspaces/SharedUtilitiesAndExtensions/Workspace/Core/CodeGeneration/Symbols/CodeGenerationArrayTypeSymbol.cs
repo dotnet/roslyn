@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray<int>.Empty;
+                return [];
             }
         }
 

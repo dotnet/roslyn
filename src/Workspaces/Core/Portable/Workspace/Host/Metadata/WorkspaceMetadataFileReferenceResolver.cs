@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
             var path = PathResolver.ResolvePath(reference, baseFilePath);
             if (path == null)
             {
-                return ImmutableArray<PortableExecutableReference>.Empty;
+                return [];
             }
 
             return [_metadataService.GetReference(path, properties)];

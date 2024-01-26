@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                         DeclaredSymbolInfoKind.Namespace,
                         Accessibility.Public,
                         nameSyntax.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
 
                     return string.IsNullOrEmpty(fullyQualifiedContainerName)
                         ? namespaceName

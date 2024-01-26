@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution(SolutionCompilationState compilationState)
         {
-            _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
+            _projectIdToProjectMap = [];
             _compilationState = compilationState;
         }
 

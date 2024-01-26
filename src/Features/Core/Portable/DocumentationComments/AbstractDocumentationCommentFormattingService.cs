@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             if (rawXmlText is null)
             {
-                return ImmutableArray<TaggedText>.Empty;
+                return [];
             }
             //symbol = symbol.OriginalDefinition;
 

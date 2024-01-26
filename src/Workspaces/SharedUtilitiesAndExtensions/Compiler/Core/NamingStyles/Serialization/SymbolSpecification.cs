@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     Accessibility.ProtectedAndInternal,
                     Accessibility.ProtectedOrInternal,
                 ],
-                modifiers: ImmutableArray<ModifierKind>.Empty);
+                modifiers: []);
         }
 
         public bool AppliesTo(ISymbol symbol)

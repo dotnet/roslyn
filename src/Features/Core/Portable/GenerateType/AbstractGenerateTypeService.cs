@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
         }
 

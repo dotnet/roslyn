@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 .FirstOrDefault(f => f is ParameterListSyntax);
 
             return parameterList == null
-                ? ImmutableArray<string>.Empty
+                ? []
                 : parameterList.Parameters.SelectAsArray(s => s.Identifier.ValueText);
         }
 

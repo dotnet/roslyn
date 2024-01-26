@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     sourceDoc.Project.Solution,
                     moveOptions.Destination!,
                     // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
-                    typeArgIndices: ImmutableArray<int>.Empty,
+                    typeArgIndices: [],
                     sourceDoc.Id,
                     destinationDocId,
                     cancellationToken).ConfigureAwait(false);

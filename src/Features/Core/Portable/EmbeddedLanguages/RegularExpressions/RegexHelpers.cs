@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => (options & val) != 0;
 
         public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, VirtualCharSequence virtualChars)
-            => new(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
+            => new(kind, leadingTrivia, virtualChars, [], [], value: null);
 
         public static RegexToken CreateMissingToken(RegexKind kind)
-            => CreateToken(kind, ImmutableArray<RegexTrivia>.Empty, VirtualCharSequence.Empty);
+            => CreateToken(kind, [], VirtualCharSequence.Empty);
 
         public static RegexTrivia CreateTrivia(RegexKind kind, VirtualCharSequence virtualChars)
-            => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
+            => CreateTrivia(kind, virtualChars, []);
 
         public static RegexTrivia CreateTrivia(RegexKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new(kind, virtualChars, diagnostics);

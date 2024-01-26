@@ -115,7 +115,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Location[][]? focusLocations, CancellationToken cancellationToken)
         {
             if (focusLocations is null)
-                return ImmutableArray<(Document, TextSpan)>.Empty;
+                return [];
 
             var focusText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<(Document, TextSpan)>.GetInstance(out var builder);
