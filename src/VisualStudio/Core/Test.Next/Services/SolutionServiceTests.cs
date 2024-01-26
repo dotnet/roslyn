@@ -766,11 +766,66 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
 
-            // Syncing over project2 should now give two sets of options.
+            // Syncing over project2 should also only be one set of options.
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(2, project2SyncedSolution.Projects.Count());
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_DoesNotSeeChangesOutsideOfCone()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.VisualBasic);
+
+            solution = project2.Solution;
+
+            var map = new Dictionary<Checksum, object>();
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+
+            // Do the initial full sync
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
+            var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+            var fullSyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, workspaceVersion: solution.WorkspaceVersion, CancellationToken.None);
+            Assert.Equal(2, fullSyncedSolution.Projects.Count());
+
+            // Mutate both projects to each have a document in it.
+            solution = solution.GetProject(project1.Id).AddDocument("X.cs", SourceText.From("// X")).Project.Solution;
+            solution = solution.GetProject(project2.Id).AddDocument("Y.vb", SourceText.From("' Y")).Project.Solution;
+
+            // Now just sync project1's cone over.  We should not see the change to project2 on the remote side.
+            // But we will still see project2.
+            {
+                await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
+                var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+                var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
+                Assert.Equal(2, project1SyncedSolution.Projects.Count());
+                var csharpProject = project1SyncedSolution.Projects.Single(p => p.Language == LanguageNames.CSharp);
+                var vbProject = project1SyncedSolution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
+                Assert.True(csharpProject.DocumentIds.Count == 2);
+                Assert.True(vbProject.DocumentIds.Count == 0);
+            }
+
+            // Similarly, if we sync just project2's cone over:
+            {
+                await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
+                var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
+                var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
+                Assert.Equal(2, project2SyncedSolution.Projects.Count());
+                var csharpProject = project2SyncedSolution.Projects.Single(p => p.Language == LanguageNames.CSharp);
+                var vbProject = project2SyncedSolution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
+                Assert.True(csharpProject.DocumentIds.Count == 1);
+                Assert.True(vbProject.DocumentIds.Count == 1);
+            }
         }
 
         [Fact]
