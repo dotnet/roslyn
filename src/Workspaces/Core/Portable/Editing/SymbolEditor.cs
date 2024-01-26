@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<ISymbol> GetCurrentSymbolAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var symbolId = DocumentationCommentId.CreateDeclarationId(symbol);
+            if (symbolId is null)
+                return null;
 
             // check to see if symbol is from current solution
             var project = _currentSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
@@ -145,6 +147,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private static async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
+            if (symbolId is null)
+                return null;
+
             var project = solution.GetProject(projectId);
             if (project.SupportsCompilation)
             {
