@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateInvoke.Parameters.Any(static (p) => p.IsParamCollection))
             {
                 Location location;
-                if (node.Symbol.Parameters.FirstOrDefault(static (p) => p.IsParamCollection) is { } parameter)
+                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamCollection) is { } parameter)
                 {
                     location = ParameterHelpers.GetParameterLocation(parameter);
                 }

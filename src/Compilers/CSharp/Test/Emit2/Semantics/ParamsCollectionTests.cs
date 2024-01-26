@@ -30,7 +30,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        private static void VerifyParamAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
+        private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
             VerifyParams(parameter, isParamArray: isParamArray, isParamCollection: isParamCollection);
 
@@ -102,7 +102,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: ExpectedOutput(@"
 0
@@ -284,7 +284,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: ExpectedOutput(@"
 0
@@ -545,7 +545,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: ExpectedOutput(@"
 0
@@ -692,7 +692,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: @"
 0
@@ -901,7 +901,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: @"
 0
@@ -1083,7 +1083,7 @@ class Program
                 },
                 symbolValidator: static (m) =>
                 {
-                    VerifyParamAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
+                    VerifyParamsAndAttribute(m.GlobalNamespace.GetMember<MethodSymbol>("Program.Test").Parameters.Last(), isParamCollection: true);
                 },
                 expectedOutput: ExpectedOutput(@"
 0
@@ -1215,7 +1215,7 @@ class Program
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
                     AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamAttribute(l1.Parameters.Last());
+                    VerifyParamsAndAttribute(l1.Parameters.Last());
 
                     Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
                 }).VerifyDiagnostics(
@@ -1271,7 +1271,7 @@ class Program
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
                     AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamAttribute(l1.Parameters.Last());
+                    VerifyParamsAndAttribute(l1.Parameters.Last());
                 }).VerifyDiagnostics(
                     // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
@@ -1364,7 +1364,7 @@ class Program
     }
 }
 """;
-            CreateCompilationWithIL(src, il).VerifyDiagnostics();
+            CreateCompilationWithIL(src, il).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1389,7 +1389,7 @@ class Program
     }
 }
 """;
-            CreateCompilation(src).VerifyDiagnostics();
+            CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1417,7 +1417,7 @@ class Program
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
                     AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamAttribute(l1.Parameters.Last());
+                    VerifyParamsAndAttribute(l1.Parameters.Last());
 
                     Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
                 }).VerifyDiagnostics();
@@ -1466,7 +1466,7 @@ class Program
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
                     AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamAttribute(l1.Parameters.Last());
+                    VerifyParamsAndAttribute(l1.Parameters.Last());
                 }).VerifyDiagnostics();
         }
 
@@ -2416,7 +2416,7 @@ class Program2
                         var lambda = m.GlobalNamespace.GetMember<MethodSymbol>("Program1.<>c.<Test1>b__0_0");
                         ParameterSymbol parameter = lambda.Parameters.Single();
 
-                        VerifyParamAttribute(parameter);
+                        VerifyParamsAndAttribute(parameter);
                         Assert.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
                     }
                     ).VerifyDiagnostics(); // No language version diagnostics as expected. The 'params' modifier doesn't even make it to symbol and metadata.
@@ -2475,11 +2475,11 @@ class Program
                     {
                         MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -2537,21 +2537,21 @@ class Program
                     {
                         MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
                         // Note, no attributes on lambdas
 
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
                         AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamAttribute(l1.Parameters.Last());
+                        VerifyParamsAndAttribute(l1.Parameters.Last());
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
                         AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamAttribute(l2.Parameters.Last());
+                        VerifyParamsAndAttribute(l2.Parameters.Last());
 
                         if (attributeIsEmbedded)
                         {
@@ -2690,21 +2690,21 @@ class Program
                     {
                         MethodSymbol delegateInvokeMethod1 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.ReadOnlySpan<System.Int64> arg)", delegateInvokeMethod1.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol delegateInvokeMethod2 = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate1`1").DelegateInvokeMethod;
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
-                        VerifyParamAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
+                        VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
                         // Note, no attributes on local functions
 
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
                         AssertEx.Equal("void Program.<Main>g__Test1|0_0(System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamAttribute(l1.Parameters.Last());
+                        VerifyParamsAndAttribute(l1.Parameters.Last());
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
                         AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamAttribute(l2.Parameters.Last());
+                        VerifyParamsAndAttribute(l2.Parameters.Last());
 
                         if (attributeIsEmbedded)
                         {
@@ -6194,14 +6194,14 @@ class Program
             var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            VerifyParamAttribute(test1, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true);
+            VerifyParamsAndAttribute(test1, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true);
 
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true);
+            VerifyParamsAndAttribute(test1, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true);
 
             AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
             AssertEx.Equal("System.ParamArrayAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
@@ -6214,8 +6214,8 @@ class Program
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true);
+            VerifyParamsAndAttribute(test1, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true);
 
             AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
             AssertEx.Equal("System.ParamArrayAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
@@ -6317,14 +6317,14 @@ class Program
             var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             var attributes = new[] { "System.ParamArrayAttribute", "System.Runtime.CompilerServices.ParamCollectionAttribute" };
             AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
@@ -6338,8 +6338,8 @@ class Program
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
             AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
@@ -6441,14 +6441,14 @@ class Program
             var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             var attributes = new[] { "System.ParamArrayAttribute", "System.Runtime.CompilerServices.ParamCollectionAttribute" };
             AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
@@ -6462,8 +6462,8 @@ class Program
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true, isParamCollection: true);
-            VerifyParamAttribute(test2, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true, isParamCollection: true);
+            VerifyParamsAndAttribute(test2, isParamArray: true, isParamCollection: true);
 
             AssertEx.Equal(attributes, test1.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
             AssertEx.Equal(attributes, test2.GetCustomAttributesToEmit(null).Select(a => a.ToString()));
@@ -6559,14 +6559,14 @@ class Program
             var test1 = comp.GetMember<MethodSymbol>("Params.Test1").Parameters.Last();
             var test2 = comp.GetMember<MethodSymbol>("Params.Test2").Parameters.Last();
 
-            VerifyParamAttribute(test1, isParamArray: true);
-            VerifyParamAttribute(test2, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true);
+            VerifyParamsAndAttribute(test2, isParamCollection: true);
 
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true);
-            VerifyParamAttribute(test2, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true);
+            VerifyParamsAndAttribute(test2, isParamCollection: true);
 
             AssertEx.Equal("System.ParamArrayAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
             AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
@@ -6579,8 +6579,8 @@ class Program
             Assert.Empty(test1.GetAttributes());
             Assert.Empty(test2.GetAttributes());
 
-            VerifyParamAttribute(test1, isParamArray: true);
-            VerifyParamAttribute(test2, isParamCollection: true);
+            VerifyParamsAndAttribute(test1, isParamArray: true);
+            VerifyParamsAndAttribute(test2, isParamCollection: true);
 
             AssertEx.Equal("System.ParamArrayAttribute", test1.GetCustomAttributesToEmit(null).Single().ToString());
             AssertEx.Equal("System.Runtime.CompilerServices.ParamCollectionAttribute", test2.GetCustomAttributesToEmit(null).Single().ToString());
@@ -8506,7 +8506,7 @@ namespace System.Runtime.CompilerServices
 
                         MethodSymbol member = m.GlobalNamespace.GetMember<MethodSymbol>(adjustedMemberName);
                         AssertEx.Equal(adjustedMemberDisplay, member.ToTestDisplayString());
-                        VerifyParamAttribute(member.Parameters[0], isParamCollection: true);
+                        VerifyParamsAndAttribute(member.Parameters[0], isParamCollection: true);
 
                         if (member.AssociatedSymbol is PropertySymbol prop)
                         {

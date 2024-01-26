@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void EnsureParamCollectionAttributeExistsAndModifyCompilation(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            if (parameters.FirstOrDefault(static (p) => p.IsParamCollection) is { } parameter)
+            if (parameters.LastOrDefault(static (p) => p.IsParamCollection) is { } parameter)
             {
                 compilation.EnsureParamCollectionAttributeExistsAndModifyCompilation(diagnostics, GetParameterLocation(parameter));
             }
