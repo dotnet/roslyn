@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        /// <param name="force">Whether or not the specified document is forced to have the same text and
+        /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
         /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
         /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,
         /// when parse-options and pp-directives would not cause issues.</param>
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis
         /// get back and want perf to be very high.  Any codepaths from frozen-partial should pass <see
         /// langword="true"/> for this.  Any codepaths from Workspace.UnifyLinkedDocumentContents should pass <see
         /// langword="false"/>.</remarks>
-        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool force)
+        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(
-                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, force),
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
                 contentChanged: true);
         }
 

@@ -1345,9 +1345,9 @@ namespace Microsoft.CodeAnalysis
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
-        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool force)
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
-            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState, force);
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1474,11 +1474,11 @@ namespace Microsoft.CodeAnalysis
             // frozen-partial snapshot is different as it is a fork that is already allowed to be inaccurate for perf
             // reasons (for example, missing trees, or missing references).
             //
-            // The 'force' flag here allows us to share the doc contents even in the case where correctness might be
-            // violated.
+            // The 'forceEvenIfTreesWouldDiffer' flag here allows us to share the doc contents even in the case where
+            // correctness might be violated.
             var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
             foreach (var siblingId in allDocumentIds)
-                currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, force: true);
+                currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
             var newCompilationState = currentCompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
             return new Solution(newCompilationState);

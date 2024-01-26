@@ -602,10 +602,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState, bool force)
+        DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
     {
         return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, force), documentId);
+            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
