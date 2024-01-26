@@ -89,11 +89,17 @@ internal partial class SolutionState
         // Extracted as a local function to prevent delegate allocations when not needed.
         AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectId)
         {
-            var projectsToInclude = new HashSet<ProjectId>();
-            AddReferencedProjects(projectsToInclude, projectId);
-
-            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectId, projectsToInclude, c));
+            var projectCone = GetProjectCone(projectId);
+            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectId, projectCone, c));
         }
+    }
+
+    internal HashSet<ProjectId> GetProjectCone(ProjectId projectId)
+    {
+        var projectsToInclude = new HashSet<ProjectId>();
+        AddReferencedProjects(projectsToInclude, projectId);
+
+        return projectsToInclude;
 
         void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
         {
@@ -125,11 +131,11 @@ internal partial class SolutionState
         return checksums.Checksum;
     }
 
-    /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
+    /// <param name="projectCone">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
     /// to get a checksum for the entire solution</param>
     private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
-        ProjectId? projectId,
-        HashSet<ProjectId>? projectsToInclude,
+        ProjectId? projectConeId,
+        HashSet<ProjectId>? projectCone,
         CancellationToken cancellationToken)
     {
         try
@@ -139,49 +145,33 @@ internal partial class SolutionState
                 // get states by id order to have deterministic checksum.  Limit expensive computation to the
                 // requested set of projects if applicable.
                 var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
-                var projectChecksumTasks = orderedProjectIds
-                    .Select(id => (state: this.ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
-                    .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
-                    .Select(async t =>
-                    {
-                        // if it's a project that's specifically in the sync'ed cone, include this checksum so that
-                        // this project definitely syncs over.
-                        if (t.mustCompute)
-                            return await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-                        // If it's a project that is not in the cone, still try to get the latest checksum for it if
-                        // we have it.  That way we don't send over a checksum *without* that project, causing the
-                        // OOP side to throw that project away (along with all the compilation info stored with it).
-                        if (t.state.TryGetStateChecksums(out var stateChecksums))
-                            return stateChecksums;
+                using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
-                        // We have never computed the checksum for this project.  Don't send anything for it.
-                        return null;
-                    })
-                    .ToArray();
-
-                var serializer = this.Services.GetRequiredService<ISerializerService>();
-                var attributesChecksum = this.SolutionAttributes.Checksum;
-
-                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
-                    this.AnalyzerReferences, serializer, cancellationToken);
-
-                var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
-                using var _2 = ArrayBuilder<Checksum>.GetInstance(allResults.Length, out var projectChecksums);
-                foreach (var projectStateChecksums in allResults)
+                foreach (var orderedProjectId in orderedProjectIds)
                 {
-                    if (projectStateChecksums != null)
-                    {
-                        projectIds.Add(projectStateChecksums.ProjectId);
-                        projectChecksums.Add(projectStateChecksums.Checksum);
-                    }
+                    var projectState = this.ProjectStates[orderedProjectId];
+                    if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                        continue;
+
+                    if (projectCone != null && !projectCone.Contains(orderedProjectId))
+                        continue;
+
+                    projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
                 }
 
+                var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+
+                var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
+                var projectIds = allResults.SelectAsArray(r => r.ProjectId);
+
+                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
+                    this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
+
                 return new SolutionStateChecksums(
-                    projectId,
-                    attributesChecksum,
-                    new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
+                    projectConeId,
+                    this.SolutionAttributes.Checksum,
+                    new(new ChecksumCollection(projectChecksums), projectIds),
                     analyzerReferenceChecksums);
             }
         }

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                     {
                         solution = await UpdateProjectsAsync(
-                            solution, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
+                            solution, projectConeId, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private async Task<Solution> UpdateProjectsAsync(
-                Solution solution, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
+                Solution solution, ProjectId? projectConeId, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
