@@ -121,7 +121,6 @@ internal sealed class SolutionStateChecksums(
     public void AddAllTo(HashSet<Checksum> checksums)
     {
         checksums.AddIfNotNullChecksum(this.Checksum);
-        // checksums.AddIfNotNullChecksum(this.ProjectId);
         checksums.AddIfNotNullChecksum(this.Attributes);
         this.Projects.Checksums.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
