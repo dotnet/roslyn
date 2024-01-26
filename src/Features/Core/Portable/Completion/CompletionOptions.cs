@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public bool TriggerOnTyping { get; init; } = true;
         public bool TriggerOnTypingLetters { get; init; } = true;
-        public bool? TriggerOnDeletion { get; init; } = null;
+        public bool TriggerOnDeletion { get; init; } = false;
         public bool TriggerInArgumentLists { get; init; } = true;
         public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
         public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;

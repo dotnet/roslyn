@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
-            => options is { TriggerOnTypingLetters: true, TriggerOnDeletion: true };
+            => options.TriggerOnDeletion;
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
