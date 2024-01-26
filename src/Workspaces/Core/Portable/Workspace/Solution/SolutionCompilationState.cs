@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -1083,15 +1082,10 @@ internal sealed partial class SolutionCompilationState
 
                 using (@this.StateLock.DisposableWait(cancellationToken))
                 {
-                    if (@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
-                    {
-                        SolutionLogger.UseExistingPartialSolution();
-                    }
-                    else
+                    if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {
                         compilationState = ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
                         @this._cachedFrozenDocumentState.Add(documentId, compilationState);
-                        SolutionLogger.CreatePartialSolution();
                     }
 
                     return compilationState;
