@@ -4,6 +4,7 @@ parameters:
   default:
     vmImage: windows-2022
 - name: includeMacOS
+  type: boolean
 - name: RunTests
   type: boolean
   default: true
