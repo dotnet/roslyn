@@ -10,10 +10,6 @@ steps:
       $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
-- task: MicroBuildCleanup@1
-  condition: succeededOrFailed()
-  displayName: ⚙️ MicroBuild Cleanup
-
 - task: Ref12Analyze@0
   displayName: 📑 Ref12 (Codex) Analyze
   inputs:

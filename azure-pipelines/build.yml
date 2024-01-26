@@ -3,6 +3,14 @@ parameters:
   type: object
   default:
     vmImage: windows-2022
+- name: linuxPool
+  type: object
+  default:
+    vmImage: ubuntu-20.04
+- name: macOSPool
+  type: object
+  default:
+    vmImage: macOS-12
 - name: includeMacOS
   type: boolean
 - name: RunTests
@@ -14,6 +22,17 @@ parameters:
 - name: EnableAPIScan
   type: boolean
   default: false
+- name: artifact_names
+  type: object
+  default:
+  - build_logs
+  - coverageResults
+  - deployables
+  - projectAssetsJson
+  - symbols
+  - testResults
+  - test_symbols
+  - Variables
 
 jobs:
 - job: Windows
@@ -23,6 +42,25 @@ jobs:
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
     - group: VSCloudServices-APIScan # Expected to provide ApiScanClientId, ApiScanSecret, ApiScanTenant
+  ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    templateContext:
+      outputParentDirectory: $(Build.ArtifactStagingDirectory)
+      outputs:
+      - ${{ each artifact_name in parameters.artifact_names }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish ${{ artifact_name }}-Windows
+          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Windows
+          artifactName: ${{ artifact_name }}-Windows
+      - output: pipelineArtifact
+        displayName: 📢 Publish VSInsertion-Windows
+        targetPath: $(Build.ArtifactStagingDirectory)/VSInsertion-Windows
+        artifactName: VSInsertion-Windows
+      # This is useful when false positives appear so we can copy some of the output into the suppressions file.
+      - output: pipelineArtifact
+        displayName: 📢 Publish Guardian failures
+        targetPath: $(Build.ArtifactStagingDirectory)/guardian_failures_as_suppressions
+        artifactName: guardian_failures_as_suppressions
+        condition: failed()
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -52,8 +90,16 @@ jobs:
   - template: expand-template.yml
 
 - job: Linux
-  pool:
-    vmImage: Ubuntu 20.04
+  pool: ${{ parameters.linuxPool }}
+  ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    templateContext:
+      outputParentDirectory: $(Build.ArtifactStagingDirectory)
+      outputs:
+      - ${{ each artifact_name in parameters.artifact_names }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish ${{ artifact_name }}-Linux
+          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
+          artifactName: ${{ artifact_name }}-Linux
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -68,8 +114,16 @@ jobs:
 
 - job: macOS
   condition: ${{ parameters.includeMacOS }}
-  pool:
-    vmImage: macOS-12
+  pool: ${{ parameters.macOSPool }}
+  ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    templateContext:
+      outputParentDirectory: $(Build.ArtifactStagingDirectory)
+      outputs:
+      - ${{ each artifact_name in parameters.artifact_names }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish ${{ artifact_name }}-macOS
+          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
+          artifactName: ${{ artifact_name }}-macOS
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.

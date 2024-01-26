@@ -42,24 +42,75 @@ parameters:
   type: boolean
   default: true
 
-stages:
+resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
 
-- stage: Build
-  variables:
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    BuildConfiguration: Release
-    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-    SignTypeSelection: ${{ parameters.SignTypeSelection }}
-    Packaging.EnableSBOMSigning: false
-    Codeql.Enabled: true
-
-  jobs:
-  - template: build.yml
+extends:
+  ${{ if parameters.EnableCompliance }}:
+    template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
     parameters:
-      EnableCompliance: ${{ parameters.EnableCompliance }}
-      EnableAPIScan: ${{ parameters.EnableAPIScan }}
-      windowsPool: VSEngSS-MicroBuild2022-1ES
-      includeMacOS: ${{ parameters.includeMacOS }}
-      RunTests: ${{ parameters.RunTests }}
-
-- template: prepare-insertion-stages.yml
+      sdl:
+        sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
+      stages:
+      - stage: Build
+        variables:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+          BuildConfiguration: Release
+          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+          SignTypeSelection: ${{ parameters.SignTypeSelection }}
+          Packaging.EnableSBOMSigning: false
+          Codeql.Enabled: true
+        jobs:
+        - template: /azure-pipelines/build.yml@self
+          parameters:
+            EnableCompliance: ${{ parameters.EnableCompliance }}
+            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            windowsPool: VSEngSS-MicroBuild2022-1ES
+            linuxPool:
+              name: AzurePipelines-EO
+              demands:
+              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              os: Linux
+            macOSPool:
+              name: Azure Pipelines
+              vmImage: macOS-12
+              os: macOS
+            includeMacOS: ${{ parameters.includeMacOS }}
+            RunTests: ${{ parameters.RunTests }}
+      - template: /azure-pipelines/prepare-insertion-stages.yml@self
+  ${{ else }}:
+    template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
+    parameters:
+      sdl:
+        sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
+      stages:
+      - stage: Build
+        variables:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+          BuildConfiguration: Release
+          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+          SignTypeSelection: ${{ parameters.SignTypeSelection }}
+          Packaging.EnableSBOMSigning: false
+          Codeql.Enabled: true
+        jobs:
+        - template: /azure-pipelines/build.yml@self
+          parameters:
+            EnableCompliance: ${{ parameters.EnableCompliance }}
+            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            windowsPool: VSEngSS-MicroBuild2022-1ES
+            linuxPool:
+              name: AzurePipelines-EO
+              demands:
+              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              os: Linux
+            macOSPool:
+              name: Azure Pipelines
+              vmImage: macOS-12
+              os: macOS
+            includeMacOS: ${{ parameters.includeMacOS }}
+            RunTests: ${{ parameters.RunTests }}
+      - template: /azure-pipelines/prepare-insertion-stages.yml@self

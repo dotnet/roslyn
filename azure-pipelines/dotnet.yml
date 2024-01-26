@@ -15,10 +15,17 @@ steps:
   displayName: ⚙ Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
-- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
-  failOnStderr: true
-  displayName: 📢 Publish artifacts
-  condition: succeededOrFailed()
+- ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+  - powershell: azure-pipelines/artifacts/_pipelines.ps1 -StageOnly -AvoidSymbolicLinks -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
+    failOnStderr: true
+    displayName: 📢 Publish artifacts
+    condition: succeededOrFailed()
+
+- ${{ if ne(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+  - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
+    failOnStderr: true
+    displayName: 📢 Publish artifacts
+    condition: succeededOrFailed()
 
 - ${{ if and(ne(variables['codecov_token'], ''), parameters.RunTests) }}:
   - powershell: |
