@@ -65,13 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
-                    // If we are only syncing over a project cone, then only actually compare the respective cones on
-                    // the host and remote side here.
-                    var projectConeId = newSolutionChecksums.ProjectConeId;
-
-                    var oldSolutionChecksums = projectConeId == null
-                        ? await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)
-                        : await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectConeId, cancellationToken).ConfigureAwait(false);
+                    var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                     {
@@ -85,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                     {
                         solution = await UpdateProjectsAsync(
-                            solution, projectConeId, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
+                            solution, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
@@ -108,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
 #if DEBUG
                     // make sure created solution has same checksum as given one
-                    await ValidateChecksumAsync(newSolutionChecksum, solution, projectConeId, cancellationToken).ConfigureAwait(false);
+                    await ValidateChecksumAsync(newSolutionChecksum, solution, newSolutionChecksums.ProjectConeId, cancellationToken).ConfigureAwait(false);
 #endif
 
                     return solution;
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private async Task<Solution> UpdateProjectsAsync(
-                Solution solution, ProjectId? projectConeId, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
+                Solution solution, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
                 using var oldProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
                 using var newProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
@@ -166,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Third, remove any projects no longer present in the 'new' side. Note: We never remove any projects
                 // when performing a project cone sync.  We want to keep around as much as we can on the remote side as
                 // it will likely be useful for a future operation.
-                if (projectConeId is null)
+                if (newSolutionChecksums.ProjectConeId is null)
                 {
                     foreach (var oldProjectId in solution.ProjectIds)
                     {
