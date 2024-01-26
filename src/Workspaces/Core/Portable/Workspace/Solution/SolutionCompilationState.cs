@@ -1033,8 +1033,12 @@ internal sealed partial class SolutionCompilationState
         // technically inaccurate, but we can accept that as the primary purpose of 'frozen partial' is to get a
         // snapshot *fast* that is allowed to be *inaccurate*.
         //
-        // We currently do not have any features that both use frozen-partial semantics *and* which would deeply
-        // care about examining sibling files and having them be parsed perfectly.
+        // Note: this does mean that some *potentially* desirable feature behaviors may not be possible.  For example,
+        // because of this unification, all targets will see the user in the same parsed #if region.  That means, if the
+        // user is in a conditionally-disabled region in the primary target, they will also be in such a region in all
+        // other targets.  This would prevent such a feature from using the information from other targets (perhaps
+        // where it is not conditionally-disabled) to drive a richer experience here.  We consider that acceptable given
+        // the perf benefit.  But we could consider relaxing this in the future.
         //
         // Note: this is very different from the logic we have in the workspace to 'UnifyLinkedDocumentContents'. In
         // that case, we only share trees when completely safe and accurate to do so (for example, where no
