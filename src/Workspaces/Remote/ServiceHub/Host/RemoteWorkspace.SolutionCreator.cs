@@ -135,6 +135,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     return await UpdateProjectConeAsync(this).ConfigureAwait(false);
                 }
 
+                async Task<Solution> UpdateProjectConeAsync(SolutionCreator @this)
+                {
+                    using var oldProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    using var newProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+
+                    oldProjectIds.Object.AddRange(solution.ProjectIds);
+                    newProjectIds.Object.AddRange(newSolutionChecksums.Projects.Ids);
+                }
+
                 async Task<Solution> UpdateAllProjectsAsync(SolutionCreator @this)
                 {
                     using var oldProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
