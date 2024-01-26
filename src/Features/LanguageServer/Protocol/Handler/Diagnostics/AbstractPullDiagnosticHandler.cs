@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousPullResult>.Empty;
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
             {
-                return ImmutableArray<LSP.Diagnostic>.Empty;
+                return [];
             }
 
             var project = diagnosticSource.GetProject();
@@ -334,13 +334,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Check if we need to handle the unnecessary tag (fading).
             if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             // DiagnosticId supports fading, check if the corresponding VS option is turned on.
             if (!SupportsFadingOption(diagnosticData))
             {
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             // Check to see if there are specific locations marked to fade.
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // We should always have at least one tag (build or intellisense error).
                 Contract.ThrowIfNull(diagnostic.Tags, $"diagnostic {diagnostic.Identifier} was missing tags");
                 diagnostic.Tags = diagnostic.Tags.Append(DiagnosticTag.Unnecessary);
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             if (capabilities.HasVisualStudioLspCapability())
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Message = diagnostic.Message
                 }).ToArray();
                 diagnostic.RelatedInformation = diagnosticRelatedInformation;
-                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+                return [diagnostic];
             }
 
             LSP.VSDiagnostic CreateLspDiagnostic(

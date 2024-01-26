@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     callbackTarget: symbolSearchService,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
+                return result.HasValue ? result.Value : [];
             }
 
             return await GetFixesInCurrentProcessAsync(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // future use.
             if (!IsHostOrRemoteWorkspace(project))
             {
-                return ImmutableArray<Reference>.Empty;
+                return [];
             }
 
             var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     callbackTarget: symbolSearchService,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
+                return result.HasValue ? result.Value : [];
             }
 
             return await GetUniqueFixesAsyncInCurrentProcessAsync(

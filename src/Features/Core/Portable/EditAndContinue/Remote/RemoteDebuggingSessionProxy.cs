@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (service, cancallationToken) => service.BreakStateOrCapabilitiesChangedAsync(_sessionId, inBreakState, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
+                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : [];
             }
 
             // clear all reported rude edits:
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (service, cancallationToken) => service.EndDebuggingSessionAsync(_sessionId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
+                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : [];
             }
 
             var designTimeDocumentsToReanalyze = await CompileTimeSolutionProvider.GetDesignTimeDocumentsAsync(
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
-                        diagnosticData = ImmutableArray<DiagnosticData>.Empty;
-                        rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
+                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
+                        diagnosticData = [];
+                        rudeEdits = [];
                         syntaxError = null;
                     }
                 }
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 diagnosticData = GetInternalErrorDiagnosticData(solution, e);
-                rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
+                rudeEdits = [];
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
                 syntaxError = null;
             }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Location.None,
                 string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+            return [DiagnosticData.Create(solution, diagnostic, project: null)];
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (service, cancallationToken) => service.CommitSolutionUpdateAsync(_sessionId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
+                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : [];
             }
 
             // clear all reported rude edits:
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 (service, solutionInfo, cancellationToken) => service.GetBaseActiveStatementSpansAsync(solutionInfo, _sessionId, documentIds, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<ImmutableArray<ActiveStatementSpan>>.Empty;
+            return result.HasValue ? result.Value : [];
         }
 
         public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // filter out documents that are not synchronized to remote process before we attempt remote invoke:
             if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
             {
-                return ImmutableArray<ActiveStatementSpan>.Empty;
+                return [];
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<ActiveStatementSpan>.Empty;
+            return result.HasValue ? result.Value : [];
         }
     }
 }

@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReverseReferences(solution, "B", ["A"]);
 
             solution = solution.WithProjectReferences(solution.GetProjectsByName("A").Single().Id,
-                Enumerable.Empty<ProjectReference>());
+                []);
 
             VerifyDirectReferences(solution, "A", []);
             VerifyDirectReverseReferences(solution, "B", []);
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 }
                 else
                 {
-                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, ImmutableArray.Create($"alias{references.Count}")));
+                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, [$"alias{references.Count}"]));
                 }
             }
 

@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _orderedSynthesizedMethods;
         }
 
-        public IEnumerable<Cci.IMethodDefinition> GetTopLevelTypeMethods(EmitContext context)
+        public IEnumerable<Cci.IMethodDefinition> GetTopLevelAndNestedTypeMethods(EmitContext context)
         {
             Debug.Assert(IsFrozen);
             foreach (var type in _orderedTopLevelTypes)
@@ -352,6 +352,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 foreach (var method in type.GetMethods(context))
                 {
                     yield return method;
+                }
+
+                foreach (var nestedType in type.GetNestedTypes(context))
+                {
+                    foreach (var method in nestedType.GetMethods(context))
+                    {
+                        yield return method;
+                    }
                 }
             }
         }

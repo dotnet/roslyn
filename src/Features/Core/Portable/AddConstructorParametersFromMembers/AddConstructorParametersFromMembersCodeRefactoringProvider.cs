@@ -172,13 +172,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
             if (actions.IsEmpty)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var changedSolution = await action.GetChangedSolutionInternalAsync(
                     priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
-                var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
+                var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
                 results.Add(intent);
             }
 

@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
         {
             if (items == null)
             {
-                return ImmutableArray.Create<T>();
+                return [];
             }
 
             return ImmutableArray.Create<T>(items);

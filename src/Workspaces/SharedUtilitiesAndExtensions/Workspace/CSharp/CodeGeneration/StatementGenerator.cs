@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class StatementGenerator
     {
         internal static SyntaxList<StatementSyntax> GenerateStatements(IEnumerable<SyntaxNode> statements)
-            => statements.OfType<StatementSyntax>().ToSyntaxList();
+            => [.. statements.OfType<StatementSyntax>()];
 
         internal static BlockSyntax GenerateBlock(IMethodSymbol method)
         {

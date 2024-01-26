@@ -32,9 +32,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
             KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace, nameof(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)),
         });
 
-    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = ImmutableArray.Create<IConvertStringProvider>(
-        ConvertRegularStringToRawStringProvider.Instance,
-        ConvertInterpolatedStringToRawStringProvider.Instance);
+    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

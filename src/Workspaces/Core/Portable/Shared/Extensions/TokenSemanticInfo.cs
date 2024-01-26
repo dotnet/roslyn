@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         TextSpan span)
     {
         public static readonly TokenSemanticInfo Empty = new(
-            null, null, ImmutableArray<ISymbol>.Empty, null, null, default);
+            null, null, [], null, null, default);
 
         public readonly ISymbol DeclaredSymbol = declaredSymbol;
         public readonly IAliasSymbol AliasSymbol = aliasSymbol;

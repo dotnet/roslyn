@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.
-            return new(ImmutableArray<FinderLocation>.Empty);
+            return new([]);
         }
     }
 }

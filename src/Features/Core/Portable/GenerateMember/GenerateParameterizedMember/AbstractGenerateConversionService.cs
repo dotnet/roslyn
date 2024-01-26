@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var state = await State.GenerateConversionStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return ImmutableArray<CodeAction>.Empty;
+                    return [];
                 }
 
                 return await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);

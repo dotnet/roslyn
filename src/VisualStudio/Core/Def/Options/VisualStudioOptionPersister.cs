@@ -2,22 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Setup;
-using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;

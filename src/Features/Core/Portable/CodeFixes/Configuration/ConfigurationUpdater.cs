@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 name: ".editorconfig",
                 filePath: analyzerConfigPath);
 
-            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            var newSolution = project.Solution.AddAnalyzerConfigDocuments([documentInfo]);
             return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 }
             }
 
-            return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
+            return [];
         }
 
         internal static bool TryGetEditorConfigStringParts(string editorConfigString, out (string optionName, string optionValue) parts)
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         select option).ToImmutableArray();
             }
 
-            return ImmutableArray<IOption2>.Empty;
+            return [];
         }
 
         private SourceText? GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)

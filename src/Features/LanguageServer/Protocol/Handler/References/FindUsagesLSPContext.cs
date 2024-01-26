@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,7 +20,6 @@ using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Core.Imaging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
@@ -93,9 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
-
-        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         // After all definitions/references have been found, wait here until all results have been reported.
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
@@ -256,10 +250,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (documentSpan != null)
             {
                 var document = documentSpan.Value.Document;
-                var options = await GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    documentSpan.Value, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

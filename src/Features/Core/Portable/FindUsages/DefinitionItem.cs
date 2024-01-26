@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
@@ -100,6 +99,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ImmutableArray<DocumentSpan> SourceSpans { get; }
 
         /// <summary>
+        /// Precomputed classified spans for the corresponding <see cref="SourceSpans"/>.
+        /// </summary>
+        public ImmutableArray<ClassifiedSpansAndHighlightSpan?> ClassifiedSpans { get; }
+
+        /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
         /// it.  For example, when searching for a property, the FindReferences engine will cascade
         /// to the accessors in case any code specifically called those accessors (can happen in 
@@ -120,6 +124,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableDictionary<string, string>? properties,
             bool displayIfNoReferences)
             : this(
@@ -128,6 +133,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 nameDisplayParts,
                 originationParts,
                 sourceSpans,
+                classifiedSpans,
                 properties,
                 ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences)
@@ -140,6 +146,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableDictionary<string, string>? properties,
             ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences)
@@ -149,9 +156,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
+            ClassifiedSpans = classifiedSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
+
+            Contract.ThrowIfTrue(sourceSpans.Length != classifiedSpans.Length);
 
             if (Properties.ContainsKey(MetadataSymbolKey))
             {
@@ -174,6 +184,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
+        // Kept around for binary compat with TypeScript.
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -182,7 +193,24 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences = true)
         {
             return Create(
-                tags, displayParts, ImmutableArray.Create(sourceSpan),
+                tags, displayParts,
+                sourceSpan,
+                classifiedSpans: null,
+                nameDisplayParts, displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            DocumentSpan sourceSpan,
+            ClassifiedSpansAndHighlightSpan? classifiedSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            bool displayIfNoReferences = true)
+        {
+            return Create(
+                tags, displayParts,
+                [sourceSpan],
+                [classifiedSpans],
                 nameDisplayParts, displayIfNoReferences);
         }
 
@@ -191,11 +219,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableArray<TaggedText> nameDisplayParts,
             bool displayIfNoReferences)
         {
             return Create(
-                tags, displayParts, sourceSpans, nameDisplayParts,
+                tags, displayParts, sourceSpans, classifiedSpans, nameDisplayParts,
                 properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -203,17 +232,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
-            return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
+            return Create(tags, displayParts, sourceSpans, classifiedSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string>? properties = null,
             ImmutableDictionary<string, string>? displayableProperties = null,
@@ -230,7 +261,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, properties, displayableProperties, displayIfNoReferences);
+                sourceSpans, classifiedSpans, properties, displayableProperties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
@@ -265,7 +296,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -296,9 +328,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return new DefaultDefinitionItem(
                 tags: tags,
                 displayParts: displayParts,
-                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                nameDisplayParts: [],
                 originationParts: originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -316,11 +349,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 if (!string.IsNullOrWhiteSpace(assemblyName))
                 {
-                    return ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+                    return [new TaggedText(TextTags.Assembly, assemblyName)];
                 }
             }
 
-            return ImmutableArray<TaggedText>.Empty;
+            return [];
         }
 
         public DetachedDefinitionItem Detach()

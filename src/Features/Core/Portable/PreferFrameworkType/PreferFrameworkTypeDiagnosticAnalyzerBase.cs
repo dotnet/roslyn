@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
                    EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
-                   options: ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
+                   options:
+                   [
+                       CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                       CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+                   ],
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -65,7 +69,10 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration)
                 && !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess)
                 && ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
-                    ImmutableArray.Create(options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification),
+                    [
+                        options.PreferPredefinedTypeKeywordInDeclaration.Notification,
+                        options.PreferPredefinedTypeKeywordInMemberAccess.Notification,
+                    ],
                     context.CancellationToken))
             {
                 return;

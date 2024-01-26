@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (suppressionTargetInfo == null)
             {
-                return ImmutableArray<CodeFix>.Empty;
+                return [];
             }
 
             return await GetSuppressionsAsync(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             if (!project.SupportsCompilation)
             {
-                return ImmutableArray<CodeFix>.Empty;
+                return [];
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             diagnostics = diagnostics.Where(IsFixableDiagnostic);
             if (diagnostics.IsEmpty())
             {
-                return ImmutableArray<CodeFix>.Empty;
+                return [];
             }
 
             INamedTypeSymbol suppressMessageAttribute = null;

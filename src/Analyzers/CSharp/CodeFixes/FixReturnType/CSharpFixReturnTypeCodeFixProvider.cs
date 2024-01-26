@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         // error CS0127: Since 'M()' returns void, a return keyword must not be followed by an object expression
         // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
+        public override ImmutableArray<string> FixableDiagnosticIds => ["CS0127", "CS1997", "CS0201"];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(

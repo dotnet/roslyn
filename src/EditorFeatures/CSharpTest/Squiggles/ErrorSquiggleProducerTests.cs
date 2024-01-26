@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
 
