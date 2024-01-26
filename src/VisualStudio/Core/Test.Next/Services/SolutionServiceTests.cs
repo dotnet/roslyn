@@ -656,19 +656,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project3SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project3Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(2, project3SyncedSolution.Projects.Count());
 
-            // if we then sync just P2, we should still have P2 and P3 from the prior sync
+            // if we then sync just P2, we should still have only P2 in the synced cone
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(2, project2SyncedSolution.Projects.Count());
-            AssertEx.SetEqual(new[] { project2.Name, project3.Name }, project2SyncedSolution.Projects.Select(p => p.Name));
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            AssertEx.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
 
-            // if we then sync just P1, we should have 3 projects synved over now.
+            // if we then sync just P1, we should only have it in its own cone.
             await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
             var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
             var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(3, project1SyncedSolution.Projects.Count());
-            AssertEx.SetEqual(new[] { project1.Name, project2.Name, project3.Name }, project1SyncedSolution.Projects.Select(p => p.Name));
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            AssertEx.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
         }
 
         [Fact]
@@ -698,15 +698,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project3SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project3Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(3, project3SyncedSolution.Projects.Count());
 
-            // syncing project2 should do nothing as everything is already synced
+            // syncing project2 should only have it and project 1.
+            await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(3, project2SyncedSolution.Projects.Count());
+            Assert.Equal(2, project2SyncedSolution.Projects.Count());
 
-            // syncing project1 should do nothing as everything is already synced
+            // syncing project1 should only be itself
+            await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
             var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
             var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(3, project1SyncedSolution.Projects.Count());
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
         }
 
         [Fact]
@@ -736,15 +738,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project3SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project3Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(3, project3SyncedSolution.Projects.Count());
 
-            // Syncing project2 should do nothing as it's already synced
+            // Syncing project2 should only have a cone with itself.
+            await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(3, project2SyncedSolution.Projects.Count());
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
 
-            // Syncing project1 should do nothing as it's already synced
+            // Syncing project1 should only have a cone with itself.
+            await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
             var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
             var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(3, project1SyncedSolution.Projects.Count());
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
         }
 
         [Fact]
