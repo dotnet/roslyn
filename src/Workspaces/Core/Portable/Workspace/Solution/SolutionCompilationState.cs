@@ -1046,6 +1046,11 @@ internal sealed partial class SolutionCompilationState
         //
         // Note: this forking can still be expensive.  It would be nice to do this as one large fork step rather than N
         // medium sized ones.
+        //
+        // Note: GetRelatedDocumentIds will include `documentId` as well.  But that's ok.  Calling
+        // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
+        // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
+        // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
         foreach (var siblingId in allDocumentIds)
             currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
