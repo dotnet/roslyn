@@ -69,10 +69,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // the host and remote side here.
                     var projectConeId = newSolutionChecksums.ProjectConeId;
 
-                    //var oldSolutionCompilationChecksums = projectConeId == null
-                    //    ? await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)
-                    //    : await solution.CompilationState.GetStateChecksumsAsync(projectConeId, cancellationToken).ConfigureAwait(false);
-
                     var oldSolutionChecksums = projectConeId == null
                         ? await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)
                         : await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectConeId, cancellationToken).ConfigureAwait(false);
