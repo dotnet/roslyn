@@ -97,22 +97,23 @@ internal sealed class SolutionCompilationStateChecksums(
     }
 }
 
-/// <param name="projectId">The particualr <see cref="ProjectId"/> if this was a checksum tree made for a particular project cone.</param>
+/// <param name="projectConeId">The particular <see cref="ProjectId"/> if this was a checksum tree made for a particular
+/// project cone.</param>
 internal sealed class SolutionStateChecksums(
-    ProjectId? projectId,
+    ProjectId? projectConeId,
     Checksum attributes,
     ChecksumsAndIds<ProjectId> projects,
     ChecksumCollection analyzerReferences)
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
-        projectId.Checksum,
+        projectConeId.Checksum,
         attributes,
         projects.Checksum,
         analyzerReferences.Checksum,
     });
 
-    public ProjectId? ProjectId { get; } = projectId;
+    public ProjectId? ProjectConeId { get; } = projectConeId;
     public Checksum Attributes { get; } = attributes;
     public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
@@ -130,8 +131,8 @@ internal sealed class SolutionStateChecksums(
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
-        writer.WriteBoolean(this.ProjectId != null);
-        this.ProjectId?.WriteTo(writer);
+        writer.WriteBoolean(this.ProjectConeId != null);
+        this.ProjectConeId?.WriteTo(writer);
 
         this.Attributes.WriteTo(writer);
         this.Projects.WriteTo(writer);
@@ -143,7 +144,7 @@ internal sealed class SolutionStateChecksums(
         var checksum = Checksum.ReadFrom(reader);
 
         var result = new SolutionStateChecksums(
-            projectId: reader.ReadBoolean() ? ProjectId.ReadFrom(reader) : null,
+            projectConeId: reader.ReadBoolean() ? ProjectId.ReadFrom(reader) : null,
             attributes: Checksum.ReadFrom(reader),
             projects: ChecksumsAndIds<ProjectId>.ReadFrom(reader),
             analyzerReferences: ChecksumCollection.ReadFrom(reader));
