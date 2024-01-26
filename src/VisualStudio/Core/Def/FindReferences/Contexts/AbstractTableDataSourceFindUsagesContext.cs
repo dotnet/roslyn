@@ -168,9 +168,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
 
-            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
-
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
                 var customColumnsToInclude = ArrayBuilder<string>.GetInstance();
