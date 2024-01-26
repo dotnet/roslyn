@@ -1066,10 +1066,10 @@ internal sealed partial class SolutionCompilationState
                 var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
                 using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
 
-                // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the set of
-                // linked document ids our state says are in it.  Note: all of these trees should share the same green
-                // trees, as that is setup in Soltion.WithFrozenPartialCompilationIncludingSpecificDocument.  This helps
-                // ensure that the cost here is low for files with lots of linked siblings.
+                // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the
+                // set of linked document ids our state says are in it.  Note: all of these trees should share the same
+                // green trees, as that is setup in our outer caller.  This helps ensure that the cost here is low for
+                // files with lots of linked siblings.
                 foreach (var currentDocumentId in allDocumentIds)
                 {
                     var document = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
