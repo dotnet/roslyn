@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (!_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, elements, BindingDiagnosticBag.Discarded))
+                if (elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }

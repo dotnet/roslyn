@@ -5279,25 +5279,33 @@ static class Program
         [Fact]
         public void CollectionInitializerType_03()
         {
-            string source = """
+            string sourceA = """
                 using System.Collections;
-                S s;
-                s = [];
-                s = [1, 2];
-                s = [.. new object()];
                 struct S : IEnumerable
                 {
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() { yield break; }
                 }
                 """;
-            var comp = CreateCompilation(source);
+            string sourceB1 = """
+                S s;
+                s = [];
+                s.Report();
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1, s_collectionExtensions }, expectedOutput: "[], ");
+
+            string sourceB2 = """
+                S s;
+                s = [1, 2];
+                s = [.. new object()];
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
             comp.VerifyEmitDiagnostics(
-                // (4,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
+                // 1.cs(2,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
                 // s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2]").WithArguments("S", "Add").WithLocation(4, 5),
-                // (5,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2]").WithArguments("S", "Add").WithLocation(2, 5),
+                // 1.cs(3,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 // s = [.. new object()];
-                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
         }
 
         [Fact]
@@ -5365,7 +5373,7 @@ static class Program
         [Fact]
         public void CollectionInitializerType_06()
         {
-            string source = """
+            string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
                 class C<T> : IEnumerable
@@ -5374,6 +5382,8 @@ static class Program
                     public void Add(T t) { _list.Add(t); }
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
                 }
+                """;
+            string sourceB1 = """
                 class Program
                 {
                     static void Main()
@@ -5382,19 +5392,33 @@ static class Program
                         object o;
                         c = [];
                         o = (C<object>)[];
+                        c.Report();
+                        o.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1, s_collectionExtensions }, expectedOutput: "[], [], ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<int> c;
+                        object o;
                         c = [1, 2];
                         o = (C<object>)[3, 4];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int)'.
+                // 1.cs(7,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'object'. The best overloaded method is 'C<int>.Add(int)'.
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(17, 13),
-                // (17,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("object", "C<int>.Add(int)").WithLocation(7, 13),
+                // 1.cs(7,13): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         c = [1, 2];
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(17, 13));
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2]").WithArguments("1", "object", "int").WithLocation(7, 13));
         }
 
         [Fact]
@@ -8098,6 +8122,24 @@ static class Program
                     {
                         Dictionary<int, int> d;
                         d = [];
+                        d.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[], ");
+        }
+
+        [Fact]
+        public void DictionaryElement_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, int> d;
+                        d = [default];
                         d = [new KeyValuePair<int, int>(1, 2)];
                         d = [3:4];
                     }
@@ -8105,6 +8147,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (7,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
+                //         d = [default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.KeyValuePair<int, int>", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(7, 13),
                 // (8,13): error CS9215: Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type 'KeyValuePair<int, int>'. The best overloaded method is 'Dictionary<int, int>.Add(int, int)'.
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.KeyValuePair<int, int>", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 13),
