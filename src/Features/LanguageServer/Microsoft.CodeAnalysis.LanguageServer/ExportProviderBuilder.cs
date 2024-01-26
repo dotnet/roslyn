@@ -17,13 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-
         var baseDirectory = AppContext.BaseDirectory;
-
-        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
 
         // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
@@ -39,11 +36,6 @@ internal sealed class ExportProviderBuilder
             Assembly.LoadFrom(path);
         }
 
-        var discovery = PartDiscovery.Combine(
-            resolver,
-            new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
-            new AttributedPartDiscoveryV1(resolver));
-
         var assemblies = new List<Assembly>()
         {
             typeof(ExportProviderBuilder).Assembly
@@ -51,18 +43,30 @@ internal sealed class ExportProviderBuilder
 
         if (devKitDependencyPath != null)
         {
-            // Load devkit dependencies before other extensions to ensure dependencies
+            // Load devkit dependencies before extensions to ensure dependencies
             // like VS Telemetry are available from the host.
             assemblies.AddRange(LoadDevKitAssemblies(devKitDependencyPath, logger));
         }
 
+        using var _ = ArrayBuilder<AssemblyLoadContext>.GetInstance(out var extensionContexts);
         foreach (var extensionAssemblyPath in extensionAssemblyPaths)
         {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
+            // Create the extension assembly load context for the extension.
+            var loadContext = extensionAssemblyManager.LoadExtension(extensionAssemblyPath);
+            if (loadContext != null)
             {
-                assemblies.Add(extensionAssembly);
+                extensionContexts.Add(loadContext);
+                assemblyPaths = assemblyPaths.Concat(extensionAssemblyPath);
             }
         }
+
+        // Create a MEF resolver that can resolve assemblies in the extension contexts.
+        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionContexts.ToImmutable()));
+
+        var discovery = PartDiscovery.Combine(
+            resolver,
+            new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
+            new AttributedPartDiscoveryV1(resolver));
 
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(resolver)
