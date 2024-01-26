@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: ImmutableArray<AttributeData>.Empty,
+                attributes: [],
                 accessibility: IncludeAccessibility(method, cancellationToken) ? method.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: method.ReturnType,

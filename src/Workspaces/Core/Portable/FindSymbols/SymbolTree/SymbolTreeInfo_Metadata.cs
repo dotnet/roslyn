@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // https://devdiv.visualstudio.com/DevDiv/_workitems?id=234447
                 }
 
-                return ImmutableArray<ModuleMetadata>.Empty;
+                return [];
             }
 
             internal SymbolTreeInfo Create()

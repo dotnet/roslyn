@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 case GlobalStatementSyntax globalStatement:
                     if (globalStatement.Parent is not CompilationUnitSyntax compilationUnit)
                     {
-                        return ImmutableArray<ImmutableArray<StatementSyntax>>.Empty;
+                        return [];
                     }
 
                     {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                 default:
                     // We're an embedded statement.  So the unreachable section is just us.
-                    return ImmutableArray<ImmutableArray<StatementSyntax>>.Empty;
+                    return [];
             }
 
             var sections = ArrayBuilder<ImmutableArray<StatementSyntax>>.GetInstance();

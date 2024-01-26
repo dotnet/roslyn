@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
+                customTags: [],
                 properties: ImmutableDictionary<string, string?>.Empty,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),

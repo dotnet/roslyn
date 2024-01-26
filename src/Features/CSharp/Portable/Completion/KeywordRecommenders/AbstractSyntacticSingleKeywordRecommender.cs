@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxKind = RecommendKeyword(position, context, cancellationToken);
             if (!syntaxKind.HasValue)
-                return ImmutableArray<RecommendedKeyword>.Empty;
+                return [];
 
             return ShouldPreselect(context, cancellationToken)
                 ? _keywordPriorityRecommendedKeywords

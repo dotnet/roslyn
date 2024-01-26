@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : [overriddenSymbol];
+                allSymbols = overriddenSymbol is null ? [] : [overriddenSymbol];
             }
             else
             {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
                 allSymbols = skipSymbolInfoLookup
-                    ? ImmutableArray<ISymbol?>.Empty
+                    ? []
                     : semanticFacts
                         .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
                         .WhereAsArray(s => s != null && !s.Equals(declaredSymbol))

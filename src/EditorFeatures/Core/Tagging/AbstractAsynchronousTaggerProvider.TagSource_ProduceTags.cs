@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
                 //   full snapshot is being invalidated.
                 if (firstSpanToInvalidate.Length == snapshot.Length)
-                    return Array.Empty<ITagSpan<TTag>>();
+                    return [];
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),

@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newSolution3 = solution.WithDocumentFolders(documentId, new string[0]);
             Assert.Equal(new string[0], newSolution3.GetDocument(documentId)!.Folders);
 
-            var newSolution4 = solution.WithDocumentFolders(documentId, ImmutableArray<string>.Empty);
+            var newSolution4 = solution.WithDocumentFolders(documentId, []);
             Assert.Same(newSolution3, newSolution4);
 
             var newSolution5 = solution.WithDocumentFolders(documentId, null);
@@ -2030,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
 
-            Assert.Same(solution, solution.RemoveDocuments(ImmutableArray<DocumentId>.Empty));
+            Assert.Same(solution, solution.RemoveDocuments([]));
         }
 
         [Fact]

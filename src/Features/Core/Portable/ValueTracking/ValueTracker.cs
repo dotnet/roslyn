@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     IVariableDeclaratorOperation variableDeclarator => [variableDeclarator],
                     IVariableDeclarationOperation variableDeclaration => variableDeclaration.Declarators,
-                    _ => ImmutableArray<IVariableDeclaratorOperation>.Empty
+                    _ => []
                 };
 
                 foreach (var declarator in declarators)

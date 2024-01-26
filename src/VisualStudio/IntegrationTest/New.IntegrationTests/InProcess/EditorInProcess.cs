@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassificationSpan>();
+            return [];
         }
 
         public async Task<string[]> GetCurrentClassificationsAsync(CancellationToken cancellationToken)
@@ -423,11 +423,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
                 }
             }
-        }
-
-        public Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
-        {
-            return GetTagsAsync<IErrorTag>(cancellationToken);
         }
 
         public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)

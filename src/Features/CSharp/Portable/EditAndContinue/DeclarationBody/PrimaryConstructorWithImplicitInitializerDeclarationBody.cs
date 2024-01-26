@@ -41,7 +41,7 @@ internal sealed class PrimaryConstructorWithImplicitInitializerDeclarationBody(T
         => TypeDeclaration;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => ImmutableArray<ISymbol>.Empty;
+        => [];
 
     // Active spans of copy-constructor and primary record properties overlap with the primary constructor initializer span,
     // but do not belong to the primary constructor body. The only active span that belongs is the initializer span itself.

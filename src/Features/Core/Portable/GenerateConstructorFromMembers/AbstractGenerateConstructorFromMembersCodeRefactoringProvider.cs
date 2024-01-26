@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (actions.IsEmpty())
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             // The refactorings returned will be in the following order (if available)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         dialogAction.PickMembersOptions,
                         selectedAll: true);
                     var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
-                    return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
+                    return operations == null ? [] : operations.ToImmutableArray();
                 }
                 else
                 {

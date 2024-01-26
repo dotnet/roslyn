@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool isCaseSensitive,
             TextSpan? matchedSpan)
             : this(resultType, punctuationStripped, isCaseSensitive,
-                   matchedSpan == null ? ImmutableArray<TextSpan>.Empty : [matchedSpan.Value])
+                   matchedSpan == null ? [] : [matchedSpan.Value])
         {
         }
 

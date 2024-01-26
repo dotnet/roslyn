@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var expansionEnumerator = await expansionManager.EnumerateExpansionsAsync(
                 _languageGuidForSnippets,
                 0, // shortCutOnly
-                Array.Empty<string>(), // types
+                [], // types
                 0, // countTypes
                 1, // includeNULLTypes
                 1 // includeDulicates: Allows snippets with the same title but different shortcuts

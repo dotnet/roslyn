@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out var projectIds))
             {
-                projectIds = ImmutableArray<ProjectId>.Empty;
+                projectIds = [];
             }
 
             return projectIds;

@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                     Log.Write("Syntax errors found in '{0}'", filePath);
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 if (!hasChanges)
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var oldActiveStatements = (oldTree == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
+                var oldActiveStatements = (oldTree == null) ? [] :
                     oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
 
                 var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (newActiveStatements[i] == null)
                     {
                         newActiveStatements[i] = oldActiveStatements[i].Statement.WithSpan(default);
-                        newExceptionRegions[i] = ImmutableArray<SourceFileSpan>.Empty;
+                        newExceptionRegions[i] = [];
                     }
                 }
             }
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var newSpan = GetDeletedDeclarationActiveSpan(topMatch.Matches, oldDeclaration);
                         newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], topMatch.NewRoot.SyntaxTree, newSpan, diagnostics, cancellationToken);
-                        newExceptionRegions[activeStatementIndex] = ImmutableArray<SourceFileSpan>.Empty;
+                        newExceptionRegions[activeStatementIndex] = [];
                     }
                 }
                 else
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldStatementSyntax = activeNode.OldNode;
                     var oldEnclosingLambdaBody = activeNode.EnclosingLambdaBody;
 
-                    newExceptionRegions[activeStatementIndex] = ImmutableArray<SourceFileSpan>.Empty;
+                    newExceptionRegions[activeStatementIndex] = [];
 
                     DeclarationBodyMap enclosingBodyMap;
                     DeclarationBody oldBody;
@@ -1263,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var i in activeStatementIndices)
                 {
                     newActiveStatements[i] = oldActiveStatements[i].Statement;
-                    newExceptionRegions[i] = ImmutableArray<SourceFileSpan>.Empty;
+                    newExceptionRegions[i] = [];
                 }
 
                 // We expect OOM to be thrown during the analysis if the number of statements is too large.
@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (TryGetLambdaBodies(oldNode, out var oldLambdaBody1, out var oldLambdaBody2))
                     {
                         lambdaBodyMaps ??= ArrayBuilder<(DeclarationBodyMap, SyntaxNode?)>.GetInstance();
-                        lazyActiveOrMatchedLambdas ??= [];
+                        lazyActiveOrMatchedLambdas ??= new();
 
                         var newLambdaBody1 = oldLambdaBody1.TryGetPartnerLambdaBody(newNode);
                         if (newLambdaBody1 != null)
@@ -1470,12 +1470,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
             {
                 // Lambda may be matched but not be active.
-                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => memberBodyActiveNodes[i]) ?? Array.Empty<ActiveNode>();
+                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => memberBodyActiveNodes[i]) ?? [];
             }
             else
             {
                 // If the lambda body isn't in the map it doesn't have any active/tracked statements.
-                activeNodesInLambdaBody = Array.Empty<ActiveNode>();
+                activeNodesInLambdaBody = [];
                 info = new LambdaInfo();
             }
 
@@ -1522,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // since the debugger does not support remapping active statements to a different method.
             if (hasActiveStatement && oldStateMachineInfo.IsStateMachine != newStateMachineInfo.IsStateMachine)
             {
-                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: []);
             }
 
             // report removing async as rude:
@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (exceptionHandlingAncestors.Count == 0)
             {
-                return new ActiveStatementExceptionRegions(ImmutableArray<SourceFileSpan>.Empty, isActiveStatementCovered: false);
+                return new ActiveStatementExceptionRegions([], isActiveStatementCovered: false);
             }
 
             var isCovered = false;
@@ -2449,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
             {
-                return ImmutableArray<SemanticEditInfo>.Empty;
+                return [];
             }
 
             // { new type -> constructor update }
@@ -3029,7 +3029,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 {
                                     newActiveStatementSpan ??= GetDeletedDeclarationActiveSpan(editScript.Match.Matches, oldDeclaration);
                                     newActiveStatements[index] = GetActiveStatementWithSpan(oldActiveStatements[index], newTree, newActiveStatementSpan.Value, diagnostics, cancellationToken);
-                                    newExceptionRegions[index] = ImmutableArray<SourceFileSpan>.Empty;
+                                    newExceptionRegions[index] = [];
                                 }
                                 else
                                 {
@@ -3900,14 +3900,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Adding a state machine, either for async or iterator, will require creating a new helper class
                 // so is a rude edit if the runtime doesn't support it
                 var rudeEdit = newStateMachineInfo.IsAsync ? RudeEditKind.MakeMethodAsyncNotSupportedByRuntime : RudeEditKind.MakeMethodIteratorNotSupportedByRuntime;
-                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: []);
             }
 
             if (oldStateMachineInfo.IsStateMachine && newStateMachineInfo.IsStateMachine)
             {
                 if (!capabilities.Grant(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
                 {
-                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: Array.Empty<string>());
+                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: []);
                 }
 
                 if ((InGenericContext(oldMember) ||
@@ -5775,8 +5775,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (memberBody == null)
             {
-                variablesCapturedInLambdas = ImmutableArray<VariableCapture>.Empty;
-                primaryParametersCapturedViaThis = ImmutableArray<IParameterSymbol>.Empty;
+                variablesCapturedInLambdas = [];
+                primaryParametersCapturedViaThis = [];
                 return;
             }
 
@@ -5822,7 +5822,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             variablesCapturedInLambdas = inLambdaCaptures?.SelectAsArray(
-                static item => new VariableCapture(item.kind, item.symbol)) ?? ImmutableArray<VariableCapture>.Empty;
+                static item => new VariableCapture(item.kind, item.symbol)) ?? [];
 
             inLambdaCaptures?.Free();
 
@@ -5836,7 +5836,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else
             {
-                primaryParametersCapturedViaThis = ImmutableArray<IParameterSymbol>.Empty;
+                primaryParametersCapturedViaThis = [];
             }
 
             inLambdaCapturesIndex?.Free();

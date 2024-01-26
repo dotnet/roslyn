@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution);
-                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
+                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : [];
 
                 itemData = new VSCompletionItemData(
                     DisplayText: roslynItem.GetEntireDisplayText(),

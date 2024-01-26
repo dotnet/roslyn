@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.PartialImplementationPart != null)
                 return [symbol.PartialImplementationPart];
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -68,22 +68,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var deconstructDocuments = IsDeconstructMethod(methodSymbol)
                 ? await FindDocumentsWithDeconstructionAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var awaitExpressionDocuments = IsGetAwaiterMethod(methodSymbol)
                 ? await FindDocumentsWithAwaitExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
                 project, documents, cancellationToken).ConfigureAwait(false);
 
             var documentsWithCollectionInitializers = IsAddMethod(methodSymbol)
                 ? await FindDocumentsWithCollectionInitializersAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             return ordinaryDocuments.Concat(
                 forEachDocuments, deconstructDocuments, awaitExpressionDocuments, documentsWithGlobalAttributes, documentsWithCollectionInitializers);
@@ -122,22 +122,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachMatches = IsForEachMethod(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             var deconstructMatches = IsDeconstructMethod(symbol)
                 ? await FindReferencesInDeconstructionAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             var getAwaiterMatches = IsGetAwaiterMethod(symbol)
                 ? await FindReferencesInAwaitExpressionAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);
 
             var addMatches = IsAddMethod(symbol)
                 ? await FindReferencesInCollectionInitializerAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             return nameMatches.Concat(forEachMatches, deconstructMatches, getAwaiterMatches, suppressionReferences, addMatches);
         }

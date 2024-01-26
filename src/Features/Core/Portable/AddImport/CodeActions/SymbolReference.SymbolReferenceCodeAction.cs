@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var operation = await GetChangeSolutionOperationAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
                 if (operation is null)
                 {
-                    return Array.Empty<CodeActionOperation>();
+                    return [];
                 }
 
                 return SpecializedCollections.SingletonEnumerable(operation);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var operation = await GetChangeSolutionOperationAsync(isPreview: false, cancellationToken).ConfigureAwait(false);
                 if (operation is null)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return [];
                 }
 
                 return [operation];

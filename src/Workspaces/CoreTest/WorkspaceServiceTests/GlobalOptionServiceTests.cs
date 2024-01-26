@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(1, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
-                ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
+                [],
                 [KeyValuePairUtil.Create(optionKey, (object?)2)]);
 
             Assert.Equal(2, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
-                ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
+                [],
                 [KeyValuePairUtil.Create(optionKey, (object?)3)]);
 
             Assert.Equal(3, optionService.GetExternallyDefinedOption(optionKey));
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             // Update global option indirectly via legacy service updates current solutions.
             optionService.SetOptions(
                 [KeyValuePairUtil.Create(new OptionKey2(FormattingOptions2.NewLine, "lang"), (object?)"NEW_LINE")],
-                ImmutableArray<KeyValuePair<OptionKey, object?>>.Empty);
+                []);
 
             Assert.Equal("NEW_LINE", workspace1.CurrentSolution.Options.GetOption<string>(perLanguageOptionKey));
             Assert.Equal("NEW_LINE", workspace2.CurrentSolution.Options.GetOption<string>(perLanguageOptionKey));
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
             var optionKey = new OptionKey2(option, language);
 
-            optionService.SetOptions([new KeyValuePair<OptionKey2, object?>(optionKey, newValue)], ImmutableArray<KeyValuePair<OptionKey, object?>>.Empty);
+            optionService.SetOptions([new KeyValuePair<OptionKey2, object?>(optionKey, newValue)], []);
             Assert.Equal(newValue, optionService.GlobalOptions.GetOption<CodeStyleOption2<bool>>(optionKey));
         }
     }

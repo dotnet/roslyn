@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var vsItem = GetCorrespondingVsCompletionItem(matchResult, cancellationToken);
                     var highlightedSpans = _highlightMatchingPortions
                         ? GetHighlightedSpans(matchResult, patternMatchers)
-                        : ImmutableArray<Span>.Empty;
+                        : [];
 
                     return new CompletionItemWithHighlight(vsItem, highlightedSpans);
                 }));
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     // If there's no match for Roslyn item's filter text which is identical to its display text,
                     // then we can safely assume there'd be no matching to VS item's display text.
-                    return ImmutableArray<Span>.Empty;
+                    return [];
                 }
 
                 // PERF: static local function to avoid lambda allocation on hot path
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(IReadOnlyList<MatchResult> matchResults, CancellationToken cancellationToken)
             {
                 if (!_showCompletionItemFilters)
-                    return ImmutableArray<CompletionFilterWithState>.Empty;
+                    return [];
 
                 // See which filters might be enabled based on the typed code
                 using var _ = PooledHashSet<CompletionFilter>.GetInstance(out var filters);

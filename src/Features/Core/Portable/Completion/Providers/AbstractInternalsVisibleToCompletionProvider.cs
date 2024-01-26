@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return resultBuilder == null
-                ? ImmutableHashSet<string>.Empty
+                ? []
                 : resultBuilder.ToImmutable();
         }
 

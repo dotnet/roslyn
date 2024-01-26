@@ -184,7 +184,7 @@ internal class DefinitionContextTracker(
 
         if (symbol == null)
         {
-            return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
+            return [];
         }
 
         var symbolNavigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
@@ -203,7 +203,7 @@ internal class DefinitionContextTracker(
             return [new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start)];
         }
 
-        return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
+        return [];
     }
 
     private static async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
@@ -212,6 +212,6 @@ internal class DefinitionContextTracker(
         var findDefinitionService = document.GetLanguageService<INavigableItemsService>();
         return findDefinitionService != null
             ? await findDefinitionService.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false)
-            : ImmutableArray<INavigableItem>.Empty;
+            : [];
     }
 }

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
-                    return ImmutableArray<SymbolReference>.Empty;
+                    return [];
                 }
 
                 CalculateContext(
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
                 {
                     // If the expression bound, there's nothing to do.
-                    return ImmutableArray<SymbolReference>.Empty;
+                    return [];
                 }
 
                 var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                return ImmutableArray<SymbolReference>.Empty;
+                return [];
             }
 
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForExtensionMethodAsync(

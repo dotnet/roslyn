@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Structure
         /// This does not included providers imported via MEF composition.
         /// </summary>
         protected virtual ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
-            => ImmutableArray<BlockStructureProvider>.Empty;
+            => [];
 
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {

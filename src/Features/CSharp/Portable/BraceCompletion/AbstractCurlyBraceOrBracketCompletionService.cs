@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 context.OpeningPoint,
                 context.ClosingPoint,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
-                braceFormattingIndentationRules: ImmutableArray<AbstractFormattingRule>.Empty,
+                braceFormattingIndentationRules: [],
                 options,
                 cancellationToken);
 

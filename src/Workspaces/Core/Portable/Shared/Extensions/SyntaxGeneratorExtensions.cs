@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters: parameters,
                 statements: statements,
                 thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
-                    ? ImmutableArray<SyntaxNode>.Empty
+                    ? []
                     : default);
 
             return newMembers.Concat(constructor);
@@ -136,9 +136,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         refKind: RefKind.None,
-                        explicitInterfaceImplementations: ImmutableArray<IPropertySymbol>.Empty,
+                        explicitInterfaceImplementations: [],
                         name: propertyName,
-                        parameters: ImmutableArray<IParameterSymbol>.Empty,
+                        parameters: [],
                         getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                             attributes: default,
                             accessibility: default,
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: getBody != null ? [getBody] : ImmutableArray<SyntaxNode>.Empty,
+                    statements: getBody != null ? [getBody] : [],
                     modifiers: modifiers);
             }
 
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: setBody != null ? [setBody] : ImmutableArray<SyntaxNode>.Empty,
+                    statements: setBody != null ? [setBody] : [],
                     modifiers: modifiers);
             }
 

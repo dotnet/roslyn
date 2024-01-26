@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             if (context.Document == null)
             {
                 context.TraceInformation("Ignoring spell check request because no document was provided");
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
                 context.TraceInformation($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
             return [context.Document];

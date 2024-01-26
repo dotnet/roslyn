@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         }
 
         public virtual ImmutableArray<Type> SyntaxNodeTypes
-            => ImmutableArray<Type>.Empty;
+            => [];
 
         public virtual ImmutableArray<int> SyntaxTokenKinds
-            => ImmutableArray<int>.Empty;
+            => [];
     }
 }

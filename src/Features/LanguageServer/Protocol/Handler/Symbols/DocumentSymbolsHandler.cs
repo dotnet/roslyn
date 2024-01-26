@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, forceFrozenPartialSemanticsForCrossProcessOperations: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
-                return Array.Empty<object>();
+                return [];
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 

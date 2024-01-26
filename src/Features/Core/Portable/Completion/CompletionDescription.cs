@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The <see cref="CompletionDescription"/> used when there is no description.
         /// </summary>
-        public static readonly CompletionDescription Empty = new(ImmutableArray<TaggedText>.Empty);
+        public static readonly CompletionDescription Empty = new([]);
 
         /// <summary>
         /// The individual tagged parts of the description.

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 return GetUpdatedDocumentAsync(
                     document, unimplementedMembers, classOrStructType, classOrStructDecl,
-                    ImmutableArray<ISymbol>.Empty, cancellationToken);
+                    [], cancellationToken);
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(

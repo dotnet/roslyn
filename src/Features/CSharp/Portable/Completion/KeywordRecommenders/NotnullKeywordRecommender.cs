@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken)
                 ? [new RecommendedKeyword("notnull")]
-                : ImmutableArray<RecommendedKeyword>.Empty;
+                : [];
         }
     }
 }

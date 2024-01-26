@@ -1030,7 +1030,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x p { get; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: Array.Empty<SyntaxNode>()),
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: []),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
@@ -1038,7 +1038,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: []),
                 "x p\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
@@ -1062,7 +1062,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x p\r\n{\r\n    get;\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: Array.Empty<SyntaxNode>(), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: [], setAccessorStatements: new[] { Generator.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
         }
 

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 }
             }
 
-            return ImmutableArray<AbstractMoveToNamespaceCodeAction>.Empty;
+            return [];
         }
 
         public async Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(

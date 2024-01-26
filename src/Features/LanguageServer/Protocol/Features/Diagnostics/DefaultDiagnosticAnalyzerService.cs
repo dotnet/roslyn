@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
-            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
+            return new ValueTask<ImmutableArray<DiagnosticData>>([]);
         }
 
         internal void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> state)
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.SolutionState.Analyzers, project);
                 if (analyzers.IsEmpty)
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
 
                 var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project);
 

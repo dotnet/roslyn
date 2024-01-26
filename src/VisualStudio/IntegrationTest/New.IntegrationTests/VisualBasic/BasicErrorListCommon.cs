@@ -41,8 +41,8 @@ End Module
 ", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = new[] {
-                "(Compiler) Class1.vb(4, 24): error BC30002: Type 'P' is not defined.",
-                "(Compiler) Class1.vb(9, 9): error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.",
+                "Class1.vb(4, 24): error BC30002: Type 'P' is not defined.",
+                "Class1.vb(9, 9): error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.",
             };
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
@@ -89,7 +89,7 @@ End Namespace
             await TestServices.Input.SendAsync("F", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = [
-                "(Compiler) Class1.vb(6, 13): error BC30451: 'FF' is not declared. It may be inaccessible due to its protection level.",
+                "Class1.vb(6, 13): error BC30451: 'FF' is not declared. It may be inaccessible due to its protection level.",
             ];
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
@@ -101,7 +101,7 @@ End Namespace
             await TestServices.Editor.PlaceCaretAsync("FF = 0 ' Comment", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            expectedContents = Array.Empty<string>();
+            expectedContents = [];
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
@@ -130,7 +130,7 @@ End Namespace
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
             var actualErrors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
             var expectedErrors = new[] {
-                "(Compiler) Class1.vb(1, 1): error BC30481: 'Class' statement must end with a matching 'End Class'.",
+                "Class1.vb(1, 1): error BC30481: 'Class' statement must end with a matching 'End Class'.",
             };
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedErrors),

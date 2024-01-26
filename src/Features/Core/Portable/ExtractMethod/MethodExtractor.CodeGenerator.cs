@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {
-                    return ImmutableArray<ITypeParameterSymbol>.Empty;
+                    return [];
                 }
 
                 var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                         parameters.Add(
                             CodeGenerationSymbolFactory.CreateParameterSymbol(
-                                attributes: ImmutableArray<AttributeData>.Empty,
+                                attributes: [],
                                 refKind: refKind,
                                 isParams: false,
                                 type: type,

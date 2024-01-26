@@ -75,7 +75,7 @@ internal sealed class FindReferenceCache
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1820930
-            return ImmutableArray<SyntaxToken>.Empty;
+            return [];
         }
 
         if (_identifierCache.TryGetValue(identifier, out var result))
@@ -87,7 +87,7 @@ internal sealed class FindReferenceCache
 
         // If this document doesn't even contain this identifier (escaped or non-escaped) we don't have to search it at all.
         if (!info.ProbablyContainsIdentifier(identifier))
-            return ImmutableArray<SyntaxToken>.Empty;
+            return [];
 
         return await ComputeAndCacheTokensAsync(this, document, identifier, info, cancellationToken).ConfigureAwait(false);
 

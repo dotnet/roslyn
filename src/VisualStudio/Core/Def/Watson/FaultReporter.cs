@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal static class FaultReporter
     {
         private static readonly object _guard = new();
-        private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
-        private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
+        private static ImmutableArray<TelemetrySession> s_telemetrySessions = [];
+        private static ImmutableArray<TraceSource> s_loggers = [];
 
         private static int s_dumpsSubmitted;
 

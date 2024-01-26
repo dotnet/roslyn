@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal readonly struct SkippedHostAnalyzersInfo
     {
         public static readonly SkippedHostAnalyzersInfo Empty = new(
-            ImmutableHashSet<DiagnosticAnalyzer>.Empty,
+            [],
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>>.Empty);
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (hostAnalyzer is DiagnosticSuppressor suppressor)
                 {
-                    skippedDiagnosticIdsForAnalyzer = ImmutableArray<string>.Empty;
+                    skippedDiagnosticIdsForAnalyzer = [];
 
                     // Only execute host suppressor if it does not suppress any diagnostic ID reported by project analyzer
                     // and does not share any suppression ID with a project suppressor.
