@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
