@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                     {
                         solution = await UpdateProjectsAsync(
-                            solution, projectConeId, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
+                            solution, projectConeId, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
@@ -124,10 +124,97 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private async Task<Solution> UpdateProjectsAsync(
-                Solution solution, ProjectId? projectConeId, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
+                Solution solution, ProjectId? projectConeId, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
+                if (projectConeId is null)
+                {
+                    return await UpdateAllProjectsAsync(this).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await UpdateProjectConeAsync(this).ConfigureAwait(false);
+                }
+
+                async Task<Solution> UpdateAllProjectsAsync(SolutionCreator @this)
+                {
+                    using var oldProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    using var newProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+
+                    oldProjectIds.Object.AddRange(solution.ProjectIds);
+                    newProjectIds.Object.AddRange(newSolutionChecksums.Projects.Ids);
+
+                    // added projects
+                    foreach (var (newProjectChecksum, newProjectId) in newSolutionChecksums.Projects)
+                    {
+                        if (oldProjectIds.Object.Contains(newProjectId))
+                            continue;
+
+                        var projectInfo = await @this._assetProvider.CreateProjectInfoAsync(newProjectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
+                        Contract.ThrowIfNull(projectInfo);
+                        solution = solution.AddProject(projectInfo);
+                    }
+
+                    // removed projects
+                    foreach (var oldProjectId in solution.ProjectIds)
+                    {
+                        if (newProjectIds.Object.Contains(oldProjectId))
+                            continue;
+
+                        solution = solution.RemoveProject(oldProjectId);
+                    }
+
+                    // changed projects
+
+                    // First, remove all project references from projects that changed. this ensures exceptions will not
+                    // occur for cyclic references during an incremental update.
+
+                    foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
+                    {
+                        if (!oldProjectIds.Object.Contains(projectId))
+                            continue;
+
+                        var oldProjectStateChecksum = await solution.SolutionState
+                            .GetRequiredProjectState(projectId)
+                            .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+                        var newProjectStateChecksums = await @this._assetProvider.GetAssetAsync<ProjectStateChecksums>(
+                            assetHint: projectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
+
+                        if (oldProjectStateChecksum.ProjectReferences.Checksum != newProjectStateChecksums.ProjectReferences.Checksum)
+                            solution = solution.WithProjectReferences(projectId, SpecializedCollections.EmptyEnumerable<ProjectReference>());
+                    }
+
+                    // Next, go through and actually update the projects.
+
+                    foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
+                    {
+                        if (!oldProjectIds.Object.Contains(projectId))
+                            continue;
+
+                        var oldProjectStateChecksum = await solution.SolutionState
+                            .GetRequiredProjectState(projectId)
+                            .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+                        var newProjectStateChecksums = await @this._assetProvider.GetAssetAsync<ProjectStateChecksums>(
+                            assetHint: projectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
+
+                        if (oldProjectStateChecksum.Checksum == newProjectStateChecksums.Checksum)
+                            continue;
+
+                        solution = await @this.UpdateProjectAsync(
+                            solution.GetRequiredProject(projectId), oldProjectStateChecksum, newProjectStateChecksums, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return solution;
+                }
+
+
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+
+                using var allProjectIdsOfInterest = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                allProjectIdsOfInterest.Object.AddRange(oldSolutionChecksums.Projects.Ids);
+                allProjectIdsOfInterest.Object.AddRange(newSolutionChecksums.Projects.Ids);
 
                 olds.Object.UnionWith(oldSolutionChecksums.Projects.Checksums);
                 news.Object.UnionWith(newSolutionChecksums.Projects.Checksums);
@@ -252,6 +339,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfTrue(project.Id != oldProjectChecksums.ProjectId);
+                Contract.ThrowIfTrue(project.Id != newProjectChecksums.ProjectId);
+
                 // changed info
                 if (oldProjectChecksums.Info != newProjectChecksums.Info)
                 {
