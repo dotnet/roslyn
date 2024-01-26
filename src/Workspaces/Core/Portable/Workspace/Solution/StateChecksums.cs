@@ -107,7 +107,7 @@ internal sealed class SolutionStateChecksums(
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
-        projectConeId.Checksum,
+        projectConeId == null ? Checksum.Null : projectConeId.Checksum,
         attributes,
         projects.Checksum,
         analyzerReferences.Checksum,
