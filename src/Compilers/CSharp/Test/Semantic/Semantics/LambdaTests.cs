@@ -8353,13 +8353,21 @@ class Program
             Assert.Equal(3, lambdas.Length);
             // lam1
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamCollection);
             // lam2
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamCollection);
             // lam3
             Assert.Equal(2, lambdas[2].ParameterCount);
             Assert.Equal(2, lambdas[2].Parameters.Length);
             Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamCollection);
             Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamCollection);
         }
 
         [Fact]
@@ -8380,14 +8388,26 @@ class Program
             Assert.Equal(3, lambdas[0].ParameterCount);
             Assert.Equal(3, lambdas[0].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamCollection);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamCollection);
             Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamCollection);
             // lam2
             Assert.Equal(3, lambdas[1].ParameterCount);
             Assert.Equal(3, lambdas[1].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamCollection);
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamCollection);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamCollection);
         }
 
         [Fact]
@@ -8410,13 +8430,19 @@ class Program
                 {
                     var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
                     Assert.True(lam1.DelegateParameters().Single().IsParams);
+                    Assert.True(lam1.DelegateParameters().Single().IsParamArray);
+                    Assert.False(lam1.DelegateParameters().Single().IsParamCollection);
                     AssertEx.Equal("TResult <>f__AnonymousDelegate0<T1, TResult>.Invoke(params T1[] arg)", lam1.DelegateInvokeMethod.ToTestDisplayString());
 
                     var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
                     var lam3Parameters = lam3.DelegateParameters();
                     Assert.Equal(2, lam3Parameters.Length);
                     Assert.False(lam3Parameters[0].IsParams);
+                    Assert.False(lam3Parameters[0].IsParamArray);
+                    Assert.False(lam3Parameters[0].IsParamCollection);
                     Assert.True(lam3Parameters[1].IsParams);
+                    Assert.True(lam3Parameters[1].IsParamArray);
+                    Assert.False(lam3Parameters[1].IsParamCollection);
                     AssertEx.Equal("TResult <>f__AnonymousDelegate1<T1, T2, TResult>.Invoke(T1 arg1, params T2[] arg2)", lam3.DelegateInvokeMethod.ToTestDisplayString());
                 });
         }

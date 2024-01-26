@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace:=False, trailingSpace:=True)
                 End If
 
-                If symbol.IsParams Then ' PROTOTYPE(ParamsCollections): Test this code path
+                If symbol.IsParams Then
                     AddKeyword(SyntaxKind.ParamArrayKeyword)
                     AddSpace()
                 End If

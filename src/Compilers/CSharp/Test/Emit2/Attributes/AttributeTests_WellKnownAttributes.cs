@@ -9740,6 +9740,8 @@ public class C
                 var param = method.Parameters.Single();
 
                 Assert.True(param.IsParams);
+                Assert.True(param.IsParamArray);
+                Assert.False(param.IsParamCollection);
                 Assert.False(param.IsOptional);
                 Assert.False(param.HasExplicitDefaultValue);
             };

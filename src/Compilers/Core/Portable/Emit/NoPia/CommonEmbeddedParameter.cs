@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     ImmutableArray<TypedConstant> constructorArguments;
                     ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments;
 
-                    if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute, out signatureIndex))
+                    if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute, out signatureIndex)) // PROTOTYPE(ParamsCollections): Do we need to port ParamCollectionAttribute?
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {

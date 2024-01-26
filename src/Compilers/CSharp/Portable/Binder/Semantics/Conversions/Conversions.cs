@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
             {
                 // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
-                if (invoke.IsParams()) // PROTOTYPE(ParamsCollections): Test this code path
+                if (invoke.Parameters is [.., { IsParamArray: true }])
                 {
                     Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
                         Compilation,
@@ -447,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers,
+                                                   isParamArray: parameter.IsParamArray, isParamCollection: parameter.IsParamCollection, parameter.RefKind);
                 }
 
                 analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });

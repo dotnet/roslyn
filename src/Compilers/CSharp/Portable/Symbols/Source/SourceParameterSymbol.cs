@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = identifier.ValueText;
             var location = new SourceLocation(identifier);
 
-            if (isParams)
+            if (isParams && parameterType.IsSZArray())
             {
                 // touch the constructor in order to generate proper use-site diagnostics
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(context.Compilation,

@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                     }
 
-                    if (symbol.IsParams) // PROTOTYPE(ParamsCollections): Test this code path
+                    if (symbol.IsParams || symbol.IsParamCollection)
                     {
                         AddKeyword(SyntaxKind.ParamsKeyword);
                         AddSpace();

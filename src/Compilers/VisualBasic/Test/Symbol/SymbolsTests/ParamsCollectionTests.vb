@@ -20,6 +20,7 @@ public class C1
 {
     public static void M1(params System.Collections.Generic.IEnumerable<int> a) {}
     public static void M2(System.Collections.Generic.IEnumerable<int> a) {}
+    public static void M3(params int[] a) {}
 }
 "
 
@@ -36,6 +37,8 @@ Public Class C
         C1.M1({1, 2, 3})
 
         C1.M2({1, 2, 3})
+        C1.M3(1, 2, 3)
+        C1.M3({1, 2, 3})
     End Sub
 End Class
 ]]></file>
@@ -43,19 +46,14 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugExe)
 
-            ' PROTOTYPE(ParamsCollections): It looks like we will be much safer to use a different attribute for non-array params collections in metadata.
-            '                               The old VB compiler will not be able to consume them decorated with ParamArrayAttribute neither in normal, nor in expanded form.
-            '                               Therefore, an addition of 'params' modifier is likely to be break VB consumers, and very likely consumers from other languages.
-            '                               We possibly could fix up the new version of VB compiler, but I am not sure it would be worth the effort since we can
-            '                               simply use a different attribute, which is likely to work better for other languages too.
             comp1.AssertTheseDiagnostics(
 <expected>
-BC31092: ParamArray parameters must have an array type.
+BC30311: Value of type 'Integer' cannot be converted to 'IEnumerable(Of Integer)'.
         C1.M1(1, 2, 3)
-           ~~
-BC31092: ParamArray parameters must have an array type.
-        C1.M1({1, 2, 3})
-           ~~
+              ~
+BC30057: Too many arguments to 'Public Shared Overloads Sub M1(a As IEnumerable(Of Integer))'.
+        C1.M1(1, 2, 3)
+                 ~
 </expected>
             )
         End Sub
@@ -68,6 +66,7 @@ BC31092: ParamArray parameters must have an array type.
 public class C1
 {
     public static void M1(params System.Collections.Generic.IEnumerable<int> a) {}
+    public static void M2(params int[] a) {}
 }
 "
 
@@ -76,8 +75,10 @@ public class C1
                                            referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
 
             Dim m1 = DirectCast(csCompilation, Compilation).GetTypeByMetadataName("C1").GetMembers().Where(Function(s) s.Name = "M1").Single()
+            Dim m2 = DirectCast(csCompilation, Compilation).GetTypeByMetadataName("C1").GetMembers().Where(Function(s) s.Name = "M2").Single()
 
-            AssertEx.Equal("Public Shared Sub M1(ParamArray a As System.Collections.Generic.IEnumerable(Of Integer))", SymbolDisplay.ToDisplayString(m1))
+            AssertEx.Equal("Public Shared Sub M1(a As System.Collections.Generic.IEnumerable(Of Integer))", SymbolDisplay.ToDisplayString(m1))
+            AssertEx.Equal("Public Shared Sub M2(ParamArray a As Integer())", SymbolDisplay.ToDisplayString(m2))
 
             Dim source1 =
 <compilation>
@@ -91,7 +92,8 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation.EmitToImageReference()}, options:=TestOptions.DebugExe)
 
-            AssertEx.Equal("Sub C1.M1(ParamArray a As System.Collections.Generic.IEnumerable(Of System.Int32))", comp1.GetMember("C1.M1").ToTestDisplayString())
+            AssertEx.Equal("Sub C1.M1(a As System.Collections.Generic.IEnumerable(Of System.Int32))", comp1.GetMember("C1.M1").ToTestDisplayString())
+            AssertEx.Equal("Sub C1.M2(ParamArray a As System.Int32())", comp1.GetMember("C1.M2").ToTestDisplayString())
         End Sub
 
     End Class

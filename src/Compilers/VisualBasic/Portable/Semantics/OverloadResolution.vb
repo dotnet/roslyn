@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For i As Integer = 0 To last Step 1
                     Dim param As ParameterSymbol = Me.Parameters(i)
 
-                    If i = last AndAlso param.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
+                    If i = last AndAlso param.IsParamArray Then
                         hasParamArray = True
                     ElseIf Not param.IsOptional Then
                         requiredCount = i
@@ -2722,7 +2722,7 @@ Done:
                     End If
 
                     If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
                         ' ERRID_NamedParamArrayArgument
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
@@ -2740,7 +2740,7 @@ Done:
                 If arguments(i).Kind = BoundKind.OmittedArgument Then
 
                     If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-                       candidate.Candidate.Parameters(paramIndex).IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
+                       candidate.Candidate.Parameters(paramIndex).IsParamArray Then
                         ' Omitted ParamArray argument at the call site
                         ' ERRID_OmittedParamArrayArgument
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
@@ -2789,7 +2789,7 @@ Done:
                 End If
 
                 If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
                     ' ERRID_NamedParamArrayArgument
                     candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                     GoTo Bailout
@@ -2931,7 +2931,7 @@ Bailout:
 
                 If param.IsParamArray AndAlso paramIndex = candidate.Candidate.ParameterCount - 1 Then
 
-                    If targetType.Kind <> SymbolKind.ArrayType Then ' PROTOTYPE(ParamsCollections): adjust?
+                    If targetType.Kind <> SymbolKind.ArrayType Then
                         ' ERRID_ParamArrayWrongType
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         candidate.IgnoreExtensionMethods = False
@@ -3011,7 +3011,7 @@ Bailout:
                         ' Perform the conversions to the element type of the ParamArray here.
                         Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                        If Not arrayType.IsSZArray Then ' PROTOTYPE(ParamsCollections): follow up
+                        If Not arrayType.IsSZArray Then
                             ' ERRID_ParamArrayWrongType
                             candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                             candidate.IgnoreExtensionMethods = False
@@ -4804,7 +4804,7 @@ ContinueCandidatesLoop:
 
             If candidate.IsExpandedParamArrayForm AndAlso
                paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-               paramType.Kind = SymbolKind.ArrayType Then ' PROTOTYPE(ParamsCollections): adjust?
+               paramType.Kind = SymbolKind.ArrayType Then
                 paramType = DirectCast(paramType, ArrayTypeSymbol).ElementType
             End If
 
@@ -4831,7 +4831,7 @@ ContinueCandidatesLoop:
 
             If candidate.IsExpandedParamArrayForm AndAlso
                paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-               paramType.Kind = SymbolKind.ArrayType Then ' PROTOTYPE(ParamsCollections): adjust?
+               paramType.Kind = SymbolKind.ArrayType Then
                 paramType = DirectCast(paramType, ArrayTypeSymbol).ElementType
                 typeForGenericityCheck = DirectCast(typeForGenericityCheck, ArrayTypeSymbol).ElementType
             End If

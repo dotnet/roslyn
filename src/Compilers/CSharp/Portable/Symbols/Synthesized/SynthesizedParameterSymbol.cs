@@ -60,7 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        public override bool IsParams
+        public override bool IsParamArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamCollection
         {
             get { return false; }
         }
@@ -191,10 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
             }
 
-            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.IsParamArray && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
-                // PROTOTYPE(ParamsCollections): Test metadata
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+            else if (this.IsParamCollection && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
 
             var defaultValue = this.ExplicitDefaultConstantValue;
@@ -372,7 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
-        public override bool IsParams => _isParams;
+        public override bool IsParamArray => _isParams && Type.IsSZArray();
+
+        public override bool IsParamCollection => _isParams && !Type.IsSZArray();
 
         internal override bool HasUnscopedRefAttribute => _hasUnscopedRefAttribute;
 

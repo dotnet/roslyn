@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 Assert.False(symbol.IsDiscard);
                 Assert.False(symbol.IsParams);
+                Assert.False(symbol.IsParamArray);
+                Assert.False(symbol.IsParamCollection);
                 Assert.False(symbol.IsMetadataOptional);
                 Assert.False(symbol.IsIDispatchConstant);
                 Assert.False(symbol.IsIUnknownConstant);

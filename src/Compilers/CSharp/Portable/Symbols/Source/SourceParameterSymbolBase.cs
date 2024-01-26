@@ -72,10 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            if (this.IsParams)
+            if (this.IsParamArray)
             {
-                // PROTOTYPE(ParamsCollections): Test emitted metadata
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+            else if (this.IsParamCollection)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:

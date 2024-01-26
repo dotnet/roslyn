@@ -918,16 +918,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.True(readWrite.IsIndexer);
                 Assert.False(readWrite.MustCallMethodsDirectly);
                 Assert.True(readWrite.Parameters.Last().IsParams);
+                Assert.True(readWrite.Parameters.Last().IsParamArray);
+                Assert.False(readWrite.Parameters.Last().IsParamCollection);
 
                 var readOnly = @class.GetIndexer<PEPropertySymbol>("ReadOnly");
                 Assert.True(readOnly.IsIndexer);
                 Assert.False(readOnly.MustCallMethodsDirectly);
                 Assert.True(readOnly.Parameters.Last().IsParams);
+                Assert.True(readOnly.Parameters.Last().IsParamArray);
+                Assert.False(readOnly.Parameters.Last().IsParamCollection);
 
                 var writeOnly = @class.GetIndexer<PEPropertySymbol>("WriteOnly");
                 Assert.True(writeOnly.IsIndexer);
                 Assert.False(writeOnly.MustCallMethodsDirectly);
                 Assert.True(writeOnly.Parameters.Last().IsParams);
+                Assert.True(writeOnly.Parameters.Last().IsParamArray);
+                Assert.False(writeOnly.Parameters.Last().IsParamCollection);
             });
         }
 
@@ -1002,11 +1008,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.True(readWrite.IsIndexer);
                 Assert.True(readWrite.MustCallMethodsDirectly);
                 Assert.False(readWrite.Parameters.Last().IsParams); //favour setter
+                Assert.False(readWrite.Parameters.Last().IsParamArray); //favour setter
+                Assert.False(readWrite.Parameters.Last().IsParamCollection); //favour setter
 
                 var readOnly = @class.GetIndexer<PEPropertySymbol>("OnlySetter");
                 Assert.True(readWrite.IsIndexer);
                 Assert.True(readOnly.MustCallMethodsDirectly);
                 Assert.True(readOnly.Parameters.Last().IsParams); //favour setter
+                Assert.True(readOnly.Parameters.Last().IsParamArray); //favour setter
+                Assert.False(readOnly.Parameters.Last().IsParamCollection); //favour setter
             });
         }
 

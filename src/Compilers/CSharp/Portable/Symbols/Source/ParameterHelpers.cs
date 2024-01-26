@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -263,6 +264,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static void EnsureParamCollectionAttributeExistsAndModifyCompilation(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            if (parameters.LastOrDefault(static (p) => p.IsParamCollection) is { } parameter)
+            {
+                compilation.EnsureParamCollectionAttributeExistsAndModifyCompilation(diagnostics, GetParameterLocation(parameter));
+            }
+        }
+
         internal static void EnsureNativeIntegerAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             Debug.Assert(moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes());
@@ -404,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
+        internal static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
         internal static void CheckParameterModifiers(
             BaseParameterSyntax parameter,

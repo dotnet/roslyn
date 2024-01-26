@@ -1161,7 +1161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Function HasRequiredParameters(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
             For Each parameter In parameters
-                If Not parameter.IsOptional AndAlso Not parameter.IsParamArray Then ' PROTOTYPE(ParamsCollections): adjust?
+                If Not parameter.IsOptional AndAlso Not parameter.IsParamArray Then
                     Return True
                 End If
             Next
