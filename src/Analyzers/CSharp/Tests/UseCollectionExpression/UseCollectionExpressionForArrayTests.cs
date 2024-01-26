@@ -464,7 +464,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ExplicitArrayType(
-         [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+         [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -483,7 +483,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ExplicitArrayType2(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -502,7 +502,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ImplicitArrayType(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -521,7 +521,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ImplicitArrayType2(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {

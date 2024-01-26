@@ -8655,7 +8655,7 @@ class C
 }
 ";
 
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
@@ -8669,7 +8669,7 @@ class C
     C M2() => new C();
 }
 ";
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
@@ -8690,7 +8690,7 @@ class C
 }
 ";
 
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]

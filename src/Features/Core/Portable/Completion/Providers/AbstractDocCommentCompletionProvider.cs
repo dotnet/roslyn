@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
-            => new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
+            => [GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName)];
 
         private CompletionItem GetCommentItem()
         {

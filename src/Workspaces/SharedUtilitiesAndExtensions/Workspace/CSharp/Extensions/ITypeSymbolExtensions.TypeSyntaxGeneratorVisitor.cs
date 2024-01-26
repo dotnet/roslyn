@@ -133,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var conventionsList = symbol.Signature.CallingConvention switch
                     {
-                        System.Reflection.Metadata.SignatureCallingConvention.CDecl => new[] { GetConventionForString("Cdecl") },
-                        System.Reflection.Metadata.SignatureCallingConvention.StdCall => new[] { GetConventionForString("Stdcall") },
-                        System.Reflection.Metadata.SignatureCallingConvention.ThisCall => new[] { GetConventionForString("Thiscall") },
-                        System.Reflection.Metadata.SignatureCallingConvention.FastCall => new[] { GetConventionForString("Fastcall") },
+                        System.Reflection.Metadata.SignatureCallingConvention.CDecl => [GetConventionForString("Cdecl")],
+                        System.Reflection.Metadata.SignatureCallingConvention.StdCall => [GetConventionForString("Stdcall")],
+                        System.Reflection.Metadata.SignatureCallingConvention.ThisCall => [GetConventionForString("Thiscall")],
+                        System.Reflection.Metadata.SignatureCallingConvention.FastCall => [GetConventionForString("Fastcall")],
                         System.Reflection.Metadata.SignatureCallingConvention.Unmanaged =>
                             // All types that come from CallingConventionTypes start with "CallConv". We don't want the prefix for the actual
                             // syntax, so strip it off

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var ifStatement = g.IfStatement(
                     g.LogicalNotExpression(g.IdentifierName(disposedValueField.Name)),
-                    new[] { ifDisposingStatement, disposedValueEqualsTrueStatement });
+                    [ifDisposingStatement, disposedValueEqualsTrueStatement]);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     disposeMethod,

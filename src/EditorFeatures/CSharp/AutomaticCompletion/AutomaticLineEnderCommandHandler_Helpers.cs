@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     && parentOfParent is PropertyDeclarationSyntax)
                 {
                     var otherAccessors = accessorListNode.Accessors
-                        .Except(new[] { accessorDeclarationNode })
+                        .Except([accessorDeclarationNode])
                         .ToImmutableArray();
                     if (!otherAccessors.IsEmpty)
                     {
