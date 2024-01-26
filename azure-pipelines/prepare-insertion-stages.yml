@@ -29,8 +29,6 @@ stages:
           SymbolsProject: VS
           SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
           azureSubscription: Symbols Upload (DevDiv)
-      - task: MicroBuildCleanup@1
-        displayName: ☎️ Send Telemetry
 
   # - job: push
   #   displayName: azure-public/vs-impl feed
