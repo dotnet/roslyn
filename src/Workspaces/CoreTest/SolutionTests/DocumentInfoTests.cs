@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = DocumentInfo.Create(documentId, "doc", folders: new string[0]);
             Assert.True(((ImmutableArray<string>)info3.Folders).IsEmpty);
 
-            var info4 = DocumentInfo.Create(documentId, "doc", folders: ImmutableArray<string>.Empty);
+            var info4 = DocumentInfo.Create(documentId, "doc", folders: []);
             Assert.True(((ImmutableArray<string>)info4.Folders).IsEmpty);
         }
 

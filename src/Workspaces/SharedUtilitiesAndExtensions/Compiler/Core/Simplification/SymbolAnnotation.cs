@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             => GetSymbols(annotation, compilation).FirstOrDefault();
 
         public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
-            => DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data!, compilation);
+            => annotation.Data is null
+                ? ImmutableArray<ISymbol>.Empty
+                : DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data, compilation);
     }
 }

@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal readonly partial struct BKTree
     {
-        public static readonly BKTree Empty = new([], ImmutableArray<Node>.Empty, ImmutableArray<Edge>.Empty);
+        public static readonly BKTree Empty = new([], [], []);
 
         /// <summary>
         /// We have three completely flat arrays of structs.  These arrays fully represent the BK tree.  The structure

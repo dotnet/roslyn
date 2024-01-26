@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     }
                 }
 
-                finalUsings = currentUsings.WhereNotNull().ToSyntaxList();
+                finalUsings = [.. currentUsings.WhereNotNull()];
             }
 
             private static bool ShouldPreserveTrivia(SyntaxTriviaList trivia)

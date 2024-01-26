@@ -70,17 +70,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>();
             if (typeDeclaration == null)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
             var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
             if (assignmentStatement != null)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             // Haven't initialized any fields/properties with this parameter.  Offer to assign
             // to an existing matching field/prop if we can find one, or add a new field/prop
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, blockStatement, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
@@ -260,11 +260,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var title = string.Format(resource, fieldOrProperty.Name);
 
-            return ImmutableArray.Create(CodeAction.Create(
+            return [CodeAction.Create(
                 title,
                 c => AddSingleSymbolInitializationAsync(
                     document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, c),
-                title));
+                title)];
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(

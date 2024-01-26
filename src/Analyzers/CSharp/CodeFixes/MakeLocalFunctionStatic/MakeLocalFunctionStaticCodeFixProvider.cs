@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId);
+            [IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

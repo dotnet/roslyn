@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static ImmutableArray<Project> GetDistinctProjectsFromLatestSolutionSnapshot(ImmutableSegmentedList<Project> projects)
         {
             if (projects.IsEmpty)
-                return ImmutableArray<Project>.Empty;
+                return [];
 
             Solution? solution = null;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIds);

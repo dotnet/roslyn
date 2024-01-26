@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 (service, cancellationToken) => service.FindPackagesWithTypeAsync(source, name, arity, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<PackageWithTypeResult>.Empty;
+            return result.HasValue ? result.Value : [];
         }
 
         public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 (service, cancellationToken) => service.FindPackagesWithAssemblyAsync(source, assemblyName, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<PackageWithAssemblyResult>.Empty;
+            return result.HasValue ? result.Value : [];
         }
 
         public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 (service, cancellationToken) => service.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
+            return result.HasValue ? result.Value : [];
         }
 
         public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)

@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
+            // when solution state is changed, we recalculate its checksum
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
+
             CheckInvariants();
 
             // make sure we don't accidentally capture any state but the list of references:
@@ -1178,12 +1181,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray<DocumentId>.Empty;
+                : [];
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(
@@ -1241,21 +1244,21 @@ namespace Microsoft.CodeAnalysis
             if (projectState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var filePath = documentState.FilePath;
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
+                return [documentId];
             }
 
             var documentIds = GetDocumentIdsWithFilePath(filePath);

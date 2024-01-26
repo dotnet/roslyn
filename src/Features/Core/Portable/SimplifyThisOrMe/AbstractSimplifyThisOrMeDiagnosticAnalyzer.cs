@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.RemoveQualification,
-                   ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   [
+                       CodeStyleOptions2.QualifyFieldAccess,
+                       CodeStyleOptions2.QualifyPropertyAccess,
+                       CodeStyleOptions2.QualifyMethodAccess,
+                       CodeStyleOptions2.QualifyEventAccess,
+                   ],
                    fadingOption: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

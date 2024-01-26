@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 Descriptor,
                 firstUnnecessaryLocation,
                 option.Notification,
-                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
+                additionalLocations: [interpolation.Syntax.GetLocation()],
                 additionalUnnecessaryLocations: remainingUnnecessaryLocations));
         }
     }

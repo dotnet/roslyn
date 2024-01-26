@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         private const string RehydrateName = "Rehydrate";
         private static readonly ImmutableArray<KeyValuePair<string, string>> s_conversionProperties =
-            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, ConversionKindName));
+            [new KeyValuePair<string, string>(KindName, ConversionKindName)];
 
         // We set conversion items' match priority to "Deprioritize" so completion selects other symbols over it when user starts typing.
         // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
 
             return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
-                item, document, ImmutableArray.Create(conversion), displayOptions, cancellationToken).ConfigureAwait(false);
+                item, document, [conversion], displayOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ISymbol?> TryRehydrateAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

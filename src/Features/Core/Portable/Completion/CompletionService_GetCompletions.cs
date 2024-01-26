@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
                         }
 
-                        return ImmutableArray<CompletionProvider>.Empty;
+                        return [];
 
                     default:
                         return providers.ToImmutableArray();

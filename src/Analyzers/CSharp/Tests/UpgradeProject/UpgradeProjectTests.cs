@@ -728,7 +728,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -762,7 +762,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -788,7 +788,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -828,7 +828,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -944,7 +944,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -978,7 +978,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -1004,7 +1004,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -1044,7 +1044,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]

@@ -5109,7 +5109,9 @@ namespace PushUpTest
 
     public class Testclass2 : Base2
     {
-        private event EventHandler Event1, Eve[||]nt3, Event4;
+        private event EventHandler Event1;
+        private override event EventHandler Eve[||]nt3;
+        private event EventHandler Event4;
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("Event3", true) }, index: 1);

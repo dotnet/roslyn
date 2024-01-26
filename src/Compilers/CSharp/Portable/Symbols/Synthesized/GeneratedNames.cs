@@ -465,10 +465,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (generation > 0) ? name + GeneratedNameConstants.GenerationSeparator + generation : name;
         }
 
-        internal static string MakeSynthesizedReadOnlyListName(bool hasKnownLength, int generation)
+        internal static string MakeSynthesizedReadOnlyListName(SynthesizedReadOnlyListKind kind, int generation)
         {
             Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
-            string name = hasKnownLength ? "<>z__ReadOnlyArray" : "<>z__ReadOnlyList";
+            string name = kind switch
+            {
+                SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
+                SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
+                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
 
             // Synthesized list types need to have unique name across generations because they are not reused.
             return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;

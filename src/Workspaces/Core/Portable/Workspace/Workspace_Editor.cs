@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
             var documentId = GetDocumentIdInCurrentContext(container);
             if (documentId == null)
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return CurrentSolution.GetRelatedDocumentIds(documentId);

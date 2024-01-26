@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (nullableMessage != null)
             {
-                AddSection(QuickInfoSectionKinds.NullabilityAnalysis, ImmutableArray.Create(new TaggedText(TextTags.Text, nullableMessage)));
+                AddSection(QuickInfoSectionKinds.NullabilityAnalysis, [new TaggedText(TextTags.Text, nullableMessage)]);
             }
 
             if (TryGetGroupText(SymbolDescriptionGroups.Exceptions, out var exceptionsText))

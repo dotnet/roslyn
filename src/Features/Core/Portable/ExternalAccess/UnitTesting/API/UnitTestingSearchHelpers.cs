@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
-                return ImmutableArray<UnitTestingDocumentSpan>.Empty;
+                return [];
 
             var client = await RemoteHostClient.TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                     (service, solutionChecksum, cancellationToken) => service.GetSourceLocationsAsync(solutionChecksum, project.Id, query, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 if (!locations.HasValue)
-                    return ImmutableArray<UnitTestingDocumentSpan>.Empty;
+                    return [];
 
                 using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
                 foreach (var location in locations.Value)

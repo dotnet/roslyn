@@ -13,7 +13,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
     internal static class ParenthesesDiagnosticAnalyzersHelper
     {
-        internal static ImmutableHashSet<IOption2> Options = ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses);
+        internal static ImmutableHashSet<IOption2> Options =
+        [
+            CodeStyleOptions2.ArithmeticBinaryParentheses,
+            CodeStyleOptions2.RelationalBinaryParentheses,
+            CodeStyleOptions2.OtherBinaryParentheses,
+            CodeStyleOptions2.OtherParentheses,
+        ];
 
         internal static CodeStyleOption2<ParenthesesPreference> GetLanguageOption(AnalyzerOptionsProvider options, PrecedenceKind precedenceKind)
             => precedenceKind switch

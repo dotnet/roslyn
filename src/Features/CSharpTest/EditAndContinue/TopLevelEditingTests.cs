@@ -14172,7 +14172,7 @@ partial class C
 
                     // The actual edits do not matter since there are semantic errors in the compilation.
                     // We just should not crash.
-                    DocumentResults(diagnostics: Array.Empty<RudeEditDiagnosticDescription>())
+                    DocumentResults(diagnostics: [])
                 ]);
         }
 

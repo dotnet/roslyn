@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
             var doesProjectAssetsFileExist = IOUtilities.PerformIO(() => File.Exists(projectAssetsFilePath));
             if (!doesProjectAssetsFileExist)
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                return [];
             }
 
             var projectAssetsFileContents = await IOUtilities.PerformIOAsync(async () =>
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 
             if (projectAssetsFileContents is null)
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                return [];
             }
 
             try
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
             }
             catch
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                return [];
             }
         }
     }

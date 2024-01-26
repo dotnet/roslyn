@@ -154,7 +154,7 @@ $@"class C
     {accessibility} void [|m|]()
     {{
     }}
-}}", new TestParameters(options: s_options.MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility>.Empty)));
+}}", new TestParameters(options: s_options.MethodNamesWithAccessibilityArePascalCase([])));
 
             await TestInRegularAndScriptAsync(
 $@"class C

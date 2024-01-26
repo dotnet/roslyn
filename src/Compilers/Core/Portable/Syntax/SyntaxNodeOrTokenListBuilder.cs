@@ -108,6 +108,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
+        public void Add(ReadOnlySpan<SyntaxNodeOrToken> nodeOrTokens)
+        {
+            foreach (var n in nodeOrTokens)
+                this.Add(n);
+        }
+
         internal void RemoveLast()
         {
             _count--;

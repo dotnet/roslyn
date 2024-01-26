@@ -205,9 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
                         type.GenerateTypeSyntax(),
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
-                                assignExpression.OperatorToken, assignExpression.Right)))));
+                        [SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
+                            assignExpression.OperatorToken, assignExpression.Right))]));
                 declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
                 var root = token.GetAncestor<CompilationUnitSyntax>();
