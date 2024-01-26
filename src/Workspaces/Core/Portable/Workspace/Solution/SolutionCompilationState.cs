@@ -1017,68 +1017,108 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
         DocumentId documentId, CancellationToken cancellationToken)
     {
-        try
+        // in progress solutions are disabled for some testing
+        if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+            return this;
+
+        var currentCompilationState = this;
+        var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
+
+        // We want all linked versions of this document to also be present in the frozen solution snapshot (that way
+        // features like 'completion' can see that there are linked docs and give messages about symbols not being
+        // available in certain project contexts). We do this in a slightly hacky way for perf though. Specifically,
+        // instead of parsing *all* the sibling files (which can be expensive, especially for a file linked in many
+        // projects/tfms), we only parse this single tree.  We then use that same tree across all siblings.  That's
+        // technically inaccurate, but we can accept that as the primary purpose of 'frozen partial' is to get a
+        // snapshot *fast* that is allowed to be *inaccurate*.
+        //
+        // We currently do not have any features that both use frozen-partial semantics *and* which would deeply
+        // care about examining sibling files and having them be parsed perfectly.
+        //
+        // Note: this is very different from the logic we have in the workspace to 'UnifyLinkedDocumentContents'. In
+        // that case, we only share trees when completely safe and accurate to do so (for example, where no
+        // directives are involved).  As that is used for the real solution snapshot, it must be correct.  The
+        // frozen-partial snapshot is different as it is a fork that is already allowed to be inaccurate for perf
+        // reasons (for example, missing trees, or missing references).
+        //
+        // The 'forceEvenIfTreesWouldDiffer' flag here allows us to share the doc contents even in the case where
+        // correctness might be violated.
+        //
+        // Note: this forking can still be expensive.  It would be nice to do this as one large fork step rather than N
+        // medium sized ones.
+        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
+        foreach (var siblingId in allDocumentIds)
+            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+
+        return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
+
+        // Intentionally static, so we only operate on @this, not `this`.
+        static SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocumentWorker(
+            SolutionCompilationState @this, DocumentId documentId, CancellationToken cancellationToken)
         {
-            var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-            using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
-
-            // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the set of
-            // linked document ids our state says are in it.  Note: all of these trees should share the same green
-            // trees, as that is setup in Soltion.WithFrozenPartialCompilationIncludingSpecificDocument.  This helps
-            // ensure that the cost here is low for files with lots of linked siblings.
-            foreach (var currentDocumentId in allDocumentIds)
+            try
             {
-                var document = this.SolutionState.GetRequiredDocumentState(currentDocumentId);
-                builder.Add((document, document.GetSyntaxTree(cancellationToken)));
-            }
+                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
+                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
 
-            using (this.StateLock.DisposableWait(cancellationToken))
-            {
-                SolutionCompilationState? currentPartialSolution = null;
-                _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
-
-                var reuseExistingPartialSolution =
-                    (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
-                    _documentIdOfLatestSolutionWithPartialCompilation == documentId;
-
-                if (reuseExistingPartialSolution && currentPartialSolution != null)
+                // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the set of
+                // linked document ids our state says are in it.  Note: all of these trees should share the same green
+                // trees, as that is setup in Soltion.WithFrozenPartialCompilationIncludingSpecificDocument.  This helps
+                // ensure that the cost here is low for files with lots of linked siblings.
+                foreach (var currentDocumentId in allDocumentIds)
                 {
-                    SolutionLogger.UseExistingPartialSolution();
-                    return currentPartialSolution;
+                    var document = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
+                    builder.Add((document, document.GetSyntaxTree(cancellationToken)));
                 }
 
-                var newIdToProjectStateMap = this.SolutionState.ProjectStates;
-                var newIdToTrackerMap = _projectIdToTrackerMap;
-
-                foreach (var (doc, tree) in builder)
+                using (@this.StateLock.DisposableWait(cancellationToken))
                 {
-                    // if we don't have one or it is stale, create a new partial solution
-                    var tracker = this.GetCompilationTracker(doc.Id.ProjectId);
-                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+                    SolutionCompilationState? currentPartialSolution = null;
+                    @this._latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
 
-                    Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
-                    newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
-                    newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
+                    var reuseExistingPartialSolution =
+                        (DateTime.UtcNow - @this._timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
+                        @this._documentIdOfLatestSolutionWithPartialCompilation == documentId;
+
+                    if (reuseExistingPartialSolution && currentPartialSolution != null)
+                    {
+                        SolutionLogger.UseExistingPartialSolution();
+                        return currentPartialSolution;
+                    }
+
+                    var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
+                    var newIdToTrackerMap = @this._projectIdToTrackerMap;
+
+                    foreach (var (doc, tree) in builder)
+                    {
+                        // if we don't have one or it is stale, create a new partial solution
+                        var tracker = @this.GetCompilationTracker(doc.Id.ProjectId);
+                        var newTracker = tracker.FreezePartialStateWithTree(@this, doc, tree, cancellationToken);
+
+                        Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
+                        newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
+                        newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
+                    }
+
+                    var newState = @this.SolutionState.Branch(
+                        idToProjectStateMap: newIdToProjectStateMap,
+                        dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
+                    var newCompilationState = @this.Branch(
+                        newState,
+                        newIdToTrackerMap);
+
+                    @this._latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
+                    @this._timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
+                    @this._documentIdOfLatestSolutionWithPartialCompilation = documentId;
+
+                    SolutionLogger.CreatePartialSolution();
+                    return newCompilationState;
                 }
-
-                var newState = this.SolutionState.Branch(
-                    idToProjectStateMap: newIdToProjectStateMap,
-                    dependencyGraph: SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap));
-                var newCompilationState = this.Branch(
-                    newState,
-                    newIdToTrackerMap);
-
-                _latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
-                _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
-                _documentIdOfLatestSolutionWithPartialCompilation = documentId;
-
-                SolutionLogger.CreatePartialSolution();
-                return newCompilationState;
             }
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-        {
-            throw ExceptionUtilities.Unreachable();
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 
