@@ -93,35 +93,6 @@ internal partial class SolutionState
         }
     }
 
-    internal void AddProjectCone(ProjectId? projectConeId, HashSet<ProjectId> projectCone)
-    {
-        // If no cone id is provided, we want the entire solution.
-        if (projectConeId is null)
-        {
-            projectCone.AddRange(this.ProjectIds);
-            return;
-        }
-
-        if (!projectCone.Add(projectConeId))
-            return;
-
-        var projectState = this.GetProjectState(projectConeId);
-        if (projectState == null)
-            return;
-
-        foreach (var refProject in projectState.ProjectReferences)
-        {
-            // Note: it's possible in the workspace to see project-ids that don't have a corresponding project
-            // state.  While not desirable, we allow project's to have refs to projects that no longer exist
-            // anymore.  This state is expected to be temporary until the project is explicitly told by the
-            // host to remove the reference.  We do not expose this through the full Solution/Project which
-            // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
-            // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
-            if (this.ProjectStates.ContainsKey(refProject.ProjectId))
-                AddProjectCone(refProject.ProjectId, projectCone);
-        }
-    }
-
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
     public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
@@ -136,7 +107,7 @@ internal partial class SolutionState
         CancellationToken cancellationToken)
     {
         using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
-        AddProjectCone(projectConeId, projectCone.Object);
+        AddProjectCone(projectConeId);
 
         try
         {
@@ -154,7 +125,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (!projectCone.Object.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -178,6 +149,31 @@ internal partial class SolutionState
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        void AddProjectCone(ProjectId? projectConeId)
+        {
+            if (projectConeId is null)
+                return;
+
+            if (!projectCone.Object.Add(projectConeId))
+                return;
+
+            var projectState = this.GetProjectState(projectConeId);
+            if (projectState == null)
+                return;
+
+            foreach (var refProject in projectState.ProjectReferences)
+            {
+                // Note: it's possible in the workspace to see project-ids that don't have a corresponding project
+                // state.  While not desirable, we allow project's to have refs to projects that no longer exist
+                // anymore.  This state is expected to be temporary until the project is explicitly told by the
+                // host to remove the reference.  We do not expose this through the full Solution/Project which
+                // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
+                // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
+                if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                    AddProjectCone(refProject.ProjectId);
+            }
         }
     }
 }
