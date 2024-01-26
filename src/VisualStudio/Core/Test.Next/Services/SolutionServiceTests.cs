@@ -582,16 +582,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
 
-            // Syncing project 2 should end up with p1 and p2 synced over.
+            // Syncing project 2 should end up with only p2 synced over.
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project2Checksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-            Assert.Equal(2, project2SyncedSolution.Projects.Count());
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
 
-            // then syncing the whole project should have no effect.
+            // then syncing the whole project should now copy both over.
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
             var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-            var syncedFullSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
+            var syncedFullSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, workspaceVersion: solution.WorkspaceVersion, CancellationToken.None);
 
             Assert.Equal(solutionChecksum, await syncedFullSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
             Assert.Equal(2, syncedFullSolution.Projects.Count());
