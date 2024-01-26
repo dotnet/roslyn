@@ -19,7 +19,7 @@
       "type": "boolean",
       "default": false,
       "order": 1,
-      "enableWhen": "${config:textEditor.csharp.intellisense.completion.dotnetTriggerCompletionOnTypingLetters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.intellisense.triggerCompletionOnTypingLetters}=='true'",
       "migration": {
         "pass": {
           "input": {
