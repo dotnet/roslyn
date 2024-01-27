@@ -33,7 +33,7 @@ namespace CSharpSyntaxGenerator
                 switch (fieldOrChoice)
                 {
                     case Field field:
-                        if (makeOptional && !AbstractFileWriter.IsAnyNodeList(field.Type))
+                        if (makeOptional && !FileWriter.IsAnyNodeList(field.Type))
                         {
                             field.Optional = "true";
                         }
