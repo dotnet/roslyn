@@ -5012,6 +5012,114 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestMultiDimensionalArray5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestArray1()
     {
         await new VerifyCS.Test
