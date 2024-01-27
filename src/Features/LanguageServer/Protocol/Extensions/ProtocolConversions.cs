@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
+            static async Task<LSP.Location> ConvertTextSpanToLocationAsync(
                 Document document,
                 TextSpan span,
                 bool isStale,
