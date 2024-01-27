@@ -29,6 +29,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, DiagnosticSeverity severity, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             where TDocument : TextDocument;
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
+
+        IAsyncEnumerable<CodeFixCollection> StreamFixesForDiagnosticsAsync(
+            TextDocument document,
+            TextSpan range,
+            ImmutableArray<string> diagnosticIds,
+            ICodeActionRequestPriorityProvider priorityProvider,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken);
     }
 
     internal static class ICodeFixServiceExtensions

@@ -97,6 +97,61 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
         }
 
+        public async IAsyncEnumerable<CodeFixCollection> StreamFixesForDiagnosticsAsync(
+            TextDocument document,
+            TextSpan range,
+            ImmutableArray<string> diagnosticIds,
+            ICodeActionRequestPriorityProvider priorityProvider,
+            CodeActionOptionsProvider fallbackOptions,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+
+            var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
+            var projectFixersMap = GetProjectFixers(document);
+
+            // none of the provided diangostic has registered fix, just bail.
+            if (!diagnosticIds.Any(HasRegisteredFixer))
+                yield break;
+
+            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
+
+            ImmutableArray<DiagnosticData> allDiagnostics;
+
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            {
+                allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+                    document, range, HasRegisteredFixer,
+                    includeCompilerDiagnostics: true,
+                    includeSuppressedDiagnostics: false,
+                    priorityProvider,
+                    addOperationScope: null,
+                    DiagnosticKind.All,
+                    isExplicit: true, cancellationToken).ConfigureAwait(false);
+            }
+
+            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
+            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
+
+            await foreach (var fix in StreamFixesAsync(document, spanToDiagnostics, fixAllForInSpan: false, priorityProvider, fallbackOptions, _ => null, cancellationToken))
+            {
+                yield return fix;
+            }
+
+            bool HasRegisteredFixer(string id)
+            {
+                if (!diagnosticIds.Contains(id))
+                    return false;
+
+                if (hasWorkspaceFixers && workspaceFixersMap!.ContainsKey(id))
+                    return true;
+
+                return projectFixersMap.ContainsKey(id);
+            }
+        }
+
         public async Task<FirstFixResult> GetMostSevereFixAsync(
             TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
