@@ -87,8 +87,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // If we have an initializer that itself is only full of collection expressions (like `{ ["a"], ["b"] }`), then
         // we can only convert if the final type we're converting to has an element type that itself is a collection type.
-        if (expression.Initializer != null &&
-            expression.Initializer.Expressions.Count > 0 &&
+        if (expression.Initializer is { Expressions.Count: > 0 } &&
             expression.Initializer.Expressions.All(e => e is CollectionExpressionSyntax))
         {
             var convertedType = semanticModel.GetTypeInfo(expression.WalkUpParentheses(), cancellationToken).ConvertedType;
