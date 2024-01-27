@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _ = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
                 foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
                 {
-                    // If it's not a project in the current solution, then 
+                    // If it's not a project in the local solution, then it's definitely not getting changed.
                     if (!oldProjectIds.Object.Contains(projectId))
                         continue;
 
