@@ -263,20 +263,21 @@ internal static class UseCollectionExpressionHelpers
             // into allowing that.
             changesSemantics = true;
 
-            if (IsWellKnownInterface(convertedType) &&
-                type.AllInterfaces.Contains(convertedType))
-            {
-                // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
-                // will replace the code with code that now always allocates.
-                if (isSingletonInstance && IsWellKnownReadWriteInterface(convertedType))
-                    return false;
+            // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
+            // will replace the code with code that now always allocates.
+            if (isSingletonInstance && IsWellKnownReadWriteInterface(convertedType))
+                return false;
 
+            // Ok to convert in cases like:
+            //
+            // `IEnumerable<object> obj = Array.Empty<object>();`
+            if (IsWellKnownInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
                 return true;
-            }
 
             // Implicit reference array conversion is acceptable if the user is ok with semantics changing.  For example:
             //
-            // `object[] obj = new[] { "a" }`
+            // `object[] obj = new[] { "a" }` or
+            // `IEnumerable<object> obj = new[] { "a" }` or
             //
             // Before the change this would be a string-array.  With a collection expression this will become an object[].
             if (type is IArrayTypeSymbol)
