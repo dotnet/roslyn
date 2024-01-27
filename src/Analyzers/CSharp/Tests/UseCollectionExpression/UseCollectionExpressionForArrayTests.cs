@@ -4787,21 +4787,6 @@ public class UseCollectionExpressionForArrayTests
                     };
                 }
                 """,
-            FixedCode =
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq.Expressions;
-                
-                class C
-                {
-                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
-                    {
-                        new[] { "[]", "[]" },
-                        new[] { "[]", "[]" },
-                    };
-                }
-                """,
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = """
                 [*]
@@ -4884,6 +4869,34 @@ public class UseCollectionExpressionForArrayTests
                     ];
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
             FixedCode =
                 """
                 using System;
@@ -4892,11 +4905,102 @@ public class UseCollectionExpressionForArrayTests
                 
                 class C
                 {
-                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly =
                     [
-                        new[] { "[]", "[]" },
-                        new[] { "[]", "[]" },
+                        ["[]", "[]"],
+                        ["[]", "[]"],
                     ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray3_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = new object[][]
+                    {
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray4_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

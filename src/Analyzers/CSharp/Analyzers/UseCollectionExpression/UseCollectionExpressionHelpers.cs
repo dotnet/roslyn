@@ -279,8 +279,7 @@ internal static class UseCollectionExpressionHelpers
             // `object[] obj = new[] { "a" }`
             //
             // Before the change this would be a string-array.  With a collection expression this will become an object[].
-            if (type is IArrayTypeSymbol&&
-                convertedType is IArrayTypeSymbol)
+            if (type is IArrayTypeSymbol)
             {
                 var conversion = compilation.ClassifyConversion(type, convertedType);
                 if (conversion.IsIdentityOrImplicitReference())
