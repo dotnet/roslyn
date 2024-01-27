@@ -270,7 +270,8 @@ internal static class UseCollectionExpressionHelpers
 
             // Ok to convert in cases like:
             //
-            // `IEnumerable<object> obj = Array.Empty<object>();`
+            // `IEnumerable<object> obj = Array.Empty<object>();` or
+            // `IEnumerable<string> obj = new[] { "" };`
             if (IsWellKnownInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
                 return true;
 
