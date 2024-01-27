@@ -261,11 +261,11 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Goo"), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846588")]
@@ -865,7 +865,7 @@ namespace N
             // Having compiler-generated attributes visible via Reflaction API is not that important.
             // The same for [in] and [out] metadata flags.
             edits.VerifySemantics(active,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -885,7 +885,7 @@ namespace N
             // Having compiler-generated attributes visible via Reflaction API is not that important.
             // The same for [in] and [out] metadata flags.
             edits.VerifySemantics(active,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -1085,10 +1085,9 @@ class Goo
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Goo..ctor"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
@@ -3205,13 +3204,12 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11732,14 +11730,14 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F2")),
-                        }),
+                        ]),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1))
                 ]);
@@ -11758,14 +11756,14 @@ class C
             var srcB2 = "<AS:0>partial class C</AS:0> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
+                [GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1)],
                 [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
-                        }),
+                        ]),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
                         diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", GetResource("method", "F()"))])
@@ -11781,14 +11779,14 @@ class C
             var srcB2 = "<AS:0/>";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
+                [GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1)],
                 [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
-                        }),
+                        ]),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
                         diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "C.F()"))])
@@ -12314,7 +12312,7 @@ class C
                 : Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", "G", SimpleToStringException.ToStringOutput);
 
             validator.VerifySemantics(
-                new[] { edits },
+                [edits],
                 TargetFramework.NetCoreApp,
                 [DocumentResults(diagnostics: [expectedDiagnostic])]);
         }

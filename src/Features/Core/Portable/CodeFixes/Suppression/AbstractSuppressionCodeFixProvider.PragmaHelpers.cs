@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else
                 {
-                    newNode = nodeWithTokens.ReplaceTokens(new[] { startToken, endToken }, (o, n) => o == startToken ? newStartToken : newEndToken);
+                    newNode = nodeWithTokens.ReplaceTokens([startToken, endToken], (o, n) => o == startToken ? newStartToken : newEndToken);
                 }
 
                 var newRoot = root.ReplaceNode(nodeWithTokens, newNode);
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var newPreviousOfStart = previousOfStart.WithTrailingTrivia();
                 var newNextOfEnd = nextOfEnd.WithLeadingTrivia();
 
-                var newSubtreeRoot = subtreeRoot.ReplaceTokens(new[] { startToken, previousOfStart, endToken, nextOfEnd },
+                var newSubtreeRoot = subtreeRoot.ReplaceTokens([startToken, previousOfStart, endToken, nextOfEnd],
                     (o, n) =>
                     {
                         if (o == currentStartToken)

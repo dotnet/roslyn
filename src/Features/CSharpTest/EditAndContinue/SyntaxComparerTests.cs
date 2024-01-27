@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void GetSequenceEdits1()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
-                new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
-                new[] { MakeLiteral(1), MakeLiteral(3) });
+                [MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)],
+                [MakeLiteral(1), MakeLiteral(3)]);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 new SequenceEdit(2, -1),
                 new SequenceEdit(-1, 1),
                 new SequenceEdit(1, 0),
                 new SequenceEdit(0, -1),
-            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
+            ], edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
@@ -43,29 +43,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
                 ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 new SequenceEdit(2, -1),
                 new SequenceEdit(-1, 1),
                 new SequenceEdit(1, 0),
                 new SequenceEdit(0, -1),
-            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
+            ], edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
         public void GetSequenceEdits3()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
-                new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },
-                new[] { SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
+                [SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)],
+                [SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)]);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 new SequenceEdit(2, 2),
                 new SequenceEdit(1, -1),
                 new SequenceEdit(0, 1),
                 new SequenceEdit(-1, 0),
-            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
+            ], edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
@@ -75,21 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 new SequenceEdit(2, 2),
                 new SequenceEdit(1, -1),
                 new SequenceEdit(0, 1),
                 new SequenceEdit(-1, 0),
-            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
+            ], edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
         public void ComputeDistance_Nodes()
         {
             var distance = SyntaxComparer.ComputeDistance(
-                new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
-                new[] { MakeLiteral(1), MakeLiteral(3) });
+                [MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)],
+                [MakeLiteral(1), MakeLiteral(3)]);
 
             Assert.Equal(0.67, Math.Round(distance, 2));
         }
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void ComputeDistance_Tokens()
         {
             var distance = SyntaxComparer.ComputeDistance(
-                new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },
-                new[] { SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
+                [SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)],
+                [SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)]);
 
             Assert.Equal(0.33, Math.Round(distance, 2));
         }

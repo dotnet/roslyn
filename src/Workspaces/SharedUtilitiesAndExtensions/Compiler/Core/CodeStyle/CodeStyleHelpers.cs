@@ -155,11 +155,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new(default, NotificationOption2.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
-            new(new[]
-            {
+            new(
+            [
                 KeyValuePairUtil.Create("discard_variable", UnusedValuePreference.DiscardVariable),
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
-            });
+            ]);
 
         internal static EditorConfigValueSerializer<CodeStyleOption2<UnusedValuePreference>> GetUnusedValuePreferenceSerializer(CodeStyleOption2<UnusedValuePreference> defaultValue)
             => new(parseValue: str => ParseUnusedExpressionAssignmentPreference(str, defaultValue),

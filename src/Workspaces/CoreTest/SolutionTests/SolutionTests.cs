@@ -374,11 +374,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentId = solution.Projects.Single().DocumentIds.Single();
             var text = SourceText.From("new text");
 
-            var newSolution1 = solution.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
+            var newSolution1 = solution.WithDocumentText([documentId], text, PreservationMode.PreserveIdentity);
             Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
             Assert.Same(text, actualText);
 
-            var newSolution2 = newSolution1.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
+            var newSolution2 = newSolution1.WithDocumentText([documentId], text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
             // documents not in solution are skipped: https://github.com/dotnet/roslyn/issues/42029
@@ -386,8 +386,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { s_unrelatedDocumentId }, text));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null!, text, PreservationMode.PreserveIdentity));
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(new[] { documentId }, null!, PreservationMode.PreserveIdentity));
-            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText([documentId], null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText([documentId], text, (PreservationMode)(-1)));
         }
 
         public enum TextUpdateType
@@ -1365,12 +1365,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution2 = solution.WithProjectReferences(projectId, projectRefs);
             Assert.Same(projectRefs, solution2.GetProject(projectId)!.AllProjectReferences);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, new[] { projectRef }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), new[] { projectRef }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, [projectRef]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), [projectRef]));
 
             // cycles:
-            Assert.Throws<InvalidOperationException>(() => solution2.WithProjectReferences(projectId2, new[] { new ProjectReference(projectId) }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
+            Assert.Throws<InvalidOperationException>(() => solution2.WithProjectReferences(projectId2, [new ProjectReference(projectId)]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, [new ProjectReference(projectId)]));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42406")]
@@ -1417,18 +1417,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(new[] { projectRef2 }, solution3.GetProject(projectId)!.ProjectReferences);
             AssertEx.Equal(new[] { projectRef2, externalProjectRef }, solution3.GetProject(projectId)!.AllProjectReferences);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, new[] { projectRef2 }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, [projectRef2]));
             Assert.Throws<ArgumentNullException>("projectReferences", () => solution.AddProjectReferences(projectId, null!));
             Assert.Throws<ArgumentNullException>("projectReferences[0]", () => solution.AddProjectReferences(projectId, new ProjectReference[] { null! }));
-            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, new[] { projectRef2, projectRef2 }));
-            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, new[] { new ProjectReference(projectId2), new ProjectReference(projectId2) }));
+            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, [projectRef2, projectRef2]));
+            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, [new ProjectReference(projectId2), new ProjectReference(projectId2)]));
 
             // dup:
-            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId3, new[] { projectRef2 }));
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId3, [projectRef2]));
 
             // cycles:
-            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId2, new[] { projectRef3 }));
-            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId2, [projectRef3]));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId, [new ProjectReference(projectId)]));
         }
 
         [Fact]
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectRef2 = new ProjectReference(projectId2);
             var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
 
-            solution = solution.WithProjectReferences(projectId, new[] { projectRef2, externalProjectRef });
+            solution = solution.WithProjectReferences(projectId, [projectRef2, externalProjectRef]);
 
             // remove reference to a project that's not part of the solution:
             var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
@@ -1483,23 +1483,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(ProjectInfo.Create(submissionId2, VersionStamp.Default, name: "submission2", assemblyName: "submission2.dll", LanguageNames.CSharp, isSubmission: true))
                 .AddProject(ProjectInfo.Create(submissionId3, VersionStamp.Default, name: "submission3", assemblyName: "submission3.dll", LanguageNames.CSharp, isSubmission: true))
                 .AddProjectReference(submissionId2, new ProjectReference(submissionId1))
-                .WithProjectReferences(submissionId2, new[] { new ProjectReference(submissionId1) });
+                .WithProjectReferences(submissionId2, [new ProjectReference(submissionId1)]);
 
             // submission may be referenced from multiple submissions (forming a tree):
-            _ = solution.AddProjectReferences(submissionId3, new[] { new ProjectReference(submissionId1) });
-            _ = solution.WithProjectReferences(submissionId3, new[] { new ProjectReference(submissionId1) });
+            _ = solution.AddProjectReferences(submissionId3, [new ProjectReference(submissionId1)]);
+            _ = solution.WithProjectReferences(submissionId3, [new ProjectReference(submissionId1)]);
 
             // submission may reference a non-submission project:
-            _ = solution.AddProjectReferences(submissionId3, new[] { new ProjectReference(projectId0) });
-            _ = solution.WithProjectReferences(submissionId3, new[] { new ProjectReference(projectId0) });
+            _ = solution.AddProjectReferences(submissionId3, [new ProjectReference(projectId0)]);
+            _ = solution.WithProjectReferences(submissionId3, [new ProjectReference(projectId0)]);
 
             // submission can't reference multiple submissions:
-            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(submissionId2, new[] { new ProjectReference(submissionId3) }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(submissionId1, new[] { new ProjectReference(submissionId2), new ProjectReference(submissionId3) }));
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(submissionId2, [new ProjectReference(submissionId3)]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(submissionId1, [new ProjectReference(submissionId2), new ProjectReference(submissionId3)]));
 
             // non-submission project can't reference a submission:
-            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId0, new[] { new ProjectReference(submissionId1) }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId0, new[] { new ProjectReference(submissionId1) }));
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId0, [new ProjectReference(submissionId1)]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId0, [new ProjectReference(submissionId1)]));
         }
 
         [Fact]
@@ -1516,8 +1516,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 metadataRef,
                 allowDuplicates: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectMetadataReferences(null!, new[] { metadataRef }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectMetadataReferences(ProjectId.CreateNewId(), new[] { metadataRef }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectMetadataReferences(null!, [metadataRef]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectMetadataReferences(ProjectId.CreateNewId(), [metadataRef]));
         }
 
         [Fact]
@@ -1586,8 +1586,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 analyzerRef,
                 allowDuplicates: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAnalyzerReferences(null!, new[] { analyzerRef }));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectAnalyzerReferences(ProjectId.CreateNewId(), new[] { analyzerRef }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAnalyzerReferences(null!, [analyzerRef]));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectAnalyzerReferences(ProjectId.CreateNewId(), [analyzerRef]));
         }
 
         [Fact]
@@ -2396,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // Parse Options
             var oldParseOptions = solution.GetProject(project1).ParseOptions;
-            var newParseOptions = new CSharpParseOptions(preprocessorSymbols: new[] { "AFTER" });
+            var newParseOptions = new CSharpParseOptions(preprocessorSymbols: ["AFTER"]);
             solution = solution.WithProjectParseOptions(project1, newParseOptions);
             var newUpdatedParseOptions = solution.GetProject(project1).ParseOptions;
             Assert.NotEqual(oldParseOptions, newUpdatedParseOptions);
@@ -3198,11 +3198,11 @@ End Class";
         [Fact]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var hostServices = FeaturesTestCompositions.Features.AddParts(new[]
-            {
+            var hostServices = FeaturesTestCompositions.Features.AddParts(
+            [
                 typeof(TestLanguageServiceA),
                 typeof(TestLanguageServiceB),
-            }).GetHostServices();
+            ]).GetHostServices();
 
             var ws = new AdhocWorkspace(hostServices, ServiceLayer.Host);
             var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
@@ -3386,7 +3386,7 @@ public class C : A {
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef }));
+                    metadataReferences: [MscorlibRef]));
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -3394,8 +3394,8 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(project1.Id)]));
 
             // Nothing should have incomplete references, and everything should build
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
@@ -3414,7 +3414,7 @@ public class C : A {
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef }));
+                    metadataReferences: [MscorlibRef]));
             workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
 
             var project2 = workspace.AddProject(
@@ -3424,8 +3424,8 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(project1.Id)]));
 
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.False(project2.HasSuccessfullyLoadedAsync().Result);
@@ -3559,7 +3559,7 @@ public class C : A {
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef }));
+                    metadataReferences: [MscorlibRef]));
 
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3568,8 +3568,8 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(project1.Id)]));
 
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
 
@@ -4209,7 +4209,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -4230,7 +4230,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -4257,7 +4257,7 @@ class C
 
             var projectInfo =
                 ProjectInfo.Create(projectId, VersionStamp.Default, "Test", "Test", LanguageNames.CSharp)
-                    .WithAnalyzerConfigDocuments(new[] { DocumentInfo.Create(editorConfigDocumentId, ".editorconfig", filePath: editorConfigFilePath) });
+                    .WithAnalyzerConfigDocuments([DocumentInfo.Create(editorConfigDocumentId, ".editorconfig", filePath: editorConfigFilePath)]);
 
             solution = solution.AddProject(projectInfo);
 
@@ -4285,7 +4285,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef }).WithHasAllInformation(hasAllInformation: false));
+                    metadataReferences: [MscorlibRef]).WithHasAllInformation(hasAllInformation: false));
 
             vbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4294,7 +4294,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef }));
+                    metadataReferences: [MscorlibRef]));
 
             dependsOnBrokenProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4303,8 +4303,8 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id)]));
 
             dependsOnVbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4313,8 +4313,8 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(vbNormalProject.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(vbNormalProject.Id)]));
 
             transitivelyDependsOnBrokenProjects = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4323,8 +4323,8 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(dependsOnBrokenProject.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(dependsOnBrokenProject.Id)]));
 
             transitivelyDependsOnNormalProjects = workspace.AddProject(
                 ProjectInfo.Create(
@@ -4333,8 +4333,8 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: new[] { MscorlibRef },
-                    projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
+                    metadataReferences: [MscorlibRef],
+                    projectReferences: [new ProjectReference(dependsOnVbNormalProject.Id)]));
         }
 
         [Fact]
@@ -4386,7 +4386,7 @@ class C
                 name: "TestProject",
                 assemblyName: "TestProject.dll",
                 language: LanguageNames.CSharp,
-                documents: new[] { docInfo });
+                documents: [docInfo]);
 
             var solution = workspace.CurrentSolution.AddProject(projInfo);
             var doc = solution.GetDocument(docInfo.Id);

@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 //     trivia accordingly.
 
                 var rewrittenRoot = root.ReplaceSyntax(
-                    nodes: new[] { nodeToFormat },
+                    nodes: [nodeToFormat],
                     computeReplacementNode: (oldNode, newNode) => newNode.WithAdditionalAnnotations(s_toFormatAnnotation),
 
                     tokens: leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct(),

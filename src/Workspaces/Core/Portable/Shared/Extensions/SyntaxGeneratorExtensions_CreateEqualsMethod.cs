@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         factory.IsTypeExpression(
                             objNameExpression,
                             containingType)),
-                    new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
+                    [factory.ReturnStatement(factory.FalseLiteralExpression())]);
 
                 // Next, we cast the argument to our type:
                 //

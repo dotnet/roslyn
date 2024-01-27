@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     // Find the destination for the local function after the callsite has been fixed up.
                     var destination = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
-                    var updatedDestination = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
+                    var updatedDestination = codeGenerationService.AddStatements(destination, [localMethod], info, cancellationToken);
 
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
                     return finalRoot;

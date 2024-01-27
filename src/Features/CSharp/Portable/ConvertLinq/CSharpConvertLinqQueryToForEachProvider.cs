@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
                 var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
                 var newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
-                documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
+                documentUpdateInfo = new DocumentUpdateInfo(parentStatement, [localFunctionDeclaration, newParentExpressionStatement]);
                 return true;
             }
 
