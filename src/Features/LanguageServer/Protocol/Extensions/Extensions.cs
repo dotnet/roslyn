@@ -116,12 +116,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ImmutableArray.Create(DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated: true, debugName: documentUri.AbsolutePath.Substring(slashAfterId + 1)));
         }
 
+        /// <summary>
+        /// Finds a regular document for a TextDocumentIdentifier; if you need to also return source generated files, call <see cref="GetDocumentAsync"/>.
+        /// </summary>
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documents = solution.GetDocuments(documentIdentifier.Uri);
             return documents.Length == 0
                 ? null
                 : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
+        }
+
+        /// <summary>
+        /// Finds the document for a TextDocumentIdentifier, potentially returning a source-generated file.
+        /// </summary>
+        public static async ValueTask<Document?> GetDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        {
+            if (documentIdentifier.Uri.Scheme == ProtocolConversions.SourceGeneratedFileScheme)
+            {
+                // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
+                // this means we can safely call .Single() and not worry about calling FindDocumentInProjectContext.
+                var documentId = solution.GetDocumentIds(documentIdentifier.Uri).Single();
+                return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+            }
+            else
+            {
+                return solution.GetDocument(documentIdentifier);
+            }
         }
 
         private static T FindItemInProjectContext<T>(
