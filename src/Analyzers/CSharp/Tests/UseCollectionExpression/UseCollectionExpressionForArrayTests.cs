@@ -5010,4 +5010,50 @@ public class UseCollectionExpressionForArrayTests
                 """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object EmptyOrConstantsOnly = new object[]
+                    {
+                        ""
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestArray2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object EmptyOrConstantsOnly = new[]
+                    {
+                        ""
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
