@@ -340,14 +340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
         }
 
-        public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
-        {
-            var syntax = (CommonForEachStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(syntax,
-                                                  base.InstrumentForEachStatementConditionalGotoStart(original, branchBack),
-                                                  syntax.InKeyword.Span);
-        }
-
         public override BoundExpression InstrumentForStatementCondition(BoundForStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         {
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 

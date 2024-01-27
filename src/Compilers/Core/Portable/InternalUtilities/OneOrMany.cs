@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DebuggerTypeProxy(typeof(OneOrMany<>.DebuggerProxy))]
-    internal readonly struct OneOrMany<T>
+    internal readonly struct OneOrMany<T> : IEquatable<OneOrMany<T>>
     {
         public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
 
@@ -59,6 +59,9 @@ namespace Roslyn.Utilities
         [MemberNotNullWhen(true, nameof(_one))]
         private bool HasOneItem
             => _many.IsDefault;
+
+        public bool IsDefault
+            => _one == null && _many.IsDefault;
 
         public T this[int index]
         {
@@ -211,6 +214,21 @@ namespace Roslyn.Utilities
 
             return true;
         }
+
+        public bool Equals(OneOrMany<T> other)
+            => HasOneItem ? EqualityComparer<T>.Default.Equals(_one, other._one) : _many.Equals(other._many);
+
+        public override bool Equals(object? obj)
+            => obj is OneOrMany<T> other && Equals(other);
+
+        public override int GetHashCode()
+            => Hash.Combine(_one?.GetHashCode() ?? 0, _many.GetHashCode());
+
+        public static bool operator ==(OneOrMany<T> left, OneOrMany<T> right)
+            => left.Equals(right);
+
+        public static bool operator !=(OneOrMany<T> left, OneOrMany<T> right)
+            => !left.Equals(right);
 
         public Enumerator GetEnumerator()
             => new(this);

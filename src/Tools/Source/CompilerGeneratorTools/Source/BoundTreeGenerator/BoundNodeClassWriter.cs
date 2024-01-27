@@ -667,18 +667,18 @@ namespace BoundTreeGenerator
 
                 foreach (Field field in nullCheckFields)
                 {
-                    bool isROArray = (GetGenericType(field.Type) == "ImmutableArray");
+                    bool useIsDefaultProperty = GetGenericType(field.Type) is "ImmutableArray" or "OneOrMany";
                     switch (_targetLang)
                     {
                         case TargetLanguage.CSharp:
-                            if (isROArray)
+                            if (useIsDefaultProperty)
                                 WriteLine("RoslynDebug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
                                 WriteLine("RoslynDebug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
-                            if (isROArray)
+                            if (useIsDefaultProperty)
                                 WriteLine("Debug.Assert(Not ({0}.IsDefault), \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
                             else
                                 WriteLine("Debug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));

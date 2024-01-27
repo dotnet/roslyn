@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -114,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
         }
 
-        public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
-        {
-            return Previous.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack);
-        }
-
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
             return Previous.InstrumentForEachStatementConditionalGotoStart(original, branchBack);
+        }
+
+        public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
+        {
+            return Previous.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack);
         }
 
         public override BoundExpression InstrumentForStatementCondition(BoundForStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
@@ -157,6 +159,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundExpression InstrumentCall(BoundCall original, BoundExpression rewritten)
         {
             return Previous.InstrumentCall(original, rewritten);
+        }
+
+        public override void InterceptCallAndAdjustArguments(
+            ref MethodSymbol method,
+            ref BoundExpression? receiver,
+            ref ImmutableArray<BoundExpression> arguments,
+            ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            bool invokedAsExtensionMethod,
+            SimpleNameSyntax? nameSyntax)
+        {
+            Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt, invokedAsExtensionMethod, nameSyntax);
         }
 
         public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)

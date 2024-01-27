@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -203,13 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
 
-            if (instrumentation != null)
-            {
-                newBody = F.Block(
-                    ImmutableArray.Create(instrumentation.Local),
-                    instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
-            }
+            newBody = F.Instrument(newBody, instrumentation);
 
             F.CloseMethod(newBody);
         }
