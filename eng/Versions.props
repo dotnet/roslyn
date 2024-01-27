@@ -38,6 +38,9 @@
     <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.803</MicrosoftDevDivOptimizationDataPowerShellVersion>
+
+    <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71827 -->
+    <MicrosoftDotNetXliffTasksVersion>9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>

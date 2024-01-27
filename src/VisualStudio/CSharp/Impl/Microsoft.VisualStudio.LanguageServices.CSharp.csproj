@@ -16,6 +16,9 @@
     <DeployExtension>false</DeployExtension>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
+  </ItemGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefInstalledProduct Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" Name="Microsoft Visual C#" DisplayName="#116" ProductDetails="#117" />
     <PkgDefPackageRegistration Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}" Name="CSharpVsInteractiveWindowPackage" Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage" AllowsBackgroundLoad="true" />
